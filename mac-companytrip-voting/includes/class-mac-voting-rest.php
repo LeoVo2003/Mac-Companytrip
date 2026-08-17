@@ -1,0 +1,288 @@
+<?php
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+final class MAC_Voting_REST {
+    private const NS = 'mac-voting/v1';
+
+    public static function init(): void {
+        add_action('rest_api_init', array(__CLASS__, 'routes'));
+    }
+
+    public static function routes(): void {
+        register_rest_route(self::NS, '/bootstrap', array(
+            'methods' => 'GET', 'callback' => array(__CLASS__, 'bootstrap'), 'permission_callback' => '__return_true',
+        ));
+        register_rest_route(self::NS, '/login', array(
+            'methods' => 'POST', 'callback' => array(__CLASS__, 'login'), 'permission_callback' => '__return_true',
+        ));
+        register_rest_route(self::NS, '/logout', array(
+            'methods' => 'POST', 'callback' => array(__CLASS__, 'logout'), 'permission_callback' => '__return_true',
+        ));
+        register_rest_route(self::NS, '/submit', array(
+            'methods' => 'POST', 'callback' => array(__CLASS__, 'submit'), 'permission_callback' => array(__CLASS__, 'has_voter_session'),
+        ));
+        register_rest_route(self::NS, '/results', array(
+            'methods' => 'GET', 'callback' => array(__CLASS__, 'results'), 'permission_callback' => '__return_true',
+        ));
+    }
+
+    public static function has_voter_session() {
+        return MAC_Voting_Auth::voter_id() ?: new WP_Error('unauthorized', 'Bạn cần đăng nhập để chấm điểm.', array('status' => 401));
+    }
+
+    public static function bootstrap(): WP_REST_Response {
+        if (!MAC_Voting_DB::is_voting_enabled()) {
+            return rest_ensure_response(array('enabled' => false, 'authenticated' => false));
+        }
+        $voter_id = MAC_Voting_Auth::voter_id();
+        if (!$voter_id) {
+            return rest_ensure_response(array('enabled' => true, 'authenticated' => false));
+        }
+        $state = self::vote_state($voter_id);
+        if (is_wp_error($state)) {
+            MAC_Voting_Auth::logout();
+            return rest_ensure_response(array('enabled' => true, 'authenticated' => false));
+        }
+        return rest_ensure_response(array('enabled' => true, 'authenticated' => true, 'state' => $state));
+    }
+
+    public static function login(WP_REST_Request $request) {
+        if (!MAC_Voting_DB::is_voting_enabled()) {
+            return new WP_Error('voting_disabled', 'Chương trình chưa mở.', array('status' => 403));
+        }
+        global $wpdb;
+        $submitted_username = sanitize_text_field((string) $request->get_param('username'));
+        $email = MAC_Voting_DB::normalize_company_email($submitted_username);
+        $rate_identity = $email ?: mb_strtolower(trim($submitted_username), 'UTF-8');
+        if (!$email) {
+            return new WP_Error('invalid_login', 'Vui lòng nhập đúng username email công ty.', array('status' => 400));
+        }
+        $allowed = MAC_Voting_Auth::ensure_login_allowed($rate_identity);
+        if (is_wp_error($allowed)) {
+            return $allowed;
+        }
+        $voters = MAC_Voting_DB::table('voters');
+        $teams = MAC_Voting_DB::table('teams');
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT v.id,v.full_name,v.email,v.status,t.name AS team_name,t.team_no
+             FROM $voters v JOIN $teams t ON t.id=v.team_id WHERE v.email=%s",
+            $email
+        ), ARRAY_A);
+        if (!$row || $row['status'] !== 'ACTIVE') {
+            MAC_Voting_Auth::failed_login($rate_identity);
+            MAC_Voting_DB::audit('SYSTEM', $rate_identity, 'USERNAME_LOGIN_FAILED', 'voter', null, array('username' => $rate_identity));
+            return new WP_Error('invalid_login', 'Email này chưa có trong danh sách chấm điểm. Vui lòng liên hệ ban tổ chức.', array('status' => 401));
+        }
+        $voter_id = (int) $row['id'];
+        MAC_Voting_Auth::clear_login_attempts($rate_identity);
+        MAC_Voting_Auth::create_session($voter_id);
+        MAC_Voting_DB::audit('VOTER', (string) $voter_id, 'USERNAME_LOGIN_SUCCESS', 'voter', (string) $voter_id, array('method' => 'company_email'));
+        return rest_ensure_response(array(
+            'voter' => array(
+                'id' => $voter_id, 'fullName' => $row['full_name'], 'teamName' => $row['team_name'], 'teamNumber' => (int) $row['team_no'],
+            ),
+            'state' => self::vote_state($voter_id),
+        ));
+    }
+
+    public static function logout(): WP_REST_Response {
+        MAC_Voting_Auth::logout();
+        return rest_ensure_response(array('ok' => true));
+    }
+
+    public static function results(): WP_REST_Response {
+        global $wpdb;
+        $teams = MAC_Voting_DB::table('teams');
+        $performances = MAC_Voting_DB::table('performances');
+        $slots = MAC_Voting_DB::table('slots');
+        $ballots = MAC_Voting_DB::table('ballots');
+        $rows = $wpdb->get_results("SELECT p.id AS performance_id,t.id AS team_id,t.team_no,t.name AS team_name,
+                COUNT(b.id) AS voter_count,AVG(b.total_score) AS average_score
+            FROM $performances p
+            JOIN $slots s ON s.performance_id=p.id
+            JOIN $teams t ON t.id=p.team_id
+            LEFT JOIN $ballots b ON b.performance_id=p.id AND b.status='VALID'
+            GROUP BY p.id,t.id
+            ORDER BY average_score DESC,t.team_no", ARRAY_A) ?: array();
+        $state = MAC_Voting_DB::reveal_state();
+        $rank = 0;
+        $previous_score = null;
+        foreach ($rows as $index => &$row) {
+            if ($row['average_score'] !== null && ($previous_score === null || (float) $previous_score !== (float) $row['average_score'])) {
+                $rank = $index + 1;
+            }
+            $row['rank'] = $row['average_score'] === null ? null : $rank;
+            $previous_score = $row['average_score'];
+        }
+        unset($row);
+        $featured_ids = array_map('intval', array_column(array_slice($rows, -3), 'team_id'));
+        $public_teams = array_map(static function(array $row) use ($state, $featured_ids): array {
+            $is_decoy_featured = $state['stage'] === 'DECOY' && in_array((int) $row['team_id'], $featured_ids, true);
+            $minimum_revealed_rank = array(
+                'THIRD' => 3,
+                'SECOND' => 2,
+                'FINAL' => 1,
+            )[$state['stage']] ?? null;
+            $is_rank_revealed = $minimum_revealed_rank !== null
+                && $row['rank'] !== null
+                && (int) $row['rank'] >= $minimum_revealed_rank;
+            $show_score = $is_decoy_featured || $is_rank_revealed;
+            return array(
+                'id' => (int) $row['team_id'],
+                'number' => (int) $row['team_no'],
+                'name' => $row['team_name'],
+                'score' => $show_score && $row['average_score'] !== null ? round((float) $row['average_score'], 2) : null,
+                'rank' => $is_rank_revealed ? $row['rank'] : null,
+                'voterCount' => $is_rank_revealed ? (int) $row['voter_count'] : null,
+                'featured' => $is_decoy_featured,
+            );
+        }, $rows);
+        usort($public_teams, static fn(array $a, array $b): int => $a['number'] <=> $b['number']);
+        $response = rest_ensure_response(array(
+            'stage' => $state['stage'],
+            'revision' => $state['revision'],
+            'changedAt' => $state['changedAt'],
+            'serverTime' => (int) round(microtime(true) * 1000),
+            'teams' => $public_teams,
+        ));
+        $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        return $response;
+    }
+
+    public static function vote_state(int $voter_id) {
+        global $wpdb;
+        $voters = MAC_Voting_DB::table('voters');
+        $teams = MAC_Voting_DB::table('teams');
+        $rounds = MAC_Voting_DB::table('rounds');
+        $slots = MAC_Voting_DB::table('slots');
+        $performances = MAC_Voting_DB::table('performances');
+        $ballots = MAC_Voting_DB::table('ballots');
+        $grants = MAC_Voting_DB::table('revote_grants');
+        $voter = $wpdb->get_row($wpdb->prepare(
+            "SELECT v.id,v.full_name,v.team_id,v.status,t.name AS team_name,t.team_no
+             FROM $voters v JOIN $teams t ON t.id=v.team_id WHERE v.id=%d",
+            $voter_id
+        ), ARRAY_A);
+        if (!$voter || $voter['status'] !== 'ACTIVE') {
+            return new WP_Error('unauthorized', 'Phiên đăng nhập không còn hiệu lực.', array('status' => 401));
+        }
+        $base = array(
+            'voter' => array('id' => (int) $voter['id'], 'fullName' => $voter['full_name'], 'teamName' => $voter['team_name'], 'teamNumber' => (int) $voter['team_no']),
+            'round' => null,
+            'performances' => array(),
+        );
+        $revote = $wpdb->get_row($wpdb->prepare(
+            "SELECT g.id AS grant_id,s.position,s.round_id,r.opened_at,p.id AS performance_id,p.team_id,p.title,t.name AS team_name,t.team_no
+             FROM $grants g JOIN $performances p ON p.id=g.performance_id JOIN $slots s ON s.performance_id=p.id
+             JOIN $rounds r ON r.id=s.round_id JOIN $teams t ON t.id=p.team_id
+             WHERE g.voter_id=%d AND g.unused_key='UNUSED'
+             ORDER BY g.created_at,g.id LIMIT 1",
+            $voter_id
+        ), ARRAY_A);
+        if ($revote) {
+            $own = (int) $revote['team_id'] === (int) $voter['team_id'];
+            $base['round'] = array('id' => (int) $revote['round_id'], 'openedAt' => $revote['opened_at'], 'isRevote' => true);
+            $base['performances'] = array(array(
+                'id' => (int) $revote['performance_id'], 'position' => (int) $revote['position'], 'title' => $revote['title'],
+                'teamName' => $revote['team_name'], 'teamNumber' => (int) $revote['team_no'], 'isOwnTeam' => $own,
+                'hasVoted' => false, 'canVote' => !$own, 'isRevote' => true,
+            ));
+            $base['status'] = $own ? 'DONE' : 'OPEN';
+            return $base;
+        }
+        $round = $wpdb->get_row("SELECT id,opened_at FROM $rounds WHERE status='OPEN' LIMIT 1", ARRAY_A);
+        if (!$round) {
+            return array_merge($base, array('status' => 'WAITING'));
+        }
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT s.position,p.id AS performance_id,p.team_id,p.title,t.name AS team_name,t.team_no,
+                EXISTS(SELECT 1 FROM $ballots b WHERE b.voter_id=%d AND b.performance_id=p.id AND b.status='VALID') AS has_voted,
+                EXISTS(SELECT 1 FROM $ballots b2 WHERE b2.voter_id=%d AND b2.performance_id=p.id) AS has_history,
+                EXISTS(SELECT 1 FROM $grants g WHERE g.voter_id=%d AND g.performance_id=p.id AND g.unused_key='UNUSED') AS can_revote
+             FROM $slots s JOIN $performances p ON p.id=s.performance_id JOIN $teams t ON t.id=p.team_id
+             WHERE s.round_id=%d ORDER BY s.position",
+            $voter_id, $voter_id, $voter_id, (int) $round['id']
+        ), ARRAY_A);
+        $items = array();
+        $has_open = false;
+        foreach ($rows ?: array() as $row) {
+            $own = (int) $row['team_id'] === (int) $voter['team_id'];
+            $blocked_revoke = (bool) $row['has_history'] && !(bool) $row['has_voted'] && !(bool) $row['can_revote'];
+            $can_vote = !$own && !(bool) $row['has_voted'] && !$blocked_revoke;
+            $has_open = $has_open || $can_vote;
+            $items[] = array(
+                'id' => (int) $row['performance_id'], 'position' => (int) $row['position'], 'title' => $row['title'],
+                'teamName' => $row['team_name'], 'teamNumber' => (int) $row['team_no'], 'isOwnTeam' => $own,
+                'hasVoted' => (bool) $row['has_voted'], 'canVote' => $can_vote,
+            );
+        }
+        $base['round'] = array('id' => (int) $round['id'], 'openedAt' => $round['opened_at']);
+        $base['performances'] = $items;
+        $base['status'] = $has_open ? 'OPEN' : 'DONE';
+        return $base;
+    }
+
+    public static function submit(WP_REST_Request $request) {
+        if (!MAC_Voting_DB::is_voting_enabled()) {
+            return new WP_Error('voting_disabled', 'Chương trình chưa mở.', array('status' => 403));
+        }
+        global $wpdb;
+        $voter_id = (int) MAC_Voting_Auth::voter_id();
+        $performance_id = absint($request->get_param('performanceId'));
+        $request_id = sanitize_text_field((string) $request->get_param('requestId'));
+        $scores = $request->get_param('scores');
+        $allowed_scores = array(10, 20, 30, 40, 50);
+        $style = is_array($scores) ? (int) ($scores['styleScore'] ?? 0) : 0;
+        $staging = is_array($scores) ? (int) ($scores['stagingScore'] ?? 0) : 0;
+        $teamwork = is_array($scores) ? (int) ($scores['teamworkScore'] ?? 0) : 0;
+        if (!$performance_id || !wp_is_uuid($request_id) || !in_array($style, $allowed_scores, true) || !in_array($staging, $allowed_scores, true) || !in_array($teamwork, $allowed_scores, true)) {
+            return new WP_Error('invalid_ballot', 'Vui lòng chấm đủ 3 tiêu chí.', array('status' => 400));
+        }
+        $ballots = MAC_Voting_DB::table('ballots');
+        if ($wpdb->get_var($wpdb->prepare("SELECT id FROM $ballots WHERE request_id=%s", $request_id))) {
+            return rest_ensure_response(array('ok' => true, 'duplicate' => true, 'state' => self::vote_state($voter_id)));
+        }
+        $voters = MAC_Voting_DB::table('voters');
+        $performances = MAC_Voting_DB::table('performances');
+        $slots = MAC_Voting_DB::table('slots');
+        $rounds = MAC_Voting_DB::table('rounds');
+        $target = $wpdb->get_row($wpdb->prepare(
+            "SELECT p.team_id,s.round_id,r.status AS round_status,v.team_id AS voter_team,v.status AS voter_status
+             FROM $performances p JOIN $slots s ON s.performance_id=p.id JOIN $rounds r ON r.id=s.round_id JOIN $voters v ON v.id=%d
+             WHERE p.id=%d",
+            $voter_id, $performance_id
+        ), ARRAY_A);
+        if (!$target || $target['voter_status'] !== 'ACTIVE') return new WP_Error('forbidden', 'Tài khoản không hợp lệ.', array('status' => 403));
+        if ((int) $target['team_id'] === (int) $target['voter_team']) return new WP_Error('own_team', 'Bạn không thể chấm tiết mục của team mình.', array('status' => 403));
+        if ($wpdb->get_var($wpdb->prepare("SELECT id FROM $ballots WHERE voter_id=%d AND performance_id=%d AND status='VALID'", $voter_id, $performance_id))) {
+            return new WP_Error('already_voted', 'Bạn đã chấm tiết mục này rồi.', array('status' => 409));
+        }
+        $history_count = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $ballots WHERE voter_id=%d AND performance_id=%d", $voter_id, $performance_id));
+        $grants = MAC_Voting_DB::table('revote_grants');
+        $grant_id = (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $grants WHERE voter_id=%d AND performance_id=%d AND unused_key='UNUSED' LIMIT 1", $voter_id, $performance_id));
+        if ($target['round_status'] !== 'OPEN' && !$grant_id) return new WP_Error('round_closed', 'Lượt chấm điểm này đã đóng.', array('status' => 409));
+        if ($history_count > 0 && !$grant_id) return new WP_Error('revote_blocked', 'Phiếu trước đã bị hủy và chưa được cấp quyền vote lại.', array('status' => 403));
+
+        $wpdb->query('START TRANSACTION');
+        $inserted = $wpdb->insert($ballots, array(
+            'request_id' => $request_id, 'voter_id' => $voter_id, 'performance_id' => $performance_id,
+            'round_id' => (int) $target['round_id'], 'style_score' => $style, 'staging_score' => $staging,
+            'teamwork_score' => $teamwork, 'total_score' => $style + $staging + $teamwork,
+            'status' => 'VALID', 'active_key' => 'VALID', 'created_at' => MAC_Voting_DB::utc_now(),
+        ), array('%s','%d','%d','%d','%d','%d','%d','%d','%s','%s','%s'));
+        if (!$inserted) {
+            $wpdb->query('ROLLBACK');
+            return new WP_Error('duplicate_vote', 'Phiếu đã tồn tại hoặc không thể ghi nhận.', array('status' => 409));
+        }
+        $ballot_id = (int) $wpdb->insert_id;
+        if ($grant_id) {
+            $wpdb->update($grants, array('unused_key' => null, 'used_at' => MAC_Voting_DB::utc_now()), array('id' => $grant_id), array('%s','%s'), array('%d'));
+        }
+        $wpdb->query('COMMIT');
+        MAC_Voting_DB::audit('VOTER', (string) $voter_id, 'BALLOT_SUBMITTED', 'ballot', (string) $ballot_id, array('performanceId' => $performance_id));
+        return rest_ensure_response(array('ok' => true, 'state' => self::vote_state($voter_id)));
+    }
+}

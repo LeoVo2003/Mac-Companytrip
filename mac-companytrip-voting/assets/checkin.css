@@ -1,0 +1,283 @@
+/* BTC check-in scanner — Premium direction with MAC Marketing brand tokens. */
+body.mac-checkin-page {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden;
+  background: #f5f5f7;
+}
+
+body.mac-checkin-page .site-header,
+body.mac-checkin-page .site-footer,
+body.mac-checkin-page #masthead,
+body.mac-checkin-page #colophon,
+body.mac-checkin-page header.wp-block-template-part,
+body.mac-checkin-page footer.wp-block-template-part,
+body.mac-checkin-page .elementor-location-header,
+body.mac-checkin-page .elementor-location-footer,
+body.mac-checkin-page [data-elementor-type="header"],
+body.mac-checkin-page [data-elementor-type="footer"],
+body.mac-checkin-page .page-header,
+body.mac-checkin-page .entry-title,
+body.mac-checkin-page .wp-block-post-title {
+  display: none !important;
+}
+
+body.mac-checkin-page .site-main,
+body.mac-checkin-page .site-content,
+body.mac-checkin-page .page-content,
+body.mac-checkin-page .entry-content,
+body.mac-checkin-page .wp-block-post-content {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.mac-checkin-app {
+  --red: #e31e24;
+  --orange: #ff6a2c;
+  --gradient: linear-gradient(120deg, var(--red), var(--orange));
+  --page: #f5f5f7;
+  --panel: #ffffff;
+  --subtle: #fafafc;
+  --text: #111827;
+  --muted: #667085;
+  --border: #e4e7ec;
+  --success: #17875b;
+  --warning: #b54708;
+  --danger: #b42318;
+  --focus: rgba(227, 30, 36, 0.18);
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  color: var(--text);
+  background: var(--page);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mac-checkin-app *,
+.mac-checkin-app *::before,
+.mac-checkin-app *::after {
+  box-sizing: border-box;
+}
+
+.mac-checkin-app button,
+.mac-checkin-app select {
+  font: inherit;
+}
+
+.mac-checkin-app button:focus-visible,
+.mac-checkin-app select:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.mc-loading {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  gap: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.mc-loading img {
+  width: 120px;
+}
+
+.mc-shell {
+  width: min(100%, 560px);
+  margin: 0 auto;
+  padding: 16px 16px 32px;
+}
+
+.mc-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mc-top img {
+  width: 84px;
+  height: auto;
+}
+
+.mc-logout {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.mc-card {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--panel);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
+}
+
+.mc-kicker {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.mc-card h1 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+
+.mc-card .mc-meta {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.mc-progress {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.mc-progress strong {
+  font-size: 30px;
+  letter-spacing: -0.03em;
+}
+
+.mc-bar {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f2f4f7;
+}
+
+.mc-bar b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gradient);
+}
+
+.mc-teams,
+.mc-missing {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.mc-teams button,
+.mc-missing li {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--subtle);
+  color: inherit;
+  text-align: left;
+}
+
+.mc-teams button.active {
+  border-color: #fed7cc;
+  background: #fff4f0;
+  box-shadow: inset 0 0 0 1px #fed7cc;
+}
+
+.mc-camera {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #111827;
+  aspect-ratio: 3 / 4;
+}
+
+.mc-camera video,
+.mc-camera canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mc-camera canvas {
+  display: none;
+}
+
+.mc-frame {
+  position: absolute;
+  inset: 18%;
+  border: 2px solid rgba(255, 255, 255, 0.88);
+  border-radius: 18px;
+  box-shadow: 0 0 0 999px rgba(17, 24, 39, 0.28);
+  pointer-events: none;
+}
+
+.mc-flash {
+  min-height: 72px;
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-weight: 650;
+}
+
+.mc-flash.ok {
+  color: #065f46;
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
+}
+
+.mc-flash.warn {
+  color: #93370d;
+  background: #fffaeb;
+  border: 1px solid #fedf89;
+}
+
+.mc-flash.err {
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+}
+
+.mc-empty,
+.mc-done {
+  padding: 28px 8px 12px;
+  text-align: center;
+}
+
+.mc-done {
+  color: var(--success);
+}
+
+.mc-done strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-bar b {
+    transition: none;
+  }
+}
