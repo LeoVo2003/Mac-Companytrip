@@ -444,7 +444,7 @@ final class MAC_Voting_Admin {
             $row_issues = array();
             if (!$name) $row_issues[] = 'thiếu họ tên';
             if (!$team) $row_issues[] = 'team không hợp lệ: ' . ($team_value ?: '(trống)');
-            if (!$email) $row_issues[] = 'email phải thuộc @macusaone.com hoặc @yesoffice.vn';
+            if (!$email) $row_issues[] = 'email phải thuộc @macusaone.com, @yesoffice.vn hoặc @macmarketing.vn';
             if ($row_issues) { $errors[] = "Dòng $line: " . implode(', ', $row_issues); continue; }
             $employee = isset($columns['employee']) ? sanitize_text_field($row[$columns['employee']] ?? '') : '';
             $status_text = isset($columns['status']) ? MAC_Voting_DB::normalize_name((string) ($row[$columns['status']] ?? '')) : 'hoat dong';
@@ -847,7 +847,7 @@ final class MAC_Voting_Admin {
         fputcsv($out, array('Đặng Văn G','MAC007','#6 Hải Đăng','dangvang@macusaone.com','Hoạt động','',''));
         fputcsv($out, array('Ngô Thị H','MAC008','#2 Hải Đồ','ngothih','Không hoạt động','',''));
         fputcsv($out, array('Trần Văn BTC','MAC100','#7 Hoa tiêu','tranvanbtc','Hoạt động','BTC',''));
-        fputcsv($out, array('Lê Thị Super','MAC101','#7 Hoa tiêu','lethisuper@yesoffice.vn','Hoạt động','Super admin',''));
+        fputcsv($out, array('Lê Thị Super','MAC101','#7 Hoa tiêu','lethisuper@macmarketing.vn','Hoạt động','Super admin',''));
         fclose($out); exit;
     }
 

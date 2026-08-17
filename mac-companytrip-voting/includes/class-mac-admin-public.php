@@ -124,6 +124,7 @@ final class MAC_Admin_Public {
                         <select id="ma-login-domain" name="domain" aria-label="Tên miền email">
                             <option value="macusaone.com" selected>@macusaone.com</option>
                             <option value="yesoffice.vn">@yesoffice.vn</option>
+                            <option value="macmarketing.vn">@macmarketing.vn</option>
                         </select>
                     </label>
                 </div>

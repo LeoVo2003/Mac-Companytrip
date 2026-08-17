@@ -406,7 +406,7 @@ body.mac-voting-page .elementor-widget-container:has(#mac-voting-app) {
 
 .mv-email-input .mv-email-domain select {
   min-height: 44px;
-  max-width: 168px;
+  max-width: 188px;
   padding: 0 22px 0 4px;
   border: 0;
   border-radius: 0;

@@ -6,7 +6,7 @@
   const button = form.querySelector("button[type='submit']");
   const userInput = form.querySelector("#ma-login-user");
   const domainSelect = form.querySelector("#ma-login-domain");
-  const domains = ["macusaone.com", "yesoffice.vn"];
+  const domains = ["macusaone.com", "yesoffice.vn", "macmarketing.vn"];
   userInput.addEventListener("input", () => {
     const value = userInput.value.trim().toLowerCase();
     domains.forEach((domain) => {

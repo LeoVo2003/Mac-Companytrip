@@ -6,11 +6,11 @@ if (!defined('ABSPATH')) {
 
 final class MAC_Voting_DB {
     public const COMPANY_EMAIL_DOMAIN = 'macusaone.com';
-    public const COMPANY_EMAIL_DOMAINS = array('macusaone.com', 'yesoffice.vn');
+    public const COMPANY_EMAIL_DOMAINS = array('macusaone.com', 'yesoffice.vn', 'macmarketing.vn');
     public const STAFF_TEAM_NO = 7;
     public const STAFF_TEAM_NAME = 'Hoa tiêu';
     public const DEFAULT_STAFF_PASSWORD = 'MAC-Trip2026';
-    private const DB_VERSION = '1.6.2';
+    private const DB_VERSION = '1.6.3';
 
     public static function table(string $name): string {
         global $wpdb;

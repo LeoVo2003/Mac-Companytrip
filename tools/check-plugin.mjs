@@ -126,7 +126,7 @@ for (const invariant of ["one_valid_ballot", "email varchar(190) NULL", "UNIQUE 
 for (const invariant of ["COMPANY_EMAIL_DOMAIN = 'macusaone.com'", "normalize_company_email", "WHERE v.email=%s"]) {
   if (!databaseFile.includes(invariant) && !restFile.includes(invariant)) throw new Error(`Missing company email login rule: ${invariant}`);
 }
-for (const invariant of ["@macusaone.com", "yesoffice.vn", "JSON.stringify({ username, domain })", "autocomplete=\"username\""]) {
+for (const invariant of ["@macusaone.com", "yesoffice.vn", "macmarketing.vn", "JSON.stringify({ username, domain })", "autocomplete=\"username\""]) {
   if (!publicJs.includes(invariant)) throw new Error(`Missing simplified email login UI: ${invariant}`);
 }
 if (/phoneLast4|search\?q=|mv-phone|mv-name/.test(publicJs)) {
@@ -139,7 +139,7 @@ const publicCss = fs.readFileSync(path.join(pluginRoot, "assets/public.css"), "u
 for (const invariant of [".mv-team-tabs", ".mv-star", ".mv-star.is-active i"]) {
   if (!publicCss.includes(invariant)) throw new Error(`Missing team selection or star score styles: ${invariant}`);
 }
-for (const invariant of ['["Email", ["email", "mail", "email cong ty"]]', "email phải thuộc @macusaone.com hoặc @yesoffice.vn", "yesoffice\\.vn"]) {
+for (const invariant of ['["Email", ["email", "mail", "email cong ty"]]', "email phải thuộc @macusaone.com, @yesoffice.vn hoặc @macmarketing.vn", "macmarketing\\.vn"]) {
   if (!adminJs.includes(invariant)) throw new Error(`Missing email CSV validation: ${invariant}`);
 }
 for (const invariant of ["Bạn không thể chấm tiết mục của team mình", "status='VALID'", "active_key", "round_status"]) {
