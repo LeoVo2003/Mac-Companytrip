@@ -3,14 +3,14 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.6.1
+Stable tag: 1.6.2
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
 == Cài đặt ==
 
 1. Vào WordPress Admin > Plugins > Add New > Upload Plugin.
-2. Tải lên file mac-companytrip-voting-v1.6.1.zip và Activate. Sau bản này WordPress tự cập nhật từ GitHub Releases.
+2. Tải lên file mac-companytrip-voting-v1.6.2.zip và Activate. Sau bản này WordPress tự cập nhật từ GitHub Releases.
 3. Plugin tự tạo trang Chấm Điểm Văn Nghệ [mac_companytrip_vote], trang Kết Quả Văn Nghệ [mac_companytrip_results], trang Check-in [mac_companytrip_checkin] và dashboard [mac_companytrip_admin].
 4. Mở /company-trip-admin/ để đăng nhập dashboard. Không cần vào wp-admin.
 5. Super admin thao tác toàn bộ. BTC xem dashboard và vào máy quét /company-trip-checkin/. Cả hai role được tạo từ CSV và không có quyền wp-admin.
@@ -64,6 +64,9 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Tab Tổng điểm: dashboard 6 team, thêm hạng mục và cộng/trừ điểm từng đội.
 
 == Changelog ==
+
+= 1.6.2 =
+- Preview import CSV chấp nhận email @yesoffice.vn, không chỉ @macusaone.com.
 
 = 1.6.1 =
 - Hỗ trợ @yesoffice.vn trong đăng nhập và CSV, mặc định vẫn là @macusaone.com.

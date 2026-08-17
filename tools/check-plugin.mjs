@@ -139,7 +139,7 @@ const publicCss = fs.readFileSync(path.join(pluginRoot, "assets/public.css"), "u
 for (const invariant of [".mv-team-tabs", ".mv-star", ".mv-star.is-active i"]) {
   if (!publicCss.includes(invariant)) throw new Error(`Missing team selection or star score styles: ${invariant}`);
 }
-for (const invariant of ['["Email", ["email", "mail", "email cong ty"]]', "email phải thuộc @macusaone.com"]) {
+for (const invariant of ['["Email", ["email", "mail", "email cong ty"]]', "email phải thuộc @macusaone.com hoặc @yesoffice.vn", "yesoffice\\.vn"]) {
   if (!adminJs.includes(invariant)) throw new Error(`Missing email CSV validation: ${invariant}`);
 }
 for (const invariant of ["Bạn không thể chấm tiết mục của team mình", "status='VALID'", "active_key", "round_status"]) {

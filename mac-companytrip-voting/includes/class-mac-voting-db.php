@@ -10,7 +10,7 @@ final class MAC_Voting_DB {
     public const STAFF_TEAM_NO = 7;
     public const STAFF_TEAM_NAME = 'Hoa tiêu';
     public const DEFAULT_STAFF_PASSWORD = 'MAC-Trip2026';
-    private const DB_VERSION = '1.6.1';
+    private const DB_VERSION = '1.6.2';
 
     public static function table(string $name): string {
         global $wpdb;
