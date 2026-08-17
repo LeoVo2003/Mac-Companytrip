@@ -112,6 +112,7 @@ for (const invariant of ["pre_set_site_transient_update_plugins", "auto_update_p
 }
 
 const databaseFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-db.php"), "utf8");
+const checkinFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-checkin.php"), "utf8");
 const restFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-rest.php"), "utf8");
 const checkinRest = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-checkin-rest.php"), "utf8");
 const qrFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-qr.php"), "utf8");
@@ -122,6 +123,9 @@ const resultsJs = fs.readFileSync(path.join(pluginRoot, "assets/results.js"), "u
 const pointsFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-points.php"), "utf8");
 for (const invariant of ["one_valid_ballot", "email varchar(190) NULL", "UNIQUE KEY email", "qr_version", "revote_grants", "audit", "table('checkpoints')", "one_checkin", "table('point_categories')"]) {
   if (!databaseFile.includes(invariant)) throw new Error(`Missing database invariant: ${invariant}`);
+}
+for (const invariant of ["max_points int(11) unsigned NOT NULL DEFAULT 0", "CHECKIN_PROPORTIONAL", "round(($max_points * $row['checkedIn']) / $row['eligible'])"]) {
+  if (!databaseFile.includes(invariant) && !checkinFile?.includes(invariant)) throw new Error(`Missing proportional check-in scoring invariant: ${invariant}`);
 }
 for (const invariant of ["COMPANY_EMAIL_DOMAIN = 'macusaone.com'", "normalize_company_email", "WHERE v.email=%s"]) {
   if (!databaseFile.includes(invariant) && !restFile.includes(invariant)) throw new Error(`Missing company email login rule: ${invariant}`);
@@ -190,7 +194,6 @@ if (!adminLoginJs.includes("ma-login-form") || !mainFile.includes("MAC_Admin_RES
 if (!adminFile.includes("csv_staff_kind") || !adminFile.includes("ensure_staff_user")) {
   throw new Error("CSV import must create BTC and super-admin staff accounts.");
 }
-const checkinFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-checkin.php"), "utf8");
 for (const invariant of ["SUPER_ROLE", "SUPER_CAP", "add_role(self::SUPER_ROLE"]) {
   if (!checkinFile.includes(invariant)) {
     throw new Error(`Missing CSV super-admin role invariant: ${invariant}`);

@@ -23,6 +23,10 @@
   const icons = {
     mail: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>`,
   };
+  const formatRemainingTime = (closesAt) => {
+    const seconds = Math.max(0, Math.ceil((new Date(closesAt).getTime() - Date.now()) / 1000));
+    return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+  };
 
   function confirmDialog({ title, kicker, body, confirmLabel }) {
     return new Promise((resolve) => {
@@ -96,6 +100,7 @@
     const available = eligible.filter((item) => item.canVote);
     const progress = state.round.isRevote ? 100 : Math.max(15, ((completed + .35) / Math.max(eligible.length, 1)) * 100);
     const progressHead = `<div class="mv-progress-head"><div><span>${state.round.isRevote ? "VOTE LẠI" : `LƯỢT ${state.round.id}/3`}</span><strong>${completed}/${eligible.length} đã gửi</strong></div><i><b style="width:${progress}%"></b></i></div>`;
+    const timer = state.round.closesAt ? `<p class="mv-vote-timer" role="status">Còn <strong>${formatRemainingTime(state.round.closesAt)}</strong> để gửi phiếu</p>` : "";
     if (state.status === "DONE" || !available.length) {
       selectedPerformanceId = null;
       root.innerHTML = `<main class="mv-vote-shell">${header()}<section class="mv-status"><div class="mv-done">✓</div><p class="mv-kicker">HOÀN TẤT</p><h1>Cảm ơn bạn!</h1><div class="mv-complete">✓ ${completed}/${eligible.length} tiết mục đã chấm</div></section></main>`;
@@ -106,13 +111,13 @@
     const active = available.find((item) => String(item.id) === String(selectedPerformanceId));
     if (!active) {
       selectedPerformanceId = null;
-      root.innerHTML = `<main class="mv-vote-shell">${header()}${progressHead}<section class="mv-team-picker"><div class="mv-picker-head"><p class="mv-kicker">CHỌN TIẾT MỤC</p></div><div class="mv-team-tabs">${eligible.map((item) => item.hasVoted ? `<article class="mv-team-tab is-complete"><span>#${item.teamNumber}</span><strong>${esc(item.teamName)}</strong><small>Đã gửi</small></article>` : `<button type="button" class="mv-team-tab" data-performance-id="${item.id}" ${item.canVote ? "" : "disabled"}><span>#${item.teamNumber}</span><strong>${esc(item.teamName)}</strong><small>${item.canVote ? "Chấm điểm →" : "Chưa mở"}</small></button>`).join("")}</div></section></main>`;
+      root.innerHTML = `<main class="mv-vote-shell">${header()}${progressHead}${timer}<section class="mv-team-picker"><div class="mv-picker-head"><p class="mv-kicker">CHỌN TIẾT MỤC</p></div><div class="mv-team-tabs">${eligible.map((item) => item.hasVoted ? `<article class="mv-team-tab is-complete"><span>#${item.teamNumber}</span><strong>${esc(item.teamName)}</strong><small>Đã gửi</small></article>` : `<button type="button" class="mv-team-tab" data-performance-id="${item.id}" ${item.canVote ? "" : "disabled"}><span>#${item.teamNumber}</span><strong>${esc(item.teamName)}</strong><small>${item.canVote ? "Chấm điểm →" : "Chưa mở"}</small></button>`).join("")}</div></section></main>`;
       root.querySelector("#mv-logout").addEventListener("click", logout);
       root.querySelectorAll("[data-performance-id]").forEach((button) => button.addEventListener("click", () => { selectedPerformanceId = button.dataset.performanceId; renderState(); }));
       return;
     }
     const criteria = [["styleScore", "Phong Cách & Thần Thái Biểu Diễn"], ["stagingScore", "Dàn Dựng & Sáng Tạo"], ["teamworkScore", "Tinh Thần Đồng Đội & Bản Sắc Doanh Nghiệp"]];
-    root.innerHTML = `<main class="mv-vote-shell">${header()}${progressHead}<div class="mv-vote-back"><button type="button" id="mv-back" class="mv-button mv-button--ghost">← Chọn đội</button></div><section class="mv-performance"><div>#${active.teamNumber}</div><article><p>${active.isRevote ? "CHẤM LẠI" : "ĐANG CHẤM"}</p><h1>${esc(active.teamName)}</h1></article></section><section class="mv-score-card"><p class="mv-kicker">PHIẾU CHẤM</p><h2>Chọn số sao</h2><form id="mv-ballot">${criteria.map((criterion, index) => `<fieldset data-star-field="${criterion[0]}"><legend><b>0${index + 1}</b><span>${criterion[1]}</span><output class="mv-star-output" aria-live="polite">—</output></legend><div class="mv-star-rating" role="radiogroup" aria-label="${criterion[1]}">${[10,20,30,40,50].map((score, star) => `<label class="mv-star" data-star="${star + 1}" title="${star + 1} sao · ${score} điểm"><input type="radio" name="${criterion[0]}" value="${score}" aria-label="${star + 1} sao, ${score} điểm"><i aria-hidden="true">★</i></label>`).join("")}</div></fieldset>`).join("")}<p id="mv-error" class="mv-error" role="alert" hidden></p><button type="submit" class="mv-button mv-button--primary mv-button--block mv-score-submit">Gửi phiếu →</button><small class="mv-note">Không thể sửa sau khi gửi</small></form></section></main>`;
+    root.innerHTML = `<main class="mv-vote-shell">${header()}${progressHead}${timer}<div class="mv-vote-back"><button type="button" id="mv-back" class="mv-button mv-button--ghost">← Chọn đội</button></div><section class="mv-performance"><div>#${active.teamNumber}</div><article><p>${active.isRevote ? "CHẤM LẠI" : "ĐANG CHẤM"}</p><h1>${esc(active.teamName)}</h1></article></section><section class="mv-score-card"><p class="mv-kicker">PHIẾU CHẤM</p><h2>Chọn số sao</h2><form id="mv-ballot">${criteria.map((criterion, index) => `<fieldset data-star-field="${criterion[0]}"><legend><b>0${index + 1}</b><span>${criterion[1]}</span><output class="mv-star-output" aria-live="polite">—</output></legend><div class="mv-star-rating" role="radiogroup" aria-label="${criterion[1]}">${[10,20,30,40,50].map((score, star) => `<label class="mv-star" data-star="${star + 1}" title="${star + 1} sao · ${score} điểm"><input type="radio" name="${criterion[0]}" value="${score}" aria-label="${star + 1} sao, ${score} điểm"><i aria-hidden="true">★</i></label>`).join("")}</div></fieldset>`).join("")}<p id="mv-error" class="mv-error" role="alert" hidden></p><button type="submit" class="mv-button mv-button--primary mv-button--block mv-score-submit">Gửi phiếu →</button><small class="mv-note">Không thể sửa sau khi gửi</small></form></section></main>`;
     root.querySelector("#mv-logout").addEventListener("click", logout);
     root.querySelector("#mv-back").addEventListener("click", () => { selectedPerformanceId = null; renderState(); });
     const ballotForm = root.querySelector("#mv-ballot");

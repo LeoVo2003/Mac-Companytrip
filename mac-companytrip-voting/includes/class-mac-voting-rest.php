@@ -158,6 +158,7 @@ final class MAC_Voting_REST {
 
     public static function vote_state(int $voter_id) {
         global $wpdb;
+        MAC_Voting_DB::expire_open_round();
         $voters = MAC_Voting_DB::table('voters');
         $teams = MAC_Voting_DB::table('teams');
         $rounds = MAC_Voting_DB::table('rounds');
@@ -179,7 +180,7 @@ final class MAC_Voting_REST {
             'performances' => array(),
         );
         $revote = $wpdb->get_row($wpdb->prepare(
-            "SELECT g.id AS grant_id,s.position,s.round_id,r.opened_at,p.id AS performance_id,p.team_id,p.title,t.name AS team_name,t.team_no
+            "SELECT g.id AS grant_id,s.position,s.round_id,r.opened_at,r.closes_at,p.id AS performance_id,p.team_id,p.title,t.name AS team_name,t.team_no
              FROM $grants g JOIN $performances p ON p.id=g.performance_id JOIN $slots s ON s.performance_id=p.id
              JOIN $rounds r ON r.id=s.round_id JOIN $teams t ON t.id=p.team_id
              WHERE g.voter_id=%d AND g.unused_key='UNUSED'
@@ -188,7 +189,7 @@ final class MAC_Voting_REST {
         ), ARRAY_A);
         if ($revote) {
             $own = (int) $revote['team_id'] === (int) $voter['team_id'];
-            $base['round'] = array('id' => (int) $revote['round_id'], 'openedAt' => $revote['opened_at'], 'isRevote' => true);
+            $base['round'] = array('id' => (int) $revote['round_id'], 'openedAt' => $revote['opened_at'], 'closesAt' => $revote['closes_at'], 'isRevote' => true);
             $base['performances'] = array(array(
                 'id' => (int) $revote['performance_id'], 'position' => (int) $revote['position'], 'title' => $revote['title'],
                 'teamName' => $revote['team_name'], 'teamNumber' => (int) $revote['team_no'], 'isOwnTeam' => $own,
@@ -197,7 +198,7 @@ final class MAC_Voting_REST {
             $base['status'] = $own ? 'DONE' : 'OPEN';
             return $base;
         }
-        $round = $wpdb->get_row("SELECT id,opened_at FROM $rounds WHERE status='OPEN' LIMIT 1", ARRAY_A);
+        $round = $wpdb->get_row("SELECT id,opened_at,closes_at FROM $rounds WHERE status='OPEN' LIMIT 1", ARRAY_A);
         if (!$round) {
             return array_merge($base, array('status' => 'WAITING'));
         }
@@ -223,7 +224,7 @@ final class MAC_Voting_REST {
                 'hasVoted' => (bool) $row['has_voted'], 'canVote' => $can_vote,
             );
         }
-        $base['round'] = array('id' => (int) $round['id'], 'openedAt' => $round['opened_at']);
+        $base['round'] = array('id' => (int) $round['id'], 'openedAt' => $round['opened_at'], 'closesAt' => $round['closes_at']);
         $base['performances'] = $items;
         $base['status'] = $has_open ? 'OPEN' : 'DONE';
         return $base;
@@ -234,6 +235,7 @@ final class MAC_Voting_REST {
             return new WP_Error('voting_disabled', 'Chương trình chưa mở.', array('status' => 403));
         }
         global $wpdb;
+        MAC_Voting_DB::expire_open_round();
         $voter_id = (int) MAC_Voting_Auth::voter_id();
         $performance_id = absint($request->get_param('performanceId'));
         $request_id = sanitize_text_field((string) $request->get_param('requestId'));

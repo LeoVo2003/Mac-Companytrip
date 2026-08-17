@@ -39,6 +39,16 @@
     .toLowerCase()
     .replace(/\s+/g, " ");
   const formatBytes = (bytes) => bytes < 1024 ? `${bytes} B` : bytes < 1048576 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1048576).toFixed(1)} MB`;
+  const durationMinutes = (defaultMinutes, label) => {
+    const value = prompt(`${label} tự động đóng sau bao nhiêu phút? (1–120)`, String(defaultMinutes));
+    if (value === null) return null;
+    const minutes = Number(value);
+    if (!Number.isInteger(minutes) || minutes < 1 || minutes > 120) {
+      notify("Nhập thời lượng từ 1 đến 120 phút.", true);
+      return null;
+    }
+    return minutes;
+  };
 
   function parseCsv(text) {
     const firstLine = text.replace(/^\uFEFF/, "").split(/\r?\n/, 1)[0] || "";
@@ -270,8 +280,8 @@
     const users = data.assignableUsers || [];
     const teams = data.teams || [];
     const scanner = `<section class="ma-panel ma-scanner-cta"><header><div><small>MÁY QUÉT</small><h2>Check-in bằng QR</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Mở trang quét để điểm danh team được gán.</p></div><a class="ma-primary" href="${esc(window.MACVotingAdmin.checkinUrl)}">Mở máy quét BTC</a></header></section>`;
-    const checkpointCards = (data.checkpoints || []).map((item) => `<article class="ma-check-card ${item.status.toLowerCase()}"><small>MỐC ${item.id} · ${checkpointStatus(item.status)}</small><h2>${esc(item.name)}</h2><p>${esc(item.description || "")}</p>${canWrite() ? `<div class="ma-check-actions">${item.status === "DRAFT" ? `<button type="button" class="ma-primary" data-checkpoint="${item.id}" data-op="open">Mở mốc</button>` : item.status === "OPEN" ? `<button type="button" class="danger" data-checkpoint="${item.id}" data-op="close">Đóng & chốt</button>` : `<button type="button" data-checkpoint="${item.id}" data-op="reopen">Mở lại</button>`}</div>` : ""}</article>`).join("");
-    const progress = `<section class="ma-panel"><header><div><small>TIẾN ĐỘ</small><h2>Team đã đủ / chưa đủ</h2></div>${canWrite() ? `<a class="ma-primary" href="${esc(window.MACVotingAdmin.checkinExportUrl)}">↓ Xuất CSV check-in</a>` : ""}</header>${boards.map((board) => `<div class="ma-board-table" style="margin:12px 16px 16px"><table><thead><tr><th>Mốc ${board.checkpoint.id} · ${esc(board.checkpoint.name)}</th><th>Tiến độ</th><th>Hoàn thành</th><th>Hạng</th><th>Điểm</th></tr></thead><tbody>${board.teams.map((team) => `<tr><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td><td>${team.checkedIn}/${team.eligible}</td><td>${team.completedAt || "—"}</td><td>${team.temporaryRank || "—"}</td><td>${team.temporaryPoints || 0}</td></tr>`).join("")}</tbody></table></div>`).join("")}</section>`;
+    const checkpointCards = (data.checkpoints || []).map((item) => `<article class="ma-check-card ${item.status.toLowerCase()}"><small>MỐC ${item.id} · ${checkpointStatus(item.status)}</small><h2>${esc(item.name)}</h2><p>${esc(item.description || "")}</p>${canWrite() ? `<label class="ma-check-points">Điểm tối đa <input type="number" min="0" max="100000" step="1" value="${Number(item.max_points || 0)}" data-checkpoint-points="${item.id}" ${item.status === "OPEN" ? "disabled" : ""}></label><div class="ma-check-actions"><button type="button" data-checkpoint="${item.id}" data-op="configure" ${item.status === "OPEN" ? "disabled" : ""}>Lưu điểm</button>${item.status === "DRAFT" ? `<button type="button" class="ma-primary" data-checkpoint="${item.id}" data-op="open">Mở mốc</button>` : item.status === "OPEN" ? `<button type="button" class="danger" data-checkpoint="${item.id}" data-op="close">Đóng & chốt</button>` : `<button type="button" data-checkpoint="${item.id}" data-op="reopen">Mở lại</button>`}</div>` : ""}</article>`).join("");
+    const progress = `<section class="ma-panel"><header><div><small>TIẾN ĐỘ</small><h2>Điểm theo tỷ lệ có mặt</h2></div>${canWrite() ? `<a class="ma-primary" href="${esc(window.MACVotingAdmin.checkinExportUrl)}">↓ Xuất CSV check-in</a>` : ""}</header>${boards.map((board) => `<div class="ma-board-table" style="margin:12px 16px 16px"><table><thead><tr><th>Mốc ${board.checkpoint.id} · ${esc(board.checkpoint.name)} · tối đa ${Number(board.checkpoint.max_points || 0)}đ</th><th>Tiến độ</th><th>Điểm</th></tr></thead><tbody>${board.teams.map((team) => `<tr><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td><td>${team.checkedIn}/${team.eligible}</td><td>${team.temporaryPoints || 0}</td></tr>`).join("")}</tbody></table></div>`).join("")}</section>`;
     const staffPanel = canWrite() ? `<section class="ma-panel"><header><div><small>BTC</small><h2>Tài khoản máy quét</h2></div></header><form class="ma-staff-form" id="ma-staff-form"><label>Chọn tài khoản WordPress<select id="ma-staff-user">${users.map((user) => `<option value="${user.id}">${esc(user.name)} · ${esc(user.email)}</option>`).join("")}</select></label><div class="ma-staff-teams">${teams.map((team) => `<label><input type="checkbox" name="teamIds" value="${team.id}"> #${team.team_no} ${esc(team.name)}</label>`).join("")}</div><button type="submit" class="ma-primary">Lưu quyền check-in</button><p style="margin:0;color:#667085;font-size:13px">Admin quét được mọi team. BTC thường chỉ được gán 1-2 team.</p></form><div class="ma-board-table" style="margin:0 16px 16px"><table><thead><tr><th>BTC</th><th>Team được gán</th></tr></thead><tbody>${staff.map((item) => `<tr><td><strong>${esc(item.name)}</strong><small>${esc(item.email)}${item.isAdmin ? " · Admin" : ""}</small></td><td>${item.isAdmin ? "Tất cả team" : (item.teamIds || []).map((id) => { const team = teams.find((row) => String(row.id) === String(id)); return team ? `#${team.team_no} ${team.name}` : id; }).join(", ") || "Chưa gán"}</td></tr>`).join("") || `<tr><td colspan="2">Chưa có tài khoản BTC.</td></tr>`}</tbody></table></div></section>` : "";
     return `<header class="ma-top"><div><small>CHECK-IN</small><h1>4 mốc Company Trip</h1></div>${topActions()}</header>${scanner}<div class="ma-check-grid">${checkpointCards}</div>${progress}${staffPanel}`;
   }
@@ -384,6 +394,9 @@
     }));
     root.querySelectorAll("[data-round]").forEach((button) => button.addEventListener("click", async () => {
       const operation = button.dataset.op;
+      const maxPoints = root.querySelector(`[data-checkpoint-points="${button.dataset.checkpoint}"]`)?.value;
+      const duration = operation === "close" ? null : durationMinutes(5, `Lượt ${button.dataset.round}`);
+      if (operation !== "close" && duration === null) return;
       const activeRound = data.rounds.find((round) => round.status === "OPEN" && String(round.id) !== String(button.dataset.round));
       if ((operation === "open" || operation === "reopen") && activeRound) {
         showRoundConflictModal(button.dataset.round, activeRound.id);
@@ -399,7 +412,7 @@
       button.disabled = true;
       button.textContent = operation === "reopen" ? "Đang mở lại…" : "Đang cập nhật…";
       try {
-        data = await ajax("mac_vote_round", { roundId: button.dataset.round, operation });
+        data = await ajax("mac_vote_round", { roundId: button.dataset.round, operation, durationMinutes: duration || "" });
         render();
         notify(operation === "reopen" ? `Đã mở lại lượt ${button.dataset.round}.` : "Đã cập nhật lượt.");
       } catch (err) {
@@ -455,6 +468,8 @@
     });
     root.querySelectorAll("[data-checkpoint]").forEach((button) => button.addEventListener("click", async () => {
       const operation = button.dataset.op;
+      const duration = ["open", "reopen"].includes(operation) ? durationMinutes(15, `Mốc ${button.dataset.checkpoint}`) : null;
+      if (["open", "reopen"].includes(operation) && duration === null) return;
       const messages = {
         open: `Mở mốc ${button.dataset.checkpoint}? Chỉ một mốc được mở tại một thời điểm.`,
         close: `Đóng & chốt mốc ${button.dataset.checkpoint}? Điểm hạng sẽ được ghi vào sổ.`,
@@ -462,7 +477,7 @@
       };
       if (!confirm(messages[operation])) return;
       try {
-        data = await ajax("mac_vote_checkpoint", { checkpointId: button.dataset.checkpoint, operation });
+        data = await ajax("mac_vote_checkpoint", { checkpointId: button.dataset.checkpoint, operation, durationMinutes: duration || "", maxPoints: maxPoints || "" });
         render();
         notify("Đã cập nhật mốc check-in.");
       } catch (err) { notify(err.message, true); }

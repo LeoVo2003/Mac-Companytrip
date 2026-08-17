@@ -108,7 +108,7 @@ final class MAC_Voting_Admin {
         $grants = MAC_Voting_DB::table('revote_grants');
 
         $wpdb->query('START TRANSACTION');
-        $reset_rounds = $wpdb->query("UPDATE $rounds SET status='DRAFT', opened_at=NULL, closed_at=NULL");
+        $reset_rounds = $wpdb->query("UPDATE $rounds SET status='DRAFT', opened_at=NULL, closes_at=NULL, closed_at=NULL");
         $deleted_grants = $wpdb->query("DELETE FROM $grants");
         $deleted_ballots = $wpdb->query("DELETE FROM $ballots");
         if (in_array(false, array($reset_rounds, $deleted_grants, $deleted_ballots), true)) {
@@ -140,6 +140,7 @@ final class MAC_Voting_Admin {
         global $wpdb;
         $round_id = absint($_POST['roundId'] ?? 0);
         $operation = sanitize_key($_POST['operation'] ?? '');
+        $minutes = MAC_Voting_DB::duration_minutes(absint($_POST['durationMinutes'] ?? 0), MAC_Voting_DB::DEFAULT_VOTE_DURATION_MINUTES);
         $rounds = MAC_Voting_DB::table('rounds');
         $round = $wpdb->get_row($wpdb->prepare("SELECT * FROM $rounds WHERE id=%d", $round_id), ARRAY_A);
         if (!$round) wp_send_json_error(array('message' => 'Lượt không tồn tại.'), 404);
@@ -153,7 +154,7 @@ final class MAC_Voting_Admin {
             ), 409);
             $earlier = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $rounds WHERE id<%d AND status!='CLOSED'", $round_id));
             if ($earlier) wp_send_json_error(array('message' => 'Hãy hoàn tất lượt trước.'), 409);
-            $wpdb->update($rounds, array('status' => 'OPEN', 'opened_at' => MAC_Voting_DB::utc_now(), 'closed_at' => null), array('id' => $round_id), array('%s','%s','%s'), array('%d'));
+            $wpdb->update($rounds, array('status' => 'OPEN', 'opened_at' => MAC_Voting_DB::utc_now(), 'closes_at' => MAC_Voting_DB::deadline_from_minutes($minutes), 'closed_at' => null), array('id' => $round_id), array('%s','%s','%s','%s'), array('%d'));
             MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'ROUND_OPENED', 'round', (string) $round_id);
         } elseif ($operation === 'reopen') {
             if ($round['status'] !== 'CLOSED') wp_send_json_error(array('message' => 'Chỉ mở lại được lượt đã đóng.'), 409);
@@ -164,7 +165,7 @@ final class MAC_Voting_Admin {
                 'openRoundId' => $other_open,
             ), 409);
             $previous_closed_at = $round['closed_at'];
-            $updated = $wpdb->update($rounds, array('status' => 'OPEN', 'opened_at' => MAC_Voting_DB::utc_now(), 'closed_at' => null), array('id' => $round_id), array('%s','%s','%s'), array('%d'));
+            $updated = $wpdb->update($rounds, array('status' => 'OPEN', 'opened_at' => MAC_Voting_DB::utc_now(), 'closes_at' => MAC_Voting_DB::deadline_from_minutes($minutes), 'closed_at' => null), array('id' => $round_id), array('%s','%s','%s','%s'), array('%d'));
             if ($updated === false) wp_send_json_error(array('message' => 'Không thể mở lại lượt. Vui lòng thử lại.'), 500);
             MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'ROUND_REOPENED', 'round', (string) $round_id, array('previousClosedAt' => $previous_closed_at));
         } elseif ($operation === 'close') {
@@ -671,10 +672,13 @@ final class MAC_Voting_Admin {
         self::guard();
         $checkpoint_id = absint($_POST['checkpointId'] ?? 0);
         $operation = sanitize_key($_POST['operation'] ?? '');
-        if ($operation === 'open') {
-            $result = MAC_Checkin::open_checkpoint($checkpoint_id);
+        $minutes = MAC_Voting_DB::duration_minutes(absint($_POST['durationMinutes'] ?? 0), MAC_Voting_DB::DEFAULT_CHECKIN_DURATION_MINUTES);
+        if ($operation === 'configure') {
+            $result = MAC_Checkin::set_max_points($checkpoint_id, absint($_POST['maxPoints'] ?? 0));
+        } elseif ($operation === 'open') {
+            $result = MAC_Checkin::open_checkpoint($checkpoint_id, $minutes);
         } elseif ($operation === 'reopen') {
-            $result = MAC_Checkin::reopen_checkpoint($checkpoint_id);
+            $result = MAC_Checkin::reopen_checkpoint($checkpoint_id, $minutes);
         } elseif ($operation === 'close') {
             $result = MAC_Checkin::close_checkpoint($checkpoint_id);
         } else {

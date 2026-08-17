@@ -10,7 +10,9 @@ final class MAC_Voting_DB {
     public const STAFF_TEAM_NO = 7;
     public const STAFF_TEAM_NAME = 'Hoa tiêu';
     public const DEFAULT_STAFF_PASSWORD = 'MAC-Trip2026';
-    private const DB_VERSION = '1.6.3';
+    public const DEFAULT_VOTE_DURATION_MINUTES = 5;
+    public const DEFAULT_CHECKIN_DURATION_MINUTES = 15;
+    private const DB_VERSION = '1.6.5';
 
     public static function table(string $name): string {
         global $wpdb;
@@ -112,6 +114,7 @@ final class MAC_Voting_DB {
                 id tinyint(3) unsigned NOT NULL,
                 status varchar(20) NOT NULL DEFAULT 'DRAFT',
                 opened_at datetime NULL,
+                closes_at datetime NULL,
                 closed_at datetime NULL,
                 PRIMARY KEY  (id),
                 KEY status (status)
@@ -177,8 +180,10 @@ final class MAC_Voting_DB {
                 id tinyint(3) unsigned NOT NULL,
                 name varchar(190) NOT NULL,
                 description varchar(500) NULL,
+                max_points int(11) unsigned NOT NULL DEFAULT 0,
                 status varchar(20) NOT NULL DEFAULT 'DRAFT',
                 opened_at datetime NULL,
+                closes_at datetime NULL,
                 closed_at datetime NULL,
                 finalized_at datetime NULL,
                 PRIMARY KEY  (id),
@@ -396,6 +401,24 @@ final class MAC_Voting_DB {
 
     public static function utc_now(): string {
         return current_time('mysql', true);
+    }
+
+    public static function deadline_from_minutes(int $minutes): string {
+        return gmdate('Y-m-d H:i:s', time() + ($minutes * MINUTE_IN_SECONDS));
+    }
+
+    public static function duration_minutes(int $minutes, int $default): int {
+        return max(1, min(120, $minutes ?: $default));
+    }
+
+    public static function expire_open_round(): void {
+        global $wpdb;
+        $rounds = self::table('rounds');
+        $now = self::utc_now();
+        $wpdb->query($wpdb->prepare(
+            "UPDATE $rounds SET status='CLOSED',closed_at=%s WHERE status='OPEN' AND closes_at IS NOT NULL AND closes_at<=%s",
+            $now, $now
+        ));
     }
 
     public static function normalize_name(string $value): string {

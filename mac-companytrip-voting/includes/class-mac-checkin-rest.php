@@ -37,12 +37,14 @@ final class MAC_Checkin_REST {
     }
 
     public static function bootstrap(): WP_REST_Response {
+        MAC_Checkin::expire_active_checkpoint();
         $response = rest_ensure_response(MAC_Checkin::bootstrap());
         $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
         return $response;
     }
 
     public static function scan(WP_REST_Request $request) {
+        MAC_Checkin::expire_active_checkpoint();
         $result = MAC_Checkin::scan(
             sanitize_text_field((string) $request->get_param('token')),
             absint($request->get_param('checkpointId'))
@@ -54,6 +56,7 @@ final class MAC_Checkin_REST {
     }
 
     public static function team(WP_REST_Request $request) {
+        MAC_Checkin::expire_active_checkpoint();
         $team_id = absint($request['teamId']);
         $checkpoint_id = absint($request->get_param('checkpointId'));
         if (!$checkpoint_id) {

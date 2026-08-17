@@ -210,6 +210,19 @@ body.mac-voting-page .elementor-widget-container:has(#mac-voting-app) {
   margin-top: 24px !important;
 }
 
+.mv-vote-timer {
+  width: min(100% - 32px, 720px);
+  margin: 16px auto 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  color: #9f1c20;
+  background: linear-gradient(90deg, rgba(227, 30, 36, .1), rgba(255, 106, 44, .12));
+  font-size: 14px;
+  text-align: center;
+}
+
+.mv-vote-timer strong { font-variant-numeric: tabular-nums; }
+
 .mv-confirm-wrong {
   margin-top: 8px !important;
 }

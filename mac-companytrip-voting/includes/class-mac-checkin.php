@@ -5,6 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 final class MAC_Checkin {
+    public const POINT_SOURCE = 'CHECKIN_PROPORTIONAL';
     public const ROLE = 'mac_btc_checkin';
     public const CAP = 'mac_checkin';
     public const SUPER_ROLE = 'mac_companytrip_super_admin';
@@ -96,7 +97,15 @@ final class MAC_Checkin {
         return null;
     }
 
-    public static function open_checkpoint(int $checkpoint_id) {
+    public static function expire_active_checkpoint(): void {
+        $active = self::active_checkpoint();
+        if (!$active || empty($active['closes_at']) || $active['closes_at'] > MAC_Voting_DB::utc_now()) {
+            return;
+        }
+        self::close_checkpoint((int) $active['id']);
+    }
+
+    public static function open_checkpoint(int $checkpoint_id, int $minutes = 0) {
         global $wpdb;
         $table = MAC_Voting_DB::table('checkpoints');
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id=%d", $checkpoint_id), ARRAY_A);
@@ -113,18 +122,36 @@ final class MAC_Checkin {
                 'openCheckpointId' => $open,
             ));
         }
+        $minutes = MAC_Voting_DB::duration_minutes($minutes, MAC_Voting_DB::DEFAULT_CHECKIN_DURATION_MINUTES);
         $wpdb->update(
             $table,
-            array('status' => 'OPEN', 'opened_at' => MAC_Voting_DB::utc_now(), 'closed_at' => null, 'finalized_at' => null),
+            array('status' => 'OPEN', 'opened_at' => MAC_Voting_DB::utc_now(), 'closes_at' => MAC_Voting_DB::deadline_from_minutes($minutes), 'closed_at' => null, 'finalized_at' => null),
             array('id' => $checkpoint_id),
-            array('%s', '%s', '%s', '%s'),
+            array('%s', '%s', '%s', '%s', '%s'),
             array('%d')
         );
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'CHECKPOINT_OPENED', 'checkpoint', (string) $checkpoint_id);
         return self::checkpoint_row($checkpoint_id);
     }
 
-    public static function reopen_checkpoint(int $checkpoint_id) {
+    public static function set_max_points(int $checkpoint_id, int $max_points) {
+        global $wpdb;
+        $row = self::checkpoint_row($checkpoint_id);
+        if (!$row) {
+            return new WP_Error('not_found', 'Mốc check-in không tồn tại.', array('status' => 404));
+        }
+        if ($row['status'] === 'OPEN') {
+            return new WP_Error('checkpoint_open', 'Không thể sửa điểm tối đa khi mốc đang mở.', array('status' => 409));
+        }
+        if ($max_points < 0 || $max_points > 100000) {
+            return new WP_Error('invalid_points', 'Điểm tối đa phải từ 0 đến 100000.', array('status' => 400));
+        }
+        $wpdb->update(MAC_Voting_DB::table('checkpoints'), array('max_points' => $max_points), array('id' => $checkpoint_id), array('%d'), array('%d'));
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'CHECKPOINT_MAX_POINTS_SET', 'checkpoint', (string) $checkpoint_id, array('maxPoints' => $max_points));
+        return self::checkpoint_row($checkpoint_id);
+    }
+
+    public static function reopen_checkpoint(int $checkpoint_id, int $minutes = 0) {
         global $wpdb;
         $table = MAC_Voting_DB::table('checkpoints');
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id=%d", $checkpoint_id), ARRAY_A);
@@ -141,11 +168,12 @@ final class MAC_Checkin {
                 'openCheckpointId' => $open,
             ));
         }
+        $minutes = MAC_Voting_DB::duration_minutes($minutes, MAC_Voting_DB::DEFAULT_CHECKIN_DURATION_MINUTES);
         $wpdb->update(
             $table,
-            array('status' => 'OPEN', 'opened_at' => MAC_Voting_DB::utc_now(), 'closed_at' => null, 'finalized_at' => null),
+            array('status' => 'OPEN', 'opened_at' => MAC_Voting_DB::utc_now(), 'closes_at' => MAC_Voting_DB::deadline_from_minutes($minutes), 'closed_at' => null, 'finalized_at' => null),
             array('id' => $checkpoint_id),
-            array('%s', '%s', '%s', '%s'),
+            array('%s', '%s', '%s', '%s', '%s'),
             array('%d')
         );
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'CHECKPOINT_REOPENED', 'checkpoint', (string) $checkpoint_id);
@@ -544,6 +572,10 @@ final class MAC_Checkin {
 
     private static function recalculate_checkpoint(int $checkpoint_id, bool $finalize) {
         global $wpdb;
+        $checkpoint = self::checkpoint_row($checkpoint_id);
+        if (!$checkpoint) {
+            return new WP_Error('not_found', 'Mốc check-in không tồn tại.', array('status' => 404));
+        }
         $teams = $wpdb->get_results($wpdb->prepare(
             'SELECT id FROM ' . MAC_Voting_DB::table('teams') . ' WHERE team_no<>%d ORDER BY team_no',
             MAC_Voting_DB::STAFF_TEAM_NO
@@ -553,18 +585,13 @@ final class MAC_Checkin {
             $progress = self::team_progress($checkpoint_id, (int) $team['id']);
             $snapshots[] = $progress;
         }
-        $completed = array_values(array_filter($snapshots, static fn(array $row): bool => $row['completed'] && $row['completedAt']));
-        usort($completed, static fn(array $a, array $b): int => strcmp((string) $a['completedAt'], (string) $b['completedAt']));
-        $ranks = array();
-        foreach ($completed as $index => $row) {
-            $ranks[$row['teamId']] = $index + 1;
-        }
         $results = MAC_Voting_DB::table('checkpoint_results');
         $points_table = MAC_Voting_DB::table('team_points');
         $now = MAC_Voting_DB::utc_now();
         foreach ($snapshots as $index => $row) {
-            $rank = $ranks[$row['teamId']] ?? null;
-            $points = ($finalize && $rank) ? (self::POINTS[$rank] ?? 0) : 0;
+            $rank = null;
+            $max_points = (int) ($checkpoint['max_points'] ?? 0);
+            $points = $row['eligible'] > 0 ? (int) round(($max_points * $row['checkedIn']) / $row['eligible']) : 0;
             $existing_id = (int) $wpdb->get_var($wpdb->prepare(
                 "SELECT id FROM $results WHERE checkpoint_id=%d AND team_id=%d",
                 $checkpoint_id,
@@ -577,7 +604,7 @@ final class MAC_Checkin {
                 'checked_in_count' => $row['checkedIn'],
                 'completed_at' => $row['completedAt'],
                 'rank_no' => $rank,
-                'points' => $finalize ? $points : 0,
+                'points' => $points,
                 'finalized_at' => $finalize ? $now : null,
             );
             if ($existing_id) {
@@ -586,7 +613,7 @@ final class MAC_Checkin {
                 $wpdb->insert($results, $payload);
             }
             $row['awardedRank'] = $rank;
-            $row['awardedPoints'] = $finalize ? $points : 0;
+            $row['awardedPoints'] = $points;
             $snapshots[$index] = $row;
             if ($finalize) {
                 $source_id = 'CHECKPOINT_' . $checkpoint_id;
@@ -601,7 +628,7 @@ final class MAC_Checkin {
                     'source_type' => 'CHECKIN',
                     'source_id' => $source_id,
                     'points' => $points,
-                    'note' => 'Mốc ' . $checkpoint_id,
+                    'note' => 'Mốc ' . $checkpoint_id . ' · tỷ lệ có mặt',
                     'created_by' => get_current_user_id(),
                     'updated_at' => $now,
                 );
