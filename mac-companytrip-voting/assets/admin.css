@@ -164,7 +164,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .ma-top small,
@@ -506,6 +506,122 @@
   color: var(--muted);
   background: var(--soft);
   font-size: 12px;
+}
+
+.ma-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.ma-subnav button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.ma-subnav button:hover {
+  color: var(--ink);
+  background: var(--soft);
+}
+
+.ma-subnav button.active {
+  color: var(--r);
+  background: #fff4f0;
+  box-shadow: inset 0 0 0 1px #fed7cc;
+}
+
+.ma-chart-panel > header {
+  padding: 18px 20px 0;
+  border-bottom: 0;
+}
+
+.ma-chart {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+  padding: 12px 20px 24px;
+}
+
+.ma-chart-col {
+  display: grid;
+  min-height: 280px;
+  grid-template-rows: auto 1fr auto;
+  gap: 8px;
+  text-align: center;
+}
+
+.ma-chart-col strong {
+  font-size: 20px;
+  font-weight: 720;
+  letter-spacing: -0.03em;
+}
+
+.ma-chart-track {
+  display: flex;
+  height: 180px;
+  align-items: flex-end;
+  justify-content: center;
+  border-radius: 12px 12px 6px 6px;
+  background: var(--soft);
+}
+
+.ma-chart-track span {
+  display: block;
+  width: 100%;
+  min-height: 6px;
+  border-radius: 12px 12px 6px 6px;
+  background: var(--grad);
+}
+
+.ma-chart-col.is-neg .ma-chart-track span {
+  background: #fecdca;
+}
+
+.ma-chart-col figcaption {
+  display: grid;
+  gap: 2px;
+}
+
+.ma-chart-col figcaption b {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ma-chart-col figcaption small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.ma-history-table {
+  max-height: 520px;
+}
+
+.ma-history-table td:last-child {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ma-history-table tr.is-clear td:last-child {
+  color: var(--muted);
+}
+
+.ma-history-table tr.is-checkin td:last-child {
+  color: #b42318;
 }
 
 .ma-art-stack,
@@ -2332,6 +2448,10 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .ma-chart {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .ma-award-teams,
   .ma-award-presets {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2339,7 +2459,8 @@
 }
 
 @media (max-width: 700px) {
-  .ma-total-teams {
+  .ma-total-teams,
+  .ma-chart {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

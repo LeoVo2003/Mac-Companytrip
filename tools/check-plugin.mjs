@@ -116,6 +116,7 @@ const adminFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voti
 const publicJs = fs.readFileSync(path.join(pluginRoot, "assets/public.js"), "utf8");
 const adminJs = fs.readFileSync(path.join(pluginRoot, "assets/admin.js"), "utf8");
 const resultsJs = fs.readFileSync(path.join(pluginRoot, "assets/results.js"), "utf8");
+const pointsFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-points.php"), "utf8");
 for (const invariant of ["one_valid_ballot", "email varchar(190) NULL", "UNIQUE KEY email", "qr_version", "revote_grants", "audit", "table('checkpoints')", "one_checkin", "table('point_categories')"]) {
   if (!databaseFile.includes(invariant)) throw new Error(`Missing database invariant: ${invariant}`);
 }
@@ -162,8 +163,11 @@ for (const invariant of ["token_for_voter", "company-trip/q/"]) {
 if (!publicJs.includes("lockedView") || !publicJs.includes("enabled === false") || !publicJs.includes('get("from") === "qr"')) {
   throw new Error("Missing locked voting gate or QR confirm login UI.");
 }
-if (!adminJs.includes("mac_vote_gate") || !adminJs.includes("data-checkpoint") || !adminJs.includes("data-qr-view") || !adminJs.includes("mac_vote_points") || !adminJs.includes("data-tab=\"overview\"") || !adminJs.includes("data-tab=\"art\"") || !adminJs.includes("data-award-points")) {
+if (!adminJs.includes("mac_vote_gate") || !adminJs.includes("data-checkpoint") || !adminJs.includes("data-qr-view") || !adminJs.includes("mac_vote_points") || !adminJs.includes("data-tab=\"overview\"") || !adminJs.includes("data-tab=\"art\"") || !adminJs.includes("data-award-points") || !adminJs.includes("data-overview-tab")) {
   throw new Error("Missing admin controls for voting gate, checkpoints, personal QR, or total points.");
+}
+if (!pointsFile.includes("function history") || !pointsFile.includes("CHECKPOINT_POINTS_FINALIZED")) {
+  throw new Error("Missing total-points history ledger.");
 }
 
 const unexpected = relativeFiles.filter((file) => /(^|\/)(node_modules|src|dist|\.git)(\/|$)/.test(file));

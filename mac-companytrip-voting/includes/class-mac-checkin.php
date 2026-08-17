@@ -157,9 +157,21 @@ final class MAC_Checkin {
             return new WP_Error('db_error', 'Không thể đóng mốc.', array('status' => 500));
         }
         $wpdb->query('COMMIT');
+        $awards = array();
+        foreach ($results as $item) {
+            $awards[] = array(
+                'teamId' => (int) $item['teamId'],
+                'teamName' => $item['teamName'],
+                'teamNumber' => (int) $item['teamNumber'],
+                'rank' => $item['awardedRank'] ?? null,
+                'points' => (int) ($item['awardedPoints'] ?? 0),
+            );
+        }
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'CHECKPOINT_CLOSED', 'checkpoint', (string) $checkpoint_id);
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'CHECKPOINT_POINTS_FINALIZED', 'checkpoint', (string) $checkpoint_id, array(
-            'teams' => count($results),
+            'checkpointId' => (int) $checkpoint_id,
+            'checkpointName' => $row['name'],
+            'awards' => $awards,
         ));
         return self::checkpoint_row($checkpoint_id);
     }
@@ -453,7 +465,7 @@ final class MAC_Checkin {
         $results = MAC_Voting_DB::table('checkpoint_results');
         $points_table = MAC_Voting_DB::table('team_points');
         $now = MAC_Voting_DB::utc_now();
-        foreach ($snapshots as $row) {
+        foreach ($snapshots as $index => $row) {
             $rank = $ranks[$row['teamId']] ?? null;
             $points = ($finalize && $rank) ? (self::POINTS[$rank] ?? 0) : 0;
             $existing_id = (int) $wpdb->get_var($wpdb->prepare(
@@ -476,6 +488,9 @@ final class MAC_Checkin {
             } else {
                 $wpdb->insert($results, $payload);
             }
+            $row['awardedRank'] = $rank;
+            $row['awardedPoints'] = $finalize ? $points : 0;
+            $snapshots[$index] = $row;
             if ($finalize) {
                 $source_id = 'CHECKPOINT_' . $checkpoint_id;
                 $point_id = (int) $wpdb->get_var($wpdb->prepare(

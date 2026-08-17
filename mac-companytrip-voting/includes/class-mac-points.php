@@ -121,6 +121,8 @@ final class MAC_Points {
                 MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'TEAM_POINTS_CLEARED', 'team', (string) $team_id, array(
                     'categoryId' => $category_id,
                     'category' => $category['name'],
+                    'teamName' => $team['name'],
+                    'previous' => (int) $existing['points'],
                 ));
             }
             return true;
@@ -143,7 +145,9 @@ final class MAC_Points {
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'TEAM_POINTS_AWARDED', 'team', (string) $team_id, array(
             'categoryId' => $category_id,
             'category' => $category['name'],
+            'teamName' => $team['name'],
             'points' => $points,
+            'previous' => $existing ? (int) $existing['points'] : 0,
         ));
         return true;
     }
@@ -213,7 +217,91 @@ final class MAC_Points {
         return array(
             'categories' => $categories,
             'teams' => $board,
+            'history' => self::history(),
         );
+    }
+
+    public static function history(): array {
+        global $wpdb;
+        $audit = MAC_Voting_DB::table('audit');
+        $teams = MAC_Voting_DB::table('teams');
+        $team_rows = $wpdb->get_results("SELECT id,team_no,name FROM $teams", ARRAY_A) ?: array();
+        $team_map = array();
+        foreach ($team_rows as $team) {
+            $team_map[(int) $team['id']] = $team;
+        }
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM $audit WHERE action IN (%s,%s,%s) ORDER BY id DESC LIMIT 300",
+            'TEAM_POINTS_AWARDED',
+            'TEAM_POINTS_CLEARED',
+            'CHECKPOINT_POINTS_FINALIZED'
+        ), ARRAY_A) ?: array();
+        $items = array();
+        foreach ($rows as $row) {
+            $details = json_decode($row['details_json'], true);
+            if (!is_array($details)) {
+                $details = array();
+            }
+            $actor = self::actor_label($row['actor_id']);
+            $at = get_date_from_gmt($row['created_at'], 'H:i d/m/Y');
+            if ($row['action'] === 'CHECKPOINT_POINTS_FINALIZED') {
+                $checkpoint_name = $details['checkpointName'] ?? ('Mốc ' . $row['entity_id']);
+                $awards = isset($details['awards']) && is_array($details['awards']) ? $details['awards'] : array();
+                if ($awards) {
+                    foreach ($awards as $award) {
+                        $points = (int) ($award['points'] ?? 0);
+                        if ($points === 0) {
+                            continue;
+                        }
+                        $items[] = array(
+                            'at' => $at,
+                            'actor' => $actor,
+                            'teamName' => $award['teamName'] ?? '',
+                            'teamNumber' => (int) ($award['teamNumber'] ?? 0),
+                            'source' => 'Check-in',
+                            'note' => $checkpoint_name,
+                            'points' => $points,
+                            'kind' => 'checkin',
+                        );
+                    }
+                } else {
+                    $items[] = array(
+                        'at' => $at,
+                        'actor' => $actor,
+                        'teamName' => '6 team',
+                        'teamNumber' => 0,
+                        'source' => 'Check-in',
+                        'note' => $checkpoint_name,
+                        'points' => 0,
+                        'kind' => 'checkin',
+                    );
+                }
+                continue;
+            }
+            $team_id = (int) $row['entity_id'];
+            $team = $team_map[$team_id] ?? null;
+            $kind = $row['action'] === 'TEAM_POINTS_CLEARED' ? 'clear' : 'award';
+            $items[] = array(
+                'at' => $at,
+                'actor' => $actor,
+                'teamName' => $details['teamName'] ?? ($team ? $team['name'] : ''),
+                'teamNumber' => $team ? (int) $team['team_no'] : 0,
+                'source' => 'Hạng mục',
+                'note' => $details['category'] ?? '',
+                'points' => $kind === 'clear' ? 0 : (int) ($details['points'] ?? 0),
+                'kind' => $kind,
+            );
+        }
+        return $items;
+    }
+
+    private static function actor_label($actor_id): string {
+        $id = absint($actor_id);
+        if (!$id) {
+            return 'Hệ thống';
+        }
+        $user = get_userdata($id);
+        return $user ? $user->display_name : ('User #' . $id);
     }
 
     public static function reset_awards(): void {
