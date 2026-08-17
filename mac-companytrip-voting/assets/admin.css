@@ -90,6 +90,14 @@
   font-weight: 700;
 }
 
+.ma-brand small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
 .ma-side nav {
   display: grid;
   gap: 5px;
@@ -540,6 +548,11 @@
   color: var(--r);
   background: #fff4f0;
   box-shadow: inset 0 0 0 1px #fed7cc;
+}
+
+.ma-overview-stack {
+  display: grid;
+  gap: 16px;
 }
 
 .ma-chart-panel > header {
@@ -2462,5 +2475,193 @@
   .ma-total-teams,
   .ma-chart {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.mac-admin-wrap.mac-admin-public {
+  margin: 0;
+}
+
+body.mac-admin-public-page {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #f5f5f7;
+}
+
+body.mac-admin-public-page .site-header,
+body.mac-admin-public-page .site-footer,
+body.mac-admin-public-page #masthead,
+body.mac-admin-public-page #colophon,
+body.mac-admin-public-page header.wp-block-template-part,
+body.mac-admin-public-page footer.wp-block-template-part,
+body.mac-admin-public-page .elementor-location-header,
+body.mac-admin-public-page .elementor-location-footer,
+body.mac-admin-public-page [data-elementor-type="header"],
+body.mac-admin-public-page [data-elementor-type="footer"],
+body.mac-admin-public-page .page-header,
+body.mac-admin-public-page .entry-title,
+body.mac-admin-public-page .wp-block-post-title {
+  display: none !important;
+}
+
+body.mac-admin-public-page .site-main,
+body.mac-admin-public-page .site-content,
+body.mac-admin-public-page .page-content,
+body.mac-admin-public-page .entry-content,
+body.mac-admin-public-page .wp-block-post-content {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body.mac-admin-public-page .ma-layout {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+body.mac-admin-public-page .ma-side {
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+}
+
+.ma-login {
+  --r: #e31e24;
+  --o: #ff6a2c;
+  --grad: linear-gradient(135deg, var(--r) 0%, #f04423 55%, var(--o) 100%);
+  --ink: #111827;
+  --muted: #667085;
+  --page: #f5f5f7;
+  --panel: #ffffff;
+  --border: #e4e7ec;
+  box-sizing: border-box;
+  width: min(100%, 440px);
+  margin: 48px auto;
+  padding: 32px 24px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--panel);
+  box-shadow: 0 20px 55px rgba(16, 24, 40, 0.08);
+  color: var(--ink);
+}
+
+.ma-login img {
+  display: block;
+  width: 112px;
+  height: auto;
+}
+
+.ma-login-kicker {
+  margin: 16px 0 0;
+  color: var(--r);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.ma-login h1 {
+  margin: 8px 0 12px;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.ma-login p {
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ma-login label {
+  display: block;
+  margin: 0 0 8px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.ma-login-email {
+  display: flex;
+  min-height: 44px;
+  margin: 0 0 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fafafc;
+}
+
+.ma-login-email input {
+  min-width: 0;
+  flex: 1;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.ma-login-email b {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-left: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.ma-login input[type="password"] {
+  width: 100%;
+  min-height: 44px;
+  margin: 0 0 16px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fafafc;
+  color: var(--ink);
+}
+
+.ma-login .ma-primary {
+  width: 100%;
+  min-height: 44px;
+}
+
+.ma-login-error {
+  margin: 0 0 12px !important;
+  color: #b42318;
+}
+
+.ma-login .ma-primary[disabled] {
+  opacity: 0.56;
+}
+
+.ma-side-logout {
+  margin-top: 8px;
+  min-height: 44px;
+}
+
+.ma-scanner-cta header {
+  align-items: center;
+}
+
+.mac-admin-app.is-readonly .ma-reveal-actions,
+.mac-admin-app.is-readonly .ma-reveal-footer button,
+.mac-admin-app.is-readonly .ma-panel > header > b,
+.mac-admin-app.is-readonly .ma-permalink-warning a {
+  display: none !important;
+}
+
+.ma-staff-passwords ul {
+  margin: 8px 0 0;
+  padding: 0 0 0 18px;
+}
+
+@media (max-width: 960px) {
+  body.mac-admin-public-page .ma-side {
+    height: auto;
+  }
+
+  .ma-side-logout {
+    margin: 0 0 0 auto;
   }
 }

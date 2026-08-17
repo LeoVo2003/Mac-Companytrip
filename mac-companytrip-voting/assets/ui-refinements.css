@@ -18,7 +18,8 @@
 }
 
 .mac-voting-app,
-.mac-admin-app {
+.mac-admin-app,
+.ma-login {
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;

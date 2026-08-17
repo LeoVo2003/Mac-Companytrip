@@ -3,17 +3,17 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.5.0
+Stable tag: 1.6.0
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
 == Cài đặt ==
 
 1. Vào WordPress Admin > Plugins > Add New > Upload Plugin.
-2. Tải lên file mac-companytrip-voting-v1.5.0.zip và Activate. Sau bản này WordPress tự cập nhật từ GitHub Releases.
-3. Plugin tự tạo trang Chấm Điểm Văn Nghệ [mac_companytrip_vote], trang Kết Quả Văn Nghệ [mac_companytrip_results] và trang Check-in [mac_companytrip_checkin].
-4. Vào menu MAC Company Trip để import nhân sự, gửi QR cá nhân qua email và xếp lịch.
-5. Gán tài khoản BTC ở tab Check-in, mở /company-trip-checkin/ để quét QR.
+2. Tải lên file mac-companytrip-voting-v1.6.0.zip và Activate. Sau bản này WordPress tự cập nhật từ GitHub Releases.
+3. Plugin tự tạo trang Chấm Điểm Văn Nghệ [mac_companytrip_vote], trang Kết Quả Văn Nghệ [mac_companytrip_results], trang Check-in [mac_companytrip_checkin] và dashboard [mac_companytrip_admin].
+4. Mở /company-trip-admin/ để đăng nhập dashboard. Không cần vào wp-admin.
+5. Super admin thao tác toàn bộ. Admin (cột Vai trò BTC trong CSV) xem dashboard và vào máy quét /company-trip-checkin/.
 6. Cổng văn nghệ mặc định tắt. Bật khi bắt đầu chấm điểm.
 7. Nếu link vẫn có dạng ?page_id=..., vào Settings > Permalinks, chọn Post name rồi Save Changes.
 
@@ -25,9 +25,11 @@ Tải CSV mẫu trong trang Nhân sự & dữ liệu. Các cột bắt buộc:
 - Team
 - Email
 
-Cột tùy chọn: Mã NV, Trạng thái. File phải lưu dạng CSV UTF-8.
+Cột tùy chọn: Mã NV, Trạng thái, Vai trò, Mật khẩu. File phải lưu dạng CSV UTF-8.
 
 Email có thể ghi đầy đủ hoặc chỉ username. Hệ thống tự nối và chỉ chấp nhận tên miền @macusaone.com.
+
+Cột Vai trò ghi BTC hoặc ADMIN sẽ tạo tài khoản dashboard (không phải Super admin WordPress). Cột Mật khẩu để trống thì hệ thống tự tạo mật khẩu và hiện một lần sau khi import.
 
 == Quy tắc ==
 
@@ -62,6 +64,11 @@ Email có thể ghi đầy đủ hoặc chỉ username. Hệ thống tự nối 
 - Tab Tổng điểm: dashboard 6 team, thêm hạng mục và cộng/trừ điểm từng đội.
 
 == Changelog ==
+
+= 1.6.0 =
+- Dashboard web app tại /company-trip-admin/, login riêng, không cần wp-admin.
+- Super admin thao tác toàn bộ. Admin xem Tổng quan, Văn nghệ, Nhân sự & QR; Check-in xem tiến độ và vào máy quét BTC.
+- Import CSV có cột Vai trò (BTC) để cấp tài khoản dashboard.
 
 = 1.5.0 =
 - Tự cập nhật từ GitHub Releases, không cần upload zip lại sau lần cài đầu.

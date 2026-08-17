@@ -310,6 +310,17 @@ final class MAC_Points {
         $wpdb->query($wpdb->prepare("DELETE FROM $points WHERE source_type=%s", self::SOURCE));
     }
 
+    public static function reset_history(): void {
+        global $wpdb;
+        $audit = MAC_Voting_DB::table('audit');
+        $wpdb->query($wpdb->prepare(
+            "DELETE FROM $audit WHERE action IN (%s,%s,%s)",
+            'TEAM_POINTS_AWARDED',
+            'TEAM_POINTS_CLEARED',
+            'CHECKPOINT_POINTS_FINALIZED'
+        ));
+    }
+
     public static function seed_categories(): void {
         global $wpdb;
         $table = MAC_Voting_DB::table('point_categories');

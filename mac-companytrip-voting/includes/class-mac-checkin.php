@@ -400,6 +400,63 @@ final class MAC_Checkin {
         return true;
     }
 
+    public static function ensure_staff_user(string $name, string $email, string $password = '') {
+        if (!is_email($email)) {
+            return new WP_Error('invalid', 'Email BTC không hợp lệ.');
+        }
+        global $wpdb;
+        $teams = $wpdb->get_col('SELECT id FROM ' . MAC_Voting_DB::table('teams') . ' ORDER BY team_no');
+        $team_ids = array_map('intval', $teams ?: array());
+        $user = get_user_by('email', $email);
+        $provided = trim($password);
+        if ($user) {
+            if (user_can($user, 'manage_options')) {
+                return array('created' => false, 'password' => '', 'email' => $email, 'name' => $name, 'skippedAdmin' => true);
+            }
+            if (!in_array(self::ROLE, (array) $user->roles, true)) {
+                $user->add_role(self::ROLE);
+            }
+            if ($provided !== '') {
+                wp_set_password($provided, $user->ID);
+            }
+            $existing = get_user_meta($user->ID, self::TEAM_META, true);
+            if (!is_array($existing) || !$existing) {
+                update_user_meta($user->ID, self::TEAM_META, $team_ids);
+            }
+            return array(
+                'created' => false,
+                'password' => $provided,
+                'email' => $email,
+                'name' => $name,
+            );
+        }
+        $login = sanitize_user((string) strstr($email, '@', true), true);
+        if ($login === '') {
+            $login = sanitize_user($email, true);
+        }
+        if (username_exists($login)) {
+            $login = sanitize_user(str_replace('@', '.', $email), true);
+        }
+        $pass = $provided !== '' ? $provided : wp_generate_password(10, false);
+        $user_id = wp_insert_user(array(
+            'user_login' => $login,
+            'user_email' => $email,
+            'user_pass' => $pass,
+            'display_name' => $name,
+            'role' => self::ROLE,
+        ));
+        if (is_wp_error($user_id)) {
+            return $user_id;
+        }
+        update_user_meta((int) $user_id, self::TEAM_META, $team_ids);
+        return array(
+            'created' => true,
+            'password' => $pass,
+            'email' => $email,
+            'name' => $name,
+        );
+    }
+
     public static function reset_event_data(): void {
         global $wpdb;
         $checkpoints = MAC_Voting_DB::table('checkpoints');

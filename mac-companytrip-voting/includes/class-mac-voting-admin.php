@@ -40,24 +40,14 @@ final class MAC_Voting_Admin {
         wp_enqueue_style('mac-voting-ui-refinements', MAC_VOTING_URL . 'assets/ui-refinements.css', array('mac-voting-admin-qr'), MAC_VOTING_VERSION);
         wp_enqueue_script('mac-voting-qrcode', MAC_VOTING_URL . 'assets/qrcode.bundle.js', array(), MAC_VOTING_VERSION, true);
         wp_enqueue_script('mac-voting-admin', MAC_VOTING_URL . 'assets/admin.js', array('mac-voting-qrcode'), MAC_VOTING_VERSION, true);
-        wp_localize_script('mac-voting-admin', 'MACVotingAdmin', array(
-            'ajaxUrl'  => admin_url('admin-ajax.php'),
-            'nonce'    => wp_create_nonce('mac_voting_admin'),
-            'voteUrl'  => MAC_Voting_DB::vote_page_url(),
-            'resultsUrl' => MAC_Voting_DB::results_page_url(),
-            'checkinUrl' => MAC_Voting_DB::checkin_page_url(),
-            'logo'     => MAC_VOTING_URL . 'assets/mac-marketing-logo.png',
-            'exportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export'), 'mac_vote_export'),
-            'checkinExportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export_checkin'), 'mac_vote_export_checkin'),
-            'templateUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_template'), 'mac_vote_template'),
-            'permalinkWarning' => get_option('permalink_structure') === '',
-            'permalinkSettingsUrl' => admin_url('options-permalink.php'),
-        ));
+        wp_localize_script('mac-voting-admin', 'MACVotingAdmin', self::script_config());
     }
 
     public static function page(): void {
+        $public_url = MAC_Voting_DB::admin_page_url();
         ?>
         <div class="wrap mac-admin-wrap">
+            <p class="ma-wp-admin-note">Dashboard chính chạy ngoài wp-admin: <a href="<?php echo esc_url($public_url); ?>"><?php echo esc_html($public_url); ?></a></p>
             <div id="mac-voting-admin" class="mac-admin-app">
                 <div class="mac-admin-loading"><span class="spinner is-active"></span> Đang tải dashboard...</div>
             </div>
@@ -65,14 +55,44 @@ final class MAC_Voting_Admin {
         <?php
     }
 
-    private static function guard(): void {
-        if (!current_user_can('manage_options')) wp_send_json_error(array('message' => 'Không có quyền.'), 403);
+    public static function can_access_dashboard(): bool {
+        return current_user_can('manage_options') || current_user_can(MAC_Checkin::CAP);
+    }
+
+    public static function script_config(): array {
+        $is_super = current_user_can('manage_options');
+        return array(
+            'ajaxUrl'  => admin_url('admin-ajax.php'),
+            'nonce'    => wp_create_nonce('mac_voting_admin'),
+            'role'     => $is_super ? 'super' : 'admin',
+            'voteUrl'  => MAC_Voting_DB::vote_page_url(),
+            'resultsUrl' => MAC_Voting_DB::results_page_url(),
+            'checkinUrl' => MAC_Voting_DB::checkin_page_url(),
+            'adminUrl' => MAC_Voting_DB::admin_page_url(),
+            'logoutUrl'=> wp_logout_url(MAC_Voting_DB::admin_page_url()),
+            'logo'     => MAC_VOTING_URL . 'assets/mac-marketing-logo.png',
+            'exportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export'), 'mac_vote_export'),
+            'checkinExportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export_checkin'), 'mac_vote_export_checkin'),
+            'templateUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_template'), 'mac_vote_template'),
+            'permalinkWarning' => get_option('permalink_structure') === '',
+            'permalinkSettingsUrl' => admin_url('options-permalink.php'),
+        );
+    }
+
+    private static function guard(string $level = 'super'): void {
         check_ajax_referer('mac_voting_admin', 'nonce');
+        if ($level === 'staff' && self::can_access_dashboard()) {
+            return;
+        }
+        if ($level === 'super' && current_user_can('manage_options')) {
+            return;
+        }
+        wp_send_json_error(array('message' => 'Không có quyền.'), 403);
     }
 
     public static function ajax_overview(): void {
-        self::guard();
-        wp_send_json_success(self::overview());
+        self::guard('staff');
+        wp_send_json_success(self::overview_payload());
     }
 
     public static function ajax_reset_event(): void {
@@ -97,6 +117,7 @@ final class MAC_Voting_Admin {
         }
         MAC_Checkin::reset_event_data();
         MAC_Points::reset_awards();
+        MAC_Points::reset_history();
         $wpdb->query('COMMIT');
         MAC_Voting_DB::set_reveal_state('IDLE');
 
@@ -109,7 +130,7 @@ final class MAC_Voting_Admin {
             'keptQr' => true,
         ));
         wp_send_json_success(array(
-            'message' => 'Đã đặt lại sự kiện. Phiếu, check-in và cổng văn nghệ đã về trạng thái ban đầu.',
+            'message' => 'Đã đặt lại sự kiện. Phiếu, check-in, điểm hạng mục và lịch sử cộng điểm đã về trạng thái ban đầu.',
             'overview' => self::overview(),
         ));
     }
@@ -375,6 +396,7 @@ final class MAC_Voting_Admin {
         $aliases = array(
             'name' => array('ho ten','ten','full name'), 'employee' => array('ma nv','ma nhan vien','employee code'),
             'team' => array('team','doi'), 'email' => array('email','mail','email cong ty'), 'status' => array('trang thai','status'),
+            'role' => array('vai tro','role','btc','chuc vu'), 'password' => array('mat khau','password','pass'),
         );
         $columns = array();
         foreach ($aliases as $key => $names) {
@@ -389,7 +411,7 @@ final class MAC_Voting_Admin {
         $teams_table = MAC_Voting_DB::table('teams');
         $voters = MAC_Voting_DB::table('voters');
         $teams = $wpdb->get_results("SELECT * FROM $teams_table ORDER BY team_no", ARRAY_A);
-        $inserted = 0; $updated = 0; $line = 1; $errors = array(); $identity_rows = array();
+        $inserted = 0; $updated = 0; $line = 1; $errors = array(); $identity_rows = array(); $pending_staff = array();
         $wpdb->query('START TRANSACTION');
         while (($row = fgetcsv($handle, 0, $delimiter, '"', '')) !== false) {
             $line++;
@@ -448,6 +470,11 @@ final class MAC_Voting_Admin {
                 $errors[] = "Dòng $line: email đã thuộc một nhân sự khác trong hệ thống";
                 continue;
             }
+            $role_text = isset($columns['role']) ? (string) ($row[$columns['role']] ?? '') : '';
+            $password_text = isset($columns['password']) ? (string) ($row[$columns['password']] ?? '') : '';
+            if (self::csv_role_is_staff($role_text)) {
+                $pending_staff[] = array('name' => $name, 'email' => $email, 'password' => $password_text);
+            }
             $data = array(
                 'full_name' => $name, 'search_name' => MAC_Voting_DB::normalize_name($name),
                 'employee_code' => $employee ?: null, 'email' => $email, 'team_id' => (int) $team['id'],
@@ -488,8 +515,38 @@ final class MAC_Voting_Admin {
             wp_send_json_error(array('message' => 'Email đăng nhập của ' . ($collision['full_name'] ?: 'một nhân sự') . ' đang bị trùng. Hãy kiểm tra dữ liệu đã import.'), 409);
         }
         $wpdb->query('COMMIT');
-        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'VOTERS_IMPORTED', 'voter', null, array('inserted' => $inserted, 'updated' => $updated));
-        wp_send_json_success(array('message' => "Đã import: $inserted mới, $updated cập nhật.", 'overview' => self::overview()));
+        $staff_accounts = array();
+        $staff_errors = array();
+        foreach ($pending_staff as $item) {
+            $created = MAC_Checkin::ensure_staff_user($item['name'], $item['email'], $item['password']);
+            if (is_wp_error($created)) {
+                $staff_errors[] = $item['email'] . ': ' . $created->get_error_message();
+                continue;
+            }
+            if (!empty($created['skippedAdmin'])) {
+                continue;
+            }
+            if (!empty($created['password'])) {
+                $staff_accounts[] = $created;
+            }
+        }
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'VOTERS_IMPORTED', 'voter', null, array('inserted' => $inserted, 'updated' => $updated, 'staff' => count($pending_staff)));
+        $message = "Đã import: $inserted mới, $updated cập nhật.";
+        if ($pending_staff) {
+            $message .= ' Đã cấp quyền admin/BTC cho ' . count($pending_staff) . ' người.';
+        }
+        if ($staff_errors) {
+            $message .= ' Một số tài khoản BTC chưa tạo được: ' . implode('; ', array_slice($staff_errors, 0, 3));
+        }
+        wp_send_json_success(array(
+            'message' => $message,
+            'overview' => self::overview(),
+            'staffAccounts' => $staff_accounts,
+        ));
+    }
+
+    private static function overview_payload(): array {
+        return self::overview();
     }
 
     private static function overview(): array {
@@ -545,6 +602,11 @@ final class MAC_Voting_Admin {
         }
         unset($row);
         return $rows;
+    }
+
+    private static function csv_role_is_staff(string $value): bool {
+        $role = MAC_Voting_DB::normalize_name($value);
+        return in_array($role, array('btc', 'admin', 'ban to chuc', 'scanner', 'checkin', 'check in'), true);
     }
 
     private static function checkin_overview_board(): array {
@@ -604,7 +666,7 @@ final class MAC_Voting_Admin {
                 'openCheckpointId' => is_array($error_data) ? ($error_data['openCheckpointId'] ?? null) : null,
             ), is_array($error_data) ? (int) ($error_data['status'] ?? 400) : 400);
         }
-        wp_send_json_success(self::overview());
+        wp_send_json_success(self::overview_payload());
     }
 
     public static function ajax_qr(): void {
@@ -752,9 +814,9 @@ final class MAC_Voting_Admin {
         if (!current_user_can('manage_options') || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_template')) wp_die('Không có quyền.');
         self::csv_headers('mau-import-nhan-su.csv');
         $out = fopen('php://output', 'wb'); fwrite($out, "\xEF\xBB\xBF");
-        fputcsv($out, array('Họ tên','Mã NV','Team','Email','Trạng thái'));
-        fputcsv($out, array('Nguyễn Văn A','MAC001','#1 La Bàn','nguyenvana@macusaone.com','Hoạt động'));
-        fputcsv($out, array('Trần Văn B','','#4 Viking','tranvanb','Hoạt động'));
+        fputcsv($out, array('Họ tên','Mã NV','Team','Email','Trạng thái','Vai trò','Mật khẩu'));
+        fputcsv($out, array('Nguyễn Văn A','MAC001','#1 La Bàn','nguyenvana@macusaone.com','Hoạt động','',''));
+        fputcsv($out, array('Trần Văn B','','#4 Viking','tranvanb','Hoạt động','BTC','Trip2026'));
         fclose($out); exit;
     }
 

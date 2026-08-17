@@ -9,6 +9,7 @@ final class MAC_Checkin_Public {
         add_shortcode('mac_companytrip_checkin', array(__CLASS__, 'shortcode'));
         add_action('wp_enqueue_scripts', array(__CLASS__, 'register_assets'));
         add_filter('body_class', array(__CLASS__, 'body_class'));
+        add_filter('show_admin_bar', array(__CLASS__, 'hide_admin_bar'));
         add_action('template_redirect', array(__CLASS__, 'require_login'), 1);
     }
 
@@ -27,7 +28,9 @@ final class MAC_Checkin_Public {
             return;
         }
         if (!is_user_logged_in()) {
-            wp_safe_redirect(wp_login_url(MAC_Voting_DB::checkin_page_url()));
+            $next = MAC_Voting_DB::admin_page_url();
+            $next .= (strpos($next, '?') === false ? '?' : '&') . 'redirect=' . rawurlencode(MAC_Voting_DB::checkin_page_url());
+            wp_safe_redirect($next);
             exit;
         }
         if (!MAC_Checkin::can_scan()) {
@@ -49,13 +52,20 @@ final class MAC_Checkin_Public {
         return $classes;
     }
 
+    public static function hide_admin_bar($show) {
+        if (self::is_checkin_page()) {
+            return false;
+        }
+        return $show;
+    }
+
     public static function shortcode(): string {
         wp_enqueue_style('mac-voting-checkin');
         wp_enqueue_script('mac-voting-checkin');
         $rest_url = esc_url(rest_url('mac-voting/v1/'));
         $nonce = esc_attr(wp_create_nonce('wp_rest'));
         $logo = esc_url(MAC_VOTING_URL . 'assets/mac-marketing-logo.png');
-        $logout = esc_url(wp_logout_url(MAC_Voting_DB::checkin_page_url()));
+        $logout = esc_url(wp_logout_url(MAC_Voting_DB::admin_page_url()));
         ob_start();
         ?>
         <div id="mac-checkin-app" class="mac-checkin-app"

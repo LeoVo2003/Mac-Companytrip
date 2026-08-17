@@ -22,6 +22,8 @@ final class MAC_Voting_Public {
         if ($results_page_id) add_rewrite_rule('^ket-qua-van-nghe/?$', 'index.php?page_id=' . $results_page_id, 'top');
         $checkin_page_id = (int) get_option('mac_voting_checkin_page_id');
         if ($checkin_page_id) add_rewrite_rule('^company-trip-checkin/?$', 'index.php?page_id=' . $checkin_page_id, 'top');
+        $admin_page_id = (int) get_option('mac_voting_admin_page_id');
+        if ($admin_page_id) add_rewrite_rule('^company-trip-admin/?$', 'index.php?page_id=' . $admin_page_id, 'top');
         add_rewrite_rule('^company-trip/q/([^/]+)/?$', 'index.php?mac_qr_token=$matches[1]', 'top');
     }
 

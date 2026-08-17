@@ -78,7 +78,10 @@ const required = [
   "includes/class-mac-voting-rest.php",
   "includes/class-mac-voting-public.php",
   "includes/class-mac-voting-admin.php",
+  "includes/class-mac-admin-public.php",
+  "includes/class-mac-admin-rest.php",
   "includes/class-mac-voting-updater.php",
+  "assets/admin-login.js",
 ];
 for (const item of required) {
   if (!relativeFiles.includes(item)) throw new Error(`Missing plugin file: ${item}`);
@@ -163,11 +166,29 @@ for (const invariant of ["token_for_voter", "company-trip/q/"]) {
 if (!publicJs.includes("lockedView") || !publicJs.includes("enabled === false") || !publicJs.includes('get("from") === "qr"')) {
   throw new Error("Missing locked voting gate or QR confirm login UI.");
 }
-if (!adminJs.includes("mac_vote_gate") || !adminJs.includes("data-checkpoint") || !adminJs.includes("data-qr-view") || !adminJs.includes("mac_vote_points") || !adminJs.includes("data-tab=\"overview\"") || !adminJs.includes("data-tab=\"art\"") || !adminJs.includes("data-award-points") || !adminJs.includes("data-overview-tab")) {
-  throw new Error("Missing admin controls for voting gate, checkpoints, personal QR, or total points.");
+if (!adminJs.includes("mac_vote_gate") || !adminJs.includes("data-checkpoint") || !adminJs.includes("data-qr-view") || !adminJs.includes("mac_vote_points") || !adminJs.includes("data-tab=\"overview\"") || !adminJs.includes("data-tab=\"art\"") || !adminJs.includes("data-award-points") || !adminJs.includes("data-overview-tab") || !adminJs.includes("canWrite") || !adminJs.includes("Máy quét BTC")) {
+  throw new Error("Missing admin controls for voting gate, checkpoints, personal QR, total points, or role-based dashboard.");
 }
-if (!pointsFile.includes("function history") || !pointsFile.includes("CHECKPOINT_POINTS_FINALIZED")) {
+if (!pointsFile.includes("function history") || !pointsFile.includes("CHECKPOINT_POINTS_FINALIZED") || !pointsFile.includes("function reset_history")) {
   throw new Error("Missing total-points history ledger.");
+}
+
+const adminPublic = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-admin-public.php"), "utf8");
+const adminRest = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-admin-rest.php"), "utf8");
+const adminLoginJs = fs.readFileSync(path.join(pluginRoot, "assets/admin-login.js"), "utf8");
+for (const invariant of ["company-trip-admin", "mac_companytrip_admin", "redirect_staff_from_wp_admin"]) {
+  if (!databaseFile.includes(invariant) && !adminPublic.includes(invariant)) {
+    throw new Error(`Missing public admin dashboard invariant: ${invariant}`);
+  }
+}
+for (const invariant of ["/admin/login", "wp_signon", "MAC_Checkin::CAP"]) {
+  if (!adminRest.includes(invariant)) throw new Error(`Missing admin login route: ${invariant}`);
+}
+if (!adminLoginJs.includes("ma-login-form") || !mainFile.includes("MAC_Admin_REST::init()") || !mainFile.includes("MAC_Admin_Public::init()")) {
+  throw new Error("Public admin login must be wired outside wp-admin.");
+}
+if (!adminFile.includes("csv_role_is_staff") || !adminFile.includes("ensure_staff_user")) {
+  throw new Error("CSV import must create BTC/admin staff accounts.");
 }
 
 const unexpected = relativeFiles.filter((file) => /(^|\/)(node_modules|src|dist|\.git)(\/|$)/.test(file));
