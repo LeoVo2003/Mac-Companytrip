@@ -4,6 +4,19 @@
   const form = root.querySelector("#ma-login-form");
   const error = root.querySelector("#ma-login-error");
   const button = form.querySelector("button[type='submit']");
+  const userInput = form.querySelector("#ma-login-user");
+  const domainSelect = form.querySelector("#ma-login-domain");
+  const domains = ["macusaone.com", "yesoffice.vn"];
+  userInput.addEventListener("input", () => {
+    const value = userInput.value.trim().toLowerCase();
+    domains.forEach((domain) => {
+      const suffix = "@" + domain;
+      if (value.endsWith(suffix)) {
+        userInput.value = value.slice(0, -suffix.length);
+        domainSelect.value = domain;
+      }
+    });
+  });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     error.hidden = true;
@@ -15,7 +28,8 @@
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: form.username.value.trim(),
+          username: userInput.value.trim(),
+          domain: domainSelect ? domainSelect.value : "macusaone.com",
           password: form.password.value,
           redirect: root.dataset.redirect || "",
         }),

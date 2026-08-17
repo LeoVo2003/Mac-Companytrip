@@ -49,19 +49,28 @@
     setTimeout(refresh, 12000 + Math.floor(Math.random() * 4000));
   }
 
-  function loginView() {
-    root.innerHTML = shell(`${brand()}<div class="mv-heading"><p class="mv-kicker">ĐĂNG NHẬP DỰ PHÒNG</p><h1>Xin chào,<br>bạn là ai?</h1><p>Nhập username email công ty. Bạn cũng có thể mở QR cá nhân trong email để đăng nhập nhanh.</p></div><form id="mv-login" class="mv-form"><label for="mv-email">Username</label><div class="mv-input mv-email-input"><span aria-hidden="true">${icons.mail}</span><input id="mv-email" type="text" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="64" aria-describedby="mv-email-domain mv-email-hint" placeholder="ten.nguoidung"><b id="mv-email-domain">@macusaone.com</b></div><p id="mv-email-hint" class="mv-login-hint">Chỉ cần nhập phần đứng trước dấu @.</p><p id="mv-error" class="mv-error" role="alert" hidden></p><button type="submit" class="mv-button mv-button--primary mv-button--block mv-login-submit">Tiếp tục <span aria-hidden="true">→</span></button></form><div class="mv-trust"><span>✓ QR cá nhân là cách vào chính</span><span>▣ Username chỉ khi QR lỗi</span></div>`);
+    function loginView() {
+    root.innerHTML = shell(`${brand()}<div class="mv-heading"><p class="mv-kicker">ĐĂNG NHẬP DỰ PHÒNG</p><h1>Xin chào,<br>bạn là ai?</h1><p>Nhập username email công ty. Bạn cũng có thể mở QR cá nhân trong email để đăng nhập nhanh.</p></div><form id="mv-login" class="mv-form"><label for="mv-email">Username</label><div class="mv-input mv-email-input"><span aria-hidden="true">${icons.mail}</span><input id="mv-email" type="text" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="64" aria-describedby="mv-email-domain mv-email-hint" placeholder="ten.nguoidung"><label class="mv-email-domain"><span class="sr-only">Tên miền email</span><select id="mv-email-domain" aria-label="Tên miền email"><option value="macusaone.com" selected>@macusaone.com</option><option value="yesoffice.vn">@yesoffice.vn</option></select></label></div><p id="mv-email-hint" class="mv-login-hint">Mặc định @macusaone.com. Bấm tên miền để chọn @yesoffice.vn.</p><p id="mv-error" class="mv-error" role="alert" hidden></p><button type="submit" class="mv-button mv-button--primary mv-button--block mv-login-submit">Tiếp tục <span aria-hidden="true">→</span></button></form><div class="mv-trust"><span>✓ QR cá nhân là cách vào chính</span><span>▣ Username chỉ khi QR lỗi</span></div>`);
     const emailInput = root.querySelector("#mv-email");
+    const domainSelect = root.querySelector("#mv-email-domain");
+    const domains = ["macusaone.com", "yesoffice.vn"];
     emailInput.addEventListener("input", () => {
       const value = emailInput.value.trim().toLowerCase();
-      if (value.endsWith("@macusaone.com")) emailInput.value = value.slice(0, -"@macusaone.com".length);
+      domains.forEach((domain) => {
+        const suffix = "@" + domain;
+        if (value.endsWith(suffix)) {
+          emailInput.value = value.slice(0, -suffix.length);
+          domainSelect.value = domain;
+        }
+      });
     });
     root.querySelector("#mv-login").addEventListener("submit", async (event) => {
       event.preventDefault(); const error = root.querySelector("#mv-error"); const button = event.currentTarget.querySelector("button[type='submit']"); error.hidden = true;
       const username = emailInput.value.trim().toLowerCase();
+      const domain = domainSelect.value;
       if (!/^[a-z0-9._%+-]+$/.test(username)) { error.textContent = "Vui lòng nhập đúng username email công ty."; error.hidden = false; emailInput.focus(); return; }
       button.disabled = true; button.textContent = "Đang xác minh…";
-      try { const data = await request("login", { method: "POST", body: JSON.stringify({ username }) }); confirmView(data.voter, data.state); }
+      try { const data = await request("login", { method: "POST", body: JSON.stringify({ username, domain }) }); confirmView(data.voter, data.state); }
       catch (err) { button.disabled = false; button.innerHTML = `Tiếp tục <span aria-hidden="true">→</span>`; error.textContent = err.message; error.hidden = false; }
     });
   }

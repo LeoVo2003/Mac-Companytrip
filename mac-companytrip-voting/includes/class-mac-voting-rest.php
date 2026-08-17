@@ -55,7 +55,8 @@ final class MAC_Voting_REST {
         }
         global $wpdb;
         $submitted_username = sanitize_text_field((string) $request->get_param('username'));
-        $email = MAC_Voting_DB::normalize_company_email($submitted_username);
+        $domain = sanitize_text_field((string) $request->get_param('domain'));
+        $email = MAC_Voting_DB::normalize_company_email($submitted_username, $domain);
         $rate_identity = $email ?: mb_strtolower(trim($submitted_username), 'UTF-8');
         if (!$email) {
             return new WP_Error('invalid_login', 'Vui lòng nhập đúng username email công ty.', array('status' => 400));
@@ -75,6 +76,9 @@ final class MAC_Voting_REST {
             MAC_Voting_Auth::failed_login($rate_identity);
             MAC_Voting_DB::audit('SYSTEM', $rate_identity, 'USERNAME_LOGIN_FAILED', 'voter', null, array('username' => $rate_identity));
             return new WP_Error('invalid_login', 'Email này chưa có trong danh sách chấm điểm. Vui lòng liên hệ ban tổ chức.', array('status' => 401));
+        }
+        if (MAC_Voting_DB::is_staff_team_no((int) $row['team_no'])) {
+            return new WP_Error('staff_team', 'Tài khoản BTC đăng nhập dashboard, không dùng trang chấm điểm.', array('status' => 403));
         }
         $voter_id = (int) $row['id'];
         MAC_Voting_Auth::clear_login_attempts($rate_identity);

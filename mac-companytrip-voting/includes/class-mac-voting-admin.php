@@ -56,11 +56,11 @@ final class MAC_Voting_Admin {
     }
 
     public static function can_access_dashboard(): bool {
-        return current_user_can('manage_options') || current_user_can(MAC_Checkin::CAP);
+        return MAC_Checkin::is_super() || current_user_can(MAC_Checkin::CAP);
     }
 
     public static function script_config(): array {
-        $is_super = current_user_can('manage_options');
+        $is_super = MAC_Checkin::is_super();
         return array(
             'ajaxUrl'  => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('mac_voting_admin'),
@@ -84,7 +84,7 @@ final class MAC_Voting_Admin {
         if ($level === 'staff' && self::can_access_dashboard()) {
             return;
         }
-        if ($level === 'super' && current_user_can('manage_options')) {
+        if ($level === 'super' && MAC_Checkin::is_super()) {
             return;
         }
         wp_send_json_error(array('message' => 'Không có quyền.'), 403);
@@ -279,6 +279,9 @@ final class MAC_Voting_Admin {
         } elseif ($operation === 'rename') {
             $team = $wpdb->get_row($wpdb->prepare("SELECT * FROM $teams WHERE id=%d", $team_id), ARRAY_A);
             if (!$team) wp_send_json_error(array('message' => 'Team không tồn tại.'), 404);
+            if (MAC_Voting_DB::is_staff_team_no((int) $team['team_no'])) {
+                wp_send_json_error(array('message' => 'Team Hoa tiêu dành cho BTC, không đổi tên.'), 400);
+            }
             $old_name = (string) $team['name'];
             $wpdb->query('START TRANSACTION');
             $updated_team = $wpdb->update($teams, array('name' => $name), array('id' => $team_id), array('%s'), array('%d'));
@@ -300,7 +303,9 @@ final class MAC_Voting_Admin {
                 $team_id
             ), ARRAY_A);
             if (!$team) wp_send_json_error(array('message' => 'Team không tồn tại.'), 404);
-            if ((int) $team['slot_count'] > 0) wp_send_json_error(array('message' => 'Team đang nằm trong lịch biểu diễn. Hãy thay team khác vào slot trước.'), 409);
+            if (MAC_Voting_DB::is_staff_team_no((int) $team['team_no'])) {
+                wp_send_json_error(array('message' => 'Team Hoa tiêu dành cho BTC, không xóa.'), 400);
+            }
             if ((int) $team['voter_count'] > 0) wp_send_json_error(array('message' => 'Team còn ' . (int) $team['voter_count'] . ' nhân sự. Hãy chuyển nhân sự sang team khác trước.'), 409);
             if ((int) $team['ballot_count'] > 0) wp_send_json_error(array('message' => 'Team còn dữ liệu phiếu. Hãy xuất kết quả và đặt lại sự kiện trước khi xóa.'), 409);
 
@@ -426,10 +431,20 @@ final class MAC_Voting_Admin {
                     $team = $candidate; break;
                 }
             }
+            $role_text = isset($columns['role']) ? (string) ($row[$columns['role']] ?? '') : '';
+            $password_text = isset($columns['password']) ? (string) ($row[$columns['password']] ?? '') : '';
+            $staff_kind = self::csv_staff_kind($role_text);
+            if (!$staff_kind && $team && MAC_Voting_DB::is_staff_team_no((int) $team['team_no'])) {
+                $staff_kind = 'btc';
+            }
+            if ($staff_kind) {
+                $staff_team_id = MAC_Voting_DB::staff_team_id();
+                $team = array('id' => $staff_team_id, 'team_no' => MAC_Voting_DB::STAFF_TEAM_NO, 'name' => MAC_Voting_DB::STAFF_TEAM_NAME);
+            }
             $row_issues = array();
             if (!$name) $row_issues[] = 'thiếu họ tên';
             if (!$team) $row_issues[] = 'team không hợp lệ: ' . ($team_value ?: '(trống)');
-            if (!$email) $row_issues[] = 'email phải thuộc @' . MAC_Voting_DB::COMPANY_EMAIL_DOMAIN;
+            if (!$email) $row_issues[] = 'email phải thuộc @macusaone.com hoặc @yesoffice.vn';
             if ($row_issues) { $errors[] = "Dòng $line: " . implode(', ', $row_issues); continue; }
             $employee = isset($columns['employee']) ? sanitize_text_field($row[$columns['employee']] ?? '') : '';
             $status_text = isset($columns['status']) ? MAC_Voting_DB::normalize_name((string) ($row[$columns['status']] ?? '')) : 'hoat dong';
@@ -470,10 +485,8 @@ final class MAC_Voting_Admin {
                 $errors[] = "Dòng $line: email đã thuộc một nhân sự khác trong hệ thống";
                 continue;
             }
-            $role_text = isset($columns['role']) ? (string) ($row[$columns['role']] ?? '') : '';
-            $password_text = isset($columns['password']) ? (string) ($row[$columns['password']] ?? '') : '';
-            if (self::csv_role_is_staff($role_text)) {
-                $pending_staff[] = array('name' => $name, 'email' => $email, 'password' => $password_text);
+            if ($staff_kind) {
+                $pending_staff[] = array('name' => $name, 'email' => $email, 'password' => $password_text, 'kind' => $staff_kind);
             }
             $data = array(
                 'full_name' => $name, 'search_name' => MAC_Voting_DB::normalize_name($name),
@@ -518,12 +531,9 @@ final class MAC_Voting_Admin {
         $staff_accounts = array();
         $staff_errors = array();
         foreach ($pending_staff as $item) {
-            $created = MAC_Checkin::ensure_staff_user($item['name'], $item['email'], $item['password']);
+            $created = MAC_Checkin::ensure_staff_user($item['name'], $item['email'], $item['password'], $item['kind'] ?? 'btc');
             if (is_wp_error($created)) {
                 $staff_errors[] = $item['email'] . ': ' . $created->get_error_message();
-                continue;
-            }
-            if (!empty($created['skippedAdmin'])) {
                 continue;
             }
             if (!empty($created['password'])) {
@@ -533,7 +543,7 @@ final class MAC_Voting_Admin {
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'VOTERS_IMPORTED', 'voter', null, array('inserted' => $inserted, 'updated' => $updated, 'staff' => count($pending_staff)));
         $message = "Đã import: $inserted mới, $updated cập nhật.";
         if ($pending_staff) {
-            $message .= ' Đã cấp quyền admin/BTC cho ' . count($pending_staff) . ' người.';
+            $message .= ' Đã cấp tài khoản Super admin/BTC cho ' . count($pending_staff) . ' người.';
         }
         if ($staff_errors) {
             $message .= ' Một số tài khoản BTC chưa tạo được: ' . implode('; ', array_slice($staff_errors, 0, 3));
@@ -567,6 +577,10 @@ final class MAC_Voting_Admin {
                 EXISTS(SELECT 1 FROM $slots s WHERE s.performance_id=p.id) AS is_scheduled,
                 (SELECT COUNT(*) FROM $ballots b WHERE b.performance_id=p.id OR b.voter_id IN (SELECT v2.id FROM $voters v2 WHERE v2.team_id=t.id)) AS ballot_count
             FROM $teams t LEFT JOIN $performances p ON p.team_id=t.id ORDER BY t.team_no", ARRAY_A) ?: array();
+        foreach ($team_rows as &$team_row) {
+            $team_row['isStaff'] = MAC_Voting_DB::is_staff_team_no((int) $team_row['team_no']);
+        }
+        unset($team_row);
         return array(
             'rounds' => $round_rows, 'results' => $results, 'ballots' => $recent,
             'reveal' => MAC_Voting_DB::reveal_state(),
@@ -581,7 +595,10 @@ final class MAC_Voting_Admin {
             'teams' => $team_rows,
             'performances' => $wpdb->get_results("SELECT p.id,t.id AS team_id,t.name AS team_name,t.team_no FROM $performances p JOIN $teams t ON t.id=p.team_id ORDER BY t.team_no", ARRAY_A) ?: array(),
             'stats' => array(
-                'activeVoters' => (int) $wpdb->get_var("SELECT COUNT(*) FROM $voters WHERE status='ACTIVE'"),
+                'activeVoters' => (int) $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(*) FROM $voters v JOIN $teams t ON t.id=v.team_id WHERE v.status='ACTIVE' AND t.team_no<>%d",
+                    MAC_Voting_DB::STAFF_TEAM_NO
+                )),
                 'missingEmailVoters' => (int) $wpdb->get_var("SELECT COUNT(*) FROM $voters WHERE status='ACTIVE' AND (email IS NULL OR email='')"),
                 'validBallots' => (int) $wpdb->get_var("SELECT COUNT(*) FROM $ballots WHERE status='VALID'"),
                 'revokedBallots' => (int) $wpdb->get_var("SELECT COUNT(*) FROM $ballots WHERE status='REVOKED'"),
@@ -604,9 +621,15 @@ final class MAC_Voting_Admin {
         return $rows;
     }
 
-    private static function csv_role_is_staff(string $value): bool {
+    private static function csv_staff_kind(string $value): string {
         $role = MAC_Voting_DB::normalize_name($value);
-        return in_array($role, array('btc', 'admin', 'ban to chuc', 'scanner', 'checkin', 'check in'), true);
+        if (in_array($role, array('super', 'super admin', 'supper admin', 'superadmin', 'quan tri'), true)) {
+            return 'super';
+        }
+        if (in_array($role, array('btc', 'ban to chuc', 'scanner', 'checkin', 'check in', 'admin'), true)) {
+            return 'btc';
+        }
+        return '';
     }
 
     private static function checkin_overview_board(): array {
@@ -811,17 +834,25 @@ final class MAC_Voting_Admin {
     }
 
     public static function template_csv(): void {
-        if (!current_user_can('manage_options') || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_template')) wp_die('Không có quyền.');
+        if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_template')) wp_die('Không có quyền.');
         self::csv_headers('mau-import-nhan-su.csv');
         $out = fopen('php://output', 'wb'); fwrite($out, "\xEF\xBB\xBF");
         fputcsv($out, array('Họ tên','Mã NV','Team','Email','Trạng thái','Vai trò','Mật khẩu'));
         fputcsv($out, array('Nguyễn Văn A','MAC001','#1 La Bàn','nguyenvana@macusaone.com','Hoạt động','',''));
-        fputcsv($out, array('Trần Văn B','','#4 Viking','tranvanb','Hoạt động','BTC','Trip2026'));
+        fputcsv($out, array('Trần Thị B','MAC002','#1 La Bàn','tranthib','Hoạt động','',''));
+        fputcsv($out, array('Lê Văn C','MAC003','#2 Hải Đồ','levanc@macusaone.com','Hoạt động','',''));
+        fputcsv($out, array('Phạm Thị D','MAC004','#3 Đèn Hiệu','phamthid','Hoạt động','',''));
+        fputcsv($out, array('Hoàng Văn E','MAC005','#4 Viking','hoangvane@macusaone.com','Hoạt động','',''));
+        fputcsv($out, array('Vũ Thị F','MAC006','#5 Sao Bắc Cực','vuthif','Hoạt động','',''));
+        fputcsv($out, array('Đặng Văn G','MAC007','#6 Hải Đăng','dangvang@macusaone.com','Hoạt động','',''));
+        fputcsv($out, array('Ngô Thị H','MAC008','#2 Hải Đồ','ngothih','Không hoạt động','',''));
+        fputcsv($out, array('Trần Văn BTC','MAC100','#7 Hoa tiêu','tranvanbtc','Hoạt động','BTC',''));
+        fputcsv($out, array('Lê Thị Super','MAC101','#7 Hoa tiêu','lethisuper@yesoffice.vn','Hoạt động','Super admin',''));
         fclose($out); exit;
     }
 
     public static function export_csv(): void {
-        if (!current_user_can('manage_options') || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export')) wp_die('Không có quyền.');
+        if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export')) wp_die('Không có quyền.');
         global $wpdb;
         self::csv_headers('ket-qua-companytrip.csv');
         $out = fopen('php://output', 'wb'); fwrite($out, "\xEF\xBB\xBF");
@@ -843,7 +874,7 @@ final class MAC_Voting_Admin {
     }
 
     public static function export_checkin_csv(): void {
-        if (!current_user_can('manage_options') || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export_checkin')) wp_die('Không có quyền.');
+        if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export_checkin')) wp_die('Không có quyền.');
         global $wpdb;
         self::csv_headers('checkin-companytrip.csv');
         $out = fopen('php://output', 'wb'); fwrite($out, "\xEF\xBB\xBF");

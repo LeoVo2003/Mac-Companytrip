@@ -103,9 +103,12 @@ final class MAC_Points {
         if (!$category) {
             return new WP_Error('not_found', 'Hạng mục không tồn tại.', array('status' => 404));
         }
-        $team = $wpdb->get_row($wpdb->prepare("SELECT id,name FROM $teams WHERE id=%d", $team_id), ARRAY_A);
+        $team = $wpdb->get_row($wpdb->prepare("SELECT id,name,team_no FROM $teams WHERE id=%d", $team_id), ARRAY_A);
         if (!$team) {
             return new WP_Error('not_found', 'Team không tồn tại.', array('status' => 404));
+        }
+        if (MAC_Voting_DB::is_staff_team_no((int) $team['team_no'])) {
+            return new WP_Error('staff_team', 'Team Hoa tiêu chỉ dành cho BTC, không chấm điểm hạng mục.', array('status' => 400));
         }
         $ledger = MAC_Voting_DB::table('team_points');
         $existing = $wpdb->get_row($wpdb->prepare(
@@ -156,7 +159,10 @@ final class MAC_Points {
         global $wpdb;
         $teams_table = MAC_Voting_DB::table('teams');
         $points_table = MAC_Voting_DB::table('team_points');
-        $teams = $wpdb->get_results("SELECT id,team_no,name FROM $teams_table ORDER BY team_no", ARRAY_A) ?: array();
+        $teams = $wpdb->get_results($wpdb->prepare(
+            "SELECT id,team_no,name FROM $teams_table WHERE team_no<>%d ORDER BY team_no",
+            MAC_Voting_DB::STAFF_TEAM_NO
+        ), ARRAY_A) ?: array();
         $ledger = $wpdb->get_results("SELECT team_id,source_type,source_id,points FROM $points_table", ARRAY_A) ?: array();
         $by_team = array();
         foreach ($ledger as $row) {

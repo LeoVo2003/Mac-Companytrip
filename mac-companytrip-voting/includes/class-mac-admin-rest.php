@@ -27,7 +27,8 @@ final class MAC_Admin_REST {
     public static function login(WP_REST_Request $request) {
         $username = sanitize_text_field((string) $request->get_param('username'));
         $password = (string) $request->get_param('password');
-        $email = MAC_Voting_DB::normalize_company_email($username);
+        $domain = sanitize_text_field((string) $request->get_param('domain'));
+        $email = MAC_Voting_DB::normalize_company_email($username, $domain);
         $rate_identity = $email ?: mb_strtolower(trim($username), 'UTF-8');
         if (!$email || $password === '') {
             return new WP_Error('invalid_login', 'Nhập username email công ty và mật khẩu.', array('status' => 400));
@@ -50,12 +51,12 @@ final class MAC_Admin_REST {
             MAC_Voting_Auth::failed_login('admin_' . $rate_identity);
             return new WP_Error('invalid_login', 'Sai tài khoản hoặc mật khẩu.', array('status' => 401));
         }
-        if (!user_can($signed, 'manage_options') && !user_can($signed, MAC_Checkin::CAP)) {
+        if (!MAC_Checkin::is_super_user($signed) && !user_can($signed, MAC_Checkin::CAP)) {
             wp_logout();
             return new WP_Error('forbidden', 'Tài khoản này không vào được dashboard.', array('status' => 403));
         }
         MAC_Voting_Auth::clear_login_attempts('admin_' . $rate_identity);
-        $role = user_can($signed, 'manage_options') ? 'super' : 'admin';
+        $role = MAC_Checkin::is_super_user($signed) ? 'super' : 'admin';
         MAC_Voting_DB::audit('ADMIN', (string) $signed->ID, 'DASHBOARD_LOGIN', 'user', (string) $signed->ID, array('role' => $role));
         $redirect = MAC_Voting_DB::admin_page_url();
         $requested = (string) $request->get_param('redirect');

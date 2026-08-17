@@ -3,17 +3,17 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
 == Cài đặt ==
 
 1. Vào WordPress Admin > Plugins > Add New > Upload Plugin.
-2. Tải lên file mac-companytrip-voting-v1.6.0.zip và Activate. Sau bản này WordPress tự cập nhật từ GitHub Releases.
+2. Tải lên file mac-companytrip-voting-v1.6.1.zip và Activate. Sau bản này WordPress tự cập nhật từ GitHub Releases.
 3. Plugin tự tạo trang Chấm Điểm Văn Nghệ [mac_companytrip_vote], trang Kết Quả Văn Nghệ [mac_companytrip_results], trang Check-in [mac_companytrip_checkin] và dashboard [mac_companytrip_admin].
 4. Mở /company-trip-admin/ để đăng nhập dashboard. Không cần vào wp-admin.
-5. Super admin thao tác toàn bộ. Admin (cột Vai trò BTC trong CSV) xem dashboard và vào máy quét /company-trip-checkin/.
+5. Super admin thao tác toàn bộ. BTC xem dashboard và vào máy quét /company-trip-checkin/. Cả hai role được tạo từ CSV và không có quyền wp-admin.
 6. Cổng văn nghệ mặc định tắt. Bật khi bắt đầu chấm điểm.
 7. Nếu link vẫn có dạng ?page_id=..., vào Settings > Permalinks, chọn Post name rồi Save Changes.
 
@@ -27,9 +27,9 @@ Tải CSV mẫu trong trang Nhân sự & dữ liệu. Các cột bắt buộc:
 
 Cột tùy chọn: Mã NV, Trạng thái, Vai trò, Mật khẩu. File phải lưu dạng CSV UTF-8.
 
-Email có thể ghi đầy đủ hoặc chỉ username. Hệ thống tự nối và chỉ chấp nhận tên miền @macusaone.com.
+Email có thể ghi đầy đủ hoặc chỉ username. Hệ thống chấp nhận @macusaone.com và @yesoffice.vn; khi chỉ ghi username, mặc định là @macusaone.com.
 
-Cột Vai trò ghi BTC hoặc ADMIN sẽ tạo tài khoản dashboard (không phải Super admin WordPress). Cột Mật khẩu để trống thì hệ thống tự tạo mật khẩu và hiện một lần sau khi import.
+Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riêng. BTC/Super admin luôn thuộc Team #7 Hoa tiêu, không tham gia chấm điểm hoặc các hạng mục. Cột Mật khẩu để trống sẽ dùng mặc định MAC-Trip2026.
 
 == Quy tắc ==
 
@@ -64,6 +64,10 @@ Cột Vai trò ghi BTC hoặc ADMIN sẽ tạo tài khoản dashboard (không ph
 - Tab Tổng điểm: dashboard 6 team, thêm hạng mục và cộng/trừ điểm từng đội.
 
 == Changelog ==
+
+= 1.6.1 =
+- Hỗ trợ @yesoffice.vn trong đăng nhập và CSV, mặc định vẫn là @macusaone.com.
+- CSV tạo BTC hoặc Super admin với mật khẩu mặc định MAC-Trip2026; Team #7 Hoa tiêu được loại khỏi mọi bảng điểm.
 
 = 1.6.0 =
 - Dashboard web app tại /company-trip-admin/, login riêng, không cần wp-admin.

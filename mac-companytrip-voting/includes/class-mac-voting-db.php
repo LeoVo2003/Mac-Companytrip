@@ -6,7 +6,11 @@ if (!defined('ABSPATH')) {
 
 final class MAC_Voting_DB {
     public const COMPANY_EMAIL_DOMAIN = 'macusaone.com';
-    private const DB_VERSION = '1.6.0';
+    public const COMPANY_EMAIL_DOMAINS = array('macusaone.com', 'yesoffice.vn');
+    public const STAFF_TEAM_NO = 7;
+    public const STAFF_TEAM_NAME = 'Hoa tiêu';
+    public const DEFAULT_STAFF_PASSWORD = 'MAC-Trip2026';
+    private const DB_VERSION = '1.6.1';
 
     public static function table(string $name): string {
         global $wpdb;
@@ -47,6 +51,7 @@ final class MAC_Voting_DB {
             return;
         }
         self::ensure_admin_page();
+        self::ensure_staff_team();
     }
 
     private static function install_schema(): void {
@@ -279,6 +284,7 @@ final class MAC_Voting_DB {
                 ));
             }
         }
+        self::ensure_staff_team();
     }
 
     private static function seed_checkpoints(): void {
@@ -398,23 +404,72 @@ final class MAC_Voting_DB {
         return preg_replace('/\s+/u', ' ', $value) ?: '';
     }
 
-    public static function normalize_company_email(string $value): string {
+    public static function normalize_company_email(string $value, string $preferred_domain = ''): string {
         $value = mb_strtolower(trim($value), 'UTF-8');
         if ($value === '') {
             return '';
         }
+        $domain = self::normalize_email_domain($preferred_domain);
         if (strpos($value, '@') === false) {
-            $value .= '@' . self::COMPANY_EMAIL_DOMAIN;
+            $value .= '@' . $domain;
         }
         $email = sanitize_email($value);
-        if (!$email || $email !== $value || !is_email($email) || substr($email, -strlen('@' . self::COMPANY_EMAIL_DOMAIN)) !== '@' . self::COMPANY_EMAIL_DOMAIN) {
+        if (!$email || $email !== $value || !is_email($email)) {
             return '';
         }
         $parts = explode('@', $email, 2);
-        if (empty($parts[0]) || ($parts[1] ?? '') !== self::COMPANY_EMAIL_DOMAIN) {
+        $host = $parts[1] ?? '';
+        if (empty($parts[0]) || !in_array($host, self::COMPANY_EMAIL_DOMAINS, true)) {
             return '';
         }
-        return $parts[0] . '@' . self::COMPANY_EMAIL_DOMAIN;
+        return $parts[0] . '@' . $host;
+    }
+
+    public static function normalize_email_domain(string $domain): string {
+        $domain = mb_strtolower(ltrim(trim($domain), '@'), 'UTF-8');
+        if (in_array($domain, self::COMPANY_EMAIL_DOMAINS, true)) {
+            return $domain;
+        }
+        return self::COMPANY_EMAIL_DOMAIN;
+    }
+
+    public static function is_staff_team_no(int $team_no): bool {
+        return $team_no === self::STAFF_TEAM_NO;
+    }
+
+    public static function staff_team_id(): int {
+        global $wpdb;
+        self::ensure_staff_team();
+        return (int) $wpdb->get_var($wpdb->prepare(
+            'SELECT id FROM ' . self::table('teams') . ' WHERE team_no=%d',
+            self::STAFF_TEAM_NO
+        ));
+    }
+
+    public static function competing_team_ids(): array {
+        global $wpdb;
+        $ids = $wpdb->get_col($wpdb->prepare(
+            'SELECT id FROM ' . self::table('teams') . ' WHERE team_no<>%d ORDER BY team_no',
+            self::STAFF_TEAM_NO
+        ));
+        return array_map('intval', $ids ?: array());
+    }
+
+    public static function ensure_staff_team(): void {
+        global $wpdb;
+        $teams = self::table('teams');
+        $existing = $wpdb->get_row($wpdb->prepare("SELECT id,name FROM $teams WHERE team_no=%d", self::STAFF_TEAM_NO), ARRAY_A);
+        if ($existing) {
+            if ($existing['name'] !== self::STAFF_TEAM_NAME) {
+                $wpdb->update($teams, array('name' => self::STAFF_TEAM_NAME), array('id' => (int) $existing['id']));
+            }
+            return;
+        }
+        $wpdb->insert($teams, array(
+            'team_no' => self::STAFF_TEAM_NO,
+            'name' => self::STAFF_TEAM_NAME,
+            'created_at' => self::utc_now(),
+        ), array('%d', '%s', '%s'));
     }
 
     public static function company_email_from_username(string $username): string {

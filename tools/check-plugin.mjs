@@ -126,7 +126,7 @@ for (const invariant of ["one_valid_ballot", "email varchar(190) NULL", "UNIQUE 
 for (const invariant of ["COMPANY_EMAIL_DOMAIN = 'macusaone.com'", "normalize_company_email", "WHERE v.email=%s"]) {
   if (!databaseFile.includes(invariant) && !restFile.includes(invariant)) throw new Error(`Missing company email login rule: ${invariant}`);
 }
-for (const invariant of ["@macusaone.com", "JSON.stringify({ username })", "autocomplete=\"username\""]) {
+for (const invariant of ["@macusaone.com", "yesoffice.vn", "JSON.stringify({ username, domain })", "autocomplete=\"username\""]) {
   if (!publicJs.includes(invariant)) throw new Error(`Missing simplified email login UI: ${invariant}`);
 }
 if (/phoneLast4|search\?q=|mv-phone|mv-name/.test(publicJs)) {
@@ -187,8 +187,17 @@ for (const invariant of ["/admin/login", "wp_signon", "MAC_Checkin::CAP"]) {
 if (!adminLoginJs.includes("ma-login-form") || !mainFile.includes("MAC_Admin_REST::init()") || !mainFile.includes("MAC_Admin_Public::init()")) {
   throw new Error("Public admin login must be wired outside wp-admin.");
 }
-if (!adminFile.includes("csv_role_is_staff") || !adminFile.includes("ensure_staff_user")) {
-  throw new Error("CSV import must create BTC/admin staff accounts.");
+if (!adminFile.includes("csv_staff_kind") || !adminFile.includes("ensure_staff_user")) {
+  throw new Error("CSV import must create BTC and super-admin staff accounts.");
+}
+const checkinFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-checkin.php"), "utf8");
+for (const invariant of ["SUPER_ROLE", "SUPER_CAP", "add_role(self::SUPER_ROLE"]) {
+  if (!checkinFile.includes(invariant)) {
+    throw new Error(`Missing CSV super-admin role invariant: ${invariant}`);
+  }
+}
+if (checkinFile.includes("$user->set_role('administrator')")) {
+  throw new Error("CSV super admin must not be promoted to the WordPress administrator role.");
 }
 
 const unexpected = relativeFiles.filter((file) => /(^|\/)(node_modules|src|dist|\.git)(\/|$)/.test(file));

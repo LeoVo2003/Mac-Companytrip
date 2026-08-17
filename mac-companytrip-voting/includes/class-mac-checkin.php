@@ -7,6 +7,8 @@ if (!defined('ABSPATH')) {
 final class MAC_Checkin {
     public const ROLE = 'mac_btc_checkin';
     public const CAP = 'mac_checkin';
+    public const SUPER_ROLE = 'mac_companytrip_super_admin';
+    public const SUPER_CAP = 'mac_manage_companytrip';
     public const TEAM_META = 'mac_checkin_team_ids';
 
     private const POINTS = array(
@@ -23,6 +25,20 @@ final class MAC_Checkin {
         if ($admin && !$admin->has_cap(self::CAP)) {
             $admin->add_cap(self::CAP);
         }
+        if ($admin && !$admin->has_cap(self::SUPER_CAP)) {
+            $admin->add_cap(self::SUPER_CAP);
+        }
+        $super = get_role(self::SUPER_ROLE);
+        if (!$super) {
+            add_role(self::SUPER_ROLE, 'MAC Company Trip Super Admin', array(
+                'read' => true,
+                self::CAP => true,
+                self::SUPER_CAP => true,
+            ));
+        } else {
+            $super->add_cap(self::CAP);
+            $super->add_cap(self::SUPER_CAP);
+        }
         if (!get_role(self::ROLE)) {
             add_role(self::ROLE, 'MAC BTC Check-in', array(
                 'read' => true,
@@ -35,21 +51,29 @@ final class MAC_Checkin {
         return current_user_can(self::CAP) || current_user_can('manage_options');
     }
 
+    public static function is_super(): bool {
+        return current_user_can(self::SUPER_CAP) || current_user_can('manage_options');
+    }
+
+    public static function is_super_user($user): bool {
+        return user_can($user, self::SUPER_CAP) || user_can($user, 'manage_options');
+    }
+
     public static function is_admin_scanner(): bool {
-        return current_user_can('manage_options');
+        return self::is_super();
     }
 
     public static function allowed_team_ids(): array {
-        global $wpdb;
+        $competing = MAC_Voting_DB::competing_team_ids();
         if (self::is_admin_scanner()) {
-            $teams = MAC_Voting_DB::table('teams');
-            return array_map('intval', $wpdb->get_col("SELECT id FROM $teams ORDER BY team_no"));
+            return $competing;
         }
         $raw = get_user_meta(get_current_user_id(), self::TEAM_META, true);
         if (!is_array($raw)) {
             return array();
         }
-        return array_values(array_filter(array_map('intval', $raw)));
+        $assigned = array_values(array_filter(array_map('intval', $raw)));
+        return array_values(array_intersect($assigned, $competing));
     }
 
     public static function checkpoints(): array {
@@ -196,6 +220,9 @@ final class MAC_Checkin {
             ));
             return $voter;
         }
+        if (MAC_Voting_DB::is_staff_team_no((int) $voter['team_no'])) {
+            return new WP_Error('staff_team', 'Tài khoản BTC không check-in như đội thi.', array('status' => 409));
+        }
         $team_id = (int) $voter['team_id'];
         $allowed = self::allowed_team_ids();
         if (!in_array($team_id, $allowed, true)) {
@@ -329,7 +356,10 @@ final class MAC_Checkin {
 
     public static function checkpoint_board(int $checkpoint_id): array {
         global $wpdb;
-        $teams = $wpdb->get_results('SELECT id,name,team_no FROM ' . MAC_Voting_DB::table('teams') . ' ORDER BY team_no', ARRAY_A) ?: array();
+        $teams = $wpdb->get_results($wpdb->prepare(
+            'SELECT id,name,team_no FROM ' . MAC_Voting_DB::table('teams') . ' WHERE team_no<>%d ORDER BY team_no',
+            MAC_Voting_DB::STAFF_TEAM_NO
+        ), ARRAY_A) ?: array();
         $board = array();
         foreach ($teams as $team) {
             $board[] = self::team_progress($checkpoint_id, (int) $team['id']);
@@ -370,7 +400,7 @@ final class MAC_Checkin {
 
     public static function staff_assignments(): array {
         $users = get_users(array(
-            'role__in' => array(self::ROLE, 'administrator'),
+            'role__in' => array(self::ROLE, self::SUPER_ROLE, 'administrator'),
             'orderby' => 'display_name',
         ));
         $items = array();
@@ -380,7 +410,7 @@ final class MAC_Checkin {
                 'id' => (int) $user->ID,
                 'name' => $user->display_name,
                 'email' => $user->user_email,
-                'isAdmin' => user_can($user, 'manage_options'),
+                'isAdmin' => self::is_super_user($user),
                 'teamIds' => is_array($team_ids) ? array_values(array_map('intval', $team_ids)) : array(),
             );
         }
@@ -394,40 +424,42 @@ final class MAC_Checkin {
         }
         $team_ids = array_values(array_unique(array_filter(array_map('intval', $team_ids))));
         update_user_meta($user_id, self::TEAM_META, $team_ids);
-        if (!user_can($user, 'manage_options') && !in_array(self::ROLE, (array) $user->roles, true)) {
+        if (!self::is_super_user($user) && !in_array(self::ROLE, (array) $user->roles, true)) {
             $user->add_role(self::ROLE);
         }
         return true;
     }
 
-    public static function ensure_staff_user(string $name, string $email, string $password = '') {
+    public static function ensure_staff_user(string $name, string $email, string $password = '', string $kind = 'btc') {
         if (!is_email($email)) {
-            return new WP_Error('invalid', 'Email BTC không hợp lệ.');
+            return new WP_Error('invalid', 'Email tài khoản dashboard không hợp lệ.');
         }
-        global $wpdb;
-        $teams = $wpdb->get_col('SELECT id FROM ' . MAC_Voting_DB::table('teams') . ' ORDER BY team_no');
-        $team_ids = array_map('intval', $teams ?: array());
+        $kind = $kind === 'super' ? 'super' : 'btc';
+        $pass = trim($password) !== '' ? trim($password) : MAC_Voting_DB::DEFAULT_STAFF_PASSWORD;
+        $team_ids = MAC_Voting_DB::competing_team_ids();
         $user = get_user_by('email', $email);
-        $provided = trim($password);
+        $wp_role = $kind === 'super' ? self::SUPER_ROLE : self::ROLE;
         if ($user) {
-            if (user_can($user, 'manage_options')) {
-                return array('created' => false, 'password' => '', 'email' => $email, 'name' => $name, 'skippedAdmin' => true);
-            }
-            if (!in_array(self::ROLE, (array) $user->roles, true)) {
+            if ($kind === 'super') {
+                if (!user_can($user, 'manage_options')) {
+                    $user->set_role(self::SUPER_ROLE);
+                }
+            } elseif (!self::is_super_user($user) && !in_array(self::ROLE, (array) $user->roles, true)) {
                 $user->add_role(self::ROLE);
             }
-            if ($provided !== '') {
-                wp_set_password($provided, $user->ID);
-            }
-            $existing = get_user_meta($user->ID, self::TEAM_META, true);
-            if (!is_array($existing) || !$existing) {
-                update_user_meta($user->ID, self::TEAM_META, $team_ids);
+            wp_set_password($pass, $user->ID);
+            if ($kind === 'btc' && !self::is_super_user($user)) {
+                $existing = get_user_meta($user->ID, self::TEAM_META, true);
+                if (!is_array($existing) || !$existing) {
+                    update_user_meta($user->ID, self::TEAM_META, $team_ids);
+                }
             }
             return array(
                 'created' => false,
-                'password' => $provided,
+                'password' => $pass,
                 'email' => $email,
                 'name' => $name,
+                'kind' => $kind,
             );
         }
         $login = sanitize_user((string) strstr($email, '@', true), true);
@@ -437,23 +469,25 @@ final class MAC_Checkin {
         if (username_exists($login)) {
             $login = sanitize_user(str_replace('@', '.', $email), true);
         }
-        $pass = $provided !== '' ? $provided : wp_generate_password(10, false);
         $user_id = wp_insert_user(array(
             'user_login' => $login,
             'user_email' => $email,
             'user_pass' => $pass,
             'display_name' => $name,
-            'role' => self::ROLE,
+            'role' => $wp_role,
         ));
         if (is_wp_error($user_id)) {
             return $user_id;
         }
-        update_user_meta((int) $user_id, self::TEAM_META, $team_ids);
+        if ($kind === 'btc') {
+            update_user_meta((int) $user_id, self::TEAM_META, $team_ids);
+        }
         return array(
             'created' => true,
             'password' => $pass,
             'email' => $email,
             'name' => $name,
+            'kind' => $kind,
         );
     }
 
@@ -474,7 +508,10 @@ final class MAC_Checkin {
         global $wpdb;
         $teams = MAC_Voting_DB::table('teams');
         $points = MAC_Voting_DB::table('team_points');
-        $rows = $wpdb->get_results("SELECT t.id,t.team_no,t.name FROM $teams t ORDER BY t.team_no", ARRAY_A) ?: array();
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT t.id,t.team_no,t.name FROM $teams t WHERE t.team_no<>%d ORDER BY t.team_no",
+            MAC_Voting_DB::STAFF_TEAM_NO
+        ), ARRAY_A) ?: array();
         $ledger = $wpdb->get_results($wpdb->prepare(
             "SELECT team_id,source_id,points FROM $points WHERE source_type=%s",
             'CHECKIN'
@@ -507,7 +544,10 @@ final class MAC_Checkin {
 
     private static function recalculate_checkpoint(int $checkpoint_id, bool $finalize) {
         global $wpdb;
-        $teams = $wpdb->get_results('SELECT id FROM ' . MAC_Voting_DB::table('teams') . ' ORDER BY team_no', ARRAY_A) ?: array();
+        $teams = $wpdb->get_results($wpdb->prepare(
+            'SELECT id FROM ' . MAC_Voting_DB::table('teams') . ' WHERE team_no<>%d ORDER BY team_no',
+            MAC_Voting_DB::STAFF_TEAM_NO
+        ), ARRAY_A) ?: array();
         $snapshots = array();
         foreach ($teams as $team) {
             $progress = self::team_progress($checkpoint_id, (int) $team['id']);

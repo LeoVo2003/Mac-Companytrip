@@ -39,6 +39,10 @@ final class MAC_Admin_Public {
         if (defined('DOING_AJAX') && DOING_AJAX) {
             return;
         }
+        global $pagenow;
+        if ($pagenow === 'admin-post.php') {
+            return;
+        }
         if (!is_user_logged_in() || current_user_can('manage_options') || !current_user_can(MAC_Checkin::CAP)) {
             return;
         }
@@ -115,7 +119,13 @@ final class MAC_Admin_Public {
                 <label for="ma-login-user">Username</label>
                 <div class="ma-login-email">
                     <input id="ma-login-user" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="ten.nguoidung">
-                    <b>@macusaone.com</b>
+                    <label class="ma-login-domain">
+                        <span class="sr-only">Tên miền email</span>
+                        <select id="ma-login-domain" name="domain" aria-label="Tên miền email">
+                            <option value="macusaone.com" selected>@macusaone.com</option>
+                            <option value="yesoffice.vn">@yesoffice.vn</option>
+                        </select>
+                    </label>
                 </div>
                 <label for="ma-login-pass">Mật khẩu</label>
                 <input id="ma-login-pass" name="password" type="password" autocomplete="current-password" required>
