@@ -774,7 +774,12 @@ final class MAC_Voting_Admin {
 
     public static function ajax_person(): void {
         self::guard();
-        if (sanitize_key(wp_unslash($_POST['operation'] ?? '')) !== 'add') {
+        $operation = sanitize_key(wp_unslash($_POST['operation'] ?? ''));
+        if ($operation === 'grant') {
+            self::grant_person_role();
+            return;
+        }
+        if ($operation !== 'add') {
             wp_send_json_error(array('message' => 'Thao tác không hợp lệ.'), 400);
         }
         global $wpdb;
@@ -875,6 +880,70 @@ final class MAC_Voting_Admin {
             'email' => $email,
             'kind' => $kind,
         );
+    }
+
+    /**
+     * Gán vai trò BTC / Super admin cho một nhân sự đã có trong danh sách (tạo tài khoản WordPress nếu chưa có).
+     */
+    private static function grant_person_role(): void {
+        $voter_id = absint($_POST['voterId'] ?? 0);
+        $role = sanitize_key(wp_unslash($_POST['role'] ?? ''));
+        $password = trim((string) wp_unslash($_POST['password'] ?? ''));
+        if (!in_array($role, array('btc', 'super'), true)) {
+            wp_send_json_error(array('message' => 'Vai trò không hợp lệ.'), 400);
+        }
+        global $wpdb;
+        $voters = MAC_Voting_DB::table('voters');
+        $voter = $wpdb->get_row($wpdb->prepare("SELECT id,full_name,email FROM $voters WHERE id=%d", $voter_id), ARRAY_A);
+        if (!$voter) {
+            wp_send_json_error(array('message' => 'Nhân sự không tồn tại.'), 404);
+        }
+        $email = mb_strtolower(trim((string) $voter['email']), 'UTF-8');
+        if ($email === '' || !is_email($email)) {
+            wp_send_json_error(array('message' => 'Nhân sự này chưa có email nên không tạo được tài khoản.'), 400);
+        }
+        $kind_label = $role === 'super' ? 'Super admin' : 'BTC';
+        $user = get_user_by('email', $email);
+        if ($user) {
+            $pass = $password !== '' ? $password : wp_generate_password(12, false);
+            wp_set_password($pass, (int) $user->ID);
+            self::apply_dashboard_role((int) $user->ID, $role);
+            $account = array(
+                'login' => $user->user_login,
+                'password' => $pass,
+                'name' => $user->display_name,
+                'email' => $email,
+                'kind' => $role,
+            );
+        } else {
+            $account = self::create_dashboard_account((string) $voter['full_name'], $email, $password, $role);
+            if (is_wp_error($account)) {
+                wp_send_json_error(array('message' => $account->get_error_message()), 500);
+            }
+        }
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'PERSON_GRANTED_ROLE', 'voter', (string) $voter_id, array('role' => $role));
+        wp_send_json_success(array(
+            'message' => 'Đã cấp quyền ' . $kind_label . ' cho ' . $account['name'] . '.',
+            'overview' => self::overview(),
+            'account' => $account,
+        ));
+    }
+
+    /**
+     * Thêm vai trò dashboard (giữ nguyên các vai trò WordPress khác như administrator).
+     */
+    private static function apply_dashboard_role(int $user_id, string $kind): void {
+        $user = get_user_by('id', $user_id);
+        if (!$user) {
+            return;
+        }
+        $user->add_role($kind === 'super' ? MAC_Checkin::SUPER_ROLE : MAC_Checkin::ROLE);
+        $user->remove_role($kind === 'super' ? MAC_Checkin::ROLE : MAC_Checkin::SUPER_ROLE);
+        if ($kind === 'btc') {
+            update_user_meta($user_id, MAC_Checkin::TEAM_META, MAC_Voting_DB::competing_team_ids());
+        } else {
+            delete_user_meta($user_id, MAC_Checkin::TEAM_META);
+        }
     }
 
     public static function ajax_points(): void {

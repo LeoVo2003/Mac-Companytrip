@@ -3452,34 +3452,102 @@ body.mac-admin-public-page .ma-side {
   filter: none;
 }
 
-/* v1.8.5 — form thêm nhân sự / tài khoản BTC trong tab Nhân sự & QR */
+/* v1.8.7 — modal thêm nhân sự / cấp quyền máy quét trong tab Nhân sự & QR */
+.ma-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ma-person-modal {
+  width: min(100%, 560px);
+}
+
 .ma-person-form {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  padding: 16px 20px 20px;
+  margin-top: 18px;
+}
+
+.ma-person-form .ma-span-2 {
+  grid-column: 1 / -1;
 }
 
 .ma-person-form label {
   display: grid;
   gap: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.ma-person-form button[type="submit"] {
+.ma-person-form input,
+.ma-person-form select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ma-person-form select {
+  padding-right: 40px;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ma-person-form input:focus,
+.ma-person-form select:focus {
+  border-color: var(--r);
+  outline: 2px solid rgba(227, 30, 36, 0.18);
+  outline-offset: 1px;
+}
+
+.ma-field-hint {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ma-person-form .ma-modal-actions {
   grid-column: 1 / -1;
-  justify-self: start;
+  margin-top: 6px;
 }
 
-@media (max-width: 900px) {
-  .ma-person-form {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.ma-grant-summary {
+  display: grid;
+  gap: 2px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fafafc;
 }
 
-@media (max-width: 600px) {
+.ma-grant-summary strong {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.ma-grant-summary small {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+@media (max-width: 560px) {
   .ma-person-form {
     grid-template-columns: 1fr;
   }

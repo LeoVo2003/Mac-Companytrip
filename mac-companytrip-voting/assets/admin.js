@@ -433,13 +433,9 @@
       if (peopleQuery && haystack.indexOf(peopleQuery.toLowerCase()) === -1) return false;
       return true;
     });
-    return `<section class="ma-panel" style="margin-top:16px"><header><div><small>QR CÁ NHÂN</small><h2>${canWrite() ? "Gửi QR qua email" : "Danh sách nhân sự"}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">${canWrite() ? "Mỗi người một QR. Dùng cho check-in và login văn nghệ." : "Chỉ xem danh sách. Super admin mới gửi hoặc tạo lại QR."}</p></div>${canWrite() ? `<button type="button" class="ma-primary" id="ma-send-filtered">Gửi QR cho danh sách đang lọc</button>` : ""}</header><div style="padding:16px 20px 20px"><div class="ma-people-filter"><select id="ma-people-team"><option value="all">Tất cả team</option>${(data.teams || []).map((team) => `<option value="${team.id}" ${String(peopleTeam) === String(team.id) ? "selected" : ""}>#${team.team_no} ${esc(team.name)}</option>`).join("")}</select><input id="ma-people-query" type="search" placeholder="Tìm tên hoặc email" value="${esc(peopleQuery)}"></div><div class="ma-people-table"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Team</th><th>Trạng thái</th>${canWrite() ? "<th></th>" : ""}</tr></thead><tbody>${voters.map((row) => `<tr><td><strong>${esc(row.full_name)}</strong></td><td>${esc(row.email || "—")}</td><td>#${row.team_no} ${esc(row.team_name)}</td><td>${row.status === "ACTIVE" ? "Hoạt động" : "Ngưng"}</td>${canWrite() ? `<td class="ma-people-actions"><button type="button" data-qr-view="${row.id}">Xem & gửi</button><button type="button" data-qr-regen="${row.id}">Tạo lại QR</button></td>` : ""}</tr>`).join("") || `<tr><td colspan="${canWrite() ? 5 : 4}">Không có nhân sự khớp bộ lọc.</td></tr>`}</tbody></table></div></div></section>`;
+    return `<section class="ma-panel" style="margin-top:16px"><header><div><small>QR CÁ NHÂN</small><h2>${canWrite() ? "Gửi QR qua email" : "Danh sách nhân sự"}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">${canWrite() ? "Mỗi người một QR. Dùng cho check-in và login văn nghệ." : "Chỉ xem danh sách. Super admin mới gửi hoặc tạo lại QR."}</p></div>${canWrite() ? `<div class="ma-panel-actions"><button type="button" class="ma-primary" id="ma-person-add">+ Thêm người</button><button type="button" id="ma-send-filtered">Gửi QR cho danh sách đang lọc</button></div>` : ""}</header><div style="padding:16px 20px 20px"><div class="ma-people-filter"><select id="ma-people-team"><option value="all">Tất cả team</option>${(data.teams || []).map((team) => `<option value="${team.id}" ${String(peopleTeam) === String(team.id) ? "selected" : ""}>#${team.team_no} ${esc(team.name)}</option>`).join("")}</select><input id="ma-people-query" type="search" placeholder="Tìm tên hoặc email" value="${esc(peopleQuery)}"></div><div class="ma-people-table"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Team</th><th>Trạng thái</th>${canWrite() ? "<th></th>" : ""}</tr></thead><tbody>${voters.map((row) => `<tr><td><strong>${esc(row.full_name)}</strong></td><td>${esc(row.email || "—")}</td><td>#${row.team_no} ${esc(row.team_name)}</td><td>${row.status === "ACTIVE" ? "Hoạt động" : "Ngưng"}</td>${canWrite() ? `<td class="ma-people-actions"><button type="button" data-qr-view="${row.id}">Xem & gửi</button><button type="button" data-qr-regen="${row.id}">Tạo lại QR</button>${row.email ? `<button type="button" data-role-grant="${row.id}">Cấp quyền</button>` : ""}</td>` : ""}</tr>`).join("") || `<tr><td colspan="${canWrite() ? 5 : 4}">Không có nhân sự khớp bộ lọc.</td></tr>`}</tbody></table></div></div></section>`;
   }
-  function personAddPanel() {
-    const teams = (data.teams || []).slice().sort((a, b) => a.team_no - b.team_no);
-    return `<section class="ma-panel"><header><div><small>THÊM NGƯỜI</small><h2>Thêm nhân sự · tạo tài khoản BTC</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Dùng cho agency hỗ trợ quét check-in: email có thể để trống hoặc thuộc bất kỳ domain nào. Vai trò BTC/Super admin sẽ tạo tài khoản đăng nhập máy quét.</p></div></header><form id="ma-person-form" class="ma-person-form"><label>Họ tên<input name="fullName" maxlength="190" required placeholder="Nguyễn Văn A"></label><label>Mã NV (tùy chọn)<input name="employee" maxlength="100" placeholder="AGENCY01"></label><label>Team<select name="teamId">${teams.map((team) => `<option value="${team.id}">#${team.team_no} ${esc(team.name)}</option>`).join("")}</select></label><label>Email (tùy chọn)<input type="email" name="email" placeholder="Để trống nếu không có"></label><label>Vai trò<select name="role"><option value="btc" selected>BTC · tài khoản máy quét</option><option value="super">Super admin · toàn quyền</option><option value="">Nhân sự thường · không tạo tài khoản</option></select></label><label>Mật khẩu (tùy chọn)<input name="password" autocomplete="new-password" placeholder="Để trống = tự tạo"></label><button type="submit" class="ma-primary">+ Thêm người</button></form></section>`;
-  }
-  function dataView() { return `<header class="ma-top"><div><small>NHÂN SỰ</small><h1>Nhân sự & QR</h1></div></header>${window.MACVotingAdmin.permalinkWarning ? `<div class="ma-permalink-warning"><strong>URL đẹp chưa được bật</strong><span>Website đang dùng link dạng <code>?page_id=...</code>. Chọn cấu trúc “Tên bài viết” rồi lưu để dùng đường dẫn /cham-diem-van-nghe/.</span><a href="${esc(window.MACVotingAdmin.permalinkSettingsUrl)}">Mở cài đặt Permalink →</a></div>` : ""}${Number(data.stats.missingEmailVoters) ? `<div class="ma-permalink-warning"><strong>${data.stats.missingEmailVoters} nhân sự chưa có email</strong><span>Những người này chưa thể đăng nhập bằng username. Hãy import lại CSV có cột Email để mapping vào dữ liệu cũ.</span><a href="${esc(window.MACVotingAdmin.templateUrl)}">Tải CSV mẫu mới →</a></div>` : ""}${importFeedback ? `<div class="ma-import-success"><span>✓</span><div><strong>${esc(importFeedback.message)}</strong><small>${esc(importFeedback.fileName)} · ${esc(importFeedback.at)} · Tổng hiện có ${data.stats.activeVoters} người được vote</small></div></div>${(importFeedback.staffAccounts || []).length ? `<div class="ma-import-success ma-staff-passwords"><span>!</span><div><strong>Mật khẩu tài khoản BTC — chỉ hiện một lần</strong><ul>${importFeedback.staffAccounts.map((item) => `<li><b>${esc(item.email)}</b> · ${esc(item.password)}</li>`).join("")}</ul></div></div>` : ""}` : ""}${personFeedback ? `<div class="ma-import-success ma-staff-passwords"><span>!</span><div><strong>Tài khoản ${personFeedback.kind === "super" ? "Super admin" : "BTC"} của ${esc(personFeedback.name)} — chỉ hiện một lần</strong><ul><li>Đăng nhập: <b>${esc(personFeedback.login)}</b> · Mật khẩu: <b>${esc(personFeedback.password)}</b></li></ul><small>Dùng tài khoản này đăng nhập trang Máy quét BTC. Muốn đổi team được quét thì vào tab Check-in → Tài khoản máy quét.</small></div></div>` : ""}${canWrite() ? `<div class="ma-data"><section class="ma-panel"><span class="ma-icon">⇧</span><small>IMPORT CSV</small><h2>Danh sách nhân sự</h2><p>Cột bắt buộc: Họ tên, Team, Email. Cột tùy chọn: Vai trò (BTC/Super admin) và Mật khẩu để tạo tài khoản dashboard. Email chấp nhận @macusaone.com, @yesoffice.vn hoặc @macmarketing.vn; username không có @ mặc định thành @macusaone.com.</p><label class="ma-primary">Chọn & xem trước CSV<input id="ma-import" type="file" accept=".csv,text/csv"></label><a href="${esc(window.MACVotingAdmin.templateUrl)}">↓ Tải file mẫu</a></section><section class="ma-panel"><span class="ma-icon">▦</span><small>SAO LƯU & ĐỐI SOÁT</small><h2>Xuất dữ liệu</h2><p>Gồm bảng điểm và chi tiết toàn bộ phiếu hợp lệ/đã hủy.</p><a class="ma-primary" href="${esc(window.MACVotingAdmin.exportUrl)}">↓ Xuất CSV kết quả</a></section></div>` : ""}${canWrite() ? personAddPanel() : ""}${personnelQr()}`; }
+  function dataView() { return `<header class="ma-top"><div><small>NHÂN SỰ</small><h1>Nhân sự & QR</h1></div></header>${window.MACVotingAdmin.permalinkWarning ? `<div class="ma-permalink-warning"><strong>URL đẹp chưa được bật</strong><span>Website đang dùng link dạng <code>?page_id=...</code>. Chọn cấu trúc “Tên bài viết” rồi lưu để dùng đường dẫn /cham-diem-van-nghe/.</span><a href="${esc(window.MACVotingAdmin.permalinkSettingsUrl)}">Mở cài đặt Permalink →</a></div>` : ""}${Number(data.stats.missingEmailVoters) ? `<div class="ma-permalink-warning"><strong>${data.stats.missingEmailVoters} nhân sự chưa có email</strong><span>Những người này chưa thể đăng nhập bằng username. Hãy import lại CSV có cột Email để mapping vào dữ liệu cũ.</span><a href="${esc(window.MACVotingAdmin.templateUrl)}">Tải CSV mẫu mới →</a></div>` : ""}${importFeedback ? `<div class="ma-import-success"><span>✓</span><div><strong>${esc(importFeedback.message)}</strong><small>${esc(importFeedback.fileName)} · ${esc(importFeedback.at)} · Tổng hiện có ${data.stats.activeVoters} người được vote</small></div></div>${(importFeedback.staffAccounts || []).length ? `<div class="ma-import-success ma-staff-passwords"><span>!</span><div><strong>Mật khẩu tài khoản BTC — chỉ hiện một lần</strong><ul>${importFeedback.staffAccounts.map((item) => `<li><b>${esc(item.email)}</b> · ${esc(item.password)}</li>`).join("")}</ul></div></div>` : ""}` : ""}${personFeedback ? `<div class="ma-import-success ma-staff-passwords"><span>!</span><div><strong>Tài khoản ${personFeedback.kind === "super" ? "Super admin" : "BTC"} của ${esc(personFeedback.name)} — chỉ hiện một lần</strong><ul><li>Đăng nhập: <b>${esc(personFeedback.login)}</b> · Mật khẩu: <b>${esc(personFeedback.password)}</b></li></ul><small>Dùng tài khoản này đăng nhập trang Máy quét BTC. Muốn đổi team được quét thì vào tab Check-in → Tài khoản máy quét.</small></div></div>` : ""}${canWrite() ? `<div class="ma-data"><section class="ma-panel"><span class="ma-icon">⇧</span><small>IMPORT CSV</small><h2>Danh sách nhân sự</h2><p>Cột bắt buộc: Họ tên, Team, Email. Cột tùy chọn: Vai trò (BTC/Super admin) và Mật khẩu để tạo tài khoản dashboard. Email chấp nhận @macusaone.com, @yesoffice.vn hoặc @macmarketing.vn; username không có @ mặc định thành @macusaone.com.</p><label class="ma-primary">Chọn & xem trước CSV<input id="ma-import" type="file" accept=".csv,text/csv"></label><a href="${esc(window.MACVotingAdmin.templateUrl)}">↓ Tải file mẫu</a></section><section class="ma-panel"><span class="ma-icon">▦</span><small>SAO LƯU & ĐỐI SOÁT</small><h2>Xuất dữ liệu</h2><p>Gồm bảng điểm và chi tiết toàn bộ phiếu hợp lệ/đã hủy.</p><a class="ma-primary" href="${esc(window.MACVotingAdmin.exportUrl)}">↓ Xuất CSV kết quả</a></section></div>` : ""}${personnelQr()}`; }
   function render() {
     root.classList.toggle("is-readonly", !canWrite());
     root.innerHTML = `<div class="ma-layout">${sidebar()}<main class="ma-content">${tab === "overview" ? pointsView() : tab === "checkin" ? checkinView() : tab === "games" ? gamesView() : tab === "thidua" ? thiduaView() : tab === "art" ? artView() : dataView()}</main></div>`;
@@ -652,28 +648,6 @@
         notify(result.message);
       } catch (err) { notify(err.message, true); }
     });
-    root.querySelector("#ma-person-form")?.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const form = event.currentTarget;
-      const button = form.querySelector("button[type='submit']");
-      button.disabled = true;
-      button.textContent = "Đang thêm…";
-      try {
-        const result = await ajax("mac_vote_person", {
-          operation: "add",
-          name: form.querySelector("input[name='fullName']").value.trim(),
-          employee: form.querySelector("input[name='employee']").value.trim(),
-          teamId: form.querySelector("select[name='teamId']").value,
-          email: form.querySelector("input[name='email']").value.trim(),
-          role: form.querySelector("select[name='role']").value,
-          password: form.querySelector("input[name='password']").value,
-        });
-        data = result.overview;
-        personFeedback = result.account || null;
-        render();
-        notify(result.message);
-      } catch (err) { button.disabled = false; button.textContent = "+ Thêm người"; notify(err.message, true); }
-    });
     }
     root.querySelector("#ma-people-team")?.addEventListener("change", (event) => { peopleTeam = event.currentTarget.value; render(); });
     root.querySelector("#ma-people-query")?.addEventListener("input", (event) => { peopleQuery = event.currentTarget.value; });
@@ -684,6 +658,80 @@
       if (!voter.email) throw new Error("Nhân sự này chưa có email.");
       const png = await qrPng(voter.qrUrl);
       return ajax("mac_vote_qr", { voterId: voter.id, operation: "email", png });
+    };
+    const slugEmail = (name) => {
+      const ascii = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d");
+      const local = ascii.split(/[^a-z0-9]+/).filter(Boolean).join(".");
+      return local ? `${local}@macusaone.com` : "";
+    };
+    const bindModalClose = (modal) => {
+      const onKey = (event) => { if (event.key === "Escape") close(); };
+      const close = () => { document.removeEventListener("keydown", onKey); modal.remove(); };
+      modal.addEventListener("click", (event) => { if (event.target === modal) close(); });
+      modal.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", close));
+      document.addEventListener("keydown", onKey);
+      return close;
+    };
+    const showPersonModal = () => {
+      const teams = (data.teams || []).slice().sort((a, b) => a.team_no - b.team_no);
+      const modal = document.createElement("div");
+      modal.className = "ma-modal";
+      modal.innerHTML = `<div class="ma-modal-card ma-person-modal" role="dialog" aria-modal="true"><div class="ma-modal-head"><div><small>THÊM NHÂN SỰ</small><h2>Thêm người vào danh sách</h2></div><button type="button" data-close aria-label="Đóng">×</button></div><form class="ma-person-form"><label class="ma-span-2">Họ tên<input name="fullName" maxlength="190" required placeholder="Nguyễn Văn A"></label><label class="ma-span-2">Email<input name="email" type="email" placeholder="ten.nguoidung@macusaone.com"><small class="ma-field-hint">Tự sinh từ họ tên (@macusaone.com ảo) — sửa lại hoặc xóa trắng nếu cần.</small></label><label>Team<select name="teamId">${teams.map((team) => `<option value="${team.id}">#${team.team_no} ${esc(team.name)}</option>`).join("")}</select></label><label>Vai trò<select name="role"><option value="" selected>Nhân sự thường</option><option value="btc">BTC · máy quét</option><option value="super">Super admin</option></select></label><label class="ma-span-2">Mật khẩu (tùy chọn)<input name="password" autocomplete="new-password" placeholder="Để trống = tự tạo · chỉ dùng khi chọn vai trò"></label><div class="ma-modal-actions"><button type="button" data-close>Hủy</button><button type="submit" class="ma-primary">+ Thêm người</button></div></form></div>`;
+      root.append(modal);
+      const close = bindModalClose(modal);
+      const nameInput = modal.querySelector("input[name='fullName']");
+      const emailInput = modal.querySelector("input[name='email']");
+      let emailDirty = false;
+      emailInput.addEventListener("input", () => { emailDirty = emailInput.value.trim() !== ""; });
+      nameInput.addEventListener("input", () => { if (!emailDirty) emailInput.value = slugEmail(nameInput.value); });
+      modal.querySelector(".ma-person-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const button = event.currentTarget.querySelector("button[type='submit']");
+        button.disabled = true;
+        button.textContent = "Đang thêm…";
+        try {
+          const result = await ajax("mac_vote_person", {
+            operation: "add",
+            name: nameInput.value.trim(),
+            teamId: modal.querySelector("select[name='teamId']").value,
+            email: emailInput.value.trim(),
+            role: modal.querySelector("select[name='role']").value,
+            password: modal.querySelector("input[name='password']").value,
+          });
+          close();
+          data = result.overview;
+          personFeedback = result.account || null;
+          render();
+          notify(result.message);
+        } catch (err) { button.disabled = false; button.textContent = "+ Thêm người"; notify(err.message, true); }
+      });
+      nameInput.focus();
+    };
+    const showGrantModal = (voter) => {
+      const modal = document.createElement("div");
+      modal.className = "ma-modal";
+      modal.innerHTML = `<div class="ma-modal-card ma-person-modal" role="dialog" aria-modal="true"><div class="ma-modal-head"><div><small>CẤP QUYỀN</small><h2>Tài khoản máy quét</h2></div><button type="button" data-close aria-label="Đóng">×</button></div><div class="ma-grant-summary"><strong>${esc(voter.full_name)}</strong><small>${esc(voter.email)} · #${voter.team_no} ${esc(voter.team_name)}</small></div><form class="ma-person-form"><label>Vai trò<select name="role"><option value="btc" selected>BTC · máy quét check-in</option><option value="super">Super admin · toàn quyền</option></select></label><label>Mật khẩu (tùy chọn)<input name="password" autocomplete="new-password" placeholder="Để trống = tự tạo"></label><div class="ma-modal-actions"><button type="button" data-close>Hủy</button><button type="submit" class="ma-primary">Cấp quyền</button></div></form></div>`;
+      root.append(modal);
+      const close = bindModalClose(modal);
+      modal.querySelector(".ma-person-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const button = event.currentTarget.querySelector("button[type='submit']");
+        button.disabled = true;
+        button.textContent = "Đang cấp…";
+        try {
+          const result = await ajax("mac_vote_person", {
+            operation: "grant",
+            voterId: voter.id,
+            role: modal.querySelector("select[name='role']").value,
+            password: modal.querySelector("input[name='password']").value,
+          });
+          close();
+          data = result.overview;
+          personFeedback = result.account || null;
+          render();
+          notify(result.message);
+        } catch (err) { button.disabled = false; button.textContent = "Cấp quyền"; notify(err.message, true); }
+      });
     };
     const showQrModal = (voter) => {
       const modal = document.createElement("div");
@@ -706,6 +754,11 @@
     root.querySelectorAll("[data-qr-view]").forEach((button) => button.addEventListener("click", () => {
       const voter = (data.voters || []).find((row) => String(row.id) === String(button.dataset.qrView));
       if (voter) showQrModal(voter);
+    }));
+    root.querySelector("#ma-person-add")?.addEventListener("click", showPersonModal);
+    root.querySelectorAll("[data-role-grant]").forEach((button) => button.addEventListener("click", () => {
+      const voter = (data.voters || []).find((row) => String(row.id) === String(button.dataset.roleGrant));
+      if (voter) showGrantModal(voter);
     }));
     root.querySelectorAll("[data-qr-regen]").forEach((button) => button.addEventListener("click", async () => {
       if (!(await confirmDialog({ title: "Tạo lại QR", message: "Tạo lại QR? QR cũ sẽ mất hiệu lực và cần gửi email mới.", confirmLabel: "Tạo lại QR", danger: true }))) return;
