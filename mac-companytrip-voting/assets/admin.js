@@ -337,7 +337,7 @@
     const staffPanel = canWrite() ? `<section class="ma-panel"><header><div><small>BTC</small><h2>Tài khoản máy quét</h2></div></header><form class="ma-staff-form" id="ma-staff-form"><label>Chọn tài khoản<select id="ma-staff-user">${users.map((user) => `<option value="${user.id}">${esc(user.name)} — ${esc(user.email)}</option>`).join("")}</select></label><div class="ma-staff-teams">${teams.map((team) => `<label><input type="checkbox" name="teamIds" value="${team.id}"> #${team.team_no} ${esc(team.name)}</label>`).join("")}</div><button type="submit" class="ma-primary">Lưu quyền check-in</button><p style="margin:0;color:#667085;font-size:13px">Admin quét được mọi team. BTC thường chỉ được gán 1-2 team.</p></form><div class="ma-board-table"><table><thead><tr><th>BTC</th><th>Team được gán</th></tr></thead><tbody>${staff.map((item) => `<tr><td><div class="ma-staff-cell"><strong>${esc(item.name)}</strong><small>${esc(item.email)}${item.isAdmin ? " · Admin" : ""}</small></div></td><td>${item.isAdmin ? "Tất cả team" : (item.teamIds || []).map((id) => { const team = teams.find((row) => String(row.id) === String(id)); return team ? `#${team.team_no} ${team.name}` : id; }).join(", ") || "Chưa gán"}</td></tr>`).join("") || `<tr><td colspan="2">Chưa có tài khoản BTC.</td></tr>`}</tbody></table></div></section>` : "";
     const openExemptions = openCheckpoint ? (data.exemptions?.[openCheckpoint.id] || []) : [];
     const exemptCandidates = (data.voters || []).filter((row) => row.status === "ACTIVE" && !openExemptions.some((item) => String(item.voterId) === String(row.id)));
-    const exemptionPanel = canWrite() && openCheckpoint ? `<section class="ma-panel ma-exemptions"><header><div><small>MIỄN CHECK-IN</small><h2>Mốc ${openCheckpoint.id} · ${esc(openCheckpoint.name)}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Người được miễn không tính vào mẫu số và biến khỏi danh sách "CÒN THIẾU" của các team.</p></div></header><form class="ma-exempt-form" id="ma-exempt-form"><label for="ma-exempt-voter">Chọn người<select id="ma-exempt-voter">${exemptCandidates.map((row) => `<option value="${row.id}">${esc(row.full_name)} · #${row.team_no} ${esc(row.team_name)}</option>`).join("") || `<option value="">Không còn ai để miễn</option>`}</select></label><label for="ma-exempt-reason">Lý do<input id="ma-exempt-reason" type="text" maxlength="500" placeholder="Ví dụ: được BTC duyệt cho đến muộn" required></label><button type="submit" class="ma-primary" ${exemptCandidates.length ? "" : "disabled"}>Miễn check-in</button></form><div class="ma-board-table"><table><thead><tr><th>Người được miễn</th><th>Lý do</th><th></th></tr></thead><tbody>${openExemptions.map((item) => `<tr><td><strong>${esc(item.fullName)}</strong></td><td>${esc(item.reason || "")}</td><td><button type="button" data-exempt-clear="${item.voterId}" data-exempt-name="${esc(item.fullName)}">Bỏ miễn</button></td></tr>`).join("") || `<tr><td colspan="3">Chưa có ai được miễn ở mốc này.</td></tr>`}</tbody></table></div></section>` : "";
+    const exemptionPanel = canWrite() && openCheckpoint ? `<section class="ma-panel ma-exemptions"><header><div><small>MIỄN CHECK-IN</small><h2>Mốc ${openCheckpoint.id} · ${esc(openCheckpoint.name)}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Người được miễn không tính vào mẫu số và biến khỏi danh sách "CÒN THIẾU" của các team.</p></div></header><form class="ma-exempt-form" id="ma-exempt-form"><label for="ma-exempt-search">Tìm nhanh<input id="ma-exempt-search" type="search" placeholder="Gõ tên để lọc trong ${exemptCandidates.length} người…" autocomplete="off"></label><label for="ma-exempt-voter">Chọn người<select id="ma-exempt-voter">${exemptCandidates.map((row) => `<option value="${row.id}">${esc(row.full_name)} · #${row.team_no} ${esc(row.team_name)}</option>`).join("") || `<option value="">Không còn ai để miễn</option>`}</select></label><label for="ma-exempt-reason">Lý do<input id="ma-exempt-reason" type="text" maxlength="500" placeholder="Ví dụ: được BTC duyệt cho đến muộn" required></label><button type="submit" class="ma-primary" ${exemptCandidates.length ? "" : "disabled"}>Miễn check-in</button></form><div class="ma-board-table"><table><thead><tr><th>Người được miễn</th><th>Lý do</th><th></th></tr></thead><tbody>${openExemptions.map((item) => `<tr><td><strong>${esc(item.fullName)}</strong></td><td>${esc(item.reason || "")}</td><td><button type="button" data-exempt-clear="${item.voterId}" data-exempt-name="${esc(item.fullName)}">Bỏ miễn</button></td></tr>`).join("") || `<tr><td colspan="3">Chưa có ai được miễn ở mốc này.</td></tr>`}</tbody></table></div></section>` : "";
     return `<header class="ma-top"><div><small>CHECK-IN</small><h1>4 mốc Company Trip</h1></div>${topActions()}</header>${scanner}<div class="ma-check-grid">${checkpointCards}</div>${progress}${exemptionPanel}${staffPanel}`;
   }
   function pointsView() {
@@ -358,7 +358,7 @@
     ];
     const nav = `<nav class="ma-subnav" aria-label="Tổng quan">${tabs.map(([id, label]) => `<button type="button" data-overview-tab="${id}" class="${overviewTab === id ? "active" : ""}">${label}</button>`).join("")}</nav>`;
     const chartPanel = `<section class="ma-panel ma-chart-panel"><header><div><small>TỔNG ĐIỂM</small><h2>6 đội · tổng 4 trụ cột</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Cột gồm check-in đã chốt, xếp hạng trò chơi, văn nghệ quy đổi và thi đua.</p></div></header><div class="ma-chart" style="--ma-chart-max:${maxAbs}">${ranked.map((team) => { const total = Number(team.total) || 0; const height = Math.max(6, Math.round((Math.abs(total) / maxAbs) * 100)); return `<figure class="ma-chart-col ${total < 0 ? "is-neg" : ""}" aria-label="#${team.teamNumber} ${esc(team.teamName)}"><strong>${fmt(total)}</strong><div class="ma-chart-track" aria-hidden="true"><span style="height:${height}%"></span></div><figcaption><b>#${team.teamNumber} ${esc(team.teamName)}</b></figcaption></figure>`; }).join("")}</div></section>`;
-    const scoreboard = `<section class="ma-panel"><header><div><small>BẢNG ĐIỂM</small><h2>4 trụ cột · Check-in + Trò chơi + Văn nghệ + Thi đua</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Văn nghệ quy đổi ROUND(TB phiếu ÷ 150 × 200). Check-in tối đa 600đ, trò chơi tối đa 150đ, thi đua không giới hạn.</p></div></header><div class="ma-board-table"><table><thead><tr><th>Hạng</th><th>Team</th><th>Check-in</th><th>Trò chơi</th><th>Văn nghệ</th><th>Thi đua</th><th>Tổng</th></tr></thead><tbody>${ranked.map((team) => `<tr><td><strong>${team.rank}</strong></td><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td><td>${fmt(team.checkin)}</td><td>${fmt(team.games)}</td><td>${fmt(team.vote)}${team.voteAverage !== null ? `<small> · TB ${trim1(team.voteAverage)}/150</small>` : ""}</td><td>${fmt(team.thidua)}</td><td><strong>${fmt(team.total)}</strong></td></tr>`).join("")}</tbody></table></div></section>`;
+    const scoreboard = `<section class="ma-panel"><header><div><small>BẢNG ĐIỂM</small><h2>4 trụ cột · Check-in + Trò chơi + Văn nghệ + Thi đua</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Văn nghệ quy đổi ROUND(TB phiếu ÷ 150 × 200). Check-in tối đa 600đ, trò chơi tối đa 150đ, thi đua không giới hạn.</p></div></header><div class="ma-board-table ma-pin-2"><table><thead><tr><th>Hạng</th><th>Team</th><th>Check-in</th><th>Trò chơi</th><th>Văn nghệ</th><th>Thi đua</th><th>Tổng</th></tr></thead><tbody>${ranked.map((team) => `<tr><td><strong>${team.rank}</strong></td><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td><td>${fmt(team.checkin)}</td><td>${fmt(team.games)}</td><td>${fmt(team.vote)}${team.voteAverage !== null ? `<small> · TB ${trim1(team.voteAverage)}/150</small>` : ""}</td><td>${fmt(team.thidua)}</td><td><strong>${fmt(team.total)}</strong></td></tr>`).join("")}</tbody></table></div></section>`;
     const checkinPanel = `<section class="ma-panel"><header><div><small>CHECK-IN</small><h2>Sổ điểm 4 mốc</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Điểm đã chốt khi đóng mốc, tối đa 150đ/mốc.</p></div></header><div class="ma-board-table"><table><thead><tr><th>Team</th>${checkpointCols.map((item) => `<th>${esc(item.name || ("Mốc " + item.id))}</th>`).join("")}<th>Tổng check-in</th></tr></thead><tbody>${checkinLedger.map((row) => `<tr><td><strong>#${row.teamNumber} ${esc(row.teamName)}</strong></td>${row.checkpoints.map((value) => `<td>${fmt(value)}</td>`).join("")}<td><strong>${fmt(row.total)}</strong></td></tr>`).join("") || `<tr><td colspan="${checkpointCols.length + 2}">Chưa có điểm check-in đã chốt.</td></tr>`}</tbody></table></div></section>`;
     const gamesSummary = `<section class="ma-panel"><header><div><small>TRÒ CHƠI LỚN</small><h2>Điểm 3 game</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Thang hạng 1–6: 50 · 40 · 30 · 20 · 10 · 0đ. Xếp hạng trong tab Trò chơi lớn.</p></div></header>${gamesMatrix(games, gameBoard, teams)}</section>`;
     const votePanel = `<section class="ma-panel"><header><div><small>VĂN NGHỆ</small><h2>Quy đổi từ phiếu hợp lệ</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Điểm = ROUND(TB phiếu ÷ 150 × 200), tối đa 200đ, cập nhật trực tiếp khi có phiếu.</p></div></header><div class="ma-board-table"><table><thead><tr><th>Team</th><th>TB phiếu</th><th>Số phiếu hợp lệ</th><th>Điểm văn nghệ</th></tr></thead><tbody>${ranked.map((team) => `<tr><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td><td>${team.voteAverage === null ? "Chưa vote" : `${trim1(team.voteAverage)}/150`}</td><td>${team.voteBallots || 0}</td><td><strong>${fmt(team.vote)}</strong></td></tr>`).join("")}</tbody></table></div></section>`;
@@ -566,6 +566,15 @@
       } catch (err) { notify(err.message, true); }
     }));
     root.querySelectorAll("[data-game-rank]").forEach((select) => select.addEventListener("change", async () => {
+      const rank = Number(select.value);
+      const boardRow = (data.games?.board || []).find((row) => String(row.teamId) === String(select.dataset.team));
+      const cell = (boardRow?.cells || []).find((entry) => String(entry.gameId) === String(select.dataset.game));
+      if (boardRow && cell) {
+        cell.rank = rank;
+        cell.points = rank >= 1 ? ladder[rank - 1] : 0;
+        boardRow.total = (boardRow.cells || []).reduce((sum, item) => sum + (Number(item.points) || 0), 0);
+        render();
+      }
       try {
         const result = await ajax("mac_vote_games", { operation: "rank", gameId: select.dataset.game, teamId: select.dataset.team, rank: select.value });
         data = result.overview;
@@ -590,6 +599,17 @@
         render();
         notify(result.message);
       } catch (err) { button.disabled = false; button.textContent = "Miễn check-in"; notify(err.message, true); }
+    });
+    root.querySelector("#ma-exempt-search")?.addEventListener("input", (event) => {
+      const select = root.querySelector("#ma-exempt-voter");
+      if (!select) return;
+      const openCheckpoint = (data.checkpoints || []).find((item) => item.status === "OPEN");
+      const openExemptions = openCheckpoint ? (data.exemptions?.[openCheckpoint.id] || []) : [];
+      const query = normalizeHeader(event.currentTarget.value);
+      const filtered = (data.voters || []).filter((row) => row.status === "ACTIVE"
+        && !openExemptions.some((item) => String(item.voterId) === String(row.id))
+        && (!query || normalizeHeader(`${row.full_name} ${row.email || ""} ${row.team_name || ""}`).includes(query)));
+      select.innerHTML = filtered.map((row) => `<option value="${row.id}">${esc(row.full_name)} · #${row.team_no} ${esc(row.team_name)}</option>`).join("") || `<option value="">Không tìm thấy ai khớp</option>`;
     });
     root.querySelectorAll("[data-exempt-clear]").forEach((button) => button.addEventListener("click", async () => {
       const openCheckpoint = (data.checkpoints || []).find((item) => item.status === "OPEN");
@@ -683,8 +703,18 @@
       awardTeamId = button.dataset.awardTeam;
       render();
     }));
+    const applyLocalAward = (points) => {
+      const team = (data.totalBoard?.teams || []).find((row) => String(row.teamId) === String(awardTeamId));
+      const cell = (team?.cells || []).find((entry) => String(entry.categoryId) === String(awardCategoryId));
+      if (!team || !cell) return;
+      cell.points = points;
+      team.thidua = (team.cells || []).reduce((sum, entry) => sum + (Number(entry.points) || 0), 0);
+      team.total = (Number(team.checkin) || 0) + (Number(team.games) || 0) + (Number(team.vote) || 0) + (Number(team.thidua) || 0);
+    };
     const saveAward = async (points) => {
       if (!awardCategoryId || !awardTeamId) return;
+      applyLocalAward(points);
+      render();
       try {
         const result = await ajax("mac_vote_points", {
           operation: "award",
@@ -697,6 +727,7 @@
         notify(result.message);
       } catch (err) {
         notify(err.message, true);
+        load();
       }
     };
     root.querySelectorAll("[data-award-points]").forEach((button) => button.addEventListener("click", async () => {

@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.7.9";
+const tag = "v1.8.0";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,11 @@ const headers = {
 };
 
 const notes = [
-  "- Màn hình đăng nhập dashboard: ô username hết dính viền đen/nền trắng của theme; nút \"Đăng nhập\" gradient đỏ-cam chuẩn.",
-  "- Tên nhân sự hiển thị Title Case ở danh sách Nhân sự & QR và máy quét check-in; import CSV mới lưu chuẩn Title Case.",
+  "- QR: máy quét tự bóc token trên điện thoại + server bóc link nhiều lớp dự phòng, hết lỗi \"không đúng định dạng\" khi quét link đầy đủ.",
+  "- Bảng Tổng quan & Check-in mobile kéo ngang được, ghim cột đội bên trái.",
+  "- Máy quét BTC mobile gọn lại (camera vuông, ẩn khối thừa của theme); nút Xuất CSV check-in xuống dòng gọn.",
+  "- Miễn check-in có ô tìm nhanh trong 200 người.",
+  "- Điểm thi đua & xếp hạng game cập nhật tức thì rồi lưu ngầm, hết chờ 15-30 giây.",
 ].join("\n");
 
 let release;

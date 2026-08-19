@@ -170,7 +170,10 @@
   }
 
   async function handleToken(raw) {
-    const token = String(raw || "").trim();
+    let token = String(raw || "").trim();
+    const marker = "/company-trip/q/";
+    const markerAt = token.lastIndexOf(marker);
+    if (markerAt !== -1) token = token.slice(markerAt + marker.length).split(/[?#]/)[0].trim();
     if (!token || (token === lastToken && Date.now() - lastScanAt < 2500)) return;
     lastToken = token;
     lastScanAt = Date.now();

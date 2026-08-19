@@ -18,6 +18,14 @@ body.mac-checkin-page [data-elementor-type="header"],
 body.mac-checkin-page [data-elementor-type="footer"],
 body.mac-checkin-page .page-header,
 body.mac-checkin-page .entry-title,
+body.mac-checkin-page .entry-header,
+body.mac-checkin-page .page-hero,
+body.mac-checkin-page .breadcrumbs,
+body.mac-checkin-page .breadcrumb,
+body.mac-checkin-page .main-navigation,
+body.mac-checkin-page .sidebar,
+body.mac-checkin-page #secondary,
+body.mac-checkin-page .widget-area,
 body.mac-checkin-page .wp-block-post-title {
   display: none !important;
 }
@@ -91,7 +99,7 @@ body.mac-checkin-page .wp-block-post-content {
 .mc-shell {
   width: min(100%, 560px);
   margin: 0 auto;
-  padding: 16px 16px 32px;
+  padding: 16px 16px calc(32px + env(safe-area-inset-bottom));
 }
 
 .mc-top {
@@ -268,7 +276,8 @@ body.mac-checkin-page .wp-block-post-content {
   border: 1px solid var(--border);
   border-radius: 18px;
   background: #111827;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1 / 1;
+  max-height: 58vh;
 }
 
 .mc-camera video,
@@ -299,6 +308,7 @@ body.mac-checkin-page .wp-block-post-content {
   padding: 14px 16px;
   border-radius: 14px;
   font-weight: 650;
+  overflow-wrap: anywhere;
 }
 
 .mc-flash.ok {

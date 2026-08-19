@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.7.9
+Stable tag: 1.8.0
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,14 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.8.0 =
+- QR: máy quét tự bóc token ngay trên điện thoại trước khi gửi, server thêm nhiều lớp bóc link dự phòng và chẩn đoán chi tiết hơn khi lỗi — hết cảnh "QR không đúng định dạng" khi quét link đầy đủ.
+- Bảng Tổng quan & Check-in trên mobile kéo ngang được, cột đội ghim chặt bên trái khi cuộn.
+- Máy quét BTC trên mobile gọn lại: khung camera vuông vừa màn hình, ẩn thêm các khối thừa của theme.
+- Nút "Xuất CSV check-in" và các nút trên header panel xuống dòng gọn trên mobile.
+- Miễn check-in có ô tìm nhanh: gõ tên là lọc ra người cần miễn trong danh sách 200 người.
+- Chấm điểm thi đua và xếp hạng game cập nhật ngay lập tức trên màn hình rồi mới lưu ngầm, hết cảnh chờ 15-30 giây.
 
 = 1.7.9 =
 - Màn hình đăng nhập dashboard: ô username hết dính viền đen/nền trắng của theme, focus đỏ nhạt nhất quán; nút "Đăng nhập" dùng gradient đỏ-cam chuẩn như hành động chính.

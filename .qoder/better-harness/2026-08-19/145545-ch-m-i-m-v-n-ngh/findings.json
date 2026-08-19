@@ -1,0 +1,103 @@
+{
+  "summary": {
+    "projectName": "mac-companytrip-wordpress-plugin",
+    "locale": "en",
+    "modelId": "agent-work-loop-v4",
+    "reportContractVersion": 26,
+    "overview": "Session-limited evidence: one read-only inspection episode with no changes, checks, or friction. The project has a custom static quality gate (check-plugin.mjs), a tag-triggered CI release workflow, an audit trail, and transaction-protected checkpoint finalization, but zero behavioral tests and no local WordPress runtime. All specialist candidates were deferred under evidence-eligibility gates — the scan-transaction inconsistency, zero-test coverage, and string-matching gate brittleness are future-only risks or absence claims, not observed consequences. Learning Capture is not applicable (requires two comparable windows).",
+    "dimensions": [
+      {
+        "id": "task-understanding",
+        "label": "Task Understanding",
+        "score": 55,
+        "summary": "AGENTS.md routes UI design context via the premium skill, but no task episode with changes was observed to confirm goal understanding, relevant-context application, or scope-boundary enforcement."
+      },
+      {
+        "id": "controlled-execution",
+        "label": "Controlled Execution",
+        "score": 58,
+        "summary": "Build and check scripts are documented and runnable (npm run check, npm run build), but no local WordPress environment exists and no task episode exercised the permission boundary."
+      },
+      {
+        "id": "change-validation",
+        "label": "Change Validation",
+        "score": 48,
+        "summary": "A static quality gate (check-plugin.mjs) enforces 50+ architectural invariants, but zero behavioral tests exist and no change was observed to validate. The gate uses string-matching, not behavioral verification."
+      },
+      {
+        "id": "reliable-delivery",
+        "label": "Reliable Delivery",
+        "score": 52,
+        "summary": "A tag-triggered CI release workflow and event-level recovery (reset_event_data, uninstall, audit trail, close_checkpoint transaction) exist, but no delivery was observed and the CI pipeline has no pre-release test gate."
+      },
+      {
+        "id": "learning-capture",
+        "label": "Learning Capture",
+        "score": 35,
+        "summary": "Bounded review completed but not applicable: only one read-only episode is available, which is insufficient to detect repeated workflows, route demand into durable owners, or compare later outcomes."
+      }
+    ],
+    "aiAgentPractice": {
+      "inspectedSurfaces": ["Rules", "Skills", "Workflows"],
+      "coverageRows": [
+        {
+          "surface": "Rules",
+          "scopes": ["Project"],
+          "count": 1,
+          "paths": ["AGENTS.md"]
+        },
+        {
+          "surface": "Skills",
+          "scopes": ["Project", "Plugin"],
+          "count": 3,
+          "paths": [
+            ".agents/skills/premium/SKILL.md",
+            "~/.qoder/plugins/cache/qoder-bundler/better-harness/skills/better-harness/SKILL.md",
+            "~/.qoder/plugins/cache/qoder-bundler/qoder-create-plugin/skills/create-plugin/SKILL.md"
+          ]
+        },
+        {
+          "surface": "Workflows",
+          "scopes": ["Project"],
+          "count": 1,
+          "paths": [".github/workflows/release.yml"]
+        },
+        {
+          "surface": "Plugins",
+          "scopes": ["Plugin"],
+          "count": 2,
+          "paths": [
+            "~/.qoder/plugins/cache/qoder-bundler/better-harness/.qoder-plugin/plugin.json",
+            "~/.qoder/plugins/cache/qoder-bundler/qoder-create-plugin"
+          ]
+        },
+        {
+          "surface": "Hooks",
+          "scopes": ["Project"],
+          "count": 0
+        },
+        {
+          "surface": "Commands",
+          "scopes": ["Project"],
+          "count": 0
+        },
+        {
+          "surface": "Custom Agents",
+          "scopes": ["Project"],
+          "count": 0
+        },
+        {
+          "surface": "MCP",
+          "scopes": ["Project"],
+          "count": 0
+        },
+        {
+          "surface": "Memories",
+          "scopes": ["Project"],
+          "count": 0
+        }
+      ]
+    }
+  },
+  "findings": []
+}

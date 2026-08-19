@@ -21,7 +21,7 @@ final class MAC_Voting_QR {
     }
 
     public static function extract_token(string $raw): string {
-        $raw = trim($raw);
+        $raw = trim((string) preg_replace('/[\x00-\x20]+/', ' ', $raw));
         if ($raw === '') {
             return '';
         }
@@ -31,6 +31,16 @@ final class MAC_Voting_QR {
         if (preg_match('#[?&](?:mac_qr_token|token|qr)=([^&#\s]+)#i', $raw, $matches)) {
             return rawurldecode($matches[1]);
         }
+        // Fallbacks in case the regex engine/host mangles the scan: parse the URL structurally.
+        if (stripos($raw, 'http') === 0 || strpos($raw, '/') !== false) {
+            $path = (string) parse_url($raw, PHP_URL_PATH);
+            $candidate = $path !== '' ? $path : $raw;
+            $segments = array_values(array_filter(explode('/', $candidate), 'strlen'));
+            $last = $segments ? rawurldecode((string) end($segments)) : '';
+            if ($last !== '' && strpos($last, '.') !== false) {
+                return $last;
+            }
+        }
         return $raw;
     }
 
@@ -38,6 +48,7 @@ final class MAC_Voting_QR {
         global $wpdb;
         $scanned = array('scanned' => mb_substr($raw, 0, 120));
         $token = self::extract_token($raw);
+        $scanned['extracted'] = mb_substr($token, 0, 80);
         if (!$token || strpos($token, '.') === false) {
             return new WP_Error('qr_bad_format', 'QR không đúng định dạng của hệ thống (thiếu mã xác thực).', array('status' => 400) + $scanned);
         }

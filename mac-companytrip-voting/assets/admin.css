@@ -3328,6 +3328,68 @@ body.mac-admin-public-page .ma-side {
   filter: brightness(1.06);
 }
 
+/* v1.8.0 — mobile boards: horizontal scroll with pinned leading columns */
+.ma-board-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ma-board-table table {
+  min-width: 640px;
+}
+
+.ma-board-table th:first-child,
+.ma-board-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--panel);
+  box-shadow: 1px 0 0 var(--border);
+}
+
+.ma-board-table thead th:first-child {
+  z-index: 2;
+}
+
+.ma-board-table tbody tr:hover td:first-child {
+  background: var(--soft);
+}
+
+.ma-board-table.ma-pin-2 th:first-child,
+.ma-board-table.ma-pin-2 td:first-child {
+  width: 56px;
+  min-width: 56px;
+}
+
+.ma-board-table.ma-pin-2 th:nth-child(2),
+.ma-board-table.ma-pin-2 td:nth-child(2) {
+  position: sticky;
+  left: 56px;
+  z-index: 1;
+  background: var(--panel);
+  box-shadow: 1px 0 0 var(--border);
+}
+
+.ma-board-table.ma-pin-2 thead th:nth-child(2) {
+  z-index: 2;
+}
+
+.ma-board-table.ma-pin-2 tbody tr:hover td:nth-child(2) {
+  background: var(--soft);
+}
+
+@media (max-width: 700px) {
+  .ma-panel > header {
+    flex-wrap: wrap;
+  }
+
+  .ma-panel > header > a,
+  .ma-panel > header > button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 #ma-admin-login .ma-primary:active {
   filter: brightness(0.96);
 }
