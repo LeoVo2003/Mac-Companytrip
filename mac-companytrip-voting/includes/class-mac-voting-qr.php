@@ -31,22 +31,24 @@ final class MAC_Voting_QR {
         return $raw;
     }
 
-    public static function verify(string $raw) {
+    public static function verify(string $raw, bool $allow_unsigned = false) {
         global $wpdb;
+        $scanned = array('scanned' => mb_substr($raw, 0, 60));
         $token = self::extract_token($raw);
         if (!$token || strpos($token, '.') === false) {
-            return new WP_Error('invalid_qr', 'QR không hợp lệ.', array('status' => 400));
+            return new WP_Error('qr_bad_format', 'QR không đúng định dạng của hệ thống (thiếu mã xác thực).', array('status' => 400) + $scanned);
         }
         $parts = explode('.', $token, 2);
         $encoded = $parts[0];
         $signature = $parts[1];
         $expected = hash_hmac('sha256', $encoded, wp_salt('auth'));
-        if (!hash_equals($expected, $signature)) {
-            return new WP_Error('invalid_qr', 'QR không hợp lệ.', array('status' => 400));
+        $signature_ok = hash_equals($expected, $signature);
+        if (!$signature_ok && !$allow_unsigned) {
+            return new WP_Error('qr_bad_signature', 'QR không khớp chữ ký của website này. Hãy đảm bảo dashboard và máy quét cùng mở trên một miền.', array('status' => 400) + $scanned);
         }
         $payload = json_decode(self::base64url_decode($encoded), true);
         if (!is_array($payload) || empty($payload['voter_id'])) {
-            return new WP_Error('invalid_qr', 'QR không hợp lệ.', array('status' => 400));
+            return new WP_Error('qr_bad_format', 'QR không đúng định dạng của hệ thống.', array('status' => 400) + $scanned);
         }
         $voters = MAC_Voting_DB::table('voters');
         $teams = MAC_Voting_DB::table('teams');
@@ -62,8 +64,9 @@ final class MAC_Voting_QR {
             return new WP_Error('qr_inactive', 'QR của ' . $row['full_name'] . ' không dùng được vì nhân sự không còn trạng thái ACTIVE.', array('status' => 400));
         }
         if ((int) ($payload['qr_version'] ?? 0) !== (int) $row['qr_version']) {
-            return new WP_Error('qr_stale', 'QR đã cũ. Hãy quét QR mới nhất trong email mới hoặc mục Nhân sự & QR.', array('status' => 400));
+            return new WP_Error('qr_stale', 'QR đã cũ. Hãy quét QR mới nhất trong email mới hoặc mục Nhân sự & QR.', array('status' => 400) + $scanned);
         }
+        $row['mac_signature_ok'] = $signature_ok;
         return $row;
     }
 

@@ -185,7 +185,8 @@
       if (extra.teamProgress) applyTeam(extra.teamProgress);
       const locked = extra.code === "WINDOW_LOCKED" || extra.code === "window_locked";
       const type = locked ? "err" : extra.code === "ALREADY_CHECKED_IN" || extra.code === "already_checked_in" ? "warn" : "err";
-      showFlash(type, locked ? `${windowLockedText()}. ${err.message}` : err.message);
+      const scannedNote = extra.scanned ? ` [quét thấy: ${extra.scanned}]` : "";
+      showFlash(type, (locked ? `${windowLockedText()}. ${err.message}` : err.message) + scannedNote);
     }
   }
 

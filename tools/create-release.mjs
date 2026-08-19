@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.7.6";
+const tag = "v1.7.7";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Tổng quan: hiện lại tên đội dưới mỗi cột biểu đồ; làm tròn số không còn .0/.00 (TB phiếu, điểm trực tiếp).",
-  "- Bảng tài khoản máy quét: tên và email tách hai dòng, hết dính chữ.",
-  "- Thang hạng game: hạng 4/5/6 có màu riêng (xanh dương / xanh lục / xám nhạt).",
+  "- Máy quét check-in nhận QR ngay cả khi chữ ký khác environment (fallback có audit), hết \"QR không hợp lệ\" khi dashboard và máy quét khác miền/salt.",
+  "- Lỗi QR nói rõ lý do (sai định dạng / sai chữ ký / QR cũ / không ACTIVE) kèm đoạn mã đã quét để bắt lỗi.",
 ].join("\n");
 
 let release;

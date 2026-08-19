@@ -223,13 +223,20 @@ final class MAC_Checkin {
         if ($checkpoint['status'] !== 'OPEN') {
             return new WP_Error('checkpoint_closed', 'Mốc này chưa mở hoặc đã đóng.', array('status' => 409));
         }
-        $voter = MAC_Voting_QR::verify($token);
+        $voter = MAC_Voting_QR::verify($token, true);
         if (is_wp_error($voter)) {
             MAC_Voting_DB::audit('STAFF', (string) get_current_user_id(), 'QR_LOGIN_FAILED', 'checkin', null, array(
-                'reason' => 'invalid_qr',
+                'reason' => $voter->get_error_code(),
                 'checkpointId' => $checkpoint_id,
+                'rawPrefix' => mb_substr($token, 0, 60),
             ));
             return $voter;
+        }
+        if (empty($voter['mac_signature_ok'])) {
+            MAC_Voting_DB::audit('STAFF', (string) get_current_user_id(), 'QR_SIGNATURE_FALLBACK', 'checkin', (string) $voter['id'], array(
+                'checkpointId' => $checkpoint_id,
+                'rawPrefix' => mb_substr($token, 0, 60),
+            ));
         }
         if (MAC_Voting_DB::is_staff_team_no((int) $voter['team_no'])) {
             return new WP_Error('staff_team', 'Tài khoản BTC không check-in như đội thi.', array('status' => 409));
