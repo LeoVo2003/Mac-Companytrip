@@ -912,6 +912,21 @@ body.mac-voting-page .elementor-widget-container:has(#mac-voting-app) {
   color: var(--success);
 }
 
+/* Đã chấm nháp: làm mờ để biết đã xong, chạm vào vẫn sửa được */
+.mv-team-tab.has-draft {
+  opacity: 0.55;
+  background: var(--subtle);
+}
+
+.mv-team-tab.has-draft small {
+  color: var(--success);
+}
+
+.mac-voting-app button.mv-team-tab.has-draft:hover,
+.mac-voting-app button.mv-team-tab.has-draft:focus-visible {
+  opacity: 1;
+}
+
 .mv-vote-back {
   margin-top: 4px;
   margin-bottom: 8px;
@@ -1348,17 +1363,6 @@ body.mac-voting-page .elementor-widget-container:has(#mac-voting-app) {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
-}
-
-.mv-flash-note {
-  margin: 14px 0 0;
-  padding: 12px 14px;
-  border: 1px solid #fedf89;
-  border-radius: 12px;
-  background: #fffaeb;
-  color: #93370d;
-  font-size: 14px;
-  font-weight: 600;
 }
 
 .mv-rule-note {

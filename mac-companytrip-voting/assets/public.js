@@ -10,7 +10,6 @@
   let state = null;
   let selectedPerformanceId = null;
   let tickTimer = 0;
-  let pickerFlash = "";
   const esc = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
   const request = async (path, options = {}) => {
     const response = await fetch(api + path, { credentials: "same-origin", headers: { "Content-Type": "application/json", "X-WP-Nonce": config.nonce, ...(options.headers || {}) }, ...options });
@@ -131,10 +130,9 @@
     if (!active) {
       selectedPerformanceId = null;
       const drafts = loadDrafts(state.round.id);
-      const flash = pickerFlash ? `<p class="mv-flash-note" role="status">${esc(pickerFlash)}</p>` : "";
-      root.innerHTML = `<main class="mv-vote-shell">${header()}${progressHead}${timer}${flash}<section class="mv-team-picker"><div class="mv-picker-head"><p class="mv-kicker">CHỌN TIẾT MỤC</p></div><div class="mv-team-tabs">${eligible.map((item) => item.hasVoted ? `<article class="mv-team-tab is-complete"><span>#${item.teamNumber}</span><strong>${esc(item.teamName)}</strong><small>Đã gửi</small></article>` : `<button type="button" class="mv-team-tab" data-performance-id="${item.id}" ${item.canVote ? "" : "disabled"}><span>#${item.teamNumber}</span><strong>${esc(item.teamName)}</strong><small>${item.canVote ? (drafts[item.id] ? "Nháp sẵn · sửa →" : "Chấm điểm →") : "Chưa mở"}</small></button>`).join("")}</div><p class="mv-rule-note">Quy định: gửi phiếu đủ cả 2 tiết mục trong lượt, hoặc không chấm.</p></section></main>`;
+      root.innerHTML = `<main class="mv-vote-shell">${header()}${progressHead}${timer}<section class="mv-team-picker"><div class="mv-picker-head"><p class="mv-kicker">CHỌN TIẾT MỤC</p></div><div class="mv-team-tabs">${eligible.map((item) => item.hasVoted ? `<article class="mv-team-tab is-complete"><span>#${item.teamNumber}</span><strong>${esc(item.teamName)}</strong><small>Đã gửi</small></article>` : `<button type="button" class="mv-team-tab${item.canVote && drafts[item.id] ? " has-draft" : ""}" data-performance-id="${item.id}" ${item.canVote ? "" : "disabled"}><span>#${item.teamNumber}</span><strong>${esc(item.teamName)}</strong><small>${item.canVote ? (drafts[item.id] ? "Đã chấm · sửa →" : "Chấm điểm →") : "Chưa mở"}</small></button>`).join("")}</div><p class="mv-rule-note">Quy định: gửi phiếu đủ cả 2 tiết mục trong lượt, hoặc không chấm.</p></section></main>`;
       root.querySelector("#mv-logout").addEventListener("click", logout);
-      root.querySelectorAll("[data-performance-id]").forEach((button) => button.addEventListener("click", () => { pickerFlash = ""; selectedPerformanceId = button.dataset.performanceId; renderState(); }));
+      root.querySelectorAll("[data-performance-id]").forEach((button) => button.addEventListener("click", () => { selectedPerformanceId = button.dataset.performanceId; renderState(); }));
       if (root.querySelector(".mv-vote-timer")) startTicker(); else stopTicker();
       return;
     }
@@ -199,7 +197,6 @@
       if (missing.length) {
         store[active.id] = scores;
         saveDrafts(state.round.id, store);
-        pickerFlash = `Đã giữ nháp #${active.teamNumber}. Chấm tiếp ${missing.map((item) => `#${item.teamNumber}`).join(", ")} rồi gửi cùng một lần.`;
         selectedPerformanceId = null;
         renderState();
         return;
@@ -213,7 +210,7 @@
       });
       if (!confirmed) { button.focus(); return; }
       button.disabled = true; button.textContent = "Đang gửi…";
-      try { const data = await request("submit", { method: "POST", body: JSON.stringify({ ballots: entries.map((entry) => ({ performanceId: entry.performanceId, requestId: crypto.randomUUID(), scores: entry.scores })) }) }); clearDrafts(state.round.id); pickerFlash = ""; state = data.state; selectedPerformanceId = null; renderState(); }
+      try { const data = await request("submit", { method: "POST", body: JSON.stringify({ ballots: entries.map((entry) => ({ performanceId: entry.performanceId, requestId: crypto.randomUUID(), scores: entry.scores })) }) }); clearDrafts(state.round.id); state = data.state; selectedPerformanceId = null; renderState(); }
       catch (err) { button.disabled = false; button.textContent = "Gửi phiếu →"; error.textContent = err.message; error.hidden = false; }
     });
     if (root.querySelector(".mv-vote-timer")) startTicker(); else stopTicker();
