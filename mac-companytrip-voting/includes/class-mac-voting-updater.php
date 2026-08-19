@@ -245,12 +245,22 @@ final class MAC_Voting_Updater {
 
         $version = ltrim((string) $body['tag_name'], 'vV');
         $package = '';
+        $fallback = '';
         foreach ($body['assets'] as $asset) {
             $name = isset($asset['name']) ? (string) $asset['name'] : '';
-            if (preg_match('/^mac-companytrip-voting-v[\d.]+\.zip$/', $name) && !empty($asset['browser_download_url'])) {
+            if (!preg_match('/^mac-companytrip-voting-v[\d.]+\.zip$/', $name) || empty($asset['browser_download_url'])) {
+                continue;
+            }
+            if ($name === 'mac-companytrip-voting-v' . $version . '.zip') {
                 $package = (string) $asset['browser_download_url'];
                 break;
             }
+            if ($fallback === '') {
+                $fallback = (string) $asset['browser_download_url'];
+            }
+        }
+        if ($package === '') {
+            $package = $fallback;
         }
         if ($version === '' || $package === '') {
             return false;

@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.7.1";
+const tag = "v1.7.2";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,12 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Sidebar 6 tab: Tổng quan, Check-in, Trò chơi lớn, Văn nghệ, Thi đua, Nhân sự & QR; Tổng quan chỉ còn Tổng điểm + Lịch sử.",
-  "- Thứ tự Tổng quan: biểu đồ cột → bảng 4 trụ cột → check-in → trò chơi → văn nghệ → thi đua.",
-  "- Mở mốc / mở vote chỉ xác nhận một lần; thời gian tự đóng (15' / 5') sửa ở ô nhập cạnh nút.",
-  "- Bảng tỷ lệ có mặt gom thành 1 ma trận đội × mốc (số người + điểm).",
-  "- Tab Trò chơi lớn làm lại: thang hạng, ma trận tổng, thẻ chấm hạng từng game.",
-  "- Đồng bộ button, hover, màu chữ và bảng trên toàn dashboard.",
+  "- Sửa updater: ưu tiên tải đúng zip trùng phiên bản tag, tránh nhặt nhầm zip cũ do workflow đính kèm.",
+  "- Release script tự xóa zip thừa khác phiên bản khỏi release.",
+  "- Giữ nguyên toàn bộ thay đổi UI của 1.7.1: 6 tab sidebar, duration inline, ma trận check-in, tab Trò chơi lớn, đồng bộ hover.",
 ].join("\n");
 
 let release;
@@ -48,7 +45,8 @@ if (response.ok) {
 
 const assetName = path.basename(assetPath);
 for (const asset of release.assets || []) {
-  if (asset.name === assetName) {
+  const isPluginZip = /^mac-companytrip-voting-v[\d.]+\.zip$/.test(asset.name);
+  if (asset.name === assetName || (isPluginZip && asset.name !== `mac-companytrip-voting-${tag}.zip`)) {
     await fetch(`https://api.github.com/repos/${repo}/releases/assets/${asset.id}`, { method: "DELETE", headers });
     console.log(`Removed stale asset ${asset.name}.`);
   }
