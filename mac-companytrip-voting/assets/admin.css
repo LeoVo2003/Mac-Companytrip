@@ -2773,3 +2773,216 @@ body.mac-admin-public-page .ma-side {
   color: #fff;
   background: #475467;
 }
+
+/* v1.7.1 — inline duration inputs */
+.ma-duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.ma-duration input {
+  width: 64px;
+  min-height: 40px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ma-duration input:focus {
+  outline: 2px solid #f3a893;
+  outline-offset: 1px;
+}
+
+.ma-round-head {
+  flex-wrap: wrap;
+}
+
+.ma-check-card .ma-check-actions {
+  align-items: center;
+}
+
+/* v1.7.1 — compact check-in progress matrix */
+.ma-progress-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ma-progress-cell strong {
+  display: block;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ma-progress-cell small {
+  display: block;
+  margin-top: 2px;
+  color: #667085;
+  font-size: 12px;
+}
+
+/* v1.7.1 — games tab */
+.ma-ladder {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 20px 20px;
+}
+
+.ma-ladder-chip {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #f9fafb;
+  color: #475467;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ma-ladder-chip.rank-1 {
+  color: #93610b;
+  border-color: #fde29b;
+  background: #fef0c7;
+}
+
+.ma-ladder-chip.rank-2 {
+  color: #475467;
+  border-color: #d0d5dd;
+  background: #f2f4f7;
+}
+
+.ma-ladder-chip.rank-3 {
+  color: #93370d;
+  border-color: #f9dbaf;
+  background: #fdf2ec;
+}
+
+.ma-game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.ma-game-card header {
+  align-items: center;
+}
+
+.ma-game-max {
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #667085;
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ma-game-rows {
+  display: grid;
+  gap: 10px;
+  padding: 16px 20px 20px;
+}
+
+.ma-game-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ma-game-team {
+  flex: 1;
+  min-width: 0;
+  color: #667085;
+  font-size: 13px;
+}
+
+.ma-game-team b {
+  color: #111827;
+}
+
+.ma-game-row select {
+  min-height: 40px;
+  max-width: 170px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  font-size: 13px;
+}
+
+.ma-game-points {
+  min-width: 44px;
+  text-align: right;
+  color: #98a2b3;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ma-game-points.rank-1 {
+  color: #93610b;
+}
+
+.ma-game-points.rank-2 {
+  color: #475467;
+}
+
+.ma-game-points.rank-3 {
+  color: #93370d;
+}
+
+.ma-rank-chip {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #475467;
+  background: #f2f4f7;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ma-rank-chip.rank-1 {
+  color: #93610b;
+  background: #fef0c7;
+}
+
+.ma-rank-chip.rank-2 {
+  background: #eaecf0;
+}
+
+.ma-rank-chip.rank-3 {
+  color: #93370d;
+  background: #fdf2ec;
+}
+
+/* v1.7.1 — hover & interaction sync */
+.ma-panel button,
+.ma-check-card button,
+.ma-round-head button,
+.ma-top-actions button,
+.ma-subnav button,
+.ma-side nav button,
+.ma-side-links a,
+.ma-people-actions button,
+.ma-award-presets button,
+.ma-award-teams button,
+.ma-duration input,
+.ma-game-row select {
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.ma-board-table tbody tr:hover td,
+.ma-people-table tbody tr:hover td {
+  background: var(--soft);
+}

@@ -3,14 +3,14 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
 == Cài đặt ==
 
 1. Vào WordPress Admin > Plugins > Add New > Upload Plugin.
-2. Tải lên file mac-companytrip-voting-v1.7.0.zip và Activate. Sau bản này WordPress tự cập nhật từ GitHub Releases.
+2. Tải lên file mac-companytrip-voting-v1.7.1.zip và Activate. Sau bản này WordPress tự cập nhật từ GitHub Releases.
 3. Plugin tự tạo trang Chấm Điểm Văn Nghệ [mac_companytrip_vote], trang Kết Quả Văn Nghệ [mac_companytrip_results], trang Check-in [mac_companytrip_checkin] và dashboard [mac_companytrip_admin].
 4. Mở /company-trip-admin/ để đăng nhập dashboard. Không cần vào wp-admin.
 5. Super admin thao tác toàn bộ. BTC xem dashboard và vào máy quét /company-trip-checkin/. Cả hai role được tạo từ CSV và không có quyền wp-admin.
@@ -67,6 +67,14 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.7.1 =
+- Sidebar 6 tab: Tổng quan, Check-in, Trò chơi lớn, Văn nghệ, Thi đua, Nhân sự & QR. Tổng quan chỉ còn Tổng điểm và Lịch sử.
+- Tổng quan xếp lại: biểu đồ cột → bảng 4 trụ cột → check-in → trò chơi → văn nghệ → thi đua.
+- Mở mốc check-in và mở vote chỉ hỏi xác nhận; thời gian tự đóng (15 phút / 5 phút) nằm ở ô nhập ngay cạnh nút.
+- Bảng điểm theo tỷ lệ có mặt gom thành 1 ma trận: đội × mốc, mỗi ô hiện số người/điểm.
+- Tab Trò chơi lớn làm lại: thang hạng trực quan, ma trận tổng và thẻ chấm hạng từng game.
+- Đồng bộ hover, màu chữ và bảng trên toàn dashboard.
 
 = 1.7.0 =
 - Bảng điểm 4 trụ cột: Check-in 600đ, Trò chơi lớn 150đ, Văn nghệ 200đ quy đổi từ TB phiếu hợp lệ, Thi đua không giới hạn.
