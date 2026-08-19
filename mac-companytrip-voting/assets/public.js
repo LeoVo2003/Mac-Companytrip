@@ -25,8 +25,9 @@
   const icons = {
     mail: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>`,
   };
+  const parseUtc = (value) => new Date(String(value || "").replace(" ", "T") + "Z").getTime();
   const formatRemainingTime = (closesAt) => {
-    const seconds = Math.max(0, Math.ceil((new Date(closesAt).getTime() - Date.now()) / 1000));
+    const seconds = Math.max(0, Math.ceil((parseUtc(closesAt) - Date.now()) / 1000));
     return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
   };
   const draftKey = (roundId) => `mac-vote-drafts-${roundId}`;
@@ -40,7 +41,7 @@
       const el = root.querySelector(".mv-vote-timer strong");
       const closesAt = state?.round?.closesAt;
       if (!el || !closesAt) { stopTicker(); return; }
-      const seconds = Math.max(0, Math.ceil((new Date(closesAt).getTime() - Date.now()) / 1000));
+      const seconds = Math.max(0, Math.ceil((parseUtc(closesAt) - Date.now()) / 1000));
       el.textContent = formatRemainingTime(closesAt);
       if (seconds <= 0) { stopTicker(); refresh(); }
     }, 1000);
@@ -140,8 +141,18 @@
     const criteria = [["styleScore", "Phong Cách & Thần Thái Biểu Diễn"], ["stagingScore", "Dàn Dựng & Sáng Tạo"], ["teamworkScore", "Tinh Thần Đồng Đội & Bản Sắc Doanh Nghiệp"]];
     root.innerHTML = `<main class="mv-vote-shell">${header()}${progressHead}${timer}<div class="mv-vote-back"><button type="button" id="mv-back" class="mv-button mv-button--ghost">← Chọn đội</button></div><section class="mv-performance"><div>#${active.teamNumber}</div><article><p>${active.isRevote ? "CHẤM LẠI" : "ĐANG CHẤM"}</p><h1>${esc(active.teamName)}</h1></article></section><section class="mv-score-card"><p class="mv-kicker">PHIẾU CHẤM</p><h2>Chọn số sao</h2><form id="mv-ballot">${criteria.map((criterion, index) => `<fieldset data-star-field="${criterion[0]}"><legend><b>0${index + 1}</b><span>${criterion[1]}</span><output class="mv-star-output" aria-live="polite">—</output></legend><div class="mv-star-rating" role="radiogroup" aria-label="${criterion[1]}">${[10,20,30,40,50].map((score, star) => `<label class="mv-star" data-star="${star + 1}" title="${star + 1} sao · ${score} điểm"><input type="radio" name="${criterion[0]}" value="${score}" aria-label="${star + 1} sao, ${score} điểm"><i aria-hidden="true">★</i></label>`).join("")}</div></fieldset>`).join("")}<p id="mv-error" class="mv-error" role="alert" hidden></p><button type="submit" class="mv-button mv-button--primary mv-button--block mv-score-submit">Gửi phiếu →</button><small class="mv-note">Không thể sửa sau khi gửi</small></form></section></main>`;
     root.querySelector("#mv-logout").addEventListener("click", logout);
-    root.querySelector("#mv-back").addEventListener("click", () => { selectedPerformanceId = null; renderState(); });
+    root.querySelector("#mv-back").addEventListener("click", () => { persistDraft(); selectedPerformanceId = null; renderState(); });
     const ballotForm = root.querySelector("#mv-ballot");
+    const persistDraft = () => {
+      const scores = { styleScore: 0, stagingScore: 0, teamworkScore: 0 };
+      ballotForm.querySelectorAll("fieldset[data-star-field]").forEach((fieldset) => {
+        scores[fieldset.dataset.starField] = Number(fieldset.querySelector("input:checked")?.value || 0);
+      });
+      if (!scores.styleScore && !scores.stagingScore && !scores.teamworkScore) return;
+      const store = loadDrafts(state.round.id);
+      store[active.id] = scores;
+      saveDrafts(state.round.id, store);
+    };
     const updateStars = (fieldset, previewStars = null) => {
       const score = Number(fieldset.querySelector("input:checked")?.value || 0);
       const shownStars = previewStars === null ? score / 10 : previewStars;
@@ -154,12 +165,22 @@
       rating.classList.toggle("is-previewing", previewStars !== null);
       fieldset.querySelector(".mv-star-output").textContent = shownStars ? `${shownStars * 10} điểm` : "—";
     };
-    ballotForm.addEventListener("change", (event) => { if (event.target.matches(".mv-star input")) updateStars(event.target.closest("fieldset")); });
-    ballotForm.addEventListener("pointerover", (event) => {
-      const star = event.target.closest(".mv-star");
-      if (star && ballotForm.contains(star)) updateStars(star.closest("fieldset"), Number(star.dataset.star));
-    });
-    ballotForm.querySelectorAll(".mv-star-rating").forEach((rating) => rating.addEventListener("pointerleave", () => updateStars(rating.closest("fieldset"))));
+    ballotForm.addEventListener("change", (event) => { if (event.target.matches(".mv-star input")) { updateStars(event.target.closest("fieldset")); persistDraft(); } });
+    // Chọn sao trực tiếp bằng click, không phụ thuộc label-forward — chắc chắn ăn trên mobile.
+    ballotForm.querySelectorAll(".mv-star").forEach((star) => star.addEventListener("click", () => {
+      const input = star.querySelector("input");
+      if (input) input.checked = true;
+      updateStars(star.closest("fieldset"));
+      persistDraft();
+    }));
+    // Preview khi hover chỉ bật cho thiết bị có chuột; trên cảm ứng pointerover/leave gây chớp và làm “mất” lựa chọn.
+    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      ballotForm.addEventListener("pointerover", (event) => {
+        const star = event.target.closest(".mv-star");
+        if (star && ballotForm.contains(star)) updateStars(star.closest("fieldset"), Number(star.dataset.star));
+      });
+      ballotForm.querySelectorAll(".mv-star-rating").forEach((rating) => rating.addEventListener("pointerleave", () => updateStars(rating.closest("fieldset"))));
+    }
     const existingDraft = loadDrafts(state.round.id)[active.id];
     if (existingDraft) {
       ballotForm.querySelectorAll("fieldset[data-star-field]").forEach((fieldset) => {

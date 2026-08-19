@@ -60,7 +60,7 @@ body.mac-voting-page .elementor-widget-container:has(#mac-voting-app) {
   --success: #17875b;
   --danger: #b42318;
   --focus: rgba(227, 30, 36, 0.18);
-  --vote-width: 680px;
+  --vote-width: 760px;
   --control-height: 52px;
   --control-radius: 12px;
   width: 100% !important;
@@ -965,9 +965,9 @@ body.mac-voting-page .elementor-widget-container:has(#mac-voting-app) {
   margin-bottom: 12px;
   padding: 0;
   color: var(--text);
-  font-size: 15px;
+  font-size: clamp(12px, 4vw, 15px);
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
 .mv-score-card legend b {
@@ -987,11 +987,13 @@ body.mac-voting-page .elementor-widget-container:has(#mac-voting-app) {
 }
 
 .mv-star-output {
+  flex: 0 0 auto;
   margin-left: auto;
   color: var(--red);
-  font-size: 13px;
+  font-size: clamp(11.5px, 3.4vw, 13px);
   font-weight: 800;
   letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .mv-score-card fieldset > .mv-star-rating {
@@ -1291,7 +1293,24 @@ body.mac-voting-page .elementor-widget-container:has(#mac-voting-app) {
   }
 }
 
+@media (max-width: 560px) {
+  /* Màn hẹp: tên tiêu chí chiếm cả hàng, số điểm đứng riêng hàng dưới — không tiêu chí nào bị rớt dòng giữa chừng */
+  .mv-score-card legend {
+    flex-wrap: wrap;
+  }
+
+  .mv-star-output {
+    flex-basis: 100%;
+    margin-top: 2px;
+    text-align: right;
+  }
+}
+
 @media (max-width: 370px) {
+  .mv-score-card legend {
+    font-size: 11px;
+  }
+
   .mv-email-input {
     gap: 8px;
     padding-inline: 12px;

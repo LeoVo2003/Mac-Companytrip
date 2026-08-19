@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.2";
+const tag = "v1.8.3";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Máy quét BTC: mở vào là trang chọn team, chạm team mới vào trang quét riêng; dưới máy quét là danh sách đủ thành viên, ai đã quét thì mờ đi kèm ✓.",
-  "- Bắt buộc bật cổng văn nghệ trước khi mở vote: chặn cả mở mới lẫn mở lại, báo rõ lý do.",
+  "- Đồng hồ đếm ngược ở trang vote văn nghệ chạy đúng: parse thời gian UTC chuẩn thay vì để trình duyệt tự đoán (trước đó đứng im hoặc sai 7 giờ).",
+  "- Chấm sao không còn bị mất: chọn sao trực tiếp bằng click, tắt preview hover trên màn cảm ứng, tự lưu nháp mỗi lần đổi điểm nên bấm '← Chọn đội' hay đổi tiết mục cũng không mất điểm.",
+  "- Phiếu chấm trên mobile rộng hơn: tên tiêu chí và số điểm (10/20/30/40/50 điểm) luôn hiển thị ngay hàng, màn hẹp thì số điểm tự xuống hàng riêng thay vì rớt dòng giữa chừng.",
 ].join("\n");
 
 let release;
