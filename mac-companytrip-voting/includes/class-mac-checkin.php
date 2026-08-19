@@ -264,11 +264,11 @@ final class MAC_Checkin {
             MAC_Voting_DB::audit('STAFF', (string) get_current_user_id(), 'CHECKIN_DUPLICATE_ATTEMPT', 'voter', (string) $voter['id'], array(
                 'checkpointId' => $checkpoint_id,
             ));
-            return new WP_Error('already_checked_in', $voter['full_name'] . ' đã check-in lúc ' . $existing['scanned_at'] . '.', array(
+            return new WP_Error('already_checked_in', $voter['full_name'] . ' đã check-in lúc ' . MAC_Voting_DB::hanoi_time($existing['scanned_at']) . '.', array(
                 'status' => 409,
                 'code' => 'ALREADY_CHECKED_IN',
                 'voter' => self::public_voter($voter),
-                'scannedAt' => $existing['scanned_at'],
+                'scannedAt' => MAC_Voting_DB::hanoi_time($existing['scanned_at']),
                 'teamProgress' => self::team_progress($checkpoint_id, $team_id),
             ));
         }
@@ -313,11 +313,11 @@ final class MAC_Checkin {
                 (int) $voter['id']
             ), ARRAY_A);
             if ($existing) {
-                return new WP_Error('already_checked_in', $voter['full_name'] . ' đã check-in lúc ' . $existing['scanned_at'] . '.', array(
+                return new WP_Error('already_checked_in', $voter['full_name'] . ' đã check-in lúc ' . MAC_Voting_DB::hanoi_time($existing['scanned_at']) . '.', array(
                     'status' => 409,
                     'code' => 'ALREADY_CHECKED_IN',
                     'voter' => self::public_voter($voter),
-                    'scannedAt' => $existing['scanned_at'],
+                    'scannedAt' => MAC_Voting_DB::hanoi_time($existing['scanned_at']),
                     'teamProgress' => self::team_progress($checkpoint_id, $team_id),
                 ));
             }
@@ -377,7 +377,7 @@ final class MAC_Checkin {
                 'id' => $member_id,
                 'fullName' => MAC_Voting_DB::title_case((string) $member['full_name']),
                 'email' => $member['email'],
-                'scannedAt' => $member['scanned_at'],
+                'scannedAt' => MAC_Voting_DB::hanoi_time($member['scanned_at']),
             );
             if (isset($exempt_map[$member_id])) {
                 $item['reason'] = $exempt_map[$member_id];

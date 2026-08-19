@@ -67,7 +67,7 @@
   }
 
   function lockedView() {
-    root.innerHTML = shell(`${brand()}<div class="mv-heading mv-locked"><p class="mv-kicker">MAC COMPANY TRIP</p><h1>Chương trình chưa mở</h1><p>Cổng chấm điểm văn nghệ sẽ mở khi ban tổ chức thông báo. Bạn không cần làm gì lúc này.</p></div>`);
+    root.innerHTML = shell(`${brand()}<div class="mv-heading mv-locked"><h1>Chương trình chưa mở</h1><p>Cổng chấm điểm văn nghệ sẽ mở khi ban tổ chức thông báo. Bạn không cần làm gì lúc này.</p></div>`);
     setTimeout(refresh, 12000 + Math.floor(Math.random() * 4000));
   }
 

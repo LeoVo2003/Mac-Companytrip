@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.5";
+const tag = "v1.8.6";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Cột team trên mobile không còn cứng 180px: tự co vừa tên đội dài nhất, các bảng vẫn thẳng hàng với nhau.",
-  "- Thêm khối 'Thêm nhân sự · tạo tài khoản BTC' trong tab Nhân sự & QR: chọn team, email tùy chọn (để trống hoặc bất kỳ domain nào, cho agency), vai trò BTC hoặc Super admin sẽ tạo tài khoản đăng nhập máy quét; tên đăng nhập và mật khẩu hiện một lần ngay sau khi tạo.",
+  "- Toàn bộ thời gian hiển thị (lịch sử cộng điểm, phiếu, check-in, CSV) quy về giờ Hà Nội UTC+7.",
+  "- Màn hình chờ vote: brand xếp dọc căn giữa và bỏ dòng 'MAC COMPANY TRIP' thừa.",
 ].join("\n");
 
 let release;

@@ -477,6 +477,21 @@ final class MAC_Voting_DB {
         return current_time('mysql', true);
     }
 
+    /**
+     * Đổi datetime UTC trong database sang giờ Hà Nội (UTC+7) để hiển thị.
+     */
+    public static function hanoi_time(?string $value, string $format = 'H:i d/m/Y'): string {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return '';
+        }
+        $ts = strtotime($value . ' UTC');
+        if ($ts === false) {
+            return $value;
+        }
+        return gmdate($format, $ts + 7 * HOUR_IN_SECONDS);
+    }
+
     public static function deadline_from_minutes(int $minutes): string {
         return gmdate('Y-m-d H:i:s', time() + ($minutes * MINUTE_IN_SECONDS));
     }

@@ -582,6 +582,10 @@ final class MAC_Voting_Admin {
         unset($round);
         $results = $wpdb->get_results("SELECT p.id AS performance_id,t.id AS team_id,t.team_no,t.name AS team_name,COUNT(b.id) AS voter_count,AVG(b.total_score) AS average_score,AVG(b.style_score) AS style_average,AVG(b.staging_score) AS staging_average,AVG(b.teamwork_score) AS teamwork_average FROM $performances p JOIN $slots s ON s.performance_id=p.id JOIN $teams t ON t.id=p.team_id LEFT JOIN $ballots b ON b.performance_id=p.id AND b.status='VALID' GROUP BY p.id,t.id ORDER BY average_score DESC,t.team_no", ARRAY_A) ?: array();
         $recent = $wpdb->get_results("SELECT b.id,b.status,b.total_score,b.style_score,b.staging_score,b.teamwork_score,b.created_at,b.revoke_reason,v.full_name,vt.name AS voter_team,pt.name AS performance_team,EXISTS(SELECT 1 FROM " . MAC_Voting_DB::table('revote_grants') . " g WHERE g.voter_id=b.voter_id AND g.performance_id=b.performance_id AND g.unused_key='UNUSED') AS has_revote_grant FROM $ballots b JOIN $voters v ON v.id=b.voter_id JOIN $teams vt ON vt.id=v.team_id JOIN $performances p ON p.id=b.performance_id JOIN $teams pt ON pt.id=p.team_id ORDER BY b.created_at DESC LIMIT 100", ARRAY_A) ?: array();
+        foreach ($recent as &$recent_row) {
+            $recent_row['created_at'] = MAC_Voting_DB::hanoi_time($recent_row['created_at'], 'd/m/Y H:i');
+        }
+        unset($recent_row);
         $team_rows = $wpdb->get_results("SELECT t.id,t.team_no,t.name,p.id AS performance_id,
                 (SELECT COUNT(*) FROM $voters v WHERE v.team_id=t.id) AS voter_count,
                 EXISTS(SELECT 1 FROM $slots s WHERE s.performance_id=p.id) AS is_scheduled,
@@ -1073,7 +1077,7 @@ final class MAC_Voting_Admin {
                 $user = get_userdata((int) $row['scanned_by']);
                 $scanned_by = $user ? $user->display_name : (string) $row['scanned_by'];
             }
-            fputcsv($out, array($row['checkpoint_name'], '#' . $row['team_no'] . ' ' . $row['team_name'], $row['full_name'], $row['email'], $row['checkin_status'], $row['scanned_at'], $scanned_by));
+            fputcsv($out, array($row['checkpoint_name'], '#' . $row['team_no'] . ' ' . $row['team_name'], $row['full_name'], $row['email'], $row['checkin_status'], MAC_Voting_DB::hanoi_time($row['scanned_at'], 'd/m/Y H:i'), $scanned_by));
         }
         fputcsv($out, array());
         fputcsv($out, array('XẾP HẠNG'));

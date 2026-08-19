@@ -298,7 +298,7 @@ final class MAC_Points {
                 $details = array();
             }
             $actor = self::actor_label($row['actor_id']);
-            $at = get_date_from_gmt($row['created_at'], 'H:i d/m/Y');
+            $at = MAC_Voting_DB::hanoi_time($row['created_at']);
             if ($row['action'] === 'CHECKPOINT_POINTS_FINALIZED') {
                 $checkpoint_name = $details['checkpointName'] ?? ('Mốc ' . $row['entity_id']);
                 $awards = isset($details['awards']) && is_array($details['awards']) ? $details['awards'] : array();
