@@ -479,6 +479,10 @@
     }));
     root.querySelectorAll("[data-round]").forEach((button) => button.addEventListener("click", async () => {
       const operation = button.dataset.op;
+      if ((operation === "open" || operation === "reopen") && !data.votingEnabled) {
+        notify("Cổng văn nghệ đang tắt. Bật cổng ở khối VĂN NGHỆ trước rồi mới mở vote được.", true);
+        return;
+      }
       let duration = null;
       if (operation !== "close") {
         duration = Number(root.querySelector(`[data-round-duration="${button.dataset.round}"]`)?.value);

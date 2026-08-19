@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.1";
+const tag = "v1.8.2";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,12 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Bỏ tự reload 5 giây ở dashboard: kéo bảng không bị giật về, đang gõ không mất chữ, inspect element không bị render lại.",
-  "- Thanh tab trên tablet/mobile giờ dính cứng khi cuộn, tab đang chọn luôn tự cuộn ra giữa thanh.",
-  "- Mobile: bảng tổng kết bỏ cột hạng chỉ còn cột đội; cột đội của các bảng chồng nhau cùng rộng 180px cho thẳng hàng.",
-  "- Tìm nhanh trong miễn check-in giữ nguyên từ khóa sau mỗi lần tải lại dữ liệu.",
-  "- Ô nhập RESET hết nhảy chữ khi gõ tiếng Việt (không ghi đè ô nhập lúc đang gõ, bỏ autocapitalize).",
-  "- Nút Màn hình trình chiếu trên mobile xuống hàng full-width như nút Mở máy quét / Xuất CSV.",
+  "- Máy quét BTC: mở vào là trang chọn team, chạm team mới vào trang quét riêng; dưới máy quét là danh sách đủ thành viên, ai đã quét thì mờ đi kèm ✓.",
+  "- Bắt buộc bật cổng văn nghệ trước khi mở vote: chặn cả mở mới lẫn mở lại, báo rõ lý do.",
 ].join("\n");
 
 let release;

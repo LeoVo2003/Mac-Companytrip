@@ -146,6 +146,12 @@ final class MAC_Voting_Admin {
         $rounds = MAC_Voting_DB::table('rounds');
         $round = $wpdb->get_row($wpdb->prepare("SELECT * FROM $rounds WHERE id=%d", $round_id), ARRAY_A);
         if (!$round) wp_send_json_error(array('message' => 'Lượt không tồn tại.'), 404);
+        if (($operation === 'open' || $operation === 'reopen') && !MAC_Voting_DB::is_voting_enabled()) {
+            wp_send_json_error(array(
+                'message' => 'Cổng văn nghệ đang tắt. Hãy bật cổng văn nghệ trước rồi mới mở vote.',
+                'code' => 'gate_off',
+            ), 409);
+        }
         if ($operation === 'open') {
             if ($round['status'] !== 'DRAFT') wp_send_json_error(array('message' => 'Lượt đã khóa, không thể mở lại.'), 409);
             $other_open = (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $rounds WHERE id!=%d AND status='OPEN' LIMIT 1", $round_id));

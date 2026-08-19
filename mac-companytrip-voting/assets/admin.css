@@ -3371,8 +3371,8 @@ body.mac-admin-public-page .ma-side {
 
 .ma-board-table.ma-pin-2 th:first-child,
 .ma-board-table.ma-pin-2 td:first-child {
-  width: 56px;
-  min-width: 56px;
+  width: 60px;
+  min-width: 60px;
 }
 
 .ma-board-table.ma-pin-2 th:nth-child(2),

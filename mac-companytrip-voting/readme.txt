@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.8.1
+Stable tag: 1.8.2
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,11 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.8.2 =
+- Máy quét BTC đổi luồng: mở vào là trang chọn team (kèm tiến độ từng team), chạm team mới vào trang quét riêng; nút "← Chọn team" để đổi team.
+- Trang quét hiện danh sách đầy đủ thành viên bên dưới camera: người đã quét mờ đi kèm ✓, người chưa quét nổi bật, người được miễn gắn nhãn "Miễn".
+- Phải bật cổng văn nghệ trước mới được mở vote: mở mới và mở lại lượt đều bị chặn khi cổng đang tắt, báo rõ lý do trên dashboard.
 
 = 1.8.1 =
 - Bỏ tự reload 5 giây ở dashboard: kéo bảng không bị giật về đầu, đang gõ không mất chữ, mở inspect không bị render lại liên tục.

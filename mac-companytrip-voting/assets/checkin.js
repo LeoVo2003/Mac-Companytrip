@@ -19,6 +19,7 @@
   const backLink = () => `<a class="mc-back" href="${esc(config.dashboard)}">← Quay lại dashboard</a>`;
   let bootstrap = null;
   let selectedTeamId = null;
+  let view = "teams";
   let windowMinutes = 15;
   let flash = null;
   let scanning = false;
@@ -60,7 +61,7 @@
         selectedTeamId = bootstrap.allowedTeams?.[0] ? String(bootstrap.allowedTeams[0].teamId) : null;
       }
       render();
-      await startCamera();
+      if (view === "scanner") await startCamera();
     } catch (err) {
       root.innerHTML = `<main class="mc-shell"><section class="mc-card"><p class="mc-kicker">CHECK-IN</p><h1>Không mở được máy quét</h1><p class="mc-meta">${esc(err.message)}</p></section></main>`;
     }
@@ -68,6 +69,20 @@
 
   function currentTeam() {
     return (bootstrap?.allowedTeams || []).find((team) => String(team.teamId) === String(selectedTeamId)) || bootstrap?.allowedTeams?.[0] || null;
+  }
+
+  function memberRows(team) {
+    const rows = [
+      ...(team.checkedInMembers || []).map((member) => ({ ...member, state: "done" })),
+      ...(team.missingMembers || []).map((member) => ({ ...member, state: "missing" })),
+      ...(team.exemptedMembers || []).map((member) => ({ ...member, state: "exempt" })),
+    ].sort((a, b) => String(a.fullName).localeCompare(String(b.fullName), "vi"));
+    return rows.map((member) => `<li class="${member.state}"><span>${esc(member.fullName)}</span><small>${member.state === "done" ? "✓ Đã quét" : member.state === "exempt" ? "Miễn" : "Chưa quét"}</small></li>`).join("") || `<li class="missing"><span>Chưa có thành viên</span><small></small></li>`;
+  }
+
+  function teamsView(checkpoint) {
+    const teams = bootstrap?.allowedTeams || [];
+    return `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing">${backLink()}</header><section class="mc-card"><p class="mc-kicker">CHECK-IN · MỐC ${checkpoint.id}</p><h1>Chọn team để quét</h1><p class="mc-meta">${esc(checkpoint.name)} · chạm vào một team để mở máy quét và danh sách thành viên.</p><ul class="mc-team-pick">${teams.map((item) => { const ratio = item.eligible ? Math.round((item.checkedIn / item.eligible) * 100) : 0; return `<li><button type="button" data-pick-team="${item.teamId}"><span class="mc-pick-name">#${item.teamNumber} ${esc(item.teamName)}</span><span class="mc-pick-meta"><strong>${item.checkedIn}/${item.eligible}</strong><small>${item.completed ? "Đã đủ" : item.windowLocked ? "Hết giờ" : `${ratio}%`}</small></span></button></li>`; }).join("")}</ul></section></main>`;
   }
 
   function render() {
@@ -83,6 +98,18 @@
       root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing">${backLink()}</header><section class="mc-card mc-empty"><p class="mc-kicker">CHECK-IN</p><h1>Chưa được gán team</h1><p class="mc-meta">Nhờ admin gán team cho tài khoản BTC này.</p></section></main>`;
       return;
     }
+    if (view === "teams") {
+      stopCamera();
+      root.innerHTML = teamsView(checkpoint);
+      root.querySelectorAll("[data-pick-team]").forEach((button) => button.addEventListener("click", () => {
+        selectedTeamId = button.dataset.pickTeam;
+        flash = null;
+        view = "scanner";
+        render();
+        startCamera();
+      }));
+      return;
+    }
     const ratio = team.eligible ? Math.round((team.checkedIn / team.eligible) * 100) : 0;
     const flashHtml = flash ? `<div class="mc-flash ${flash.type}" role="status">${esc(flash.text)}</div>` : "";
     const windowHtml = team.windowLocked
@@ -91,8 +118,8 @@
         ? `<div class="mc-window live" data-window-closes="${esc(team.windowClosesAt)}"><span>${windowLabel()}</span><strong>Còn ${remainingClock(team.windowClosesAt)}</strong></div>`
         : `<div class="mc-window idle"><span>${windowLabel()}</span><strong>Mở ở lượt quét đầu tiên</strong></div>`;
     const doneHtml = team.completed ? `<div class="mc-done"><span>TEAM ĐÃ ĐỦ</span><strong>${team.checkedIn} / ${team.eligible}</strong><p>Hoàn thành ${esc(team.completedAt || "")}${team.temporaryRank ? ` · Hạng tạm thời #${team.temporaryRank}` : ""}</p></div>` : "";
-    root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing">${backLink()}</header><section class="mc-card"><p class="mc-kicker">CHECK-IN — TEAM ${team.teamNumber}</p><h1>${esc(team.teamName)}</h1><p class="mc-meta">MỐC ${checkpoint.id} · ${esc(checkpoint.name)}</p>${windowHtml}${bootstrap.allowedTeams.length > 1 ? `<div class="mc-teams">${bootstrap.allowedTeams.map((item) => `<button type="button" class="${String(item.teamId) === String(team.teamId) ? "active" : ""}" data-team="${item.teamId}">#${item.teamNumber} ${esc(item.teamName)}<span>${item.checkedIn}/${item.eligible}</span></button>`).join("")}</div>` : ""}<div class="mc-progress"><strong>${team.checkedIn} / ${team.eligible}</strong><div class="mc-bar" aria-hidden="true"><b style="width:${ratio}%"></b></div></div>${flashHtml}${doneHtml}<div class="mc-camera"><video id="mc-video" playsinline muted autoplay></video><canvas id="mc-canvas"></canvas><div class="mc-frame" aria-hidden="true"></div></div><p class="mc-kicker">CÒN THIẾU</p><ul class="mc-missing">${team.missingMembers.length ? team.missingMembers.map((member) => `<li><span>${esc(member.fullName)}</span></li>`).join("") : `<li>Đã đủ người</li>`}</ul></section></main>`;
-    root.querySelectorAll("[data-team]").forEach((button) => button.addEventListener("click", () => { selectedTeamId = button.dataset.team; flash = null; render(); startCamera(); }));
+    root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing"><button type="button" class="mc-back" id="mc-back-teams">← Chọn team</button></header><section class="mc-card"><p class="mc-kicker">CHECK-IN — TEAM ${team.teamNumber}</p><h1>${esc(team.teamName)}</h1><p class="mc-meta">MỐC ${checkpoint.id} · ${esc(checkpoint.name)}</p>${windowHtml}<div class="mc-progress"><strong>${team.checkedIn} / ${team.eligible}</strong><div class="mc-bar" aria-hidden="true"><b style="width:${ratio}%"></b></div></div>${flashHtml}${doneHtml}<div class="mc-camera"><video id="mc-video" playsinline muted autoplay></video><canvas id="mc-canvas"></canvas><div class="mc-frame" aria-hidden="true"></div></div><p class="mc-kicker">THÀNH VIÊN · ${team.checkedIn}/${team.eligible}</p><ul class="mc-members">${memberRows(team)}</ul></section></main>`;
+    root.querySelector("#mc-back-teams")?.addEventListener("click", () => { view = "teams"; flash = null; render(); });
   }
 
   async function startCamera() {
@@ -133,12 +160,10 @@
     const ratio = team.eligible ? Math.round((team.checkedIn / team.eligible) * 100) : 0;
     const strong = root.querySelector(".mc-progress strong");
     const bar = root.querySelector(".mc-bar b");
-    const missing = root.querySelector(".mc-missing");
+    const members = root.querySelector(".mc-members");
     if (strong) strong.textContent = `${team.checkedIn} / ${team.eligible}`;
     if (bar) bar.style.width = `${ratio}%`;
-    if (missing) missing.innerHTML = team.missingMembers.length ? team.missingMembers.map((member) => `<li><span>${esc(member.fullName)}</span></li>`).join("") : `<li>Đã đủ người</li>`;
-    const teamBtn = root.querySelector(`[data-team="${team.teamId}"] span`);
-    if (teamBtn) teamBtn.textContent = `${team.checkedIn}/${team.eligible}`;
+    if (members) members.innerHTML = memberRows(team);
     const windowBox = root.querySelector(".mc-window");
     if (windowBox) {
       windowBox.className = `mc-window ${team.windowLocked ? "locked" : team.windowClosesAt ? "live" : "idle"}`;
