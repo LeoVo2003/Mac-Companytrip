@@ -20,6 +20,7 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_checkpoint', array(__CLASS__, 'ajax_checkpoint'));
         add_action('wp_ajax_mac_vote_qr', array(__CLASS__, 'ajax_qr'));
         add_action('wp_ajax_mac_vote_staff', array(__CLASS__, 'ajax_staff'));
+        add_action('wp_ajax_mac_vote_person', array(__CLASS__, 'ajax_person'));
         add_action('wp_ajax_mac_vote_points', array(__CLASS__, 'ajax_points'));
         add_action('wp_ajax_mac_vote_games', array(__CLASS__, 'ajax_games'));
         add_action('wp_ajax_mac_vote_exemption', array(__CLASS__, 'ajax_exemption'));
@@ -765,6 +766,111 @@ final class MAC_Voting_Admin {
             wp_send_json_error(array('message' => $saved->get_error_message()), 400);
         }
         wp_send_json_success(array('message' => 'Đã cập nhật quyền check-in.', 'overview' => self::overview()));
+    }
+
+    public static function ajax_person(): void {
+        self::guard();
+        if (sanitize_key(wp_unslash($_POST['operation'] ?? '')) !== 'add') {
+            wp_send_json_error(array('message' => 'Thao tác không hợp lệ.'), 400);
+        }
+        global $wpdb;
+        $voters = MAC_Voting_DB::table('voters');
+        $teams = MAC_Voting_DB::table('teams');
+        $name = sanitize_text_field(wp_unslash($_POST['name'] ?? ''));
+        $team_id = absint($_POST['teamId'] ?? 0);
+        $employee = strtoupper(sanitize_text_field(wp_unslash($_POST['employee'] ?? '')));
+        $email_raw = mb_strtolower(trim((string) wp_unslash($_POST['email'] ?? '')), 'UTF-8');
+        $role = sanitize_key(wp_unslash($_POST['role'] ?? ''));
+        $password = trim((string) wp_unslash($_POST['password'] ?? ''));
+        if (mb_strlen($name, 'UTF-8') < 2) wp_send_json_error(array('message' => 'Họ tên phải có ít nhất 2 ký tự.'), 400);
+        $team = $wpdb->get_row($wpdb->prepare("SELECT id,team_no,name FROM $teams WHERE id=%d", $team_id), ARRAY_A);
+        if (!$team) wp_send_json_error(array('message' => 'Team không hợp lệ.'), 400);
+        $email = '';
+        if ($email_raw !== '') {
+            // Chấp nhận mọi domain email (cho agency); chỉ cần đúng định dạng.
+            $email = sanitize_email($email_raw);
+            if (!is_email($email)) wp_send_json_error(array('message' => 'Email không hợp lệ. Có thể để trống email.'), 400);
+            if ((int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $voters WHERE email=%s", $email))) {
+                wp_send_json_error(array('message' => 'Email này đã thuộc một nhân sự khác trong hệ thống.'), 409);
+            }
+        }
+        if ($employee !== '' && (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $voters WHERE employee_code=%s", $employee))) {
+            wp_send_json_error(array('message' => 'Mã NV này đã tồn tại.'), 409);
+        }
+        $now = MAC_Voting_DB::utc_now();
+        $inserted = $wpdb->insert($voters, array(
+            'full_name' => MAC_Voting_DB::title_case($name),
+            'search_name' => MAC_Voting_DB::normalize_name($name),
+            'employee_code' => $employee !== '' ? $employee : null,
+            'email' => $email !== '' ? $email : null,
+            'team_id' => $team_id,
+            'phone_last4_hash' => '',
+            'status' => 'ACTIVE',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ));
+        if ($inserted === false) wp_send_json_error(array('message' => 'Không lưu được nhân sự: ' . ($wpdb->last_error ?: 'lỗi database')), 500);
+        $voter_id = (int) $wpdb->insert_id;
+        $account = null;
+        if ($role === 'btc' || $role === 'super') {
+            $account = self::create_dashboard_account($name, $email, $password, $role);
+            if (is_wp_error($account)) {
+                wp_send_json_error(array('message' => 'Đã thêm nhân sự nhưng chưa tạo được tài khoản: ' . $account->get_error_message()), 500);
+            }
+        }
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'PERSON_ADDED', 'voter', (string) $voter_id, array('role' => $role !== '' ? $role : 'none'));
+        $response = array(
+            'message' => $account ? ('Đã thêm ' . $account['name'] . ' và tạo tài khoản ' . ($role === 'super' ? 'Super admin' : 'BTC') . '.') : 'Đã thêm nhân sự.',
+            'overview' => self::overview(),
+        );
+        if ($account) {
+            $response['account'] = $account;
+        }
+        wp_send_json_success($response);
+    }
+
+    private static function create_dashboard_account(string $name, string $email, string $password, string $kind) {
+        if ($email !== '' && get_user_by('email', $email)) {
+            return new WP_Error('email_used', 'Email này đã là tài khoản WordPress sẵn. Hãy gán team cho họ ở khối Tài khoản máy quét trong tab Check-in.');
+        }
+        $display = MAC_Voting_DB::title_case($name);
+        $pass = $password !== '' ? $password : wp_generate_password(12, false);
+        if ($email !== '') {
+            $base = (string) strstr($email, '@', true);
+        } else {
+            $ascii = mb_strtolower(remove_accents($name), 'UTF-8');
+            $base = trim((string) preg_replace('/[^a-z0-9]+/', '-', $ascii), '-');
+        }
+        $login = sanitize_user($base, true);
+        if ($login === '') {
+            $login = 'nguoi-dung';
+        }
+        $candidate = $login;
+        $suffix = 1;
+        while (username_exists($candidate)) {
+            $suffix++;
+            $candidate = $login . $suffix;
+        }
+        $user_id = wp_insert_user(array(
+            'user_login' => $candidate,
+            'user_email' => $email,
+            'user_pass' => $pass,
+            'display_name' => $display,
+            'role' => $kind === 'super' ? MAC_Checkin::SUPER_ROLE : MAC_Checkin::ROLE,
+        ));
+        if (is_wp_error($user_id)) {
+            return $user_id;
+        }
+        if ($kind === 'btc') {
+            update_user_meta((int) $user_id, MAC_Checkin::TEAM_META, MAC_Voting_DB::competing_team_ids());
+        }
+        return array(
+            'login' => $candidate,
+            'password' => $pass,
+            'name' => $display,
+            'email' => $email,
+            'kind' => $kind,
+        );
     }
 
     public static function ajax_points(): void {

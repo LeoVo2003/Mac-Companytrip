@@ -3405,6 +3405,19 @@ body.mac-admin-public-page .ma-side {
     justify-content: center;
   }
 
+  /* Mobile: cột team tự co vừa tên đội dài nhất thay vì cứng 180px.
+     Các bảng cùng nội dung team nên vẫn thẳng hàng với nhau. */
+  .ma-board-table table {
+    table-layout: auto;
+  }
+
+  .ma-board-table th:first-child,
+  .ma-board-table td:first-child {
+    width: auto;
+    min-width: 0;
+    white-space: nowrap;
+  }
+
   /* Mobile: bảng tổng kết ẩn cột hạng, chỉ giữ cột team */
   .ma-board-table.ma-pin-2 th:first-child,
   .ma-board-table.ma-pin-2 td:first-child {
@@ -3414,6 +3427,9 @@ body.mac-admin-public-page .ma-side {
   .ma-board-table.ma-pin-2 th:nth-child(2),
   .ma-board-table.ma-pin-2 td:nth-child(2) {
     left: 0;
+    width: auto;
+    min-width: 0;
+    white-space: nowrap;
   }
 
   /* Mobile: nút màn hình trình chiếu xuống hàng như các nút khác */
@@ -3434,4 +3450,37 @@ body.mac-admin-public-page .ma-side {
 #ma-admin-login .ma-primary[disabled]:hover {
   opacity: 0.56;
   filter: none;
+}
+
+/* v1.8.5 — form thêm nhân sự / tài khoản BTC trong tab Nhân sự & QR */
+.ma-person-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 20px 20px;
+}
+
+.ma-person-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ma-person-form button[type="submit"] {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+@media (max-width: 900px) {
+  .ma-person-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .ma-person-form {
+    grid-template-columns: 1fr;
+  }
 }

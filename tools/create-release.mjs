@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.4";
+const tag = "v1.8.5";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Bỏ dòng thông báo 'Đã giữ nháp...' ở màn vote: sau khi chấm xong một đội, thẻ đội đó tự mờ đi kèm nhãn 'Đã chấm · sửa →', chạm vào vẫn mở lại phiếu để sửa như thường.",
+  "- Cột team trên mobile không còn cứng 180px: tự co vừa tên đội dài nhất, các bảng vẫn thẳng hàng với nhau.",
+  "- Thêm khối 'Thêm nhân sự · tạo tài khoản BTC' trong tab Nhân sự & QR: chọn team, email tùy chọn (để trống hoặc bất kỳ domain nào, cho agency), vai trò BTC hoặc Super admin sẽ tạo tài khoản đăng nhập máy quét; tên đăng nhập và mật khẩu hiện một lần ngay sau khi tạo.",
 ].join("\n");
 
 let release;
