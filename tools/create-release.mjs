@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.7.4";
+const tag = "v1.7.5";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Trang vote: đồng hồ đếm ngược chạy thật; rule mới bắt buộc gửi phiếu đủ cả 2 tiết mục trong lượt hoặc không chấm (nháp tự giữ, REST chặn phiếu lẻ).",
-  "- Tổng quan: bỏ caption biểu đồ, bảng có khoảng hở trên và cột đều; thêm khoảng hở giữa các panel (máy quét, mốc, game).",
-  "- Dropdown tài khoản máy quét làm lại (bỏ chữ WordPress), nút lưu gradient; sửa hover mất chữ (team thi đua, Xuất CSV).",
-  "- Popup đẹp cho thêm/sửa/xóa hạng mục thi đua + hủy phiếu; popup xác nhận admin gọn như popup trang vote.",
+  "- Máy quét check-in: số phút cửa sổ lấy đúng theo số phút cài khi mở mốc; nút Thoát thay bằng \"← Quay lại dashboard\".",
+  "- Sửa hover/active trên máy quét: chữ không mờ trắng, nút team và link không còn dính màu tím hồng của theme.",
+  "- Quét QR nhân sự báo đúng nguyên nhân (QR đã cũ / nhân sự không ACTIVE) thay vì chỉ \"QR không hợp lệ\".",
 ].join("\n");
 
 let release;

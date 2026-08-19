@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.7.4
+Stable tag: 1.7.5
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -62,11 +62,17 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 == Phase 4 ==
 
 - Bảng điểm 4 trụ cột: Check-in (4 mốc x 150đ), Trò chơi lớn (3 game, hạng 1-6 nhận 50/40/30/20/10/0đ), Văn nghệ (quy đổi ROUND(TB phiếu ÷ 150 × 200)) và Thi đua (thang 50/40/30/20/10, không giới hạn).
-- Mỗi team có cửa sổ 15 phút cho mỗi mốc check-in, bắt đầu từ lượt quét đầu tiên; hết giờ máy quét khóa và báo lỗi.
+- Mỗi team có cửa sổ check-in bằng đúng số phút cài khi mở mốc, bắt đầu từ lượt quét đầu tiên; hết giờ máy quét khóa và báo lỗi.
 - Admin miễn check-in từng mốc kèm lý do; người miễn không tính vào mẫu số và ẩn khỏi danh sách còn thiếu.
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.7.5 =
+- Máy quét check-in: số phút cửa sổ lấy đúng theo số phút cài khi mở mốc, không còn hard-code 15'.
+- Nút Thoát trên máy quét thay bằng "← Quay lại dashboard" về thẳng dashboard BTC.
+- Sửa hover/active trên máy quét: chữ không mờ trắng, nút team và link không còn dính màu tím hồng của theme.
+- Quét QR nhân sự báo đúng nguyên nhân: QR đã cũ (khác phiên bản) hoặc nhân sự không còn ACTIVE, thay vì chỉ "QR không hợp lệ".
 
 = 1.7.4 =
 - Trang vote công khai: đồng hồ đếm ngược chạy từng giây và tự làm mới khi lượt đóng.

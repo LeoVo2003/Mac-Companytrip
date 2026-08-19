@@ -19,7 +19,13 @@ final class MAC_Voting_QR {
 
     public static function extract_token(string $raw): string {
         $raw = trim($raw);
-        if (preg_match('#/company-trip/q/([^/?#]+)#', $raw, $matches)) {
+        if ($raw === '') {
+            return '';
+        }
+        if (preg_match('#/company-trip/q/([^/?#\s]+)#', $raw, $matches)) {
+            return rawurldecode($matches[1]);
+        }
+        if (preg_match('#[?&](?:mac_qr_token|token|qr)=([^&#\s]+)#i', $raw, $matches)) {
             return rawurldecode($matches[1]);
         }
         return $raw;
@@ -49,11 +55,14 @@ final class MAC_Voting_QR {
              FROM $voters v JOIN $teams t ON t.id=v.team_id WHERE v.id=%d",
             (int) $payload['voter_id']
         ), ARRAY_A);
-        if (!$row || $row['status'] !== 'ACTIVE') {
+        if (!$row) {
             return new WP_Error('invalid_qr', 'QR không hợp lệ.', array('status' => 400));
         }
+        if ($row['status'] !== 'ACTIVE') {
+            return new WP_Error('qr_inactive', 'QR của ' . $row['full_name'] . ' không dùng được vì nhân sự không còn trạng thái ACTIVE.', array('status' => 400));
+        }
         if ((int) ($payload['qr_version'] ?? 0) !== (int) $row['qr_version']) {
-            return new WP_Error('invalid_qr', 'QR không hợp lệ.', array('status' => 400));
+            return new WP_Error('qr_stale', 'QR đã cũ. Hãy quét QR mới nhất trong email mới hoặc mục Nhân sự & QR.', array('status' => 400));
         }
         return $row;
     }

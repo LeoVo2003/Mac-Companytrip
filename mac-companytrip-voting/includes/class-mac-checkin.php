@@ -79,6 +79,15 @@ final class MAC_Checkin {
         return $rows;
     }
 
+    public static function checkpoint_duration_minutes(array $checkpoint): int {
+        $opens = !empty($checkpoint['opened_at']) ? strtotime((string) $checkpoint['opened_at']) : 0;
+        $closes = !empty($checkpoint['closes_at']) ? strtotime((string) $checkpoint['closes_at']) : 0;
+        if ($opens && $closes && $closes > $opens) {
+            return max(1, (int) round(($closes - $opens) / 60));
+        }
+        return MAC_Voting_DB::CHECKIN_WINDOW_MINUTES;
+    }
+
     public static function active_checkpoint(): ?array {
         foreach (self::checkpoints() as $row) {
             if ($row['status'] === 'OPEN') {
@@ -258,6 +267,7 @@ final class MAC_Checkin {
         }
         $now = MAC_Voting_DB::utc_now();
         $windows = MAC_Voting_DB::table('checkpoint_windows');
+        $window_minutes = self::checkpoint_duration_minutes($checkpoint);
         $window = self::team_window($checkpoint_id, $team_id);
         if (!$window) {
             $wpdb->query($wpdb->prepare(
@@ -265,7 +275,7 @@ final class MAC_Checkin {
                 $checkpoint_id,
                 $team_id,
                 $now,
-                MAC_Voting_DB::deadline_from_minutes(MAC_Voting_DB::CHECKIN_WINDOW_MINUTES)
+                MAC_Voting_DB::deadline_from_minutes($window_minutes)
             ));
             $window = self::team_window($checkpoint_id, $team_id);
         }
@@ -274,7 +284,7 @@ final class MAC_Checkin {
                 'checkpointId' => $checkpoint_id,
                 'teamId' => $team_id,
             ));
-            return new WP_Error('window_locked', 'Cửa sổ 15 phút của Team ' . (int) $voter['team_no'] . ' đã khóa, không ghi nhận thêm.', array(
+            return new WP_Error('window_locked', sprintf('Cửa sổ %d phút của Team %d đã khóa, không ghi nhận thêm.', $window_minutes, (int) $voter['team_no']), array(
                 'status' => 409,
                 'code' => 'WINDOW_LOCKED',
                 'voter' => self::public_voter($voter),
@@ -533,6 +543,7 @@ final class MAC_Checkin {
                 'isAdmin' => self::is_admin_scanner(),
             ),
             'activeCheckpoint' => $checkpoint,
+            'windowMinutes' => $checkpoint ? self::checkpoint_duration_minutes($checkpoint) : MAC_Voting_DB::CHECKIN_WINDOW_MINUTES,
             'allowedTeams' => $progress,
             'checkinUrl' => MAC_Voting_DB::checkin_page_url(),
         );

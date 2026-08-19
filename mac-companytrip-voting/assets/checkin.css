@@ -107,7 +107,9 @@ body.mac-checkin-page .wp-block-post-content {
   height: auto;
 }
 
-.mc-logout {
+.mc-back {
+  display: inline-flex;
+  align-items: center;
   min-height: 44px;
   padding: 0 14px;
   border: 1px solid var(--border);
@@ -117,6 +119,64 @@ body.mac-checkin-page .wp-block-post-content {
   font-size: 14px;
   font-weight: 650;
   text-decoration: none;
+}
+
+/* Theme-proof interaction states: the site theme injects purple/pink hovers
+   and white button text, so pin every state under the app id. */
+#mac-checkin-app a,
+#mac-checkin-app a:hover,
+#mac-checkin-app a:focus,
+#mac-checkin-app a:visited {
+  text-decoration: none;
+}
+
+#mac-checkin-app .mc-back,
+#mac-checkin-app .mc-back:visited {
+  color: var(--muted);
+  background: var(--panel);
+  border-color: var(--border);
+}
+
+#mac-checkin-app .mc-back:hover,
+#mac-checkin-app .mc-back:focus {
+  color: var(--text);
+  background: #eef1f4;
+  border-color: #d0d5dd;
+}
+
+#mac-checkin-app .mc-teams button,
+#mac-checkin-app .mc-teams button:hover,
+#mac-checkin-app .mc-teams button:focus,
+#mac-checkin-app .mc-teams button:active {
+  appearance: none;
+  -webkit-appearance: none;
+  color: var(--text);
+  background: var(--subtle);
+  border-color: var(--border);
+}
+
+#mac-checkin-app .mc-teams button:hover {
+  background: #eef1f4;
+  border-color: #d0d5dd;
+}
+
+#mac-checkin-app .mc-teams button span {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+#mac-checkin-app .mc-teams button.active,
+#mac-checkin-app .mc-teams button.active:hover,
+#mac-checkin-app .mc-teams button.active:focus,
+#mac-checkin-app .mc-teams button.active:active {
+  color: var(--text);
+  background: #fff4f0;
+  border-color: #fed7cc;
+  box-shadow: inset 0 0 0 1px #fed7cc;
+}
+
+#mac-checkin-app .mc-teams button.active span {
+  color: var(--red);
 }
 
 .mc-card {

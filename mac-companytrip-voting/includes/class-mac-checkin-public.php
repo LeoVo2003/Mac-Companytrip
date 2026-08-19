@@ -66,13 +66,15 @@ final class MAC_Checkin_Public {
         $nonce = esc_attr(wp_create_nonce('wp_rest'));
         $logo = esc_url(MAC_VOTING_URL . 'assets/mac-marketing-logo.png');
         $logout = esc_url(wp_logout_url(MAC_Voting_DB::admin_page_url()));
+        $dashboard = esc_url(MAC_Voting_DB::admin_page_url());
         ob_start();
         ?>
         <div id="mac-checkin-app" class="mac-checkin-app"
              data-rest-url="<?php echo $rest_url; ?>"
              data-nonce="<?php echo $nonce; ?>"
              data-logo="<?php echo $logo; ?>"
-             data-logout="<?php echo $logout; ?>">
+             data-logout="<?php echo $logout; ?>"
+             data-dashboard="<?php echo $dashboard; ?>">
             <div class="mc-loading">
                 <img src="<?php echo $logo; ?>" alt="MAC Marketing">
                 <span>Đang mở máy quét check-in...</span>
