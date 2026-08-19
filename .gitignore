@@ -4,3 +4,4 @@ npm-debug.log*
 Thumbs.db
 dist/
 mac-companytrip-voting.zip
+.qoder/
