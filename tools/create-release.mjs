@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.7.8";
+const tag = "v1.7.9";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- QR ngắn còn ~72 ký tự (trước 142): mắt QR thưa hơn nên camera điện thoại đọc chắc hơn hẳn; QR dài cũ vẫn quét được bình thường.",
-  "- Tự flush rewrite rules khi nâng phiên bản: link QR /company-trip/q/... mở bằng camera mặc định vào thẳng trang vote thay vì văng về trang chủ.",
-  "- Lỗi quét kèm đoạn mã dài hơn (120 ký tự) để bắt lỗi nhanh nếu còn QR khó đọc.",
+  "- Màn hình đăng nhập dashboard: ô username hết dính viền đen/nền trắng của theme; nút \"Đăng nhập\" gradient đỏ-cam chuẩn.",
+  "- Tên nhân sự hiển thị Title Case ở danh sách Nhân sự & QR và máy quét check-in; import CSV mới lưu chuẩn Title Case.",
 ].join("\n");
 
 let release;

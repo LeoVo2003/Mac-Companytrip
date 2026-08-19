@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.7.8
+Stable tag: 1.7.9
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.7.9 =
+- Màn hình đăng nhập dashboard: ô username hết dính viền đen/nền trắng của theme, focus đỏ nhạt nhất quán; nút "Đăng nhập" dùng gradient đỏ-cam chuẩn như hành động chính.
+- Tên nhân sự hiển thị Title Case (Đào Ngọc Trâm) ở danh sách Nhân sự & QR, máy quét check-in và thông báo quét; import CSV mới cũng lưu chuẩn Title Case.
 
 = 1.7.8 =
 - QR ngắn còn ~72 ký tự (trước 142): mắt QR thưa hơn nên camera điện thoại đọc chắc hơn hẳn; QR dài cũ vẫn quét được bình thường.

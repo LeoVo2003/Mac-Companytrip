@@ -64,6 +64,7 @@ final class MAC_Voting_QR {
         if (!$row) {
             return new WP_Error('invalid_qr', 'QR không hợp lệ.', array('status' => 400));
         }
+        $row['full_name'] = MAC_Voting_DB::title_case((string) $row['full_name']);
         if ($row['status'] !== 'ACTIVE') {
             return new WP_Error('qr_inactive', 'QR của ' . $row['full_name'] . ' không dùng được vì nhân sự không còn trạng thái ACTIVE.', array('status' => 400));
         }

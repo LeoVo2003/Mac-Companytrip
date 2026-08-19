@@ -492,7 +492,7 @@ final class MAC_Voting_Admin {
                 $pending_staff[] = array('name' => $name, 'email' => $email, 'password' => $password_text, 'kind' => $staff_kind);
             }
             $data = array(
-                'full_name' => $name, 'search_name' => MAC_Voting_DB::normalize_name($name),
+                'full_name' => MAC_Voting_DB::title_case($name), 'search_name' => MAC_Voting_DB::normalize_name($name),
                 'employee_code' => $employee ?: null, 'email' => $email, 'team_id' => (int) $team['id'],
                 'phone_last4_hash' => '', 'status' => $status, 'updated_at' => MAC_Voting_DB::utc_now(),
             );
@@ -623,6 +623,7 @@ final class MAC_Voting_Admin {
             FROM $voters v JOIN $teams t ON t.id=v.team_id ORDER BY t.team_no,v.full_name", ARRAY_A) ?: array();
         foreach ($rows as &$row) {
             $row['id'] = (int) $row['id'];
+            $row['full_name'] = MAC_Voting_DB::title_case((string) $row['full_name']);
             $row['qrUrl'] = MAC_Voting_QR::url_for_voter((int) $row['id'], (int) $row['qr_version']);
         }
         unset($row);

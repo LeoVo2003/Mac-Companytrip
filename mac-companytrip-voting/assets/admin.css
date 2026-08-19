@@ -3282,3 +3282,58 @@ body.mac-admin-public-page .ma-side {
 .ma-game-points.rank-6 {
   color: #98a2b3;
 }
+
+/* v1.7.9 — login theme-proof + primary CTA */
+#ma-admin-login .ma-login-email {
+  border: 1px solid var(--border) !important;
+  background: #fafafc !important;
+  box-shadow: none !important;
+}
+
+#ma-admin-login .ma-login-email input,
+#ma-admin-login .ma-login-email input:hover,
+#ma-admin-login .ma-login-email input:focus {
+  border: 0 !important;
+  outline: none;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #111827 !important;
+}
+
+#ma-admin-login input[type="password"] {
+  border: 1px solid var(--border) !important;
+  background: #fafafc !important;
+  box-shadow: none !important;
+  color: #111827 !important;
+}
+
+#ma-admin-login .ma-login-email:focus-within,
+#ma-admin-login input[type="password"]:focus {
+  border-color: #e31e24 !important;
+  box-shadow: 0 0 0 3px rgba(227, 30, 36, 0.16) !important;
+}
+
+#ma-admin-login .ma-primary,
+#ma-admin-login .ma-primary:hover,
+#ma-admin-login .ma-primary:focus,
+#ma-admin-login .ma-primary:active {
+  border: 0 !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, #e31e24 0%, #f04423 55%, #ff6a2c 100%) !important;
+  box-shadow: 0 7px 18px rgba(227, 30, 36, 0.22) !important;
+  font-weight: 700;
+}
+
+#ma-admin-login .ma-primary:hover {
+  filter: brightness(1.06);
+}
+
+#ma-admin-login .ma-primary:active {
+  filter: brightness(0.96);
+}
+
+#ma-admin-login .ma-primary[disabled],
+#ma-admin-login .ma-primary[disabled]:hover {
+  opacity: 0.56;
+  filter: none;
+}

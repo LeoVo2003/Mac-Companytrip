@@ -501,6 +501,19 @@ final class MAC_Voting_DB {
         return preg_replace('/\s+/u', ' ', $value) ?: '';
     }
 
+    public static function title_case(string $value): string {
+        $value = trim((string) preg_replace('/\s+/u', ' ', $value));
+        if ($value === '') {
+            return $value;
+        }
+        $words = explode(' ', $value);
+        foreach ($words as &$word) {
+            $word = mb_strtoupper(mb_substr($word, 0, 1), 'UTF-8') . mb_strtolower(mb_substr($word, 1), 'UTF-8');
+        }
+        unset($word);
+        return implode(' ', $words);
+    }
+
     public static function normalize_company_email(string $value, string $preferred_domain = ''): string {
         $value = mb_strtolower(trim($value), 'UTF-8');
         if ($value === '') {

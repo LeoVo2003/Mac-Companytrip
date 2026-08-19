@@ -375,7 +375,7 @@ final class MAC_Checkin {
             $member_id = (int) $member['id'];
             $item = array(
                 'id' => $member_id,
-                'fullName' => $member['full_name'],
+                'fullName' => MAC_Voting_DB::title_case((string) $member['full_name']),
                 'email' => $member['email'],
                 'scannedAt' => $member['scanned_at'],
             );
@@ -448,7 +448,7 @@ final class MAC_Checkin {
             $items[] = array(
                 'id' => (int) $row['id'],
                 'voterId' => (int) $row['voter_id'],
-                'fullName' => $row['full_name'],
+                'fullName' => MAC_Voting_DB::title_case((string) $row['full_name']),
                 'teamId' => (int) $row['team_id'],
                 'reason' => $row['reason'],
                 'createdAt' => $row['created_at'],
@@ -799,7 +799,7 @@ final class MAC_Checkin {
     private static function public_voter(array $voter): array {
         return array(
             'id' => (int) $voter['id'],
-            'fullName' => $voter['full_name'],
+            'fullName' => MAC_Voting_DB::title_case((string) $voter['full_name']),
             'teamId' => (int) $voter['team_id'],
             'teamName' => $voter['team_name'],
             'teamNumber' => (int) $voter['team_no'],
