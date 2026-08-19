@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.8.0
+Stable tag: 1.8.1
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,14 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.8.1 =
+- Bỏ tự reload 5 giây ở dashboard: kéo bảng không bị giật về đầu, đang gõ không mất chữ, mở inspect không bị render lại liên tục.
+- Thanh tab trên tablet/mobile dính cứng trên cùng khi cuộn trang; tab đang chọn luôn tự cuộn ra giữa thanh tab.
+- Mobile: bảng tổng kết bỏ cột hạng, chỉ giữ cột đội; cột đội của các bảng chồng nhau đồng bộ cùng rộng để thẳng hàng.
+- Tìm nhanh trong miễn check-in giữ nguyên từ khóa và kết quả lọc sau mỗi lần dữ liệu tải lại.
+- Ô nhập RESET hết cảnh gõ tiếng Việt bị nhảy/mất chữ (không ghi đè ô nhập khi đang gõ, bỏ autocapitalize).
+- Nút "Màn hình trình chiếu" trên mobile xuống hàng riêng full-width như nút Mở máy quét / Xuất CSV.
 
 = 1.8.0 =
 - QR: máy quét tự bóc token ngay trên điện thoại trước khi gửi, server thêm nhiều lớp bóc link dự phòng và chẩn đoán chi tiết hơn khi lỗi — hết cảnh "QR không đúng định dạng" khi quét link đầy đủ.

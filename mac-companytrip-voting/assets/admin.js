@@ -8,6 +8,7 @@
   let loadingOverview = false;
   let peopleTeam = "all";
   let peopleQuery = "";
+  let exemptQuery = "";
   let awardCategoryId = "";
   let awardTeamId = "";
   let overviewTab = "chart";
@@ -186,7 +187,7 @@
   function showResetModal() {
     const modal = document.createElement("div");
     modal.className = "ma-modal";
-    modal.innerHTML = `<div class="ma-modal-card ma-reset-modal" role="dialog" aria-modal="true" aria-labelledby="ma-reset-title" aria-describedby="ma-reset-description"><div class="ma-modal-head"><div><small>VÙNG NGUY HIỂM</small><h2 id="ma-reset-title">Đặt lại toàn bộ phiên?</h2></div><button type="button" id="ma-reset-close" aria-label="Đóng">×</button></div><div id="ma-reset-description" class="ma-reset-warning"><span>!</span><div><strong>Thao tác này không thể hoàn tác</strong><p>Hệ thống sẽ xóa phiếu, quyền vote lại, dữ liệu check-in và tắt cổng văn nghệ.</p></div></div><ul class="ma-reset-list"><li><strong>Xóa:</strong> phiếu, quyền vote lại, check-in, điểm mốc, xếp hạng trò chơi, điểm thi đua và lịch sử cộng điểm.</li><li><strong>Đặt lại:</strong> 3 lượt văn nghệ và 4 mốc check-in về DRAFT. Cổng văn nghệ về TẮT.</li><li><strong>Giữ nguyên:</strong> nhân sự, email, QR, team và lịch biểu diễn.</li></ul><label class="ma-reset-confirm" for="ma-reset-input"><span>Nhập <code>RESET</code> để xác nhận</span><input id="ma-reset-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="RESET"></label><div class="ma-modal-actions"><button type="button" id="ma-reset-cancel">Hủy</button><button type="button" id="ma-reset-confirm-button" class="ma-danger-button" disabled>Xóa dữ liệu sự kiện</button></div></div>`;
+    modal.innerHTML = `<div class="ma-modal-card ma-reset-modal" role="dialog" aria-modal="true" aria-labelledby="ma-reset-title" aria-describedby="ma-reset-description"><div class="ma-modal-head"><div><small>VÙNG NGUY HIỂM</small><h2 id="ma-reset-title">Đặt lại toàn bộ phiên?</h2></div><button type="button" id="ma-reset-close" aria-label="Đóng">×</button></div><div id="ma-reset-description" class="ma-reset-warning"><span>!</span><div><strong>Thao tác này không thể hoàn tác</strong><p>Hệ thống sẽ xóa phiếu, quyền vote lại, dữ liệu check-in và tắt cổng văn nghệ.</p></div></div><ul class="ma-reset-list"><li><strong>Xóa:</strong> phiếu, quyền vote lại, check-in, điểm mốc, xếp hạng trò chơi, điểm thi đua và lịch sử cộng điểm.</li><li><strong>Đặt lại:</strong> 3 lượt văn nghệ và 4 mốc check-in về DRAFT. Cổng văn nghệ về TẮT.</li><li><strong>Giữ nguyên:</strong> nhân sự, email, QR, team và lịch biểu diễn.</li></ul><label class="ma-reset-confirm" for="ma-reset-input"><span>Nhập <code>RESET</code> để xác nhận</span><input id="ma-reset-input" type="text" autocomplete="off" spellcheck="false" placeholder="RESET"></label><div class="ma-modal-actions"><button type="button" id="ma-reset-cancel">Hủy</button><button type="button" id="ma-reset-confirm-button" class="ma-danger-button" disabled>Xóa dữ liệu sự kiện</button></div></div>`;
     root.append(modal);
     const previousFocus = document.activeElement;
     const input = modal.querySelector("#ma-reset-input");
@@ -203,19 +204,22 @@
     modal.addEventListener("click", (event) => { if (event.target === modal) close(); });
     modal.querySelector("#ma-reset-close").addEventListener("click", close);
     modal.querySelector("#ma-reset-cancel").addEventListener("click", close);
-    input.addEventListener("input", () => {
-      input.value = input.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 5);
-      confirmButton.disabled = input.value !== "RESET";
-    });
+    // Không ghi đè input.value khi đang gõ: làm vậy sẽ vỡ composition của bộ gõ tiếng Việt.
+    let composing = false;
+    const confirmValue = () => input.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 5);
+    const syncConfirm = () => { confirmButton.disabled = confirmValue() !== "RESET"; };
+    input.addEventListener("compositionstart", () => { composing = true; });
+    input.addEventListener("compositionend", () => { composing = false; syncConfirm(); });
+    input.addEventListener("input", () => { if (!composing) syncConfirm(); });
     confirmButton.addEventListener("click", async () => {
-      if (input.value !== "RESET" || resetting) return;
+      if (confirmValue() !== "RESET" || resetting) return;
       resetting = true;
       input.disabled = true;
       confirmButton.disabled = true;
       confirmButton.classList.add("is-loading");
       confirmButton.textContent = "Đang đặt lại…";
       try {
-        const result = await ajax("mac_vote_reset_event", { confirmation: input.value });
+        const result = await ajax("mac_vote_reset_event", { confirmation: confirmValue() });
         data = result.overview;
         resetting = false;
         close();
@@ -337,7 +341,9 @@
     const staffPanel = canWrite() ? `<section class="ma-panel"><header><div><small>BTC</small><h2>Tài khoản máy quét</h2></div></header><form class="ma-staff-form" id="ma-staff-form"><label>Chọn tài khoản<select id="ma-staff-user">${users.map((user) => `<option value="${user.id}">${esc(user.name)} — ${esc(user.email)}</option>`).join("")}</select></label><div class="ma-staff-teams">${teams.map((team) => `<label><input type="checkbox" name="teamIds" value="${team.id}"> #${team.team_no} ${esc(team.name)}</label>`).join("")}</div><button type="submit" class="ma-primary">Lưu quyền check-in</button><p style="margin:0;color:#667085;font-size:13px">Admin quét được mọi team. BTC thường chỉ được gán 1-2 team.</p></form><div class="ma-board-table"><table><thead><tr><th>BTC</th><th>Team được gán</th></tr></thead><tbody>${staff.map((item) => `<tr><td><div class="ma-staff-cell"><strong>${esc(item.name)}</strong><small>${esc(item.email)}${item.isAdmin ? " · Admin" : ""}</small></div></td><td>${item.isAdmin ? "Tất cả team" : (item.teamIds || []).map((id) => { const team = teams.find((row) => String(row.id) === String(id)); return team ? `#${team.team_no} ${team.name}` : id; }).join(", ") || "Chưa gán"}</td></tr>`).join("") || `<tr><td colspan="2">Chưa có tài khoản BTC.</td></tr>`}</tbody></table></div></section>` : "";
     const openExemptions = openCheckpoint ? (data.exemptions?.[openCheckpoint.id] || []) : [];
     const exemptCandidates = (data.voters || []).filter((row) => row.status === "ACTIVE" && !openExemptions.some((item) => String(item.voterId) === String(row.id)));
-    const exemptionPanel = canWrite() && openCheckpoint ? `<section class="ma-panel ma-exemptions"><header><div><small>MIỄN CHECK-IN</small><h2>Mốc ${openCheckpoint.id} · ${esc(openCheckpoint.name)}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Người được miễn không tính vào mẫu số và biến khỏi danh sách "CÒN THIẾU" của các team.</p></div></header><form class="ma-exempt-form" id="ma-exempt-form"><label for="ma-exempt-search">Tìm nhanh<input id="ma-exempt-search" type="search" placeholder="Gõ tên để lọc trong ${exemptCandidates.length} người…" autocomplete="off"></label><label for="ma-exempt-voter">Chọn người<select id="ma-exempt-voter">${exemptCandidates.map((row) => `<option value="${row.id}">${esc(row.full_name)} · #${row.team_no} ${esc(row.team_name)}</option>`).join("") || `<option value="">Không còn ai để miễn</option>`}</select></label><label for="ma-exempt-reason">Lý do<input id="ma-exempt-reason" type="text" maxlength="500" placeholder="Ví dụ: được BTC duyệt cho đến muộn" required></label><button type="submit" class="ma-primary" ${exemptCandidates.length ? "" : "disabled"}>Miễn check-in</button></form><div class="ma-board-table"><table><thead><tr><th>Người được miễn</th><th>Lý do</th><th></th></tr></thead><tbody>${openExemptions.map((item) => `<tr><td><strong>${esc(item.fullName)}</strong></td><td>${esc(item.reason || "")}</td><td><button type="button" data-exempt-clear="${item.voterId}" data-exempt-name="${esc(item.fullName)}">Bỏ miễn</button></td></tr>`).join("") || `<tr><td colspan="3">Chưa có ai được miễn ở mốc này.</td></tr>`}</tbody></table></div></section>` : "";
+    const normalizedExemptQuery = normalizeHeader(exemptQuery);
+    const visibleCandidates = normalizedExemptQuery ? exemptCandidates.filter((row) => normalizeHeader(`${row.full_name} ${row.email || ""} ${row.team_name || ""}`).includes(normalizedExemptQuery)) : exemptCandidates;
+    const exemptionPanel = canWrite() && openCheckpoint ? `<section class="ma-panel ma-exemptions"><header><div><small>MIỄN CHECK-IN</small><h2>Mốc ${openCheckpoint.id} · ${esc(openCheckpoint.name)}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Người được miễn không tính vào mẫu số và biến khỏi danh sách "CÒN THIẾU" của các team.</p></div></header><form class="ma-exempt-form" id="ma-exempt-form"><label for="ma-exempt-search">Tìm nhanh<input id="ma-exempt-search" type="search" placeholder="Gõ tên để lọc trong ${exemptCandidates.length} người…" value="${esc(exemptQuery)}" autocomplete="off"></label><label for="ma-exempt-voter">Chọn người<select id="ma-exempt-voter">${visibleCandidates.map((row) => `<option value="${row.id}">${esc(row.full_name)} · #${row.team_no} ${esc(row.team_name)}</option>`).join("") || `<option value="">${normalizedExemptQuery ? "Không tìm thấy ai khớp" : "Không còn ai để miễn"}</option>`}</select></label><label for="ma-exempt-reason">Lý do<input id="ma-exempt-reason" type="text" maxlength="500" placeholder="Ví dụ: được BTC duyệt cho đến muộn" required></label><button type="submit" class="ma-primary" ${exemptCandidates.length ? "" : "disabled"}>Miễn check-in</button></form><div class="ma-board-table"><table><thead><tr><th>Người được miễn</th><th>Lý do</th><th></th></tr></thead><tbody>${openExemptions.map((item) => `<tr><td><strong>${esc(item.fullName)}</strong></td><td>${esc(item.reason || "")}</td><td><button type="button" data-exempt-clear="${item.voterId}" data-exempt-name="${esc(item.fullName)}">Bỏ miễn</button></td></tr>`).join("") || `<tr><td colspan="3">Chưa có ai được miễn ở mốc này.</td></tr>`}</tbody></table></div></section>` : "";
     return `<header class="ma-top"><div><small>CHECK-IN</small><h1>4 mốc Company Trip</h1></div>${topActions()}</header>${scanner}<div class="ma-check-grid">${checkpointCards}</div>${progress}${exemptionPanel}${staffPanel}`;
   }
   function pointsView() {
@@ -432,6 +438,9 @@
   function render() {
     root.classList.toggle("is-readonly", !canWrite());
     root.innerHTML = `<div class="ma-layout">${sidebar()}<main class="ma-content">${tab === "overview" ? pointsView() : tab === "checkin" ? checkinView() : tab === "games" ? gamesView() : tab === "thidua" ? thiduaView() : tab === "art" ? artView() : dataView()}</main></div>`;
+    const sideNav = root.querySelector(".ma-side nav");
+    const activeTabButton = sideNav?.querySelector("button.active");
+    if (sideNav && activeTabButton && sideNav.scrollWidth > sideNav.clientWidth) sideNav.scrollTo({ left: activeTabButton.offsetLeft - (sideNav.clientWidth - activeTabButton.offsetWidth) / 2 });
     if (tab === "data") {
       root.querySelector(".ma-content > .ma-top")?.insertAdjacentHTML("beforeend", topActions());
       if (canWrite()) root.querySelector(".ma-content")?.insertAdjacentHTML("beforeend", teamManager());
@@ -601,6 +610,7 @@
       } catch (err) { button.disabled = false; button.textContent = "Miễn check-in"; notify(err.message, true); }
     });
     root.querySelector("#ma-exempt-search")?.addEventListener("input", (event) => {
+      exemptQuery = event.currentTarget.value;
       const select = root.querySelector("#ma-exempt-voter");
       if (!select) return;
       const openCheckpoint = (data.checkpoints || []).find((item) => item.status === "OPEN");
@@ -777,7 +787,8 @@
       } catch (err) { notify(err.message, true); }
     });
   }
-  load(); setInterval(() => { if ((tab === "overview" || tab === "checkin" || tab === "art") && !document.hidden && !root.querySelector(".ma-modal") && !root.querySelector("#ma-exempt-reason:focus, [data-checkpoint-duration]:focus, [data-round-duration]:focus")) load(false); }, 5000);
+  // Dashboard chỉ tải lại khi bấm nút hoặc sau thao tác — không tự reload định kỳ để khỏi giật bảng/mất dữ liệu đang gõ.
+  load();
   setInterval(() => {
     root.querySelectorAll("[data-window-closes]").forEach((badge) => {
       const seconds = remainingSeconds(badge.dataset.windowCloses);

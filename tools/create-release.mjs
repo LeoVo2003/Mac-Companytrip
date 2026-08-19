@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.0";
+const tag = "v1.8.1";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,11 +22,12 @@ const headers = {
 };
 
 const notes = [
-  "- QR: máy quét tự bóc token trên điện thoại + server bóc link nhiều lớp dự phòng, hết lỗi \"không đúng định dạng\" khi quét link đầy đủ.",
-  "- Bảng Tổng quan & Check-in mobile kéo ngang được, ghim cột đội bên trái.",
-  "- Máy quét BTC mobile gọn lại (camera vuông, ẩn khối thừa của theme); nút Xuất CSV check-in xuống dòng gọn.",
-  "- Miễn check-in có ô tìm nhanh trong 200 người.",
-  "- Điểm thi đua & xếp hạng game cập nhật tức thì rồi lưu ngầm, hết chờ 15-30 giây.",
+  "- Bỏ tự reload 5 giây ở dashboard: kéo bảng không bị giật về, đang gõ không mất chữ, inspect element không bị render lại.",
+  "- Thanh tab trên tablet/mobile giờ dính cứng khi cuộn, tab đang chọn luôn tự cuộn ra giữa thanh.",
+  "- Mobile: bảng tổng kết bỏ cột hạng chỉ còn cột đội; cột đội của các bảng chồng nhau cùng rộng 180px cho thẳng hàng.",
+  "- Tìm nhanh trong miễn check-in giữ nguyên từ khóa sau mỗi lần tải lại dữ liệu.",
+  "- Ô nhập RESET hết nhảy chữ khi gõ tiếng Việt (không ghi đè ô nhập lúc đang gõ, bỏ autocapitalize).",
+  "- Nút Màn hình trình chiếu trên mobile xuống hàng full-width như nút Mở máy quét / Xuất CSV.",
 ].join("\n");
 
 let release;
