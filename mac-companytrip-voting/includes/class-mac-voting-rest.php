@@ -237,58 +237,127 @@ final class MAC_Voting_REST {
         global $wpdb;
         MAC_Voting_DB::expire_open_round();
         $voter_id = (int) MAC_Voting_Auth::voter_id();
-        $performance_id = absint($request->get_param('performanceId'));
-        $request_id = sanitize_text_field((string) $request->get_param('requestId'));
-        $scores = $request->get_param('scores');
+        $ballots_param = $request->get_param('ballots');
+        $entries = array();
+        if (is_array($ballots_param) && count($ballots_param)) {
+            foreach ($ballots_param as $entry) {
+                if (!is_array($entry)) {
+                    continue;
+                }
+                $entries[] = array(
+                    'performance_id' => absint(isset($entry['performanceId']) ? $entry['performanceId'] : 0),
+                    'request_id' => sanitize_text_field((string) (isset($entry['requestId']) ? $entry['requestId'] : '')),
+                    'scores' => isset($entry['scores']) && is_array($entry['scores']) ? $entry['scores'] : array(),
+                );
+            }
+        }
+        if (!count($entries)) {
+            $entries[] = array(
+                'performance_id' => absint($request->get_param('performanceId')),
+                'request_id' => sanitize_text_field((string) $request->get_param('requestId')),
+                'scores' => $request->get_param('scores'),
+            );
+        }
         $allowed_scores = array(10, 20, 30, 40, 50);
-        $style = is_array($scores) ? (int) ($scores['styleScore'] ?? 0) : 0;
-        $staging = is_array($scores) ? (int) ($scores['stagingScore'] ?? 0) : 0;
-        $teamwork = is_array($scores) ? (int) ($scores['teamworkScore'] ?? 0) : 0;
-        if (!$performance_id || !wp_is_uuid($request_id) || !in_array($style, $allowed_scores, true) || !in_array($staging, $allowed_scores, true) || !in_array($teamwork, $allowed_scores, true)) {
-            return new WP_Error('invalid_ballot', 'Vui lòng chấm đủ 3 tiêu chí.', array('status' => 400));
+        foreach ($entries as $entry) {
+            $style = is_array($entry['scores']) ? (int) ($entry['scores']['styleScore'] ?? 0) : 0;
+            $staging = is_array($entry['scores']) ? (int) ($entry['scores']['stagingScore'] ?? 0) : 0;
+            $teamwork = is_array($entry['scores']) ? (int) ($entry['scores']['teamworkScore'] ?? 0) : 0;
+            if (!$entry['performance_id'] || !wp_is_uuid($entry['request_id']) || !in_array($style, $allowed_scores, true) || !in_array($staging, $allowed_scores, true) || !in_array($teamwork, $allowed_scores, true)) {
+                return new WP_Error('invalid_ballot', 'Vui lòng chấm đủ 3 tiêu chí.', array('status' => 400));
+            }
         }
         $ballots = MAC_Voting_DB::table('ballots');
-        if ($wpdb->get_var($wpdb->prepare("SELECT id FROM $ballots WHERE request_id=%s", $request_id))) {
-            return rest_ensure_response(array('ok' => true, 'duplicate' => true, 'state' => self::vote_state($voter_id)));
+        foreach ($entries as $entry) {
+            if ($wpdb->get_var($wpdb->prepare("SELECT id FROM $ballots WHERE request_id=%s", $entry['request_id']))) {
+                return rest_ensure_response(array('ok' => true, 'duplicate' => true, 'state' => self::vote_state($voter_id)));
+            }
         }
         $voters = MAC_Voting_DB::table('voters');
         $performances = MAC_Voting_DB::table('performances');
         $slots = MAC_Voting_DB::table('slots');
         $rounds = MAC_Voting_DB::table('rounds');
-        $target = $wpdb->get_row($wpdb->prepare(
-            "SELECT p.team_id,s.round_id,r.status AS round_status,v.team_id AS voter_team,v.status AS voter_status
-             FROM $performances p JOIN $slots s ON s.performance_id=p.id JOIN $rounds r ON r.id=s.round_id JOIN $voters v ON v.id=%d
-             WHERE p.id=%d",
-            $voter_id, $performance_id
-        ), ARRAY_A);
-        if (!$target || $target['voter_status'] !== 'ACTIVE') return new WP_Error('forbidden', 'Tài khoản không hợp lệ.', array('status' => 403));
-        if ((int) $target['team_id'] === (int) $target['voter_team']) return new WP_Error('own_team', 'Bạn không thể chấm tiết mục của team mình.', array('status' => 403));
-        if ($wpdb->get_var($wpdb->prepare("SELECT id FROM $ballots WHERE voter_id=%d AND performance_id=%d AND status='VALID'", $voter_id, $performance_id))) {
-            return new WP_Error('already_voted', 'Bạn đã chấm tiết mục này rồi.', array('status' => 409));
-        }
-        $history_count = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $ballots WHERE voter_id=%d AND performance_id=%d", $voter_id, $performance_id));
         $grants = MAC_Voting_DB::table('revote_grants');
-        $grant_id = (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $grants WHERE voter_id=%d AND performance_id=%d AND unused_key='UNUSED' LIMIT 1", $voter_id, $performance_id));
-        if ($target['round_status'] !== 'OPEN' && !$grant_id) return new WP_Error('round_closed', 'Lượt chấm điểm này đã đóng.', array('status' => 409));
-        if ($history_count > 0 && !$grant_id) return new WP_Error('revote_blocked', 'Phiếu trước đã bị hủy và chưa được cấp quyền vote lại.', array('status' => 403));
+        $voter = $wpdb->get_row($wpdb->prepare("SELECT status, team_id FROM $voters WHERE id=%d", $voter_id), ARRAY_A);
+        if (!$voter || $voter['status'] !== 'ACTIVE') {
+            return new WP_Error('forbidden', 'Tài khoản không hợp lệ.', array('status' => 403));
+        }
+        $voter_team = (int) $voter['team_id'];
+        $targets = array();
+        foreach ($entries as $entry) {
+            $target = $wpdb->get_row($wpdb->prepare(
+                "SELECT p.team_id,s.round_id,r.status AS round_status
+                 FROM $performances p JOIN $slots s ON s.performance_id=p.id JOIN $rounds r ON r.id=s.round_id
+                 WHERE p.id=%d",
+                $entry['performance_id']
+            ), ARRAY_A);
+            if (!$target) {
+                return new WP_Error('forbidden', 'Tiết mục không hợp lệ.', array('status' => 403));
+            }
+            if ((int) $target['team_id'] === $voter_team) {
+                return new WP_Error('own_team', 'Bạn không thể chấm tiết mục của team mình.', array('status' => 403));
+            }
+            if ($wpdb->get_var($wpdb->prepare("SELECT id FROM $ballots WHERE voter_id=%d AND performance_id=%d AND status='VALID'", $voter_id, $entry['performance_id']))) {
+                return new WP_Error('already_voted', 'Bạn đã chấm tiết mục này rồi.', array('status' => 409));
+            }
+            $history_count = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $ballots WHERE voter_id=%d AND performance_id=%d", $voter_id, $entry['performance_id']));
+            $grant_id = (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $grants WHERE voter_id=%d AND performance_id=%d AND unused_key='UNUSED' LIMIT 1", $voter_id, $entry['performance_id']));
+            if ($target['round_status'] !== 'OPEN' && !$grant_id) {
+                return new WP_Error('round_closed', 'Lượt chấm điểm này đã đóng.', array('status' => 409));
+            }
+            if ($history_count > 0 && !$grant_id) {
+                return new WP_Error('revote_blocked', 'Phiếu trước đã bị hủy và chưa được cấp quyền vote lại.', array('status' => 403));
+            }
+            $targets[] = array_merge($entry, array('round_id' => (int) $target['round_id'], 'round_status' => $target['round_status'], 'grant_id' => $grant_id));
+        }
+        $open_round_id = 0;
+        foreach ($targets as $target) {
+            if ($target['round_status'] === 'OPEN') {
+                $open_round_id = $target['round_id'];
+                break;
+            }
+        }
+        if ($open_round_id) {
+            $required = array_map('intval', $wpdb->get_col($wpdb->prepare(
+                "SELECT p.id FROM $performances p JOIN $slots s ON s.performance_id=p.id
+                 WHERE s.round_id=%d AND p.team_id <> %d AND NOT EXISTS(SELECT 1 FROM $ballots b WHERE b.voter_id=%d AND b.performance_id=p.id AND b.status='VALID')",
+                $open_round_id, $voter_team, $voter_id
+            )));
+            $submitted = array();
+            foreach ($targets as $target) {
+                if ($target['round_status'] === 'OPEN') {
+                    $submitted[] = (int) $target['performance_id'];
+                }
+            }
+            sort($required);
+            sort($submitted);
+            if ($required !== $submitted) {
+                return new WP_Error('partial_vote', 'Quy định mới: phải chấm đủ cả hai tiết mục trong lượt, hoặc không chấm.', array('status' => 400));
+            }
+        }
 
         $wpdb->query('START TRANSACTION');
-        $inserted = $wpdb->insert($ballots, array(
-            'request_id' => $request_id, 'voter_id' => $voter_id, 'performance_id' => $performance_id,
-            'round_id' => (int) $target['round_id'], 'style_score' => $style, 'staging_score' => $staging,
-            'teamwork_score' => $teamwork, 'total_score' => $style + $staging + $teamwork,
-            'status' => 'VALID', 'active_key' => 'VALID', 'created_at' => MAC_Voting_DB::utc_now(),
-        ), array('%s','%d','%d','%d','%d','%d','%d','%d','%s','%s','%s'));
-        if (!$inserted) {
-            $wpdb->query('ROLLBACK');
-            return new WP_Error('duplicate_vote', 'Phiếu đã tồn tại hoặc không thể ghi nhận.', array('status' => 409));
-        }
-        $ballot_id = (int) $wpdb->insert_id;
-        if ($grant_id) {
-            $wpdb->update($grants, array('unused_key' => null, 'used_at' => MAC_Voting_DB::utc_now()), array('id' => $grant_id), array('%s','%s'), array('%d'));
+        foreach ($targets as $target) {
+            $style = (int) $target['scores']['styleScore'];
+            $staging = (int) $target['scores']['stagingScore'];
+            $teamwork = (int) $target['scores']['teamworkScore'];
+            $inserted = $wpdb->insert($ballots, array(
+                'request_id' => $target['request_id'], 'voter_id' => $voter_id, 'performance_id' => $target['performance_id'],
+                'round_id' => $target['round_id'], 'style_score' => $style, 'staging_score' => $staging,
+                'teamwork_score' => $teamwork, 'total_score' => $style + $staging + $teamwork,
+                'status' => 'VALID', 'active_key' => 'VALID', 'created_at' => MAC_Voting_DB::utc_now(),
+            ), array('%s','%d','%d','%d','%d','%d','%d','%d','%s','%s','%s'));
+            if (!$inserted) {
+                $wpdb->query('ROLLBACK');
+                return new WP_Error('duplicate_vote', 'Phiếu đã tồn tại hoặc không thể ghi nhận.', array('status' => 409));
+            }
+            $ballot_id = (int) $wpdb->insert_id;
+            if ($target['grant_id']) {
+                $wpdb->update($grants, array('unused_key' => null, 'used_at' => MAC_Voting_DB::utc_now()), array('id' => $target['grant_id']), array('%s','%s'), array('%d'));
+            }
+            MAC_Voting_DB::audit('VOTER', (string) $voter_id, 'BALLOT_SUBMITTED', 'ballot', (string) $ballot_id, array('performanceId' => $target['performance_id']));
         }
         $wpdb->query('COMMIT');
-        MAC_Voting_DB::audit('VOTER', (string) $voter_id, 'BALLOT_SUBMITTED', 'ballot', (string) $ballot_id, array('performanceId' => $performance_id));
         return rest_ensure_response(array('ok' => true, 'state' => self::vote_state($voter_id)));
     }
 }

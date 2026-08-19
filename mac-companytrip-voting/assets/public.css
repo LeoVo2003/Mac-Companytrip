@@ -1330,3 +1330,21 @@ body.mac-voting-page .elementor-widget-container:has(#mac-voting-app) {
     animation-iteration-count: 1 !important;
   }
 }
+
+.mv-flash-note {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #fedf89;
+  border-radius: 12px;
+  background: #fffaeb;
+  color: #93370d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mv-rule-note {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}

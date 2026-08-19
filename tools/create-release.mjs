@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.7.3";
+const tag = "v1.7.4";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Thay toàn bộ alert/confirm mặc định bằng popup xác nhận đồng bộ thiết kế (mở mốc, bật/tắt cổng, lượt vote, xóa team, tạo lại QR…).",
-  "- Làm lại nút Tắt/Bật cổng văn nghệ và hàng điều khiển lượt vote (tự đóng sau + Mở vote/Mở lại).",
-  "- Tên team dài trong biểu đồ tổng quan tự xuống dòng; sửa màu hover; bảng có khoảng hở với mép panel.",
-  "- Tối ưu mobile/tablet: biểu đồ 3 cột ≤700px, 2 cột ≤430px, thẻ mốc 1 cột, nút lượt vote dàn đều.",
+  "- Trang vote: đồng hồ đếm ngược chạy thật; rule mới bắt buộc gửi phiếu đủ cả 2 tiết mục trong lượt hoặc không chấm (nháp tự giữ, REST chặn phiếu lẻ).",
+  "- Tổng quan: bỏ caption biểu đồ, bảng có khoảng hở trên và cột đều; thêm khoảng hở giữa các panel (máy quét, mốc, game).",
+  "- Dropdown tài khoản máy quét làm lại (bỏ chữ WordPress), nút lưu gradient; sửa hover mất chữ (team thi đua, Xuất CSV).",
+  "- Popup đẹp cho thêm/sửa/xóa hạng mục thi đua + hủy phiếu; popup xác nhận admin gọn như popup trang vote.",
 ].join("\n");
 
 let release;

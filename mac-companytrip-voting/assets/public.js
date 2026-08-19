@@ -9,6 +9,8 @@
   const api = config.restUrl;
   let state = null;
   let selectedPerformanceId = null;
+  let tickTimer = 0;
+  let pickerFlash = "";
   const esc = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
   const request = async (path, options = {}) => {
     const response = await fetch(api + path, { credentials: "same-origin", headers: { "Content-Type": "application/json", "X-WP-Nonce": config.nonce, ...(options.headers || {}) }, ...options });
@@ -26,6 +28,22 @@
   const formatRemainingTime = (closesAt) => {
     const seconds = Math.max(0, Math.ceil((new Date(closesAt).getTime() - Date.now()) / 1000));
     return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+  };
+  const draftKey = (roundId) => `mac-vote-drafts-${roundId}`;
+  const loadDrafts = (roundId) => { try { return JSON.parse(sessionStorage.getItem(draftKey(roundId)) || "{}") || {}; } catch { return {}; } };
+  const saveDrafts = (roundId, drafts) => { try { sessionStorage.setItem(draftKey(roundId), JSON.stringify(drafts)); } catch {} };
+  const clearDrafts = (roundId) => { try { sessionStorage.removeItem(draftKey(roundId)); } catch {} };
+  const stopTicker = () => { if (tickTimer) { window.clearInterval(tickTimer); tickTimer = 0; } };
+  const startTicker = () => {
+    stopTicker();
+    tickTimer = window.setInterval(() => {
+      const el = root.querySelector(".mv-vote-timer strong");
+      const closesAt = state?.round?.closesAt;
+      if (!el || !closesAt) { stopTicker(); return; }
+      const seconds = Math.max(0, Math.ceil((new Date(closesAt).getTime() - Date.now()) / 1000));
+      el.textContent = formatRemainingTime(closesAt);
+      if (seconds <= 0) { stopTicker(); refresh(); }
+    }, 1000);
   };
 
   function confirmDialog({ title, kicker, body, confirmLabel }) {
@@ -111,9 +129,12 @@
     const active = available.find((item) => String(item.id) === String(selectedPerformanceId));
     if (!active) {
       selectedPerformanceId = null;
-      root.innerHTML = `<main class="mv-vote-shell">${header()}${progressHead}${timer}<section class="mv-team-picker"><div class="mv-picker-head"><p class="mv-kicker">CHỌN TIẾT MỤC</p></div><div class="mv-team-tabs">${eligible.map((item) => item.hasVoted ? `<article class="mv-team-tab is-complete"><span>#${item.teamNumber}</span><strong>${esc(item.teamName)}</strong><small>Đã gửi</small></article>` : `<button type="button" class="mv-team-tab" data-performance-id="${item.id}" ${item.canVote ? "" : "disabled"}><span>#${item.teamNumber}</span><strong>${esc(item.teamName)}</strong><small>${item.canVote ? "Chấm điểm →" : "Chưa mở"}</small></button>`).join("")}</div></section></main>`;
+      const drafts = loadDrafts(state.round.id);
+      const flash = pickerFlash ? `<p class="mv-flash-note" role="status">${esc(pickerFlash)}</p>` : "";
+      root.innerHTML = `<main class="mv-vote-shell">${header()}${progressHead}${timer}${flash}<section class="mv-team-picker"><div class="mv-picker-head"><p class="mv-kicker">CHỌN TIẾT MỤC</p></div><div class="mv-team-tabs">${eligible.map((item) => item.hasVoted ? `<article class="mv-team-tab is-complete"><span>#${item.teamNumber}</span><strong>${esc(item.teamName)}</strong><small>Đã gửi</small></article>` : `<button type="button" class="mv-team-tab" data-performance-id="${item.id}" ${item.canVote ? "" : "disabled"}><span>#${item.teamNumber}</span><strong>${esc(item.teamName)}</strong><small>${item.canVote ? (drafts[item.id] ? "Nháp sẵn · sửa →" : "Chấm điểm →") : "Chưa mở"}</small></button>`).join("")}</div><p class="mv-rule-note">Quy định: gửi phiếu đủ cả 2 tiết mục trong lượt, hoặc không chấm.</p></section></main>`;
       root.querySelector("#mv-logout").addEventListener("click", logout);
-      root.querySelectorAll("[data-performance-id]").forEach((button) => button.addEventListener("click", () => { selectedPerformanceId = button.dataset.performanceId; renderState(); }));
+      root.querySelectorAll("[data-performance-id]").forEach((button) => button.addEventListener("click", () => { pickerFlash = ""; selectedPerformanceId = button.dataset.performanceId; renderState(); }));
+      if (root.querySelector(".mv-vote-timer")) startTicker(); else stopTicker();
       return;
     }
     const criteria = [["styleScore", "Phong Cách & Thần Thái Biểu Diễn"], ["stagingScore", "Dàn Dựng & Sáng Tạo"], ["teamworkScore", "Tinh Thần Đồng Đội & Bản Sắc Doanh Nghiệp"]];
@@ -139,21 +160,42 @@
       if (star && ballotForm.contains(star)) updateStars(star.closest("fieldset"), Number(star.dataset.star));
     });
     ballotForm.querySelectorAll(".mv-star-rating").forEach((rating) => rating.addEventListener("pointerleave", () => updateStars(rating.closest("fieldset"))));
+    const existingDraft = loadDrafts(state.round.id)[active.id];
+    if (existingDraft) {
+      ballotForm.querySelectorAll("fieldset[data-star-field]").forEach((fieldset) => {
+        const value = Number(existingDraft[fieldset.dataset.starField] || 0);
+        const radio = value ? fieldset.querySelector(`input[value="${value}"]`) : null;
+        if (radio) { radio.checked = true; updateStars(fieldset); }
+      });
+    }
     ballotForm.addEventListener("submit", async (event) => {
       event.preventDefault(); const form = new FormData(event.currentTarget); const error = root.querySelector("#mv-error"); const button = event.currentTarget.querySelector(".mv-score-submit"); error.hidden = true;
       const scores = { styleScore: Number(form.get("styleScore")), stagingScore: Number(form.get("stagingScore")), teamworkScore: Number(form.get("teamworkScore")) };
       if (!scores.styleScore || !scores.stagingScore || !scores.teamworkScore) { error.textContent = "Chọn đủ 3 tiêu chí."; error.hidden = false; return; }
+      const store = loadDrafts(state.round.id);
+      const pending = available.filter((item) => String(item.id) !== String(active.id));
+      const missing = pending.filter((item) => !store[item.id]);
+      if (missing.length) {
+        store[active.id] = scores;
+        saveDrafts(state.round.id, store);
+        pickerFlash = `Đã giữ nháp #${active.teamNumber}. Chấm tiếp ${missing.map((item) => `#${item.teamNumber}`).join(", ")} rồi gửi cùng một lần.`;
+        selectedPerformanceId = null;
+        renderState();
+        return;
+      }
+      const entries = [{ performanceId: active.id, teamNumber: active.teamNumber, teamName: active.teamName, scores }, ...pending.map((item) => ({ performanceId: item.id, teamNumber: item.teamNumber, teamName: item.teamName, scores: store[item.id] }))];
       const confirmed = await confirmDialog({
         kicker: "XÁC NHẬN",
-        title: "Gửi phiếu?",
+        title: entries.length > 1 ? `Gửi phiếu cả ${entries.length} đội?` : "Gửi phiếu?",
         confirmLabel: "Gửi phiếu →",
-        body: `<div class="mv-modal-team"><strong>#${active.teamNumber} ${esc(active.teamName)}</strong></div><ul class="mv-modal-scores">${criteria.map((criterion) => `<li><span>${criterion[1]}</span><strong>${scores[criterion[0]] / 10} ★ · ${scores[criterion[0]]}đ</strong></li>`).join("")}<li class="mv-modal-total"><span>Tổng</span><strong>${scores.styleScore + scores.stagingScore + scores.teamworkScore}đ</strong></li></ul><p class="mv-modal-warn">Không thể sửa sau khi gửi.</p>`,
+        body: `${entries.map((entry) => `<div class="mv-modal-team"><strong>#${entry.teamNumber} ${esc(entry.teamName)}</strong></div><ul class="mv-modal-scores">${criteria.map((criterion) => `<li><span>${criterion[1]}</span><strong>${entry.scores[criterion[0]] / 10} ★ · ${entry.scores[criterion[0]]}đ</strong></li>`).join("")}<li class="mv-modal-total"><span>Tổng</span><strong>${entry.scores.styleScore + entry.scores.stagingScore + entry.scores.teamworkScore}đ</strong></li></ul>`).join("")}<p class="mv-modal-warn">Không thể sửa sau khi gửi.</p>`,
       });
       if (!confirmed) { button.focus(); return; }
       button.disabled = true; button.textContent = "Đang gửi…";
-      try { const data = await request("submit", { method: "POST", body: JSON.stringify({ performanceId: active.id, requestId: crypto.randomUUID(), scores }) }); state = data.state; selectedPerformanceId = null; renderState(); }
+      try { const data = await request("submit", { method: "POST", body: JSON.stringify({ ballots: entries.map((entry) => ({ performanceId: entry.performanceId, requestId: crypto.randomUUID(), scores: entry.scores })) }) }); clearDrafts(state.round.id); pickerFlash = ""; state = data.state; selectedPerformanceId = null; renderState(); }
       catch (err) { button.disabled = false; button.textContent = "Gửi phiếu →"; error.textContent = err.message; error.hidden = false; }
     });
+    if (root.querySelector(".mv-vote-timer")) startTicker(); else stopTicker();
   }
 
   function errorView(message) {

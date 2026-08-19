@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.7.3
+Stable tag: 1.7.4
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,16 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.7.4 =
+- Trang vote công khai: đồng hồ đếm ngược chạy từng giây và tự làm mới khi lượt đóng.
+- Rule mới: mỗi lượt phải gửi phiếu đủ cả 2 tiết mục hoặc không chấm; nháp giữ tự động, REST chặn phiếu lẻ.
+- Tổng quan: bỏ caption dưới cột biểu đồ; bảng có khoảng hở phía trên và cột đều nhau (table-layout fixed).
+- Khoảng hở giữa các panel: máy quét QR vs mốc check-in, thang hạng vs ma trận vs thẻ game.
+- Chọn tài khoản máy quét: bỏ chữ WordPress, dropdown và nút lưu làm lại, tên — email tách rõ.
+- Popup đẹp cho thêm/sửa/xóa hạng mục thi đua (đổi tên “lần thi đua” → “hạng mục thi đua”) và hủy phiếu/cho vote lại.
+- Sửa lỗi hover mất chữ ở nút chọn team thi đua và nút Xuất CSV kết quả.
+- Popup xác nhận admin gọn đẹp đồng bộ với popup trang vote.
 
 = 1.7.3 =
 - Thay toàn bộ alert/confirm mặc định của trình duyệt bằng popup xác nhận đồng bộ thiết kế (mở mốc, đóng mốc, bật/tắt cổng văn nghệ, mở/đóng lượt vote, xóa team, tạo lại QR…).
