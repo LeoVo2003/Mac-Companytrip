@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.7.5";
+const tag = "v1.7.6";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Máy quét check-in: số phút cửa sổ lấy đúng theo số phút cài khi mở mốc; nút Thoát thay bằng \"← Quay lại dashboard\".",
-  "- Sửa hover/active trên máy quét: chữ không mờ trắng, nút team và link không còn dính màu tím hồng của theme.",
-  "- Quét QR nhân sự báo đúng nguyên nhân (QR đã cũ / nhân sự không ACTIVE) thay vì chỉ \"QR không hợp lệ\".",
+  "- Tổng quan: hiện lại tên đội dưới mỗi cột biểu đồ; làm tròn số không còn .0/.00 (TB phiếu, điểm trực tiếp).",
+  "- Bảng tài khoản máy quét: tên và email tách hai dòng, hết dính chữ.",
+  "- Thang hạng game: hạng 4/5/6 có màu riêng (xanh dương / xanh lục / xám nhạt).",
 ].join("\n");
 
 let release;

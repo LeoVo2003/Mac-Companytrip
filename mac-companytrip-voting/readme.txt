@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.7.5
+Stable tag: 1.7.6
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,12 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.7.6 =
+- Tổng quan: hiện lại tên đội dưới mỗi cột biểu đồ (phần điểm trùng lặp vẫn đã bỏ).
+- Làm tròn số: TB phiếu và điểm trực tiếp không còn ".0"/".00" (hiện 150 thay vì 150.00).
+- Bảng tài khoản máy quét: tên và email tách hai dòng rõ ràng, hết dính chữ.
+- Thang hạng game: hạng 4/5/6 có màu riêng (xanh dương / xanh lục / xám nhạt) thay vì giống nhau.
 
 = 1.7.5 =
 - Máy quét check-in: số phút cửa sổ lấy đúng theo số phút cài khi mở mốc, không còn hard-code 15'.

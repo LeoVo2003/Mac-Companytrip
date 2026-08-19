@@ -3224,3 +3224,61 @@ body.mac-admin-public-page .ma-side {
 .ma-confirm-card .ma-modal-actions button {
   border-radius: 12px;
 }
+
+/* v1.7.6 — staff cell, rank colors 4-6 */
+.ma-staff-cell {
+  display: grid;
+  gap: 2px;
+}
+
+.ma-staff-cell small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.ma-ladder-chip.rank-4 {
+  color: #175cd3;
+  border-color: #b2ddff;
+  background: #eff8ff;
+}
+
+.ma-ladder-chip.rank-5 {
+  color: #067647;
+  border-color: #abefc6;
+  background: #ecfdf3;
+}
+
+.ma-ladder-chip.rank-6 {
+  color: #98a2b3;
+  border-color: #e4e7ec;
+  background: #fff;
+}
+
+.ma-rank-chip.rank-4 {
+  color: #175cd3;
+  background: #eff8ff;
+}
+
+.ma-rank-chip.rank-5 {
+  color: #067647;
+  background: #ecfdf3;
+}
+
+.ma-rank-chip.rank-6 {
+  color: #98a2b3;
+  background: #f9fafb;
+}
+
+.ma-game-points.rank-4 {
+  color: #175cd3;
+}
+
+.ma-game-points.rank-5 {
+  color: #067647;
+}
+
+.ma-game-points.rank-6 {
+  color: #98a2b3;
+}
