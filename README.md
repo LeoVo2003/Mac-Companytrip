@@ -49,8 +49,11 @@ CSV UTF-8 gồm `Họ tên, Mã NV, Team, Email, Trạng thái`. Ba cột bắt 
 
 - QR cá nhân HMAC, gửi qua email, regenerate làm mất hiệu lực QR cũ.
 - Cổng văn nghệ ON/OFF; mặc định tắt; check-in không bị ảnh hưởng.
-- 4 mốc check-in, máy quét BTC, chống quét trùng/sai team, chốt hạng +50/+30/+20/+10/−10/−20.
+- 4 mốc check-in, máy quét BTC, chống quét trùng/sai team; điểm mỗi mốc tối đa 150đ theo tỷ lệ có mặt.
 
 ## Phase 4
 
-- Tab **Tổng điểm**: dashboard 6 team, thêm hạng mục (gửi thông tin đội, demo văn nghệ, …), cộng/trừ điểm từng đội. Tổng = check-in đã chốt + hạng mục.
+- Bảng điểm 4 trụ cột: **Check-in** (4 mốc × 150đ = 600đ), **Trò chơi lớn** (3 game, hạng 1–6 nhận 50/40/30/20/10/0đ = 150đ), **Văn nghệ** (quy đổi `ROUND(TB phiếu hợp lệ ÷ 150 × 200)`) và **Thi đua** (thang 50/40/30/20/10, không giới hạn).
+- Mỗi team có cửa sổ 15 phút cho mỗi mốc check-in (đồng hồ server), bắt đầu từ lượt quét đầu; hết giờ máy quét trả lỗi `window_locked`.
+- Miễn check-in theo từng mốc kèm lý do; người miễn bị trừ khỏi mẫu số và ẩn khỏi danh sách "CÒN THIẾU".
+- "Hạng mục" cũ thành "lần thi đua": bảng `point_categories` tự đổi tên thành `mac_vote_thidua_rounds`, giữ nguyên dữ liệu; ledger ghi nguồn `THIDUA` và vẫn đọc nguồn cũ `CATEGORY`.

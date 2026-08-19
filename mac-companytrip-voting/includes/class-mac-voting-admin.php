@@ -21,6 +21,8 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_qr', array(__CLASS__, 'ajax_qr'));
         add_action('wp_ajax_mac_vote_staff', array(__CLASS__, 'ajax_staff'));
         add_action('wp_ajax_mac_vote_points', array(__CLASS__, 'ajax_points'));
+        add_action('wp_ajax_mac_vote_games', array(__CLASS__, 'ajax_games'));
+        add_action('wp_ajax_mac_vote_exemption', array(__CLASS__, 'ajax_exemption'));
         add_action('admin_post_mac_vote_export', array(__CLASS__, 'export_csv'));
         add_action('admin_post_mac_vote_template', array(__CLASS__, 'template_csv'));
         add_action('admin_post_mac_vote_export_checkin', array(__CLASS__, 'export_checkin_csv'));
@@ -588,6 +590,11 @@ final class MAC_Voting_Admin {
             'votingEnabled' => MAC_Voting_DB::is_voting_enabled(),
             'checkpoints' => MAC_Checkin::checkpoints(),
             'checkinBoard' => self::checkin_overview_board(),
+            'exemptions' => self::exemptions_board(),
+            'games' => array(
+                'list' => MAC_Games::games(),
+                'board' => MAC_Games::board(),
+            ),
             'teamPoints' => MAC_Checkin::team_points_board(),
             'totalBoard' => MAC_Points::dashboard(),
             'staff' => MAC_Checkin::staff_assignments(),
@@ -644,6 +651,14 @@ final class MAC_Voting_Admin {
         return $board;
     }
 
+    private static function exemptions_board(): array {
+        $board = array();
+        foreach (MAC_Checkin::checkpoints() as $checkpoint) {
+            $board[(int) $checkpoint['id']] = MAC_Checkin::exemptions((int) $checkpoint['id']);
+        }
+        return $board;
+    }
+
     private static function assignable_users(): array {
         $users = get_users(array('orderby' => 'display_name', 'number' => 200));
         $items = array();
@@ -673,9 +688,7 @@ final class MAC_Voting_Admin {
         $checkpoint_id = absint($_POST['checkpointId'] ?? 0);
         $operation = sanitize_key($_POST['operation'] ?? '');
         $minutes = MAC_Voting_DB::duration_minutes(absint($_POST['durationMinutes'] ?? 0), MAC_Voting_DB::DEFAULT_CHECKIN_DURATION_MINUTES);
-        if ($operation === 'configure') {
-            $result = MAC_Checkin::set_max_points($checkpoint_id, absint($_POST['maxPoints'] ?? 0));
-        } elseif ($operation === 'open') {
+        if ($operation === 'open') {
             $result = MAC_Checkin::open_checkpoint($checkpoint_id, $minutes);
         } elseif ($operation === 'reopen') {
             $result = MAC_Checkin::reopen_checkpoint($checkpoint_id, $minutes);
@@ -774,15 +787,60 @@ final class MAC_Voting_Admin {
             wp_send_json_error(array('message' => $result->get_error_message()), is_array($error_data) ? (int) ($error_data['status'] ?? 400) : 400);
         }
         $messages = array(
-            'add' => 'Đã thêm hạng mục.',
-            'rename' => 'Đã đổi tên hạng mục.',
-            'delete' => 'Đã xóa hạng mục.',
+            'add' => 'Đã thêm lần thi đua.',
+            'rename' => 'Đã đổi tên lần thi đua.',
+            'delete' => 'Đã xóa lần thi đua.',
             'award' => 'Đã cập nhật điểm team.',
         );
         wp_send_json_success(array(
             'message' => $messages[$operation] ?? 'Đã cập nhật.',
             'overview' => self::overview(),
             'categoryId' => $operation === 'add' ? (int) $result : 0,
+        ));
+    }
+
+    public static function ajax_games(): void {
+        self::guard();
+        $operation = sanitize_key($_POST['operation'] ?? 'rank');
+        if ($operation !== 'rank') {
+            wp_send_json_error(array('message' => 'Thao tác không hợp lệ.'), 400);
+            return;
+        }
+        $result = MAC_Games::set_rank(
+            absint($_POST['gameId'] ?? 0),
+            absint($_POST['teamId'] ?? 0),
+            intval($_POST['rank'] ?? 0)
+        );
+        if (is_wp_error($result)) {
+            $error_data = $result->get_error_data();
+            wp_send_json_error(array('message' => $result->get_error_message()), is_array($error_data) ? (int) ($error_data['status'] ?? 400) : 400);
+        }
+        wp_send_json_success(array(
+            'message' => 'Đã cập nhật xếp hạng trò chơi.',
+            'overview' => self::overview(),
+        ));
+    }
+
+    public static function ajax_exemption(): void {
+        self::guard();
+        $operation = sanitize_key($_POST['operation'] ?? '');
+        if (!in_array($operation, array('set', 'clear'), true)) {
+            wp_send_json_error(array('message' => 'Thao tác không hợp lệ.'), 400);
+            return;
+        }
+        $result = MAC_Checkin::set_exemption(
+            absint($_POST['checkpointId'] ?? 0),
+            absint($_POST['voterId'] ?? 0),
+            $operation === 'set',
+            sanitize_text_field(wp_unslash($_POST['reason'] ?? ''))
+        );
+        if (is_wp_error($result)) {
+            $error_data = $result->get_error_data();
+            wp_send_json_error(array('message' => $result->get_error_message()), is_array($error_data) ? (int) ($error_data['status'] ?? 400) : 400);
+        }
+        wp_send_json_success(array(
+            'message' => $operation === 'set' ? 'Đã miễn check-in.' : 'Đã bỏ miễn check-in.',
+            'overview' => self::overview(),
         ));
     }
 

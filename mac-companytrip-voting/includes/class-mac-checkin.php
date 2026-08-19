@@ -12,15 +12,6 @@ final class MAC_Checkin {
     public const SUPER_CAP = 'mac_manage_companytrip';
     public const TEAM_META = 'mac_checkin_team_ids';
 
-    private const POINTS = array(
-        1 => 50,
-        2 => 30,
-        3 => 20,
-        4 => 10,
-        5 => -10,
-        6 => -20,
-    );
-
     public static function register_roles(): void {
         $admin = get_role('administrator');
         if ($admin && !$admin->has_cap(self::CAP)) {
@@ -131,23 +122,6 @@ final class MAC_Checkin {
             array('%d')
         );
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'CHECKPOINT_OPENED', 'checkpoint', (string) $checkpoint_id);
-        return self::checkpoint_row($checkpoint_id);
-    }
-
-    public static function set_max_points(int $checkpoint_id, int $max_points) {
-        global $wpdb;
-        $row = self::checkpoint_row($checkpoint_id);
-        if (!$row) {
-            return new WP_Error('not_found', 'Mốc check-in không tồn tại.', array('status' => 404));
-        }
-        if ($row['status'] === 'OPEN') {
-            return new WP_Error('checkpoint_open', 'Không thể sửa điểm tối đa khi mốc đang mở.', array('status' => 409));
-        }
-        if ($max_points < 0 || $max_points > 100000) {
-            return new WP_Error('invalid_points', 'Điểm tối đa phải từ 0 đến 100000.', array('status' => 400));
-        }
-        $wpdb->update(MAC_Voting_DB::table('checkpoints'), array('max_points' => $max_points), array('id' => $checkpoint_id), array('%d'), array('%d'));
-        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'CHECKPOINT_MAX_POINTS_SET', 'checkpoint', (string) $checkpoint_id, array('maxPoints' => $max_points));
         return self::checkpoint_row($checkpoint_id);
     }
 
@@ -283,6 +257,30 @@ final class MAC_Checkin {
             ));
         }
         $now = MAC_Voting_DB::utc_now();
+        $windows = MAC_Voting_DB::table('checkpoint_windows');
+        $window = self::team_window($checkpoint_id, $team_id);
+        if (!$window) {
+            $wpdb->query($wpdb->prepare(
+                "INSERT IGNORE INTO $windows (checkpoint_id,team_id,window_opens_at,window_closes_at) VALUES (%d,%d,%s,%s)",
+                $checkpoint_id,
+                $team_id,
+                $now,
+                MAC_Voting_DB::deadline_from_minutes(MAC_Voting_DB::CHECKIN_WINDOW_MINUTES)
+            ));
+            $window = self::team_window($checkpoint_id, $team_id);
+        }
+        if ($window && !empty($window['window_closes_at']) && $window['window_closes_at'] <= $now) {
+            MAC_Voting_DB::audit('STAFF', (string) get_current_user_id(), 'CHECKIN_WINDOW_LOCKED_ATTEMPT', 'voter', (string) $voter['id'], array(
+                'checkpointId' => $checkpoint_id,
+                'teamId' => $team_id,
+            ));
+            return new WP_Error('window_locked', 'Cửa sổ 15 phút của Team ' . (int) $voter['team_no'] . ' đã khóa, không ghi nhận thêm.', array(
+                'status' => 409,
+                'code' => 'WINDOW_LOCKED',
+                'voter' => self::public_voter($voter),
+                'teamProgress' => self::team_progress($checkpoint_id, $team_id),
+            ));
+        }
         $inserted = $wpdb->insert($checkins, array(
             'checkpoint_id' => $checkpoint_id,
             'voter_id' => (int) $voter['id'],
@@ -329,6 +327,11 @@ final class MAC_Checkin {
         $voters = MAC_Voting_DB::table('voters');
         $checkins = MAC_Voting_DB::table('checkins');
         $teams = MAC_Voting_DB::table('teams');
+        $exemptions = MAC_Voting_DB::table('exemptions');
+        $window = self::team_window($checkpoint_id, $team_id);
+        $now = MAC_Voting_DB::utc_now();
+        $window_closes_at = $window && !empty($window['window_opens_at']) ? $window['window_closes_at'] : null;
+        $window_locked = $window_closes_at !== null && $window_closes_at <= $now;
         $team = $wpdb->get_row($wpdb->prepare("SELECT id,name,team_no FROM $teams WHERE id=%d", $team_id), ARRAY_A);
         $members = $wpdb->get_results($wpdb->prepare(
             "SELECT v.id,v.full_name,v.email,c.scanned_at
@@ -339,17 +342,34 @@ final class MAC_Checkin {
             $checkpoint_id,
             $team_id
         ), ARRAY_A) ?: array();
-        $eligible = count($members);
+        $exempt_rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT voter_id,reason FROM $exemptions WHERE checkpoint_id=%d",
+            $checkpoint_id
+        ), ARRAY_A) ?: array();
+        $exempt_map = array();
+        foreach ($exempt_rows as $exempt_row) {
+            $exempt_map[(int) $exempt_row['voter_id']] = (string) $exempt_row['reason'];
+        }
+        $eligible = 0;
         $checked = array();
         $missing = array();
+        $exempted = array();
         foreach ($members as $member) {
+            $member_id = (int) $member['id'];
             $item = array(
-                'id' => (int) $member['id'],
+                'id' => $member_id,
                 'fullName' => $member['full_name'],
                 'email' => $member['email'],
                 'scannedAt' => $member['scanned_at'],
             );
-            if ($member['scanned_at']) {
+            if (isset($exempt_map[$member_id])) {
+                $item['reason'] = $exempt_map[$member_id];
+                $exempted[] = $item;
+                continue;
+            }
+            $eligible++;
+            $in_window = $member['scanned_at'] && ($window_closes_at === null || $member['scanned_at'] <= $window_closes_at);
+            if ($in_window) {
                 $checked[] = $item;
             } else {
                 $missing[] = $item;
@@ -375,11 +395,103 @@ final class MAC_Checkin {
             'missing' => count($missing),
             'completed' => $completed,
             'completedAt' => $completed_at,
+            'windowOpensAt' => $window && !empty($window['window_opens_at']) ? $window['window_opens_at'] : null,
+            'windowClosesAt' => $window_closes_at,
+            'windowLocked' => $window_locked,
+            'exemptedCount' => count($exempted),
+            'exemptedMembers' => $exempted,
             'temporaryRank' => $snapshot && $snapshot['rank_no'] !== null ? (int) $snapshot['rank_no'] : null,
             'temporaryPoints' => $snapshot ? (int) $snapshot['points'] : 0,
             'checkedInMembers' => $checked,
             'missingMembers' => $missing,
         );
+    }
+
+    public static function team_window(int $checkpoint_id, int $team_id): ?array {
+        global $wpdb;
+        return $wpdb->get_row($wpdb->prepare(
+            'SELECT * FROM ' . MAC_Voting_DB::table('checkpoint_windows') . ' WHERE checkpoint_id=%d AND team_id=%d',
+            $checkpoint_id,
+            $team_id
+        ), ARRAY_A);
+    }
+
+    public static function exemptions(int $checkpoint_id): array {
+        global $wpdb;
+        $rows = $wpdb->get_results($wpdb->prepare(
+            'SELECT e.id,e.voter_id,e.reason,e.created_at,v.full_name,v.team_id
+             FROM ' . MAC_Voting_DB::table('exemptions') . ' e
+             JOIN ' . MAC_Voting_DB::table('voters') . ' v ON v.id=e.voter_id
+             WHERE e.checkpoint_id=%d
+             ORDER BY v.full_name',
+            $checkpoint_id
+        ), ARRAY_A) ?: array();
+        $items = array();
+        foreach ($rows as $row) {
+            $items[] = array(
+                'id' => (int) $row['id'],
+                'voterId' => (int) $row['voter_id'],
+                'fullName' => $row['full_name'],
+                'teamId' => (int) $row['team_id'],
+                'reason' => $row['reason'],
+                'createdAt' => $row['created_at'],
+            );
+        }
+        return $items;
+    }
+
+    public static function set_exemption(int $checkpoint_id, int $voter_id, bool $exempt, string $reason = '') {
+        global $wpdb;
+        $checkpoint = self::checkpoint_row($checkpoint_id);
+        if (!$checkpoint) {
+            return new WP_Error('not_found', 'Mốc check-in không tồn tại.', array('status' => 404));
+        }
+        if ($checkpoint['status'] === 'CLOSED') {
+            return new WP_Error('checkpoint_closed', 'Mốc đã đóng, không thay đổi được danh sách miễn.', array('status' => 409));
+        }
+        $voter = $wpdb->get_row($wpdb->prepare(
+            'SELECT id,full_name,team_id FROM ' . MAC_Voting_DB::table('voters') . ' WHERE id=%d',
+            $voter_id
+        ), ARRAY_A);
+        if (!$voter) {
+            return new WP_Error('voter_not_found', 'Không tìm thấy nhân sự.', array('status' => 404));
+        }
+        if (MAC_Voting_DB::is_staff_team_no((int) $wpdb->get_var($wpdb->prepare(
+            'SELECT team_no FROM ' . MAC_Voting_DB::table('teams') . ' WHERE id=%d',
+            (int) $voter['team_id']
+        )))) {
+            return new WP_Error('staff_team', 'Tài khoản BTC không nằm trong danh sách check-in.', array('status' => 409));
+        }
+        $table = MAC_Voting_DB::table('exemptions');
+        $now = MAC_Voting_DB::utc_now();
+        if ($exempt) {
+            $reason = mb_substr(trim(wp_strip_all_tags($reason)), 0, 500, 'UTF-8');
+            if ($reason === '') {
+                return new WP_Error('reason_required', 'Cần ghi lý do miễn check-in.', array('status' => 400));
+            }
+            $wpdb->query($wpdb->prepare(
+                "INSERT INTO $table (checkpoint_id,voter_id,reason,created_by,created_at) VALUES (%d,%d,%s,%d,%s)
+                 ON DUPLICATE KEY UPDATE reason=VALUES(reason),created_by=VALUES(created_by),created_at=VALUES(created_at)",
+                $checkpoint_id,
+                $voter_id,
+                $reason,
+                get_current_user_id(),
+                $now
+            ));
+            MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'CHECKIN_EXEMPTION_SET', 'voter', (string) $voter_id, array(
+                'checkpointId' => $checkpoint_id,
+                'fullName' => $voter['full_name'],
+                'reason' => $reason,
+            ));
+        } else {
+            $wpdb->delete($table, array('checkpoint_id' => $checkpoint_id, 'voter_id' => $voter_id), array('%d', '%d'));
+            MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'CHECKIN_EXEMPTION_CLEARED', 'voter', (string) $voter_id, array(
+                'checkpointId' => $checkpoint_id,
+                'fullName' => $voter['full_name'],
+            ));
+        }
+        self::recalculate_checkpoint($checkpoint_id, false);
+        return self::team_progress($checkpoint_id, (int) $voter['team_id']);
     }
 
     public static function checkpoint_board(int $checkpoint_id): array {
@@ -525,10 +637,20 @@ final class MAC_Checkin {
         $checkins = MAC_Voting_DB::table('checkins');
         $results = MAC_Voting_DB::table('checkpoint_results');
         $points = MAC_Voting_DB::table('team_points');
-        $wpdb->query("UPDATE $checkpoints SET status='DRAFT', opened_at=NULL, closed_at=NULL, finalized_at=NULL");
+        $windows = MAC_Voting_DB::table('checkpoint_windows');
+        $exemptions = MAC_Voting_DB::table('exemptions');
+        $wpdb->query("UPDATE $checkpoints SET status='DRAFT', opened_at=NULL, closes_at=NULL, closed_at=NULL, finalized_at=NULL");
         $wpdb->query("DELETE FROM $checkins");
         $wpdb->query("DELETE FROM $results");
-        $wpdb->query($wpdb->prepare("DELETE FROM $points WHERE source_type=%s", 'CHECKIN'));
+        $wpdb->query("DELETE FROM $windows");
+        $wpdb->query("DELETE FROM $exemptions");
+        $wpdb->query($wpdb->prepare(
+            "DELETE FROM $points WHERE source_type IN (%s,%s,%s,%s)",
+            'CHECKIN',
+            'GAME',
+            'THIDUA',
+            'CATEGORY'
+        ));
         MAC_Voting_DB::set_voting_enabled(false);
     }
 
@@ -590,7 +712,7 @@ final class MAC_Checkin {
         $now = MAC_Voting_DB::utc_now();
         foreach ($snapshots as $index => $row) {
             $rank = null;
-            $max_points = (int) ($checkpoint['max_points'] ?? 0);
+            $max_points = MAC_Voting_DB::CHECKIN_MAX_PER_CHECKPOINT;
             $points = $row['eligible'] > 0 ? (int) round(($max_points * $row['checkedIn']) / $row['eligible']) : 0;
             $existing_id = (int) $wpdb->get_var($wpdb->prepare(
                 "SELECT id FROM $results WHERE checkpoint_id=%d AND team_id=%d",

@@ -3,7 +3,7 @@
  * Plugin Name: MAC Company Trip Voting
  * Plugin URI: https://macmarketing.vn/
  * Description: Hệ thống chấm điểm văn nghệ Company Trip, có quản lý team linh hoạt, khóa vote team mình, chống phiếu trùng và audit log.
- * Version: 1.6.5
+ * Version: 1.7.0
  * Author: MAC Marketing
  * Text Domain: mac-companytrip-voting
  * Requires at least: 6.0
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('MAC_VOTING_VERSION', '1.6.5');
+define('MAC_VOTING_VERSION', '1.7.0');
 define('MAC_VOTING_FILE', __FILE__);
 define('MAC_VOTING_DIR', plugin_dir_path(__FILE__));
 define('MAC_VOTING_URL', plugin_dir_url(__FILE__));
@@ -28,6 +28,7 @@ require_once MAC_VOTING_DIR . 'includes/class-mac-voting-auth.php';
 require_once MAC_VOTING_DIR . 'includes/class-mac-voting-qr.php';
 require_once MAC_VOTING_DIR . 'includes/class-mac-checkin.php';
 require_once MAC_VOTING_DIR . 'includes/class-mac-points.php';
+require_once MAC_VOTING_DIR . 'includes/class-mac-games.php';
 require_once MAC_VOTING_DIR . 'includes/class-mac-voting-rest.php';
 require_once MAC_VOTING_DIR . 'includes/class-mac-checkin-rest.php';
 require_once MAC_VOTING_DIR . 'includes/class-mac-voting-public.php';

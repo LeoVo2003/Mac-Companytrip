@@ -73,6 +73,7 @@ const required = [
   "includes/class-mac-voting-qr.php",
   "includes/class-mac-checkin.php",
   "includes/class-mac-points.php",
+  "includes/class-mac-games.php",
   "includes/class-mac-checkin-rest.php",
   "includes/class-mac-checkin-public.php",
   "includes/class-mac-voting-rest.php",
@@ -121,8 +122,18 @@ const publicJs = fs.readFileSync(path.join(pluginRoot, "assets/public.js"), "utf
 const adminJs = fs.readFileSync(path.join(pluginRoot, "assets/admin.js"), "utf8");
 const resultsJs = fs.readFileSync(path.join(pluginRoot, "assets/results.js"), "utf8");
 const pointsFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-points.php"), "utf8");
-for (const invariant of ["one_valid_ballot", "email varchar(190) NULL", "UNIQUE KEY email", "qr_version", "revote_grants", "audit", "table('checkpoints')", "one_checkin", "table('point_categories')"]) {
+const gamesFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-games.php"), "utf8");
+for (const invariant of ["one_valid_ballot", "email varchar(190) NULL", "UNIQUE KEY email", "qr_version", "revote_grants", "audit", "table('checkpoints')", "one_checkin", "table('thidua_rounds')", "table('checkpoint_windows')", "table('exemptions')", "table('games')"]) {
   if (!databaseFile.includes(invariant)) throw new Error(`Missing database invariant: ${invariant}`);
+}
+for (const invariant of ["CHECKIN_MAX_PER_CHECKPOINT = 150", "CHECKIN_WINDOW_MINUTES = 15", "RANK_LADDER = array(50, 40, 30, 20, 10, 0)"]) {
+  if (!databaseFile.includes(invariant)) throw new Error(`Missing scoring constant invariant: ${invariant}`);
+}
+for (const invariant of ["window_locked", "WINDOW_LOCKED", "set_exemption", "team_window"]) {
+  if (!checkinFile.includes(invariant)) throw new Error(`Missing 15-minute window or exemption invariant: ${invariant}`);
+}
+for (const invariant of ["SOURCE = 'GAME'", "RANK_LADDER", "GAME_RANK_SET", "function board"]) {
+  if (!gamesFile.includes(invariant)) throw new Error(`Missing big-game ranking invariant: ${invariant}`);
 }
 for (const invariant of ["max_points int(11) unsigned NOT NULL DEFAULT 0", "CHECKIN_PROPORTIONAL", "round(($max_points * $row['checkedIn']) / $row['eligible'])"]) {
   if (!databaseFile.includes(invariant) && !checkinFile?.includes(invariant)) throw new Error(`Missing proportional check-in scoring invariant: ${invariant}`);
@@ -173,7 +184,7 @@ if (!publicJs.includes("lockedView") || !publicJs.includes("enabled === false") 
 if (!adminJs.includes("mac_vote_gate") || !adminJs.includes("data-checkpoint") || !adminJs.includes("data-qr-view") || !adminJs.includes("mac_vote_points") || !adminJs.includes("data-tab=\"overview\"") || !adminJs.includes("data-tab=\"art\"") || !adminJs.includes("data-award-points") || !adminJs.includes("data-overview-tab") || !adminJs.includes("canWrite") || !adminJs.includes("Máy quét BTC")) {
   throw new Error("Missing admin controls for voting gate, checkpoints, personal QR, total points, or role-based dashboard.");
 }
-if (!pointsFile.includes("function history") || !pointsFile.includes("CHECKPOINT_POINTS_FINALIZED") || !pointsFile.includes("function reset_history")) {
+if (!pointsFile.includes("function history") || !pointsFile.includes("CHECKPOINT_POINTS_FINALIZED") || !pointsFile.includes("function reset_history") || !pointsFile.includes("SOURCE = 'THIDUA'") || !pointsFile.includes("table('thidua_rounds')")) {
   throw new Error("Missing total-points history ledger.");
 }
 

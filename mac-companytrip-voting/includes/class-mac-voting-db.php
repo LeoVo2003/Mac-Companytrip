@@ -12,7 +12,10 @@ final class MAC_Voting_DB {
     public const DEFAULT_STAFF_PASSWORD = 'MAC-Trip2026';
     public const DEFAULT_VOTE_DURATION_MINUTES = 5;
     public const DEFAULT_CHECKIN_DURATION_MINUTES = 15;
-    private const DB_VERSION = '1.6.5';
+    public const CHECKIN_MAX_PER_CHECKPOINT = 150;
+    public const CHECKIN_WINDOW_MINUTES = 15;
+    public const RANK_LADDER = array(50, 40, 30, 20, 10, 0);
+    private const DB_VERSION = '1.7.0';
 
     public static function table(string $name): string {
         global $wpdb;
@@ -20,9 +23,11 @@ final class MAC_Voting_DB {
     }
 
     public static function activate(): void {
+        self::migrate_legacy_categories();
         self::install_schema();
         self::seed_reference_data();
         self::seed_checkpoints();
+        self::ensure_games();
         MAC_Points::seed_categories();
         self::ensure_vote_page();
         self::ensure_results_page();
@@ -54,6 +59,38 @@ final class MAC_Voting_DB {
         }
         self::ensure_admin_page();
         self::ensure_staff_team();
+        self::ensure_games();
+    }
+
+    private static function migrate_legacy_categories(): void {
+        global $wpdb;
+        $legacy = self::table('point_categories');
+        $target = self::table('thidua_rounds');
+        $legacy_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $legacy)) === $legacy;
+        $target_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $target)) === $target;
+        if ($legacy_exists && !$target_exists) {
+            $wpdb->query("RENAME TABLE $legacy TO $target");
+        }
+    }
+
+    private static function ensure_games(): void {
+        global $wpdb;
+        $table = self::table('games');
+        $now = self::utc_now();
+        $items = array(
+            1 => 'Trò chơi lớn 1',
+            2 => 'Trò chơi lớn 2',
+            3 => 'Trò chơi lớn 3',
+        );
+        foreach ($items as $id => $name) {
+            $wpdb->query($wpdb->prepare(
+                "INSERT IGNORE INTO $table (id,name,sort_order,created_at) VALUES (%d,%s,%d,%s)",
+                $id,
+                $name,
+                $id,
+                $now
+            ));
+        }
     }
 
     private static function install_schema(): void {
@@ -72,7 +109,10 @@ final class MAC_Voting_DB {
         $checkins = self::table('checkins');
         $results_table = self::table('checkpoint_results');
         $points = self::table('team_points');
-        $categories = self::table('point_categories');
+        $rounds_thidua = self::table('thidua_rounds');
+        $windows = self::table('checkpoint_windows');
+        $exemptions = self::table('exemptions');
+        $games = self::table('games');
 
         $queries = array(
             "CREATE TABLE $teams (
@@ -230,7 +270,7 @@ final class MAC_Voting_DB {
                 UNIQUE KEY source_team (source_type,source_id,team_id),
                 KEY team_id (team_id)
             ) $charset;",
-            "CREATE TABLE $categories (
+            "CREATE TABLE $rounds_thidua (
                 id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
                 name varchar(190) NOT NULL,
                 points int(11) NOT NULL DEFAULT 10,
@@ -238,6 +278,30 @@ final class MAC_Voting_DB {
                 created_at datetime NOT NULL,
                 PRIMARY KEY  (id),
                 UNIQUE KEY name (name)
+            ) $charset;",
+            "CREATE TABLE $windows (
+                checkpoint_id tinyint(3) unsigned NOT NULL,
+                team_id bigint(20) unsigned NOT NULL,
+                window_opens_at datetime NULL,
+                window_closes_at datetime NULL,
+                PRIMARY KEY  (checkpoint_id,team_id)
+            ) $charset;",
+            "CREATE TABLE $exemptions (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                checkpoint_id tinyint(3) unsigned NOT NULL,
+                voter_id bigint(20) unsigned NOT NULL,
+                reason varchar(500) NOT NULL DEFAULT '',
+                created_by bigint(20) unsigned NULL,
+                created_at datetime NOT NULL,
+                PRIMARY KEY  (id),
+                UNIQUE KEY one_exemption (checkpoint_id,voter_id)
+            ) $charset;",
+            "CREATE TABLE $games (
+                id tinyint(3) unsigned NOT NULL,
+                name varchar(190) NOT NULL,
+                sort_order smallint(5) unsigned NOT NULL DEFAULT 0,
+                created_at datetime NOT NULL,
+                PRIMARY KEY  (id)
             ) $charset;",
         );
 

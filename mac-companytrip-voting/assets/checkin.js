@@ -8,6 +8,11 @@
     logout: root.dataset.logout,
   };
   const esc = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
+  const remainingSeconds = (closesAt) => Math.max(0, Math.ceil((new Date(String(closesAt).replace(" ", "T") + "Z").getTime() - Date.now()) / 1000));
+  const remainingClock = (closesAt) => {
+    const seconds = remainingSeconds(closesAt);
+    return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+  };
   let bootstrap = null;
   let selectedTeamId = null;
   let flash = null;
@@ -74,8 +79,13 @@
     }
     const ratio = team.eligible ? Math.round((team.checkedIn / team.eligible) * 100) : 0;
     const flashHtml = flash ? `<div class="mc-flash ${flash.type}" role="status">${esc(flash.text)}</div>` : "";
+    const windowHtml = team.windowLocked
+      ? `<div class="mc-window locked"><span>ĐÃ KHÓA</span><strong>Cửa sổ 15 phút đã hết</strong></div>`
+      : team.windowClosesAt
+        ? `<div class="mc-window live" data-window-closes="${esc(team.windowClosesAt)}"><span>CỬA SỔ 15'</span><strong>Còn ${remainingClock(team.windowClosesAt)}</strong></div>`
+        : `<div class="mc-window idle"><span>CỬA SỔ 15'</span><strong>Mở ở lượt quét đầu tiên</strong></div>`;
     const doneHtml = team.completed ? `<div class="mc-done"><span>TEAM ĐÃ ĐỦ</span><strong>${team.checkedIn} / ${team.eligible}</strong><p>Hoàn thành ${esc(team.completedAt || "")}${team.temporaryRank ? ` · Hạng tạm thời #${team.temporaryRank}` : ""}</p></div>` : "";
-    root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing"><a class="mc-logout" href="${esc(config.logout)}">Thoát</a></header><section class="mc-card"><p class="mc-kicker">CHECK-IN — TEAM ${team.teamNumber}</p><h1>${esc(team.teamName)}</h1><p class="mc-meta">MỐC ${checkpoint.id} · ${esc(checkpoint.name)}</p>${bootstrap.allowedTeams.length > 1 ? `<div class="mc-teams">${bootstrap.allowedTeams.map((item) => `<button type="button" class="${String(item.teamId) === String(team.teamId) ? "active" : ""}" data-team="${item.teamId}">#${item.teamNumber} ${esc(item.teamName)}<span>${item.checkedIn}/${item.eligible}</span></button>`).join("")}</div>` : ""}<div class="mc-progress"><strong>${team.checkedIn} / ${team.eligible}</strong><div class="mc-bar" aria-hidden="true"><b style="width:${ratio}%"></b></div></div>${flashHtml}${doneHtml}<div class="mc-camera"><video id="mc-video" playsinline muted autoplay></video><canvas id="mc-canvas"></canvas><div class="mc-frame" aria-hidden="true"></div></div><p class="mc-kicker">CÒN THIẾU</p><ul class="mc-missing">${team.missingMembers.length ? team.missingMembers.map((member) => `<li><span>${esc(member.fullName)}</span></li>`).join("") : `<li>Đã đủ người</li>`}</ul></section></main>`;
+    root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing"><a class="mc-logout" href="${esc(config.logout)}">Thoát</a></header><section class="mc-card"><p class="mc-kicker">CHECK-IN — TEAM ${team.teamNumber}</p><h1>${esc(team.teamName)}</h1><p class="mc-meta">MỐC ${checkpoint.id} · ${esc(checkpoint.name)}</p>${windowHtml}${bootstrap.allowedTeams.length > 1 ? `<div class="mc-teams">${bootstrap.allowedTeams.map((item) => `<button type="button" class="${String(item.teamId) === String(team.teamId) ? "active" : ""}" data-team="${item.teamId}">#${item.teamNumber} ${esc(item.teamName)}<span>${item.checkedIn}/${item.eligible}</span></button>`).join("")}</div>` : ""}<div class="mc-progress"><strong>${team.checkedIn} / ${team.eligible}</strong><div class="mc-bar" aria-hidden="true"><b style="width:${ratio}%"></b></div></div>${flashHtml}${doneHtml}<div class="mc-camera"><video id="mc-video" playsinline muted autoplay></video><canvas id="mc-canvas"></canvas><div class="mc-frame" aria-hidden="true"></div></div><p class="mc-kicker">CÒN THIẾU</p><ul class="mc-missing">${team.missingMembers.length ? team.missingMembers.map((member) => `<li><span>${esc(member.fullName)}</span></li>`).join("") : `<li>Đã đủ người</li>`}</ul></section></main>`;
     root.querySelectorAll("[data-team]").forEach((button) => button.addEventListener("click", () => { selectedTeamId = button.dataset.team; flash = null; render(); startCamera(); }));
   }
 
@@ -123,6 +133,19 @@
     if (missing) missing.innerHTML = team.missingMembers.length ? team.missingMembers.map((member) => `<li><span>${esc(member.fullName)}</span></li>`).join("") : `<li>Đã đủ người</li>`;
     const teamBtn = root.querySelector(`[data-team="${team.teamId}"] span`);
     if (teamBtn) teamBtn.textContent = `${team.checkedIn}/${team.eligible}`;
+    const windowBox = root.querySelector(".mc-window");
+    if (windowBox) {
+      windowBox.className = `mc-window ${team.windowLocked ? "locked" : team.windowClosesAt ? "live" : "idle"}`;
+      if (team.windowClosesAt) windowBox.dataset.windowCloses = team.windowClosesAt;
+      else delete windowBox.dataset.windowCloses;
+      const label = windowBox.querySelector("span");
+      const value = windowBox.querySelector("strong");
+      if (label && value) {
+        if (team.windowLocked) { label.textContent = "ĐÃ KHÓA"; value.textContent = "Cửa sổ 15 phút đã hết"; }
+        else if (team.windowClosesAt) { label.textContent = "CỬA SỔ 15'"; value.textContent = `Còn ${remainingClock(team.windowClosesAt)}`; }
+        else { label.textContent = "CỬA SỔ 15'"; value.textContent = "Mở ở lượt quét đầu tiên"; }
+      }
+    }
   }
 
   function showFlash(type, text) {
@@ -154,11 +177,29 @@
     } catch (err) {
       const extra = err.payload || {};
       if (extra.teamProgress) applyTeam(extra.teamProgress);
-      const type = extra.code === "ALREADY_CHECKED_IN" || extra.code === "already_checked_in" ? "warn" : "err";
-      showFlash(type, err.message);
+      const locked = extra.code === "WINDOW_LOCKED" || extra.code === "window_locked";
+      const type = locked ? "err" : extra.code === "ALREADY_CHECKED_IN" || extra.code === "already_checked_in" ? "warn" : "err";
+      showFlash(type, locked ? `Hết 15 phút. ${err.message}` : err.message);
     }
   }
 
   window.addEventListener("pagehide", stopCamera);
+  setInterval(() => {
+    root.querySelectorAll("[data-window-closes]").forEach((box) => {
+      const seconds = remainingSeconds(box.dataset.windowCloses);
+      const value = box.querySelector("strong");
+      if (!value) return;
+      if (seconds <= 0) {
+        box.classList.remove("live");
+        box.classList.add("locked");
+        const label = box.querySelector("span");
+        if (label) label.textContent = "ĐÃ KHÓA";
+        value.textContent = "Cửa sổ 15 phút đã hết";
+        delete box.dataset.windowCloses;
+      } else {
+        value.textContent = `Còn ${remainingClock(box.dataset.windowCloses)}`;
+      }
+    });
+  }, 1000);
   load();
 })();

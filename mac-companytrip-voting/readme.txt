@@ -3,14 +3,14 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.6.3
+Stable tag: 1.7.0
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
 == Cài đặt ==
 
 1. Vào WordPress Admin > Plugins > Add New > Upload Plugin.
-2. Tải lên file mac-companytrip-voting-v1.6.3.zip và Activate. Sau bản này WordPress tự cập nhật từ GitHub Releases.
+2. Tải lên file mac-companytrip-voting-v1.7.0.zip và Activate. Sau bản này WordPress tự cập nhật từ GitHub Releases.
 3. Plugin tự tạo trang Chấm Điểm Văn Nghệ [mac_companytrip_vote], trang Kết Quả Văn Nghệ [mac_companytrip_results], trang Check-in [mac_companytrip_checkin] và dashboard [mac_companytrip_admin].
 4. Mở /company-trip-admin/ để đăng nhập dashboard. Không cần vào wp-admin.
 5. Super admin thao tác toàn bộ. BTC xem dashboard và vào máy quét /company-trip-checkin/. Cả hai role được tạo từ CSV và không có quyền wp-admin.
@@ -29,7 +29,7 @@ Cột tùy chọn: Mã NV, Trạng thái, Vai trò, Mật khẩu. File phải l�
 
 Email có thể ghi đầy đủ hoặc chỉ username. Hệ thống chấp nhận @macusaone.com, @yesoffice.vn và @macmarketing.vn; khi chỉ ghi username, mặc định là @macusaone.com.
 
-Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riêng. BTC/Super admin luôn thuộc Team #7 Hoa tiêu, không tham gia chấm điểm hoặc các hạng mục. Cột Mật khẩu để trống sẽ dùng mặc định MAC-Trip2026.
+Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riêng. BTC/Super admin luôn thuộc Team #7 Hoa tiêu, không tham gia chấm điểm hoặc các lần thi đua. Cột Mật khẩu để trống sẽ dùng mặc định MAC-Trip2026.
 
 == Quy tắc ==
 
@@ -61,9 +61,20 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 
 == Phase 4 ==
 
-- Tab Tổng điểm: dashboard 6 team, thêm hạng mục và cộng/trừ điểm từng đội.
+- Bảng điểm 4 trụ cột: Check-in (4 mốc x 150đ), Trò chơi lớn (3 game, hạng 1-6 nhận 50/40/30/20/10/0đ), Văn nghệ (quy đổi ROUND(TB phiếu ÷ 150 × 200)) và Thi đua (thang 50/40/30/20/10, không giới hạn).
+- Mỗi team có cửa sổ 15 phút cho mỗi mốc check-in, bắt đầu từ lượt quét đầu tiên; hết giờ máy quét khóa và báo lỗi.
+- Admin miễn check-in từng mốc kèm lý do; người miễn không tính vào mẫu số và ẩn khỏi danh sách còn thiếu.
+- Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.7.0 =
+- Bảng điểm 4 trụ cột: Check-in 600đ, Trò chơi lớn 150đ, Văn nghệ 200đ quy đổi từ TB phiếu hợp lệ, Thi đua không giới hạn.
+- Cửa sổ check-in 15 phút cho từng team mỗi mốc, đồng hồ server, hết giờ khóa quét.
+- Miễn check-in theo mốc kèm lý do, trừ khỏi mẫu số điểm.
+- Xếp hạng 3 trò chơi lớn theo thang 50/40/30/20/10/0đ.
+- Điểm thi đua chỉ nhận thang 50/40/30/20/10/0; hạng mục cũ tự chuyển thành lần thi đua và giữ dữ liệu.
+- Đặt lại sự kiện xóa thêm cửa sổ, danh sách miễn và điểm game/thi đua.
 
 = 1.6.3 =
 - Thêm domain email @macmarketing.vn cho login và import CSV.

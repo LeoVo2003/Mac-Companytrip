@@ -2680,3 +2680,96 @@ body.mac-admin-public-page .ma-side {
     margin: 0 0 0 auto;
   }
 }
+
+.ma-check-fixed {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: #065f46;
+  background: #ecfdf3;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ma-window-badge {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ma-window-badge.live {
+  color: #175cd3;
+  background: #eff8ff;
+  border: 1px solid #b2ddff;
+}
+
+.ma-window-badge.locked {
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+}
+
+.ma-window-badge.idle {
+  color: #475467;
+  background: #f9fafb;
+  border: 1px solid var(--border);
+}
+
+.ma-exempt-form {
+  display: grid;
+  gap: 12px;
+  padding: 16px 20px 20px;
+}
+
+.ma-exempt-form label {
+  display: grid;
+  gap: 6px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.ma-exempt-form select,
+.ma-exempt-form input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.ma-exempt-form .ma-primary {
+  justify-self: start;
+}
+
+.ma-games-panel select {
+  min-height: 40px;
+  width: 100%;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  font-size: 13px;
+}
+
+.ma-games-panel .ma-games-total td {
+  border-top: 2px solid var(--border);
+  background: #f9fafb;
+}
+
+.ma-award-presets button.is-zero {
+  color: #475467;
+}
+
+.ma-award-presets button.is-zero.is-selected {
+  color: #fff;
+  background: #475467;
+}
