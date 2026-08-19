@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.7.2";
+const tag = "v1.7.3";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Sửa updater: ưu tiên tải đúng zip trùng phiên bản tag, tránh nhặt nhầm zip cũ do workflow đính kèm.",
-  "- Release script tự xóa zip thừa khác phiên bản khỏi release.",
-  "- Giữ nguyên toàn bộ thay đổi UI của 1.7.1: 6 tab sidebar, duration inline, ma trận check-in, tab Trò chơi lớn, đồng bộ hover.",
+  "- Thay toàn bộ alert/confirm mặc định bằng popup xác nhận đồng bộ thiết kế (mở mốc, bật/tắt cổng, lượt vote, xóa team, tạo lại QR…).",
+  "- Làm lại nút Tắt/Bật cổng văn nghệ và hàng điều khiển lượt vote (tự đóng sau + Mở vote/Mở lại).",
+  "- Tên team dài trong biểu đồ tổng quan tự xuống dòng; sửa màu hover; bảng có khoảng hở với mép panel.",
+  "- Tối ưu mobile/tablet: biểu đồ 3 cột ≤700px, 2 cột ≤430px, thẻ mốc 1 cột, nút lượt vote dàn đều.",
 ].join("\n");
 
 let release;

@@ -2986,3 +2986,126 @@ body.mac-admin-public-page .ma-side {
 .ma-people-table tbody tr:hover td {
   background: var(--soft);
 }
+
+/* v1.7.3 — confirm dialog message, gate button, hover sync, chart wrap, mobile/tablet */
+.ma-confirm-message {
+  margin: 0;
+  padding: 0 20px 18px;
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ma-panel .ma-board-table {
+  margin: 0 16px 16px;
+}
+
+.ma-round-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.ma-gate #ma-gate {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ma-gate button.danger {
+  color: #b42318;
+  border-color: #fecdca;
+  background: #fef3f2;
+}
+
+.ma-gate button.danger:hover:not(:disabled) {
+  border-color: #f97066;
+  background: #fee4e2;
+}
+
+.ma-gate button.ma-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: 0 6px 14px rgba(227, 30, 36, 0.25);
+}
+
+.ma-check-card button:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--soft);
+}
+
+.ma-check-card button.danger:hover:not(:disabled) {
+  border-color: #f97066;
+  background: #fee4e2;
+}
+
+.ma-check-card button.ma-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: 0 6px 14px rgba(227, 30, 36, 0.25);
+  background: var(--grad);
+}
+
+.ma-people-actions button:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--soft);
+}
+
+.ma-game-row select:hover {
+  border-color: var(--border-strong);
+}
+
+.ma-duration input:hover {
+  border-color: var(--border-strong);
+}
+
+.ma-chart-col figcaption b,
+.ma-chart-col figcaption small {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 700px) {
+  .ma-chart {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding: 12px 12px 18px;
+  }
+
+  .ma-chart-col {
+    min-height: 210px;
+  }
+
+  .ma-chart-track {
+    height: 120px;
+  }
+
+  .ma-check-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .ma-chart {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .ma-round-controls {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .ma-round-controls button {
+    flex: 1 1 140px;
+  }
+
+  .ma-panel .ma-board-table {
+    margin: 0 10px 14px;
+  }
+}
