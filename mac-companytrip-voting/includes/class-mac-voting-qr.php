@@ -5,12 +5,15 @@ if (!defined('ABSPATH')) {
 }
 
 final class MAC_Voting_QR {
+    // 16 hex chars = 64-bit MAC: plenty for event QRs while keeping the QR small enough to scan reliably.
+    private const SIG_LEN = 16;
+
     public static function token_for_voter(int $voter_id, int $qr_version): string {
         $encoded = self::base64url(wp_json_encode(array(
-            'voter_id' => $voter_id,
-            'qr_version' => $qr_version,
+            'i' => $voter_id,
+            'v' => $qr_version,
         )));
-        return $encoded . '.' . hash_hmac('sha256', $encoded, wp_salt('auth'));
+        return $encoded . '.' . substr(hash_hmac('sha256', $encoded, wp_salt('auth')), 0, self::SIG_LEN);
     }
 
     public static function url_for_voter(int $voter_id, int $qr_version): string {
@@ -33,7 +36,7 @@ final class MAC_Voting_QR {
 
     public static function verify(string $raw, bool $allow_unsigned = false) {
         global $wpdb;
-        $scanned = array('scanned' => mb_substr($raw, 0, 60));
+        $scanned = array('scanned' => mb_substr($raw, 0, 120));
         $token = self::extract_token($raw);
         if (!$token || strpos($token, '.') === false) {
             return new WP_Error('qr_bad_format', 'QR không đúng định dạng của hệ thống (thiếu mã xác thực).', array('status' => 400) + $scanned);
@@ -42,12 +45,13 @@ final class MAC_Voting_QR {
         $encoded = $parts[0];
         $signature = $parts[1];
         $expected = hash_hmac('sha256', $encoded, wp_salt('auth'));
-        $signature_ok = hash_equals($expected, $signature);
+        $signature_ok = self::signature_matches($expected, $signature);
         if (!$signature_ok && !$allow_unsigned) {
             return new WP_Error('qr_bad_signature', 'QR không khớp chữ ký của website này. Hãy đảm bảo dashboard và máy quét cùng mở trên một miền.', array('status' => 400) + $scanned);
         }
         $payload = json_decode(self::base64url_decode($encoded), true);
-        if (!is_array($payload) || empty($payload['voter_id'])) {
+        $voter_id = is_array($payload) ? ($payload['voter_id'] ?? $payload['i'] ?? null) : null;
+        if (!is_array($payload) || !is_numeric($voter_id) || (int) $voter_id <= 0) {
             return new WP_Error('qr_bad_format', 'QR không đúng định dạng của hệ thống.', array('status' => 400) + $scanned);
         }
         $voters = MAC_Voting_DB::table('voters');
@@ -55,7 +59,7 @@ final class MAC_Voting_QR {
         $row = $wpdb->get_row($wpdb->prepare(
             "SELECT v.id,v.full_name,v.email,v.team_id,v.qr_version,v.status,t.name AS team_name,t.team_no
              FROM $voters v JOIN $teams t ON t.id=v.team_id WHERE v.id=%d",
-            (int) $payload['voter_id']
+            (int) $voter_id
         ), ARRAY_A);
         if (!$row) {
             return new WP_Error('invalid_qr', 'QR không hợp lệ.', array('status' => 400));
@@ -63,7 +67,7 @@ final class MAC_Voting_QR {
         if ($row['status'] !== 'ACTIVE') {
             return new WP_Error('qr_inactive', 'QR của ' . $row['full_name'] . ' không dùng được vì nhân sự không còn trạng thái ACTIVE.', array('status' => 400));
         }
-        if ((int) ($payload['qr_version'] ?? 0) !== (int) $row['qr_version']) {
+        if ((int) ($payload['qr_version'] ?? $payload['v'] ?? 0) !== (int) $row['qr_version']) {
             return new WP_Error('qr_stale', 'QR đã cũ. Hãy quét QR mới nhất trong email mới hoặc mục Nhân sự & QR.', array('status' => 400) + $scanned);
         }
         $row['mac_signature_ok'] = $signature_ok;
@@ -145,11 +149,26 @@ final class MAC_Voting_QR {
         </style></head><body><main><img src="' . $logo . '" alt="MAC Marketing"><p class="kicker">MAC COMPANY TRIP</p><h1>' . $title_attr . '</h1><p class="copy">' . $message_attr . '</p></main></body></html>';
     }
 
+    private static function signature_matches(string $expected, string $signature): bool {
+        if ($signature === '' || strlen($signature) > strlen($expected)) {
+            return false;
+        }
+        if (strlen($signature) === strlen($expected)) {
+            return hash_equals($expected, $signature);
+        }
+        // Compact tokens carry a truncated MAC; compare prefix with a safe minimum length.
+        if (strlen($signature) >= self::SIG_LEN) {
+            return hash_equals(substr($expected, 0, strlen($signature)), $signature);
+        }
+        return false;
+    }
+
     private static function base64url(string $value): string {
         return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
     }
 
     private static function base64url_decode(string $value): string {
+        $value = rtrim($value, '=');
         $remainder = strlen($value) % 4;
         if ($remainder) {
             $value .= str_repeat('=', 4 - $remainder);

@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.7.7";
+const tag = "v1.7.8";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Máy quét check-in nhận QR ngay cả khi chữ ký khác environment (fallback có audit), hết \"QR không hợp lệ\" khi dashboard và máy quét khác miền/salt.",
-  "- Lỗi QR nói rõ lý do (sai định dạng / sai chữ ký / QR cũ / không ACTIVE) kèm đoạn mã đã quét để bắt lỗi.",
+  "- QR ngắn còn ~72 ký tự (trước 142): mắt QR thưa hơn nên camera điện thoại đọc chắc hơn hẳn; QR dài cũ vẫn quét được bình thường.",
+  "- Tự flush rewrite rules khi nâng phiên bản: link QR /company-trip/q/... mở bằng camera mặc định vào thẳng trang vote thay vì văng về trang chủ.",
+  "- Lỗi quét kèm đoạn mã dài hơn (120 ký tự) để bắt lỗi nhanh nếu còn QR khó đọc.",
 ].join("\n");
 
 let release;

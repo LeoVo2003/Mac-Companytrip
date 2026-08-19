@@ -37,29 +37,39 @@ final class MAC_Voting_DB {
             add_option('mac_voting_public_enabled', '0', '', false);
         }
         MAC_Checkin::register_roles();
-        if (isset($GLOBALS['wp_rewrite'])) {
-            $page_id = (int) get_option('mac_voting_page_id');
-            if ($page_id) add_rewrite_rule('^cham-diem-van-nghe/?$', 'index.php?page_id=' . $page_id, 'top');
-            $results_page_id = (int) get_option('mac_voting_results_page_id');
-            if ($results_page_id) add_rewrite_rule('^ket-qua-van-nghe/?$', 'index.php?page_id=' . $results_page_id, 'top');
-            $checkin_page_id = (int) get_option('mac_voting_checkin_page_id');
-            if ($checkin_page_id) add_rewrite_rule('^company-trip-checkin/?$', 'index.php?page_id=' . $checkin_page_id, 'top');
-            $admin_page_id = (int) get_option('mac_voting_admin_page_id');
-            if ($admin_page_id) add_rewrite_rule('^company-trip-admin/?$', 'index.php?page_id=' . $admin_page_id, 'top');
-            add_rewrite_rule('^company-trip/q/([^/]+)/?$', 'index.php?mac_qr_token=$matches[1]', 'top');
-            flush_rewrite_rules(false);
-        }
+        self::register_rewrites();
         update_option('mac_voting_db_version', self::DB_VERSION, false);
+        update_option('mac_voting_plugin_version', MAC_VOTING_VERSION, false);
     }
 
     public static function maybe_upgrade(): void {
         if (get_option('mac_voting_db_version') !== self::DB_VERSION) {
             self::activate();
+        } else {
+            self::ensure_admin_page();
+            self::ensure_staff_team();
+            self::ensure_games();
+        }
+        if (get_option('mac_voting_plugin_version') !== MAC_VOTING_VERSION) {
+            self::register_rewrites();
+            update_option('mac_voting_plugin_version', MAC_VOTING_VERSION, false);
+        }
+    }
+
+    public static function register_rewrites(): void {
+        if (!isset($GLOBALS['wp_rewrite'])) {
             return;
         }
-        self::ensure_admin_page();
-        self::ensure_staff_team();
-        self::ensure_games();
+        $page_id = (int) get_option('mac_voting_page_id');
+        if ($page_id) add_rewrite_rule('^cham-diem-van-nghe/?$', 'index.php?page_id=' . $page_id, 'top');
+        $results_page_id = (int) get_option('mac_voting_results_page_id');
+        if ($results_page_id) add_rewrite_rule('^ket-qua-van-nghe/?$', 'index.php?page_id=' . $results_page_id, 'top');
+        $checkin_page_id = (int) get_option('mac_voting_checkin_page_id');
+        if ($checkin_page_id) add_rewrite_rule('^company-trip-checkin/?$', 'index.php?page_id=' . $checkin_page_id, 'top');
+        $admin_page_id = (int) get_option('mac_voting_admin_page_id');
+        if ($admin_page_id) add_rewrite_rule('^company-trip-admin/?$', 'index.php?page_id=' . $admin_page_id, 'top');
+        add_rewrite_rule('^company-trip/q/([^/]+)/?$', 'index.php?mac_qr_token=$matches[1]', 'top');
+        flush_rewrite_rules(false);
     }
 
     private static function migrate_legacy_categories(): void {
