@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.13";
+const tag = "v1.8.14";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Redesign màn công bố kết quả theo bộ nhận diện \"One Compass\": biển đêm sâu + la bàn đồng cổ, tiêu đề serif khắc bảng đồng.",
-  "- La bàn SVG watermark sau biểu đồ, kim quay thuần CSS theo từng giai đoạn: đung đưa → quay loạn → lưỡng lự → khóa hướng + glow vàng đồng khi quán quân.",
-  "- Cột điểm: mặc định đồng brass, hạng nhì bạc pewter, hạng ba đồng tối, quán quân vàng đồng hoàng hôn; pháo hoa kim tuyến vàng đồng.",
-  "- Ẩn footer, logo nhỏ hơn, nới khoảng cách tiêu đề ↔ biểu đồ; badge hạng gọn trên mobile.",
+  "- Kicker màn chờ đổi từ \"MAC MARKETING\" sang \"KẾT QUẢ VĂN NGHỆ\".",
+  "- h1 nâng line-height lên 1.2 cho thoáng chữ có dấu tiếng Việt.",
 ].join("\n");
 
 let release;
