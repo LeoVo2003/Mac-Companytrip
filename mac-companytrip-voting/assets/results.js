@@ -19,7 +19,7 @@
   let pyroStop = null;
 
   function shell(teams) {
-    root.innerHTML = `<div class="mr-shell" data-stage="idle"><canvas class="mr-pyro" aria-hidden="true"></canvas><div class="mr-aurora" aria-hidden="true"><i></i><i></i><i></i></div><header class="mr-header"><img src="${esc(logo)}" alt="MAC Marketing"><div class="mr-event"><span>COMPANY TRIP · AWARD NIGHT</span><strong>KẾT QUẢ VĂN NGHỆ</strong></div><div class="mr-connection" role="status"><i></i><span>Đang đồng bộ</span></div></header><main><div class="mr-heading" aria-live="polite"><p>MAC MARKETING</p><h1>Khoảnh khắc đang đến gần</h1><span>6 đội · 1 sân khấu · 1 ngôi vị cao nhất</span></div><section class="mr-chart" aria-label="Biểu đồ điểm của 6 đội">${teams.map((team) => `<article class="mr-team" data-team-id="${team.id}" role="group" aria-label="Team số ${team.number} ${esc(team.name)}"><div class="mr-score"><span>—</span><small>ĐIỂM</small></div><div class="mr-column"><div class="mr-rank" hidden></div><div class="mr-bar"><span></span><i></i></div><div class="mr-base"></div></div><div class="mr-team-name"><b>#${team.number}</b><strong>${esc(team.name)}</strong></div></article>`).join("")}</section></main><footer class="mr-footer"><span class="mr-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE RESULT</span></div></footer></div>`;
+    root.innerHTML = `<div class="mr-shell" data-stage="idle"><canvas class="mr-pyro" aria-hidden="true"></canvas><div class="mr-aurora" aria-hidden="true"><i></i><i></i><i></i></div><header class="mr-header"><img src="${esc(logo)}" alt="MAC Marketing"><div class="mr-event"><span>COMPANY TRIP · ONE COMPASS</span><strong>KẾT QUẢ VĂN NGHỆ</strong></div><div class="mr-connection" role="status"><i></i><span>Đang đồng bộ</span></div></header><main><div class="mr-heading" aria-live="polite"><p>MAC MARKETING</p><h1>Khoảnh khắc đang đến gần</h1><span>6 đội · 1 hải trình · 1 ngôi vị cao nhất</span></div><section class="mr-chart" aria-label="Biểu đồ điểm của 6 đội">${teams.map((team) => `<article class="mr-team" data-team-id="${team.id}" role="group" aria-label="Team số ${team.number} ${esc(team.name)}"><div class="mr-score"><span>—</span><small>ĐIỂM</small></div><div class="mr-column"><div class="mr-rank" hidden></div><div class="mr-bar"><span></span><i></i></div><div class="mr-base"></div></div><div class="mr-team-name"><b>#${team.number}</b><strong>${esc(team.name)}</strong></div></article>`).join("")}</section></main><footer class="mr-footer"><span class="mr-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE RESULT</span></div></footer></div>`;
   }
 
   function setConnection(connected) {
@@ -62,7 +62,7 @@
   }
 
   function renderIdle() {
-    setHeading("MAC MARKETING", "Khoảnh khắc đang đến gần", "6 đội · 1 sân khấu · 1 ngôi vị cao nhất", "Sẵn sàng công bố");
+    setHeading("MAC MARKETING", "Khoảnh khắc đang đến gần", "6 đội · 1 hải trình · 1 ngôi vị cao nhất", "Sẵn sàng công bố");
     state.teams.forEach((team, index) => {
       const element = teamElement(team.id);
       clearTeamState(element);
@@ -202,7 +202,7 @@
     const canvas = root.querySelector(".mr-pyro");
     const context = canvas.getContext("2d");
     const particles = [];
-    const colors = ["#e31e24", "#ff6a2c", "#ffb84d", "#ffffff", "#ffd76a"];
+    const colors = ["#ffffff", "#ffd76a", "#9ed2ff", "#ffc34e", "#dbe9f8"];
     let frame = 0;
     let running = true;
     let started = performance.now();

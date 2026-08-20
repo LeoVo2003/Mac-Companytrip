@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.0";
+const tag = "v1.8.12";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Màn công bố tổng điểm chung cuộc \"Race to the Crown\" tại /ket-qua-tong/: màn chiếu dark toàn màn hình, đồng bộ ~1 giây.",
-  "- Kịch bản 13 trạng thái: khóa snapshot → mở dần 4 trụ cột → khóa → loại dần → Top 3 → hạng ba → FINAL DUEL chạy số → á quân → quán quân → bảng tổng sắp.",
-  "- Hỗ trợ đồng hạng theo nhóm hạng (1,1,3): phase thiếu nhóm hạng tự bỏ qua, quán quân có thể đồng hạng; LÙI 1 bước + đặt lại kèm xác nhận.",
-  "- Tổng quan thêm sub-tab Chung kết cho super admin điều khiển; đặt lại sự kiện xóa luôn snapshot màn tổng.",
+  "- Nút \"Áp dữ liệu demo\" kín ở sidebar (chỉ super admin): 1 click ghi 48 nhân sự ảo + 240 phiếu + điểm check-in/trò chơi/thi đua vào database.",
+  "- Bấm lại chỉ ghi đè bộ demo, không nhân bản; dữ liệu giữ nguyên tới khi Đặt lại sự kiện.",
+  "- Màn hình công bố kết quả đổi chủ đề hải trình: sky → deep sea, tiêu đề chrome bạc, cột xanh đại dương, vàng kim chỉ cho quán quân.",
+  "- Pháo hoa và copy màn hình theo tông biển (One Compass, ✦).",
 ].join("\n");
 
 let release;

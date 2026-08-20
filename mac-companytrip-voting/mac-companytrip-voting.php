@@ -3,7 +3,7 @@
  * Plugin Name: MAC Company Trip Voting
  * Plugin URI: https://macmarketing.vn/
  * Description: Hệ thống chấm điểm văn nghệ Company Trip, có quản lý team linh hoạt, khóa vote team mình, chống phiếu trùng và audit log.
- * Version: 1.9.0
+ * Version: 1.8.12
  * Author: MAC Marketing
  * Text Domain: mac-companytrip-voting
  * Requires at least: 6.0
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('MAC_VOTING_VERSION', '1.9.0');
+define('MAC_VOTING_VERSION', '1.8.12');
 define('MAC_VOTING_FILE', __FILE__);
 define('MAC_VOTING_DIR', plugin_dir_path(__FILE__));
 define('MAC_VOTING_URL', plugin_dir_url(__FILE__));
@@ -36,7 +36,6 @@ require_once MAC_VOTING_DIR . 'includes/class-mac-checkin-public.php';
 require_once MAC_VOTING_DIR . 'includes/class-mac-voting-admin.php';
 require_once MAC_VOTING_DIR . 'includes/class-mac-admin-public.php';
 require_once MAC_VOTING_DIR . 'includes/class-mac-admin-rest.php';
-require_once MAC_VOTING_DIR . 'includes/class-mac-final-reveal.php';
 require_once MAC_VOTING_DIR . 'includes/class-mac-voting-updater.php';
 
 register_activation_hook(__FILE__, array('MAC_Voting_DB', 'activate'));
@@ -50,7 +49,6 @@ function mac_voting_bootstrap(): void {
     MAC_Checkin_Public::init();
     MAC_Admin_REST::init();
     MAC_Admin_Public::init();
-    MAC_Final_Reveal::init();
     MAC_Voting_Updater::init();
     if (is_admin()) {
         MAC_Voting_Admin::init();

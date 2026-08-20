@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.0
+Stable tag: 1.8.12
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -11,7 +11,7 @@ Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh ho
 
 1. Vào WordPress Admin > Plugins > Add New > Upload Plugin.
 2. Tải lên file mac-companytrip-voting-v1.7.1.zip và Activate. Sau bản này WordPress tự cập nhật từ GitHub Releases.
-3. Plugin tự tạo trang Chấm Điểm Văn Nghệ [mac_companytrip_vote], trang Kết Quả Văn Nghệ [mac_companytrip_results], trang Check-in [mac_companytrip_checkin], dashboard [mac_companytrip_admin] và màn công bố tổng [mac_companytrip_final].
+3. Plugin tự tạo trang Chấm Điểm Văn Nghệ [mac_companytrip_vote], trang Kết Quả Văn Nghệ [mac_companytrip_results], trang Check-in [mac_companytrip_checkin] và dashboard [mac_companytrip_admin].
 4. Mở /company-trip-admin/ để đăng nhập dashboard. Không cần vào wp-admin.
 5. Super admin thao tác toàn bộ. BTC xem dashboard và vào máy quét /company-trip-checkin/. Cả hai role được tạo từ CSV và không có quyền wp-admin.
 6. Cổng văn nghệ mặc định tắt. Bật khi bắt đầu chấm điểm.
@@ -68,12 +68,11 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 
 == Changelog ==
 
-= 1.9.0 =
-- Màn công bố tổng điểm chung cuộc "Race to the Crown" tại /ket-qua-tong/: màn chiếu dark toàn màn hình, tự đồng bộ với điều khiển admin khoảng 1 giây.
-- Kịch bản 13 trạng thái: khóa snapshot điểm → mở dần 4 trụ cột Check-in / Trò chơi / Thi đua / Văn nghệ (bảng đua xếp lại FLIP) → khóa → loại dần từ hạng thấp → Top 3 → hạng ba → FINAL DUEL chạy số → á quân → quán quân → bảng tổng sắp.
-- Hỗ trợ đồng hạng theo nhóm hạng kiểu competition (1,1,3): phase thiếu nhóm hạng tự bỏ qua, quán quân có thể đồng hạng; lùi 1 bước và đặt lại kèm xác nhận.
-- Tổng quan thêm sub-tab Chung kết: nút tiến theo từng bước kịch bản, nút LÙI, đặt lại màn tổng và nút mở màn chiếu; chỉ super admin điều khiển được.
-- Đặt lại sự kiện xóa luôn snapshot màn công bố tổng; mọi thao tác điều khiển ghi audit log.
+= 1.8.12 =
+- Thêm nút "Áp dữ liệu demo" đặt kín ở sidebar (chỉ super admin): 1 click ghi bộ dữ liệu diễn tập vào database — 48 nhân sự ảo, 240 phiếu hợp lệ, điểm check-in · trò chơi · thi đua theo kịch bản.
+- Bấm lại chỉ ghi đè bộ demo, không nhân bản; dữ liệu lưu trong database cho tới khi "Đặt lại sự kiện".
+- Màn hình công bố kết quả chuyển sang chủ đề hải trình: bầu trời powder-blue đổ xuống biển sâu, tiêu đề chrome bạc, cột điểm xanh đại dương, á quân/hạng ba chrome bạc và vàng kim chỉ dành cho quán quân.
+- Pháo hoa quán quân và copy màn hình đổi theo tông biển (One Compass, ✦ la bàn).
 
 = 1.8.11 =
 - Sửa loader bánh xe: 9 bi nằm đều trên vành khuyên, pulse đuổi tuần tự (bản trước bi bay từ tâm ra nên tụm lại xấu).

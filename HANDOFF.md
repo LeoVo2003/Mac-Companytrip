@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.0** (đã release & verify ngày 2026-08-20, release id 373601015, commit 4adaa3a).
+> Phiên bản hiện tại: **v1.8.11** (đã release & verify ngày 2026-08-20, release id 373515064).
 
 ---
 
@@ -20,7 +20,6 @@ Các trang public do plugin tự tạo (rewrite slug):
 
 - `/cham-diem-van-nghe/` — trang vote văn nghệ
 - `/ket-qua-van-nghe/` — màn hình kết quả/trình chiếu
-- `/ket-qua-tong/` — màn công bố **tổng điểm chung cuộc** "Race to the Crown" (v1.9.0)
 - `/company-trip-checkin/` — trang **Quét QR check-in** (BTC quét QR thành viên)
 - `/company-trip-admin/` — dashboard admin (không dùng wp-admin)
 
@@ -32,9 +31,9 @@ Các trang public do plugin tự tạo (rewrite slug):
 Chấm Điểm Văn Nghệ/
 ├── mac-companytrip-voting/          # source plugin (đây là thứ được zip/release)
 │   ├── mac-companytrip-voting.php   # bootstrap, define MAC_VOTING_VERSION
-│   ├── includes/                    # 17 class PHP + template-admin-page.php + template-final-page.php (trang standalone)
+│   ├── includes/                    # 16 class PHP + template-admin-page.php (trang standalone)
 │   ├── assets/                      # admin.js/css, checkin.js/css, public.js/css,
-│   │                                # results.js/css, final.js/css, qrcode.bundle.js, jsqr.js, fonts
+│   │                                # results.js/css, qrcode.bundle.js, jsqr.js, fonts
 │   ├── readme.txt                   # changelog chính thức
 │   └── uninstall.php
 ├── tools/
@@ -60,7 +59,6 @@ Chấm Điểm Văn Nghệ/
 - `class-mac-admin-rest.php` — REST login (`/admin/login`, wp_signon)
 - `class-mac-voting-auth.php` — rate limit login
 - `class-mac-voting-updater.php` — tự cập nhật plugin từ GitHub Release
-- `class-mac-final-reveal.php` — **(v1.9.0)** màn công bố tổng điểm chung cuộc: state machine 13 trạng thái (READY→BUILD_*→LOCKED→BOTTOM→TOP3→BRONZE→DUEL→RUNNER_UP→CHAMPION→BOARD), snapshot đóng băng điểm + nhóm hạng đồng hạng kiểu competition (1,1,3), REST GET `mac-voting/v1/final-reveal`, admin-ajax `mac_final_reveal` (op next/back/reset, super admin), audit FINAL_REVEAL_*; trang `/ket-qua-tong/` render bằng `template-final-page.php`
 - `class-mac-checkin-public.php` / `class-mac-voting-public.php` — render trang public
 
 ---
@@ -140,17 +138,7 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.0 (2026-08-20, commit 4adaa3a, release id 373601015) — mới nhất
-
-- **Race to the Crown** — màn công bố tổng điểm chung cuộc tại `/ket-qua-tong/`:
-  - Backend `class-mac-final-reveal.php`: snapshot (`mac_final_score_snapshot`) đóng băng lúc BẮT ĐẦU từ `MAC_Points::dashboard()`, nhóm hạng competition ranking (đồng hạng cùng total); state lưu option `mac_final_reveal_state` {state, revision, changedAt}; `next_state()`/`prev_state()` tự skip phase thiếu nhóm hạng (không có rank>3 thì LOCKED→TOP3, thiếu rank 3 thì TOP3→DUEL, thiếu rank 2 thì DUEL→CHAMPION); `displayMax/displayMin` tính sẵn cho bar.
-  - Điều khiển: admin-ajax `mac_final_reveal` op next/back/reset (super admin, `check_ajax_referer('mac_voting_admin')`), audit FINAL_REVEAL_STARTED/NEXT/BACK/RESET; màn chiếu đọc public REST GET `mac-voting/v1/final-reveal` (permission `__return_true`), polling 900ms theo revision như results.js.
-  - Trang chiếu: `template-final-page.php` standalone dark (`#080808`, red/orange MAC, gold chỉ ở QUÁN QUÂN), `final.css` + `final.js` (IIFE): BUILD mở dần 4 trụ cột với count-up + FLIP reorder theo tổng lũy tiến, BOTTOM tự loại dần ~1.6s/nhóm từ hạng thấp kèm "CHỈ CÒN N", DUEL odometer rAF dừng cách vạch 5-20đ (theo revision), vào lại trạng thái quen (LÙI/F5) render tĩnh không replay, prefers-reduced-motion tôn trọng.
-  - Admin: Tổng quan thêm sub-tab **Chung kết** (trước Lịch sử) — chip trạng thái, step bar 13 bước, nút tiến theo state, LÙI, đặt lại (confirmDialog), link "Mở màn chiếu" (`finalUrl` trong `script_config()`); `ajax_reset_event` gọi thêm `MAC_Final_Reveal::reset()`; payload `overview()` thêm khóa `finalReveal`.
-  - DB: `ensure_final_page()` + rewrite `^ket-qua-tong/?$` + `final_page_url()` trong `class-mac-voting-db.php`; shortcode `[mac_companytrip_final]` + register/enqueue `mac-voting-final` trong `class-mac-voting-public.php`.
-  - v1 KHÔNG có âm thanh (quyết định của user); đồng hạng được phép — quán quân có thể nhiều đội.
-
-### v1.8.11 (2026-08-20, commit 1fff36a, release id 373515064)
+### v1.8.11 (2026-08-20, commit 1fff36a, release id 373515064) — mới nhất
 
 - Sửa loader bánh xe: spoke giờ là `inset: 0` xoay nguyên bánh, bi nằm trên vành khuyên (`top: 0; left: 50%`), keyframes chỉ pulse scale/opacity tuần tự; PHP `loading_markup()` đổi `--rot` từ `i*20` sang `i*40` để 9 bi phủ đủ vòng tròn (bản 1.8.10 bi bay từ tâm ra nên tụm một chỗ).
 - Sửa hardening mục 21 `admin.css`: nhóm nút trung tính `!important` của 1.8.10 đè mất active của tab sidebar/subnav, thêm border trắng lên tab desktop và biến nút "Đặt lại sự kiện" thành nút trung tính. Giờ nhóm trung tính loại `.ma-side nav button`/`.ma-subnav button`/`.ma-reset-trigger`; thêm guard riêng: tab trong suốt không border, active `#fff4f0` + ring `#fed7cc` + chữ `#e31e24`, reset trigger danger `#b42318`/`#fecdca` — tất cả `!important` để theme không đè.
@@ -187,7 +175,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.9.0 đã xong, build pass (19 PHP / 8 JS / 7 CSS), release đã verify (tải zip từ GitHub về kiểm: đủ final.css/final.js/class-mac-final-reveal.php/template-final-page.php, Version 1.9.0, sub-tab Chung kết trong admin.js). Lưu ý: root workspace còn vài PNG screenshot thừa (probe.png, step*.png...) chưa commit — không đưa vào release.
+Mọi yêu cầu tới 1.8.11 đã xong, build pass, release đã verify (tải zip từ GitHub về grep marker: active guard, reset-trigger guard, `$i * 40` đều có trong asset).
 
 ---
 
@@ -204,7 +192,6 @@ Mọi yêu cầu tới 1.9.0 đã xong, build pass (19 PHP / 8 JS / 7 CSS), rele
 9. Linter báo undefined các hàm WordPress (`plugin_dir_path`, `get_option`…) — false positive, bỏ qua.
 10. **GitHub push protection**: KHÔNG bao giờ ghi token (GH_TOKEN…) vào file được commit — push sẽ bị chặn (đã bị với HANDOFF.md). Token chỉ truyền qua biến môi trường.
 11. **Hardening `!important` đè luôn state của mình** (vụ 1.8.10→1.8.11): nhóm nút trung tính scope rộng đè mất `.active` của tab, thêm border lên tab desktop và neutralize nút danger. Khi hardening phải `:not()` loại các class state (`.active`, `.ma-reset-trigger`, `.danger`, `.ma-primary`) và thêm guard riêng cho từng state.
-12. **PowerShell inline qua Node fallback bị strip biến `$_`/`$env`**: lệnh `Where-Object { $_.Name ... }` chạy qua Bash tool mất `$_`. Dùng tool Glob/Grep/Read để kiểm tra file thay vì PowerShell inline, hoặc viết script ra file rồi chạy.
 
 ---
 
@@ -212,7 +199,7 @@ Mọi yêu cầu tới 1.9.0 đã xong, build pass (19 PHP / 8 JS / 7 CSS), rele
 
 - Windows (25H2), shell `WindowsPowerShell v1.0` (không có `&&`).
 - Node dùng để chạy tools (không cần server local; site WordPress chạy ở chỗ khác, plugin update trực tiếp từ GitHub Release).
-- `npm run check` validate: 19 PHP, 8 JS, 7 CSS phải đủ — thiếu file là build fail.
+- `npm run check` validate: 17 PHP, 7 JS, 6 CSS phải đủ — thiếu file là build fail.
 
 ---
 

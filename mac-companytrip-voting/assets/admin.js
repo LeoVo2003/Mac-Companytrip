@@ -322,7 +322,7 @@
   }
   const statusLabel = (status) => status === "OPEN" ? "Đang mở vote" : status === "CLOSED" ? "Đã đóng" : "Chưa bắt đầu";
   const revealStageLabel = (stage) => ({ IDLE: "Đang chờ", ROLLING: "Đang tung điểm", DECOY: "Đã chốt cú lừa", THIRD: "Đã công bố hạng ba", SECOND: "Đã công bố hạng nhì", FINAL: "Đã công bố quán quân" }[stage] || "Đang chờ");
-  function sidebar() { return `<aside class="ma-side"><div class="ma-brand"><img src="${esc(window.MACVotingAdmin.logo)}"><div><strong>Company Trip</strong>${canWrite() ? "" : `<small>Admin · chỉ xem</small>`}</div></div><nav><button data-tab="overview" class="${tab === "overview" ? "active" : ""}">◉ Tổng quan</button><button data-tab="checkin" class="${tab === "checkin" ? "active" : ""}">▣ Check-in</button><button data-tab="games" class="${tab === "games" ? "active" : ""}">◈ Trò chơi lớn</button><button data-tab="art" class="${tab === "art" ? "active" : ""}">♪ Văn nghệ</button><button data-tab="thidua" class="${tab === "thidua" ? "active" : ""}">★ Thi đua</button><button data-tab="data" class="${tab === "data" ? "active" : ""}">▦ Nhân sự & QR</button></nav><div class="ma-side-links"><a href="${esc(window.MACVotingAdmin.checkinUrl)}">↗ Quét QR check-in</a>${canWrite() ? `<a href="${esc(window.MACVotingAdmin.resultsUrl)}" target="_blank" rel="noopener">↗ Màn hình kết quả</a><a href="${esc(window.MACVotingAdmin.voteUrl)}" target="_blank" rel="noopener">↗ Mở trang vote</a>` : ""}</div><a class="ma-side-logout" href="${esc(window.MACVotingAdmin.logoutUrl)}">Đăng xuất</a></aside>`; }
+  function sidebar() { return `<aside class="ma-side"><div class="ma-brand"><img src="${esc(window.MACVotingAdmin.logo)}"><div><strong>Company Trip</strong>${canWrite() ? "" : `<small>Admin · chỉ xem</small>`}</div></div><nav><button data-tab="overview" class="${tab === "overview" ? "active" : ""}">◉ Tổng quan</button><button data-tab="checkin" class="${tab === "checkin" ? "active" : ""}">▣ Check-in</button><button data-tab="games" class="${tab === "games" ? "active" : ""}">◈ Trò chơi lớn</button><button data-tab="art" class="${tab === "art" ? "active" : ""}">♪ Văn nghệ</button><button data-tab="thidua" class="${tab === "thidua" ? "active" : ""}">★ Thi đua</button><button data-tab="data" class="${tab === "data" ? "active" : ""}">▦ Nhân sự & QR</button></nav><div class="ma-side-links"><a href="${esc(window.MACVotingAdmin.checkinUrl)}">↗ Quét QR check-in</a>${canWrite() ? `<a href="${esc(window.MACVotingAdmin.resultsUrl)}" target="_blank" rel="noopener">↗ Màn hình kết quả</a><a href="${esc(window.MACVotingAdmin.voteUrl)}" target="_blank" rel="noopener">↗ Mở trang vote</a><button type="button" id="ma-seed-demo" class="ma-side-secret" title="Chỉ super admin · diễn tập màn hình công bố">⚓ Áp dữ liệu demo</button>` : ""}</div><a class="ma-side-logout" href="${esc(window.MACVotingAdmin.logoutUrl)}">Đăng xuất</a></aside>`; }
   function votingGate() {
     const on = !!data.votingEnabled;
     return `<section class="ma-panel ma-gate ${on ? "is-on" : "is-off"}"><header><div><small>VĂN NGHỆ</small><h2>${on ? "Cổng đang bật" : "Cổng đang tắt"}</h2><p>${on ? "QR cá nhân và login username đã được mở." : "Public không thể đăng nhập hoặc chấm điểm, kể cả khi còn cookie cũ."}</p></div><span class="ma-gate-status">${on ? "ĐANG BẬT" : "TẮT"}</span></header>${canWrite() ? `<div style="padding:16px 20px 20px"><button type="button" id="ma-gate" class="${on ? "danger" : "ma-primary"}">${on ? "Tắt cổng văn nghệ" : "Bật cổng chấm điểm"}</button></div>` : ""}</section>`;
@@ -347,52 +347,6 @@
     const exemptionPanel = canWrite() && openCheckpoint ? `<section class="ma-panel ma-exemptions"><header><div><small>MIỄN CHECK-IN</small><h2>Trạm ${openCheckpoint.id} · ${esc(openCheckpoint.name)}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Người được miễn không tính vào mẫu số và biến khỏi danh sách "CÒN THIẾU" của các team.</p></div></header><form class="ma-exempt-form" id="ma-exempt-form"><label for="ma-exempt-search">Tìm nhanh<input id="ma-exempt-search" type="search" placeholder="Gõ tên để lọc trong ${exemptCandidates.length} người…" value="${esc(exemptQuery)}" autocomplete="off"></label><label for="ma-exempt-voter">Chọn người<select id="ma-exempt-voter">${visibleCandidates.map((row) => `<option value="${row.id}">${esc(row.full_name)} · #${row.team_no} ${esc(row.team_name)}</option>`).join("") || `<option value="">${normalizedExemptQuery ? "Không tìm thấy ai khớp" : "Không còn ai để miễn"}</option>`}</select></label><label for="ma-exempt-reason">Lý do<input id="ma-exempt-reason" type="text" maxlength="500" placeholder="Ví dụ: được BTC duyệt cho đến muộn" required></label><button type="submit" class="ma-primary" ${exemptCandidates.length ? "" : "disabled"}>Miễn check-in</button></form><div class="ma-board-table"><table><thead><tr><th>Người được miễn</th><th>Lý do</th><th></th></tr></thead><tbody>${openExemptions.map((item) => `<tr><td><strong>${esc(item.fullName)}</strong></td><td>${esc(item.reason || "")}</td><td><button type="button" data-exempt-clear="${item.voterId}" data-exempt-name="${esc(item.fullName)}">Bỏ miễn</button></td></tr>`).join("") || `<tr><td colspan="3">Chưa có ai được miễn ở trạm này.</td></tr>`}</tbody></table></div></section>` : "";
     return `<header class="ma-top"><div><small>CHECK-IN</small><h1>4 trạm Company Trip</h1></div>${topActions()}</header>${scanner}<div class="ma-check-grid">${checkpointCards}</div>${progress}${exemptionPanel}${staffPanel}`;
   }
-  const FINAL_STEPS = [
-    ["READY", "Sẵn sàng"], ["BUILD_CHECKIN", "Check-in"], ["BUILD_GAME", "Game"], ["BUILD_THIDUA", "Thi đua"],
-    ["BUILD_VANNGHE", "Văn nghệ"], ["LOCKED", "Khóa"], ["BOTTOM", "Loại"], ["TOP3", "Top 3"],
-    ["BRONZE", "Hạng 3"], ["DUEL", "Duel"], ["RUNNER_UP", "Á quân"], ["CHAMPION", "Quán quân"], ["BOARD", "Board"],
-  ];
-  const FINAL_STATE_META = {
-    READY: ["SẴN SÀNG", "Chưa khóa snapshot. Bấm BẮT ĐẦU để đóng băng bảng điểm hiện tại và mở màn chiếu."],
-    BUILD_CHECKIN: ["BUILD · CHECK-IN", "Màn chiếu đang dựng cột điểm Check-in."],
-    BUILD_GAME: ["BUILD · TRÒ CHƠI", "Cộng tiếp trụ cột Trò chơi lớn, bảng đua xếp lại."],
-    BUILD_THIDUA: ["BUILD · THI ĐUA", "Cộng tiếp trụ cột Thi đua."],
-    BUILD_VANNGHE: ["BUILD · VĂN NGHỆ", "Cộng trụ cột cuối cùng — Văn nghệ."],
-    LOCKED: ["FINAL RANKING LOCKED", "Điểm đã khóa, chưa lộ thứ hạng."],
-    BOTTOM: ["LOẠI DẦN", "Công bố lần lượt các nhóm hạng thấp."],
-    TOP3: ["CHỈ CÒN TOP 3", "Các đội dẫn đầu còn lại trên sân khấu."],
-    BRONZE: ["HẠNG BA", "Công bố nhóm hạng ba."],
-    DUEL: ["FINAL DUEL", "Nhóm hạng 1 và hạng 2 chạy số trực tiếp."],
-    RUNNER_UP: ["Á QUÂN", "Công bố nhóm á quân."],
-    CHAMPION: ["QUÁN QUÂN", "Công bố nhà vô địch."],
-    BOARD: ["FINAL BOARD", "Bảng tổng sắp chung cuộc."],
-  };
-  const FINAL_NEXT_LABEL = {
-    BUILD_CHECKIN: "BẮT ĐẦU · Mở điểm Check-in",
-    BUILD_GAME: "Mở điểm Trò chơi lớn",
-    BUILD_THIDUA: "Mở điểm Thi đua",
-    BUILD_VANNGHE: "Mở điểm Văn nghệ",
-    LOCKED: "Khóa FINAL RANKING",
-    BOTTOM: "Loại dần từ hạng thấp",
-    TOP3: "Công bố TOP 3",
-    BRONZE: "Công bố hạng ba",
-    DUEL: "Vào FINAL DUEL",
-    RUNNER_UP: "Công bố á quân",
-    CHAMPION: "Công bố quán quân",
-    BOARD: "Mở FINAL BOARD",
-  };
-  function finalPanel() {
-    const fr = data.finalReveal || { state: "READY", next: null, back: null };
-    const meta = FINAL_STATE_META[fr.state] || [fr.state, ""];
-    const nextLabel = FINAL_NEXT_LABEL[fr.next] || "";
-    const stepIndex = FINAL_STEPS.findIndex(([id]) => id === fr.state);
-    const steps = `<div class="ma-final-steps" aria-label="Tiến trình kịch bản">${FINAL_STEPS.map(([id, label], index) => `<span class="ma-final-step ${index < stepIndex ? "done" : ""} ${index === stepIndex ? "active" : ""}"><i>${index + 1}</i><small>${label}</small></span>`).join("")}</div>`;
-    const snapshotInfo = fr.snapshotCreatedAt
-      ? `Snapshot khóa lúc ${esc(new Date(fr.snapshotCreatedAt * 1000).toLocaleTimeString("vi-VN"))} · ${fr.teamCount} đội · điểm đã đóng băng tới hết chương trình.`
-      : "Chưa có snapshot. Bấm BẮT ĐẦU sẽ đóng băng bảng điểm hiện tại rồi mới chạy kịch bản.";
-    const controls = canWrite() ? `<div class="ma-final-actions">${fr.back ? `<button type="button" data-final-op="back">← LÙI</button>` : ""}${nextLabel ? `<button type="button" class="ma-primary" data-final-op="next">${fr.state === "READY" ? "▶ BẮT ĐẦU" : nextLabel} →</button>` : `<span class="ma-final-done">Kịch bản đã chạy hết. Đặt lại để chạy lần mới.</span>`}<button type="button" class="ma-final-reset" data-final-op="reset">↻ Đặt lại màn tổng</button></div>` : `<p class="ma-final-readonly">Chỉ super admin mới điều khiển được màn công bố tổng.</p>`;
-    return `<section class="ma-panel ma-final-panel"><header><div><small>RACE TO THE CROWN</small><h2>Màn công bố tổng điểm chung cuộc</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">${snapshotInfo}</p></div><a class="ma-screen-link" href="${esc(window.MACVotingAdmin.finalUrl)}" target="_blank" rel="noopener">↗ Mở màn chiếu</a></header><div class="ma-final-status"><span class="ma-final-chip ${fr.state.toLowerCase()}"><i></i>${esc(meta[0])}</span><p>${esc(meta[1])}</p></div>${steps}${controls}</section>`;
-  }
   function pointsView() {
     const board = data.totalBoard || { categories: [], teams: [], history: [] };
     const categories = board.categories || [];
@@ -401,13 +355,12 @@
     const history = board.history || [];
     const games = data.games?.list || [];
     const gameBoard = data.games?.board || [];
-    if (overviewTab !== "chart" && overviewTab !== "history" && overviewTab !== "final") overviewTab = "chart";
+    if (overviewTab !== "chart" && overviewTab !== "history") overviewTab = "chart";
     const maxAbs = Math.max(1, ...ranked.map((team) => Math.abs(Number(team.total) || 0)));
     const checkinLedger = data.teamPoints || [];
     const checkpointCols = (data.checkpoints || []).slice().sort((a, b) => a.id - b.id);
     const tabs = [
       ["chart", "Tổng điểm"],
-      ["final", "Chung kết"],
       ["history", "Lịch sử"],
     ];
     const nav = `<nav class="ma-subnav" aria-label="Tổng quan">${tabs.map(([id, label]) => `<button type="button" data-overview-tab="${id}" class="${overviewTab === id ? "active" : ""}">${label}</button>`).join("")}</nav>`;
@@ -422,7 +375,7 @@
       ? history.map((item) => `<tr class="is-${item.kind}"><td>${esc(item.at)}</td><td>${esc(item.actor)}</td><td>${item.teamNumber ? `#${item.teamNumber} ` : ""}${esc(item.teamName)}</td><td>${esc(item.source)}${item.note ? ` · ${esc(item.note)}` : ""}</td><td><strong>${item.kind === "clear" ? "Xóa điểm" : fmt(item.points)}</strong></td></tr>`).join("")
       : `<tr><td colspan="5">Chưa có lịch sử cộng điểm.</td></tr>`;
     const historyPanel = `<section class="ma-panel"><header><div><small>AUDIT</small><h2>Ai cộng điểm · lúc nào</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Gồm thi đua, xếp hạng trò chơi và điểm check-in khi đóng trạm.</p></div></header><div class="ma-table ma-history-table"><table><thead><tr><th>Thời gian</th><th>Người cộng</th><th>Team</th><th>Nguồn</th><th>Điểm</th></tr></thead><tbody>${historyRows}</tbody></table></div></section>`;
-    const body = overviewTab === "history" ? historyPanel : overviewTab === "final" ? finalPanel() : chart;
+    const body = overviewTab === "history" ? historyPanel : chart;
     return `<header class="ma-top"><div><small>TỔNG QUAN</small><h1>Tổng điểm 6 team</h1></div>${topActions()}</header>${nav}${body}`;
   }
   function gamesView() {
@@ -513,28 +466,18 @@
     }
     root.querySelectorAll("[data-tab]").forEach((button) => button.addEventListener("click", () => { tab = button.dataset.tab; render(); }));
     root.querySelectorAll("[data-overview-tab]").forEach((button) => button.addEventListener("click", () => { overviewTab = button.dataset.overviewTab; render(); }));
-    root.querySelectorAll("[data-final-op]").forEach((button) => button.addEventListener("click", async () => {
-      const op = button.dataset.finalOp;
-      if (op === "reset") {
-        const confirmed = await confirmDialog({ title: "Đặt lại màn công bố tổng", message: "Kịch bản sẽ về READY và snapshot điểm hiện tại bị xóa. Màn chiếu cũng đồng bộ về màn chờ. Tiếp tục?", confirmLabel: "Đặt lại", danger: true });
-        if (!confirmed) return;
-      }
-      button.disabled = true;
-      button.classList.add("is-loading");
-      try {
-        const result = await ajax("mac_final_reveal", { op });
-        data.finalReveal = result.finalReveal;
-        render();
-        notify(result.message);
-      } catch (err) {
-        button.disabled = false;
-        button.classList.remove("is-loading");
-        notify(err.message, true);
-      }
-    }));
     root.querySelector("#ma-refresh")?.addEventListener("click", () => load(true));
     if (canWrite()) {
     root.querySelector("#ma-reset-event")?.addEventListener("click", showResetModal);
+    root.querySelector("#ma-seed-demo")?.addEventListener("click", async () => {
+      if (!(await confirmDialog({ title: "Dữ liệu demo", message: "Áp bộ dữ liệu diễn tập (48 nhân sự ảo, 240 phiếu, điểm check-in · trò chơi · thi đua)? Toàn bộ phiếu và điểm chấm hiện tại sẽ bị thay thế bởi bộ demo.", confirmLabel: "Áp dữ liệu demo" }))) return;
+      try {
+        const result = await ajax("mac_vote_seed_demo");
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) { notify(err.message, true); }
+    });
     root.querySelectorAll("[data-reveal-stage]").forEach((button) => button.addEventListener("click", async () => {
       const stage = button.dataset.revealStage;
       const originalLabel = button.innerHTML;

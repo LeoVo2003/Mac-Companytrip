@@ -8,14 +8,14 @@
 
 html:has(body.mac-results-page) {
   margin-top: 0 !important;
-  background: #07080c;
+  background: #061a40;
 }
 
 body.mac-results-page {
   min-width: 320px;
   margin: 0 !important;
   overflow: hidden;
-  background: #07080c !important;
+  background: #061a40 !important;
 }
 
 body.mac-results-page #wpadminbar,
@@ -56,16 +56,21 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mac-results-app {
-  --red: #e31e24;
-  --orange: #ff6a2c;
-  --gold: #ffc252;
-  --ink: #f8fafc;
-  --muted: #98a2b3;
+  /* Chủ đề hải trình: bầu trời powder-blue đổ dần xuống lòng biển sâu,
+     chrome bạc cho tiêu đề, vàng kim chỉ dành riêng cho quán quân. */
+  --sky: #cfe9ff;
+  --foam: #9ed2ff;
+  --sea: #2f6fbe;
+  --deep: #0a2e6e;
+  --abyss: #061a40;
+  --gold: #ffc34e;
+  --ink: #f4f9ff;
+  --muted: #a9c6e8;
   position: fixed;
   z-index: 99999;
   inset: 0;
   color: var(--ink);
-  background: #07080c;
+  background: var(--abyss);
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 16px;
   line-height: 1.45;
@@ -82,8 +87,8 @@ body.mac-results-page .elementor-shortcode {
   overflow: hidden;
   isolation: isolate;
   background:
-    radial-gradient(circle at 50% 108%, rgba(227, 30, 36, 0.23), transparent 42%),
-    linear-gradient(180deg, #101117 0%, #07080c 68%);
+    radial-gradient(120% 58% at 50% -10%, rgba(255, 246, 220, 0.55), transparent 58%),
+    linear-gradient(180deg, #b7dcf8 0%, #7cb6e8 20%, #3273c4 46%, #0e3f92 72%, #061f4e 100%);
 }
 
 .mr-shell::before {
@@ -91,11 +96,11 @@ body.mac-results-page .elementor-shortcode {
   z-index: -1;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
   background-size: 72px 72px;
   content: "";
-  mask-image: linear-gradient(to bottom, transparent, #000 30%, #000);
+  mask-image: linear-gradient(to bottom, transparent, #000 34%, #000);
 }
 
 .mr-aurora {
@@ -106,20 +111,21 @@ body.mac-results-page .elementor-shortcode {
   pointer-events: none;
 }
 
+/* Tia nắng xuyên từ bầu trời xuống mặt biển (god rays). */
 .mr-aurora i {
   position: absolute;
   top: -32%;
   width: 28vw;
   height: 86vh;
   border-radius: 50%;
-  background: linear-gradient(180deg, rgba(255, 106, 44, 0.18), transparent 72%);
-  filter: blur(54px);
-  opacity: 0.45;
+  background: linear-gradient(180deg, rgba(255, 252, 240, 0.55), rgba(255, 255, 255, 0.1) 56%, transparent 78%);
+  filter: blur(42px);
+  opacity: 0.5;
   transform: rotate(20deg);
 }
 
 .mr-aurora i:nth-child(1) { left: 4%; }
-.mr-aurora i:nth-child(2) { left: 38%; opacity: 0.24; }
+.mr-aurora i:nth-child(2) { left: 38%; opacity: 0.3; }
 .mr-aurora i:nth-child(3) { right: 1%; transform: rotate(-18deg); }
 
 .mr-header,
@@ -135,8 +141,8 @@ body.mac-results-page .elementor-shortcode {
 
 .mr-header {
   min-height: clamp(76px, 9vh, 104px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(7, 8, 12, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(6, 26, 64, 0.42);
   backdrop-filter: blur(20px);
 }
 
@@ -151,7 +157,7 @@ body.mac-results-page .elementor-shortcode {
   gap: 2px;
   margin-right: auto;
   padding-left: 24px;
-  border-left: 1px solid rgba(255, 255, 255, 0.13);
+  border-left: 1px solid rgba(255, 255, 255, 0.26);
 }
 
 .mr-event span,
@@ -160,7 +166,7 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mr-event span {
-  color: #98a2b3;
+  color: #ffe3a1;
   font-size: clamp(8px, 0.62vw, 11px);
   font-weight: 700;
 }
@@ -176,10 +182,10 @@ body.mac-results-page .elementor-shortcode {
   align-items: center;
   gap: 8px;
   padding: 0 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 999px;
-  color: #d0d5dd;
-  background: rgba(255, 255, 255, 0.045);
+  color: #eaf4ff;
+  background: rgba(255, 255, 255, 0.12);
   font-size: 11px;
   font-weight: 700;
 }
@@ -218,14 +224,30 @@ body.mac-results-page .elementor-shortcode {
 
 .mr-heading p {
   margin: 0 0 6px;
-  color: #ff8a55;
+  color: #ffd76a;
   font-size: clamp(9px, 0.7vw, 12px);
   font-weight: 800;
   letter-spacing: 0.2em;
 }
 
+/* Ngôi sao ✦ hai bên kicker — họa tiết la bàn của chủ đề hải trình. */
+.mr-heading p::before {
+  content: "✦  ";
+  color: rgba(255, 215, 106, 0.75);
+}
+
+.mr-heading p::after {
+  content: "  ✦";
+  color: rgba(255, 215, 106, 0.75);
+}
+
 .mr-heading h1 {
   margin: 0;
+  background: linear-gradient(180deg, #ffffff 6%, #eaf3fc 38%, #b4cbe6 52%, #f8fbff 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 4px 16px rgba(7, 31, 78, 0.4));
   font-size: clamp(30px, 3.4vw, 62px);
   font-weight: 800;
   line-height: 1.02;
@@ -235,7 +257,7 @@ body.mac-results-page .elementor-shortcode {
 
 .mr-heading > span {
   margin-top: 8px;
-  color: #98a2b3;
+  color: #d6e8fb;
   font-size: clamp(11px, 0.9vw, 16px);
 }
 
@@ -257,8 +279,8 @@ body.mac-results-page .elementor-shortcode {
   bottom: 58px;
   left: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2) 12%, rgba(255, 255, 255, 0.2) 88%, transparent);
-  box-shadow: 0 8px 32px rgba(227, 30, 36, 0.16);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42) 12%, rgba(255, 255, 255, 0.42) 88%, transparent);
+  box-shadow: 0 8px 32px rgba(6, 31, 78, 0.3);
   content: "";
 }
 
@@ -292,7 +314,7 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mr-score small {
-  color: #667085;
+  color: #9dbfe6;
   font-size: clamp(7px, 0.52vw, 9px);
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -308,17 +330,18 @@ body.mac-results-page .elementor-shortcode {
   padding-inline: clamp(5px, 0.7vw, 12px);
 }
 
+/* Cột điểm = trụ nước biển: mặt kính sáng, thân xanh đại dương, chân chìm vào bóng sâu. */
 .mr-bar {
   position: relative;
   width: min(100%, 112px);
   height: var(--bar-level);
   min-height: 34px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.17);
+  border: 1px solid rgba(255, 255, 255, 0.42);
   border-bottom: 0;
   border-radius: clamp(12px, 1.15vw, 20px) clamp(12px, 1.15vw, 20px) 5px 5px;
-  background: linear-gradient(165deg, #ff7240 0%, #e31e24 45%, #9d1017 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 14px 36px rgba(227, 30, 36, 0.2);
+  background: linear-gradient(165deg, #a8d4f7 0%, #4a8fdc 45%, #123f8f 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 14px 36px rgba(10, 46, 110, 0.35);
   transform-origin: center bottom;
   transition: height 900ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 350ms ease, opacity 350ms ease, box-shadow 350ms ease;
 }
@@ -356,17 +379,17 @@ body.mac-results-page .elementor-shortcode {
   left: 10%;
   height: 3px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 0 18px rgba(255, 168, 105, 0.9);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 18px rgba(190, 225, 255, 0.9);
 }
 
 .mr-base {
   width: min(115%, 128px);
   height: 8px;
   border-radius: 50%;
-  background: linear-gradient(90deg, transparent, rgba(255, 106, 44, 0.75), transparent);
+  background: linear-gradient(90deg, transparent, rgba(158, 210, 255, 0.8), transparent);
   filter: blur(1px);
-  box-shadow: 0 0 24px rgba(227, 30, 36, 0.42);
+  box-shadow: 0 0 24px rgba(63, 134, 214, 0.45);
 }
 
 .mr-team-name {
@@ -380,7 +403,7 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mr-team-name b {
-  color: #ff7946;
+  color: var(--foam);
   font-size: clamp(9px, 0.66vw, 12px);
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -401,9 +424,9 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mr-team.is-featured .mr-bar {
-  border-color: rgba(255, 209, 121, 0.7);
-  background: linear-gradient(165deg, #ffc45d 0%, #ff6a2c 42%, #d52321 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38), 0 0 0 1px rgba(255, 168, 72, 0.15), 0 20px 48px rgba(255, 106, 44, 0.34);
+  border-color: rgba(255, 255, 255, 0.85);
+  background: linear-gradient(165deg, #ffffff 0%, #bcd9f4 42%, #4a8fdc 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.2), 0 20px 48px rgba(120, 180, 240, 0.45);
   animation: mr-featured-pulse 1.7s ease-in-out infinite alternate;
 }
 
@@ -414,14 +437,14 @@ body.mac-results-page .elementor-shortcode {
   min-width: max-content;
   margin: 0 0 8px;
   padding: 7px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 999px;
   color: #fff;
-  background: rgba(16, 24, 40, 0.84);
+  background: rgba(6, 26, 64, 0.78);
   font-size: clamp(8px, 0.6vw, 11px);
   font-weight: 800;
   letter-spacing: 0.1em;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 8px 24px rgba(4, 18, 46, 0.4);
   transform: translateY(8px) scale(0.8);
   opacity: 0;
   transition: opacity 450ms ease 520ms, transform 450ms ease 520ms;
@@ -432,24 +455,31 @@ body.mac-results-page .elementor-shortcode {
   transform: translateY(0) scale(1);
 }
 
+/* Á quân / hạng ba: chrome bạc ánh kim. */
 .mr-team.is-finalist .mr-bar {
-  border-color: rgba(255, 210, 130, 0.72);
-  background: linear-gradient(165deg, #ffd66f 0%, #ff7b31 38%, #d61d22 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 18px 52px rgba(255, 106, 44, 0.34);
+  border-color: rgba(255, 255, 255, 0.85);
+  background: linear-gradient(165deg, #fdfefe 0%, #c9d8ea 36%, #8fa8c6 68%, #e8f0fa 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 18px 52px rgba(190, 210, 235, 0.42);
 }
 
 .mr-team.is-finalist .mr-score {
-  color: #ffd66f;
+  color: #f2f7ff;
 }
 
 .mr-team.is-champion {
   z-index: 4;
 }
 
+/* Quán quân: vàng kim duy nhất của đêm — vương miện của hải trình. */
 .mr-team.is-champion .mr-bar {
-  background: linear-gradient(165deg, #fff2a8 0%, #ffc34e 30%, #ff6a2c 68%, #e31e24 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 0 42px rgba(255, 194, 82, 0.48), 0 26px 80px rgba(227, 30, 36, 0.42);
+  border-color: rgba(255, 226, 141, 0.9);
+  background: linear-gradient(165deg, #fff6c9 0%, #ffd76a 32%, #f0a92e 68%, #b97710 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 0 42px rgba(255, 195, 78, 0.55), 0 26px 80px rgba(185, 119, 16, 0.45);
   animation: mr-champion 900ms ease-in-out infinite alternate;
+}
+
+.mr-team.is-champion .mr-score {
+  color: #ffe9ad;
 }
 
 .mr-team.is-champion .mr-rank {
@@ -470,9 +500,9 @@ body.mac-results-page .elementor-shortcode {
 
 .mr-footer {
   min-height: clamp(42px, 5.5vh, 62px);
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  color: #667085;
-  background: rgba(7, 8, 12, 0.66);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  color: #9dbfe6;
+  background: rgba(4, 18, 46, 0.55);
   font-size: clamp(9px, 0.66vw, 12px);
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -488,8 +518,8 @@ body.mac-results-page .elementor-shortcode {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--red);
-  box-shadow: 0 0 14px rgba(227, 30, 36, 0.7);
+  background: var(--gold);
+  box-shadow: 0 0 14px rgba(255, 195, 78, 0.75);
 }
 
 .mr-loading,
@@ -500,9 +530,9 @@ body.mac-results-page .elementor-shortcode {
   justify-items: center;
   gap: 14px;
   padding: 32px;
-  color: #d0d5dd;
+  color: #d6e8fb;
   text-align: center;
-  background: radial-gradient(circle at center, rgba(227, 30, 36, 0.14), transparent 42%), #07080c;
+  background: radial-gradient(circle at 50% 30%, rgba(76, 141, 217, 0.28), transparent 46%), var(--abyss);
 }
 
 .mr-loading img,
@@ -512,7 +542,7 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mr-loading span {
-  color: #98a2b3;
+  color: #a9c6e8;
   font-size: 13px;
 }
 
@@ -525,7 +555,7 @@ body.mac-results-page .elementor-shortcode {
 .mr-error p {
   max-width: 520px;
   margin: 0;
-  color: #98a2b3;
+  color: #a9c6e8;
 }
 
 .mr-error button {
@@ -534,7 +564,7 @@ body.mac-results-page .elementor-shortcode {
   border: 0;
   border-radius: 12px;
   color: #fff;
-  background: linear-gradient(120deg, var(--red), var(--orange));
+  background: linear-gradient(120deg, var(--sea), var(--deep));
   font: inherit;
   font-weight: 700;
   cursor: pointer;

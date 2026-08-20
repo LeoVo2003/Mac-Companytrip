@@ -24,6 +24,7 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_points', array(__CLASS__, 'ajax_points'));
         add_action('wp_ajax_mac_vote_games', array(__CLASS__, 'ajax_games'));
         add_action('wp_ajax_mac_vote_exemption', array(__CLASS__, 'ajax_exemption'));
+        add_action('wp_ajax_mac_vote_seed_demo', array(__CLASS__, 'ajax_seed_demo'));
         add_action('admin_post_mac_vote_export', array(__CLASS__, 'export_csv'));
         add_action('admin_post_mac_vote_template', array(__CLASS__, 'template_csv'));
         add_action('admin_post_mac_vote_export_checkin', array(__CLASS__, 'export_checkin_csv'));
@@ -89,7 +90,6 @@ final class MAC_Voting_Admin {
             'resultsUrl' => MAC_Voting_DB::results_page_url(),
             'checkinUrl' => MAC_Voting_DB::checkin_page_url(),
             'adminUrl' => MAC_Voting_DB::admin_page_url(),
-            'finalUrl' => MAC_Voting_DB::final_page_url(),
             'logoutUrl'=> wp_logout_url(MAC_Voting_DB::admin_page_url()),
             'logo'     => MAC_VOTING_URL . 'assets/mac-marketing-logo.png',
             'exportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export'), 'mac_vote_export'),
@@ -141,7 +141,6 @@ final class MAC_Voting_Admin {
         MAC_Points::reset_history();
         $wpdb->query('COMMIT');
         MAC_Voting_DB::set_reveal_state('IDLE');
-        MAC_Final_Reveal::reset();
 
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'EVENT_RESET', 'event', null, array(
             'deletedBallots' => (int) $deleted_ballots,
@@ -155,6 +154,229 @@ final class MAC_Voting_Admin {
             'message' => 'Đã đặt lại sự kiện. Phiếu, check-in, điểm hạng mục và lịch sử cộng điểm đã về trạng thái ban đầu.',
             'overview' => self::overview(),
         ));
+    }
+
+    /**
+     * Nút "Áp dữ liệu demo" (chỉ super admin, đặt kín ở sidebar): ghi thẳng một bộ
+     * dữ liệu ảo hoàn chỉnh vào database — 48 nhân sự demo, 240 phiếu hợp lệ,
+     * điểm check-in / trò chơi / thi đua — dùng để diễn tập màn hình công bố.
+     * Bấm nhiều lần chỉ ghi đè đúng bộ demo, không nhân bản.
+     */
+    public static function ajax_seed_demo(): void {
+        self::guard();
+        $error = self::seed_demo_data();
+        if (is_wp_error($error)) {
+            wp_send_json_error(array('message' => $error->get_error_message()), 500);
+        }
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'DEMO_DATA_SEEDED', 'event', null, array(
+            'demoVoters' => 48,
+            'demoBallots' => 240,
+        ));
+        wp_send_json_success(array(
+            'message' => 'Đã áp dữ liệu demo: 48 nhân sự ảo, 240 phiếu và điểm check-in · trò chơi · thi đua.',
+            'overview' => self::overview(),
+        ));
+    }
+
+    private static function seed_demo_data() {
+        global $wpdb;
+        $voters = MAC_Voting_DB::table('voters');
+        $teams_table = MAC_Voting_DB::table('teams');
+        $performances_table = MAC_Voting_DB::table('performances');
+        $slots = MAC_Voting_DB::table('slots');
+        $ballots = MAC_Voting_DB::table('ballots');
+        $grants = MAC_Voting_DB::table('revote_grants');
+        $checkins = MAC_Voting_DB::table('checkins');
+        $exemptions = MAC_Voting_DB::table('exemptions');
+        $points = MAC_Voting_DB::table('team_points');
+        $thidua_rounds = MAC_Voting_DB::table('thidua_rounds');
+        $now = MAC_Voting_DB::utc_now();
+
+        $teams = $wpdb->get_results($wpdb->prepare(
+            "SELECT id,team_no FROM $teams_table WHERE team_no<>%d ORDER BY team_no",
+            MAC_Voting_DB::STAFF_TEAM_NO
+        ), ARRAY_A) ?: array();
+        if (count($teams) < 6) {
+            return new WP_Error('missing_teams', 'Cần đủ 6 team thi đấu trước khi áp dữ liệu demo.');
+        }
+        $team_id_by_no = array();
+        foreach ($teams as $team) {
+            $team_id_by_no[(int) $team['team_no']] = (int) $team['id'];
+        }
+        $schedule = $wpdb->get_results(
+            "SELECT s.round_id, p.id AS performance_id, t.team_no
+             FROM $slots s
+             JOIN $performances_table p ON p.id=s.performance_id
+             JOIN $teams_table t ON t.id=p.team_id",
+            ARRAY_A
+        ) ?: array();
+        if (count($schedule) < 6) {
+            return new WP_Error('missing_schedule', 'Lịch biểu diễn chưa đủ 6 tiết mục để tạo phiếu demo.');
+        }
+
+        // Điểm trung bình phiếu mục tiêu của từng đội (thang 150).
+        $vote_targets = array(1 => 132, 2 => 121, 3 => 141, 4 => 108, 5 => 127, 6 => 114);
+        // Điểm 4 trạm check-in (tối đa 150đ/trạm).
+        $checkin_matrix = array(
+            1 => array(150, 140, 130, 140),
+            2 => array(145, 150, 140, 150),
+            3 => array(130, 135, 140, 135),
+            4 => array(120, 125, 115, 135),
+            5 => array(150, 145, 150, 145),
+            6 => array(125, 130, 130, 130),
+        );
+        // Hạng từng game (thang 50 · 40 · 30 · 20 · 10 · 0).
+        $game_ranks = array(
+            1 => array(5 => 1, 2 => 2, 1 => 3, 3 => 4, 6 => 5, 4 => 6),
+            2 => array(2 => 1, 5 => 2, 3 => 3, 1 => 4, 4 => 5, 6 => 6),
+            3 => array(1 => 1, 3 => 2, 5 => 3, 6 => 4, 2 => 5, 4 => 6),
+        );
+        // Hạng 2 vòng thi đua mặc định.
+        $thidua_ranks = array(
+            array(3 => 1, 5 => 2, 1 => 3, 2 => 4, 6 => 5),
+            array(5 => 1, 1 => 2, 2 => 3, 3 => 4, 4 => 5),
+        );
+        $family_names = array('Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Phan', 'Vũ', 'Đặng', 'Bùi', 'Đỗ');
+        $middle_names = array('Văn', 'Thị', 'Minh', 'Thanh', 'Ngọc', 'Xuân', 'Hữu', 'Đức', 'Quang', 'Hải');
+        $given_names = array('An', 'Bình', 'Châu', 'Duy', 'Giang', 'Hà', 'Khoa', 'Linh', 'Mỹ', 'Nam', 'Oanh', 'Phúc', 'Quân', 'Sơn', 'Tài', 'Trang', 'Uyên', 'Việt', 'Vy', 'Yến');
+        // Nhiễu cộng vào điểm mục tiêu; tổng mỗi chu kỳ 40 phiếu = 0 để giữ đúng điểm trung bình.
+        $variations = array_merge(
+            array(5, -5, 3, -3, 2, -2, 4, -4, 1, -1),
+            array(5, -5, 3, -3, 2, -2, 4, -4, 1, -1),
+            array(5, -5, 3, -3, 2, -2, 4, -4, 1, -1),
+            array(5, -5, 3, -3, 2, -2, 4, -4, 1, -1)
+        );
+
+        $wpdb->query('START TRANSACTION');
+
+        // Dọn bộ demo cũ (nếu có) để bấm lại không nhân bản dữ liệu.
+        $demo_ids = $wpdb->get_col("SELECT id FROM $voters WHERE email LIKE 'demo.%@" . MAC_Voting_DB::COMPANY_EMAIL_DOMAIN . "'");
+        if ($demo_ids) {
+            $in = implode(',', array_map('intval', $demo_ids));
+            $wpdb->query("DELETE FROM $ballots WHERE voter_id IN ($in)");
+            $wpdb->query("DELETE FROM $grants WHERE voter_id IN ($in)");
+            $wpdb->query("DELETE FROM $checkins WHERE voter_id IN ($in)");
+            $wpdb->query("DELETE FROM $exemptions WHERE voter_id IN ($in)");
+            $wpdb->query("DELETE FROM $voters WHERE id IN ($in)");
+        }
+        // Thay toàn bộ điểm chấm manual bằng bộ demo để màn hình tổng khớp kịch bản.
+        $wpdb->query("DELETE FROM $points WHERE source_type='CHECKIN' AND source_id LIKE 'CHECKPOINT\\_%'");
+        $wpdb->query($wpdb->prepare("DELETE FROM $points WHERE source_type=%s", MAC_Games::SOURCE));
+        $wpdb->query($wpdb->prepare("DELETE FROM $points WHERE source_type IN (%s,%s)", MAC_Points::SOURCE, 'CATEGORY'));
+
+        // 1) Nhân sự demo: 8 người/team, email demo.* để nhận diện và dọn khi cần.
+        $demo_voters = array();
+        $index = 0;
+        foreach ($teams as $team) {
+            $team_no = (int) $team['team_no'];
+            $team_id = (int) $team['id'];
+            for ($member = 1; $member <= 8; $member++) {
+                $full_name = $family_names[($index * 7) % 10] . ' '
+                    . $middle_names[(int) (($index * 3 + floor($index / 10)) % 10)] . ' '
+                    . $given_names[($index * 11 + 5) % 20];
+                $email = 'demo.' . $team_no . '.' . $member . '@' . MAC_Voting_DB::COMPANY_EMAIL_DOMAIN;
+                $inserted = $wpdb->insert($voters, array(
+                    'full_name' => $full_name,
+                    'search_name' => MAC_Voting_DB::normalize_name($full_name),
+                    'employee_code' => 'DEMO-' . $team_no . '-' . $member,
+                    'email' => $email,
+                    'team_id' => $team_id,
+                    'status' => 'ACTIVE',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ));
+                if ($inserted === false) {
+                    $wpdb->query('ROLLBACK');
+                    return new WP_Error('seed_failed', 'Không ghi được nhân sự demo vào database.');
+                }
+                $demo_voters[] = array('id' => (int) $wpdb->insert_id, 'team_no' => $team_no);
+                $index++;
+            }
+        }
+
+        // 2) Phiếu demo: mỗi người chấm 5 tiết mục của đội khác, tổng điểm bám mục tiêu.
+        $counters = array();
+        foreach ($demo_voters as $voter) {
+            foreach ($schedule as $slot) {
+                $performer_no = (int) $slot['team_no'];
+                if ($performer_no === (int) $voter['team_no']) {
+                    continue;
+                }
+                $counter = isset($counters[$performer_no]) ? $counters[$performer_no] : 0;
+                $counters[$performer_no] = $counter + 1;
+                $total = max(0, min(150, $vote_targets[$performer_no] + $variations[$counter % 40]));
+                $style = min(50, (int) floor($total * 0.36));
+                $staging = min(50, (int) floor($total * 0.34));
+                $teamwork = max(0, $total - $style - $staging);
+                $inserted = $wpdb->insert($ballots, array(
+                    'request_id' => wp_generate_uuid4(),
+                    'voter_id' => $voter['id'],
+                    'performance_id' => (int) $slot['performance_id'],
+                    'round_id' => (int) $slot['round_id'],
+                    'style_score' => $style,
+                    'staging_score' => $staging,
+                    'teamwork_score' => $teamwork,
+                    'total_score' => $total,
+                    'status' => 'VALID',
+                    'active_key' => 'VALID',
+                    'created_at' => $now,
+                ));
+                if ($inserted === false) {
+                    $wpdb->query('ROLLBACK');
+                    return new WP_Error('seed_failed', 'Không ghi được phiếu demo vào database.');
+                }
+            }
+        }
+
+        // 3) Sổ điểm team_points: check-in, trò chơi và thi đua theo kịch bản.
+        $admin_id = get_current_user_id();
+        $point_rows = array();
+        foreach ($checkin_matrix as $team_no => $checkpoint_scores) {
+            foreach ($checkpoint_scores as $position => $score) {
+                $point_rows[] = array($team_id_by_no[$team_no], 'CHECKIN', 'CHECKPOINT_' . ($position + 1), $score, 'Trạm ' . ($position + 1) . ' · demo');
+            }
+        }
+        $games = MAC_Games::games();
+        foreach ($games as $game) {
+            $ranks = $game_ranks[(int) $game['id']] ?? array();
+            foreach ($ranks as $team_no => $rank) {
+                $game_points = $rank >= 1 ? (int) MAC_Voting_DB::RANK_LADDER[$rank - 1] : 0;
+                if ($game_points <= 0) {
+                    continue;
+                }
+                $point_rows[] = array($team_id_by_no[$team_no], MAC_Games::SOURCE, MAC_Games::SOURCE . '_' . (int) $game['id'], $game_points, $game['name'] . ' · Hạng ' . $rank);
+            }
+        }
+        $rounds = $wpdb->get_results("SELECT id,name FROM $thidua_rounds ORDER BY sort_order,id", ARRAY_A) ?: array();
+        foreach ($rounds as $position => $round) {
+            $ranks = $thidua_ranks[$position] ?? array();
+            foreach ($ranks as $team_no => $rank) {
+                $round_points = $rank >= 1 ? (int) MAC_Voting_DB::RANK_LADDER[$rank - 1] : 0;
+                if ($round_points <= 0) {
+                    continue;
+                }
+                $point_rows[] = array($team_id_by_no[$team_no], MAC_Points::SOURCE, (string) (int) $round['id'], $round_points, $round['name']);
+            }
+        }
+        foreach ($point_rows as $row) {
+            $inserted = $wpdb->insert($points, array(
+                'team_id' => $row[0],
+                'source_type' => $row[1],
+                'source_id' => $row[2],
+                'points' => $row[3],
+                'note' => $row[4],
+                'created_by' => $admin_id,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ));
+            if ($inserted === false) {
+                $wpdb->query('ROLLBACK');
+                return new WP_Error('seed_failed', 'Không ghi được điểm demo vào database.');
+            }
+        }
+
+        $wpdb->query('COMMIT');
+        return true;
     }
 
     public static function ajax_round(): void {
@@ -620,7 +842,6 @@ final class MAC_Voting_Admin {
         return array(
             'rounds' => $round_rows, 'results' => $results, 'ballots' => $recent,
             'reveal' => MAC_Voting_DB::reveal_state(),
-            'finalReveal' => MAC_Final_Reveal::payload(),
             'votingEnabled' => MAC_Voting_DB::is_voting_enabled(),
             'checkpoints' => MAC_Checkin::checkpoints(),
             'checkinBoard' => self::checkin_overview_board(),
