@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.12** (đã release & verify ngày 2026-08-20, release id 373631036, commit bb5ac56). Lưu ý: prototype v1.9.0 "Race to the Crown" đã bị gỡ khỏi source theo yêu cầu nhưng release/tag v1.9.0 vẫn còn trên GitHub — nếu updater lấy release mới nhất theo số version thì cần xóa release v1.9.0 hoặc cân nhắc trước khi bump tiếp.
+> Phiên bản hiện tại: **v1.8.12** (đã release & verify ngày 2026-08-20, release id 373631036, commit bb5ac56). Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa — v1.8.12 là bản mới nhất (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
 
 ---
 
@@ -182,7 +182,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.8.12 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: `ma-seed-demo`, `seed_demo_data`, `ONE COMPASS`, gradient `b7dcf8`, Version 1.8.12 đều có). Việc cần quyết định: release/tag v1.9.0 (prototype đã gỡ) vẫn tồn tại trên GitHub — cân nhắc xóa để updater không kéo ngược bản cũ, hoặc để nguyên nếu muốn khôi phục sau.
+Mọi yêu cầu tới 1.8.12 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: `ma-seed-demo`, `seed_demo_data`, `ONE COMPASS`, gradient `b7dcf8`, Version 1.8.12 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.12 là release mới nhất, updater sẽ không kéo ngược bản cũ.
 
 ---
 
