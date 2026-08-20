@@ -120,7 +120,7 @@ body.mac-voting-page .elementor-widget-container:has(#mac-voting-app) {
   padding: 0 18px;
   border: 1px solid transparent;
   border-radius: var(--control-radius);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
@@ -408,7 +408,7 @@ body.mac-voting-page .elementor-widget-container:has(#mac-voting-app) {
 }
 
 .mv-email-input input {
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mv-email-input .mv-email-domain {
@@ -883,7 +883,7 @@ body.mac-voting-page .elementor-widget-container:has(#mac-voting-app) {
   color: var(--red);
   background: #fff4f0;
   font-size: 13px;
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .mv-team-tab strong {

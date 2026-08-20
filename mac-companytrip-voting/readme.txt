@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.8.9
+Stable tag: 1.8.10
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,13 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.8.10 =
+- Thay màn hình chờ bằng loader bánh xe phối màu thương hiệu MAC (cảm hứng lucky-hound-44) cho cả 3 nơi dựng dashboard.
+- Hardening toàn bộ giao diện /company-trip-admin/ chống theme đè: nút, bảng, ô nhập liệu, link sidebar dùng !important scope theo body.mac-admin-public-page.
+- Refactor toàn bộ CSS dashboard: gộp các rule trùng lặp/đè nhau giữa các phiên bản, thống nhất thang font-size (10–30px) và font-weight (500/600/700/800), gom responsive breakpoint về một khối; đồng bộ font-weight trong CSS check-in, vote và kết quả.
+- Mobile: cột team trong các bảng điểm tổng quan co đúng bằng tên đội dài nhất nên mọi bảng thẳng hàng nhau, hết cảnh bảng rộng bảng hẹp.
+- Mobile: chuyển tab xong thanh tab tự kéo tab đang chọn vào giữa tầm nhìn, không còn giật về vị trí đầu rồi phải vuốt lại.
 
 = 1.8.9 =
 - /company-trip-admin/ render toàn trang bằng template riêng của plugin (không wp_head/footer), bỏ hoàn toàn header/footer/CSS của theme nên giao diện khớp 100% với dashboard.

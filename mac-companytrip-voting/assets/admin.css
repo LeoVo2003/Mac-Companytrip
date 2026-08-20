@@ -1,23 +1,65 @@
-.mac-admin-wrap {
-  margin: 0 0 0 -20px;
-}
+/* ==========================================================================
+   MAC Company Trip — Dashboard (admin.css)
+   --------------------------------------------------------------------------
+   Brand: đỏ #E31E24 → cam #FF6A2C (gradient cho hành động chính).
+   Nền: page #F5F5F7 · panel #FFFFFF · subtle #FAFAFC · text #111827 · muted #667085.
+   Type scale : 10 / 11 / 12 / 13 / 14 / 16 / 18 / 20 / 24 / 30 px
+   Font weight: 500 (meta nhẹ) · 600 (điều khiển, nav) · 700 (nút, tiêu đề) · 800 (eyebrow, chip)
+   Spacing    : 4 / 8 / 12 / 16 / 24 / 32 · radius panel 12–14, control 10–12, touch ≥ 40–44px
+   Cấu trúc   : tokens → layout → components → login → loader → theme hardening → responsive
+   ========================================================================== */
 
+/* --------------------------------------------------------------------------
+   1. Tokens & nền tảng
+   -------------------------------------------------------------------------- */
 .mac-admin-app {
   --r: #e31e24;
   --o: #ff6a2c;
   --grad: linear-gradient(135deg, var(--r) 0%, #f04423 55%, var(--o) 100%);
   --ink: #111827;
+  --ink-soft: #344054;
+  --ink-mid: #475467;
   --muted: #667085;
+  --faint: #98a2b3;
   --page: #f5f5f7;
   --panel: #ffffff;
   --soft: #fafafc;
   --border: #e4e7ec;
   --border-strong: #d0d5dd;
+  --brand-border: #fed7cc;
+  --brand-soft: #fff4f0;
+  --brand-softer: #fff8f5;
+  --brand-tint: #fff6f2;
+  --danger: #b42318;
+  --danger-strong: #d92d20;
+  --danger-border: #fecdca;
+  --danger-soft: #fef3f2;
+  --success: #067647;
+  --success-soft: #ecfdf3;
+  --success-border: #abefc6;
+  --warn: #93370d;
+  --warn-soft: #fffaeb;
+  --warn-border: #fedf89;
+  --info: #175cd3;
+  --info-soft: #eff8ff;
+  --info-border: #b2ddff;
+  --shadow-card: 0 1px 3px rgba(16, 24, 40, 0.05);
+  --shadow-btn: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-grad: 0 7px 18px rgba(227, 30, 36, 0.2);
+  --focus-ring: 3px solid rgba(227, 30, 36, 0.18);
   color: var(--ink);
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 14px;
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
+}
+
+.mac-admin-wrap {
+  margin: 0 0 0 -20px;
+}
+
+.mac-admin-wrap.mac-admin-public {
+  margin: 0;
 }
 
 .mac-admin-app *,
@@ -36,7 +78,7 @@
 .mac-admin-app a:focus-visible,
 .mac-admin-app select:focus-visible,
 .mac-admin-app input:focus-visible {
-  outline: 3px solid rgba(227, 30, 36, 0.18);
+  outline: var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -52,6 +94,9 @@
   border: 0;
 }
 
+/* --------------------------------------------------------------------------
+   2. Layout: sidebar + nội dung
+   -------------------------------------------------------------------------- */
 .ma-layout {
   display: grid;
   min-height: calc(100vh - 32px);
@@ -85,7 +130,7 @@
 }
 
 .ma-brand strong {
-  color: #344054;
+  color: var(--ink-soft);
   font-size: 14px;
   font-weight: 700;
 }
@@ -95,7 +140,7 @@
   margin-top: 2px;
   color: var(--muted);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .ma-side nav {
@@ -115,7 +160,7 @@
   background: transparent;
   color: var(--muted);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   transition: color 150ms ease, background 150ms ease;
@@ -129,8 +174,8 @@
 
 .ma-side button.active {
   color: var(--r);
-  background: #fff4f0;
-  box-shadow: inset 0 0 0 1px #fed7cc;
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand-border);
 }
 
 .ma-side > a {
@@ -151,13 +196,18 @@
   border-radius: 10px;
   color: var(--muted);
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
   text-decoration: none;
 }
 
 .ma-side-links a:hover {
   color: var(--ink);
   background: var(--soft);
+}
+
+.ma-side-logout {
+  margin-top: 8px;
+  min-height: 44px;
 }
 
 .ma-content {
@@ -167,6 +217,13 @@
   padding: 28px clamp(20px, 3vw, 44px) 56px;
 }
 
+.ma-content > section + section,
+.ma-content > section + div,
+.ma-content > div + section {
+  margin-top: 16px;
+}
+
+/* Topbar của mỗi tab */
 .ma-top {
   display: flex;
   align-items: center;
@@ -175,6 +232,7 @@
   margin-bottom: 16px;
 }
 
+/* Eyebrow đỏ chữ in hoa — dùng chung cho topbar, panel head, khối dữ liệu */
 .ma-top small,
 .ma-panel header small,
 .ma-art-block-head small,
@@ -188,7 +246,7 @@
 .ma-top h1 {
   margin: 4px 0 0;
   font-size: 30px;
-  font-weight: 720;
+  font-weight: 700;
   line-height: 1.12;
   letter-spacing: -0.035em;
 }
@@ -199,11 +257,11 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--panel);
-  color: #344054;
+  color: var(--ink-soft);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  box-shadow: var(--shadow-btn);
 }
 
 .ma-top button:hover {
@@ -223,16 +281,17 @@
 }
 
 .ma-top .ma-reset-trigger {
-  border-color: #fecdca;
-  color: #b42318;
+  border-color: var(--danger-border);
+  color: var(--danger);
   background: #fff;
 }
 
 .ma-top .ma-reset-trigger:hover {
   border-color: #f97066;
-  background: #fef3f2;
+  background: var(--danger-soft);
 }
 
+/* Toast thông báo */
 .ma-alert {
   position: fixed;
   z-index: 99;
@@ -240,17 +299,166 @@
   right: 24px;
   max-width: 420px;
   padding: 12px 16px;
-  border: 1px solid #abefc6;
+  border: 1px solid var(--success-border);
   border-radius: 12px;
-  color: #067647;
-  background: #ecfdf3;
+  color: var(--success);
+  background: var(--success-soft);
   box-shadow: 0 14px 36px rgba(16, 24, 40, 0.15);
 }
 
 .ma-alert.error {
-  border-color: #fecdca;
-  color: #b42318;
-  background: #fef3f2;
+  border-color: var(--danger-border);
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+/* --------------------------------------------------------------------------
+   3. Nút bấm
+   -------------------------------------------------------------------------- */
+
+/* Nút trung tính + link dạng nút (mặc định của .ma-data a và .ma-primary) */
+.ma-data a,
+.ma-primary {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 9px;
+  padding: 0 15px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-btn);
+}
+
+.ma-data a:hover,
+.ma-primary:hover {
+  border-color: var(--border-strong);
+  background: var(--soft);
+}
+
+/* Biến thể gradient cho hành động chính */
+.ma-data .ma-primary,
+.ma-modal-actions .ma-primary,
+.ma-staff-form .ma-primary,
+.ma-check-card button.ma-primary,
+#ma-team-add .ma-primary {
+  margin-top: auto;
+  border: 0;
+  color: #fff;
+  background: var(--grad);
+  box-shadow: var(--shadow-grad);
+}
+
+.ma-data .ma-primary:hover:not(:disabled),
+.ma-modal-actions .ma-primary:hover:not(:disabled),
+.ma-staff-form .ma-primary:hover:not(:disabled),
+.ma-check-card button.ma-primary:hover:not(:disabled),
+.ma-gate button.ma-primary:hover:not(:disabled),
+#ma-team-add .ma-primary:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--grad);
+  filter: brightness(1.06);
+  box-shadow: 0 6px 14px rgba(227, 30, 36, 0.25);
+}
+
+.ma-modal-actions .ma-primary,
+.ma-check-card button.ma-primary,
+#ma-team-add .ma-primary {
+  margin-top: 0;
+}
+
+#ma-team-add .ma-primary {
+  flex: 0 0 auto;
+}
+
+.ma-staff-form .ma-primary,
+.ma-exempt-form .ma-primary {
+  justify-self: start;
+}
+
+.ma-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ma-primary input {
+  display: none;
+}
+
+/* Đồng bộ transition cho mọi nút/ô nhập tương tác */
+.ma-panel button,
+.ma-check-card button,
+.ma-round-head button,
+.ma-top-actions button,
+.ma-subnav button,
+.ma-side nav button,
+.ma-side-links a,
+.ma-people-actions button,
+.ma-award-presets button,
+.ma-award-teams button,
+.ma-duration input,
+.ma-game-row select {
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+/* --------------------------------------------------------------------------
+   4. Panel & thống kê nhanh
+   -------------------------------------------------------------------------- */
+.ma-grid {
+  display: grid;
+  grid-template-columns: minmax(480px, 1.4fr) minmax(280px, 0.7fr);
+  gap: 16px;
+}
+
+.ma-panel {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
+}
+
+.ma-panel > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ma-panel h2 {
+  margin: 3px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ma-panel > header > b {
+  padding: 6px 9px;
+  border: 1px solid var(--brand-border);
+  border-radius: 999px;
+  color: var(--r);
+  background: var(--brand-tint);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+}
+
+.ma-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ma-panel .ma-board-table {
+  margin: 12px 16px 16px;
 }
 
 .ma-stats {
@@ -277,50 +485,48 @@
 
 .ma-stats strong {
   font-size: 30px;
-  font-weight: 720;
+  font-weight: 700;
   letter-spacing: -0.025em;
 }
 
-.ma-grid {
-  display: grid;
-  grid-template-columns: minmax(480px, 1.4fr) minmax(280px, 0.7fr);
-  gap: 16px;
-}
-
-.ma-panel {
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--panel);
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
-}
-
-.ma-panel > header {
+/* Subnav trong tab (ví dụ Văn nghệ) */
+.ma-subnav {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
 }
 
-.ma-panel h2 {
-  margin: 3px 0 0;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+.ma-subnav button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.ma-panel > header > b {
-  padding: 6px 9px;
-  border: 1px solid #fed7cc;
-  border-radius: 999px;
+.ma-subnav button:hover {
+  color: var(--ink);
+  background: var(--soft);
+}
+
+.ma-subnav button.active {
   color: var(--r);
-  background: #fff6f2;
-  font-size: 11px;
-  letter-spacing: 0.09em;
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand-border);
 }
 
+/* --------------------------------------------------------------------------
+   5. Lượt vote văn nghệ (rounds)
+   -------------------------------------------------------------------------- */
 .ma-rounds {
   display: grid;
   gap: 10px;
@@ -351,6 +557,7 @@
 
 .ma-round-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -395,19 +602,27 @@
 
 .ma-round-head button.reopen {
   border: 1px solid var(--border-strong);
-  color: #344054;
+  color: var(--ink-soft);
   background: var(--panel);
 }
 
 .ma-round-head button.reopen:hover {
   border-color: #f3a893;
   color: var(--r);
-  background: #fff8f5;
+  background: var(--brand-softer);
 }
 
 .ma-round-head button:disabled {
   opacity: 0.58;
   cursor: wait;
+}
+
+.ma-round-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
 }
 
 .ma-slots {
@@ -429,7 +644,7 @@
 .ma-slots small {
   color: var(--muted);
   font-size: 11px;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .ma-slots strong {
@@ -456,6 +671,7 @@
   font-style: normal;
 }
 
+/* Danh sách kết quả lượt (danh sách phiếu theo lượt) */
 .ma-result {
   display: flex;
   min-height: 64px;
@@ -475,10 +691,10 @@
   height: 30px;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid #fed7cc;
+  border: 1px solid var(--brand-border);
   border-radius: 9px;
   color: var(--r);
-  background: #fff6f2;
+  background: var(--brand-tint);
   font-size: 12px;
   font-style: normal;
   font-weight: 800;
@@ -516,40 +732,9 @@
   font-size: 12px;
 }
 
-.ma-subnav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 16px;
-  padding: 4px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--panel);
-}
-
-.ma-subnav button {
-  min-height: 40px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: 10px;
-  color: var(--muted);
-  background: transparent;
-  font-size: 14px;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.ma-subnav button:hover {
-  color: var(--ink);
-  background: var(--soft);
-}
-
-.ma-subnav button.active {
-  color: var(--r);
-  background: #fff4f0;
-  box-shadow: inset 0 0 0 1px #fed7cc;
-}
-
+/* --------------------------------------------------------------------------
+   6. Tổng quan: biểu đồ + lịch sử
+   -------------------------------------------------------------------------- */
 .ma-overview-stack {
   display: grid;
   gap: 16px;
@@ -578,7 +763,7 @@
 
 .ma-chart-col strong {
   font-size: 20px;
-  font-weight: 720;
+  font-weight: 700;
   letter-spacing: -0.03em;
 }
 
@@ -600,7 +785,7 @@
 }
 
 .ma-chart-col.is-neg .ma-chart-track span {
-  background: #fecdca;
+  background: var(--danger-border);
 }
 
 .ma-chart-col figcaption {
@@ -620,6 +805,11 @@
   font-weight: 500;
 }
 
+.ma-chart-col figcaption b,
+.ma-chart-col figcaption small {
+  overflow-wrap: anywhere;
+}
+
 .ma-history-table {
   max-height: 520px;
 }
@@ -634,9 +824,12 @@
 }
 
 .ma-history-table tr.is-checkin td:last-child {
-  color: #b42318;
+  color: var(--danger);
 }
 
+/* --------------------------------------------------------------------------
+   7. Văn nghệ: khối live + màn trình chiếu kết quả (reveal)
+   -------------------------------------------------------------------------- */
 .ma-art-stack,
 .ma-art-live {
   display: grid;
@@ -652,7 +845,7 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--panel);
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
+  box-shadow: var(--shadow-card);
 }
 
 .ma-art-block-head {
@@ -725,28 +918,24 @@
   max-height: 280px;
 }
 
-.ma-reveal-top {
-  align-items: flex-end;
-}
-
 .ma-screen-link {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
   justify-content: center;
   padding: 0 16px;
-  border: 1px solid #fed7cc;
+  border: 1px solid var(--brand-border);
   border-radius: 10px;
   color: var(--r);
-  background: #fff8f5;
-  font-weight: 750;
+  background: var(--brand-softer);
+  font-weight: 700;
   text-decoration: none;
 }
 
 .ma-screen-link:hover {
   border-color: #fda29b;
-  color: #b42318;
-  background: #fff4f0;
+  color: var(--danger);
+  background: var(--brand-soft);
 }
 
 .ma-reveal-grid {
@@ -760,6 +949,10 @@
   padding: 24px;
 }
 
+.ma-reveal-top {
+  align-items: flex-end;
+}
+
 .ma-reveal-status {
   display: inline-flex;
   min-height: 32px;
@@ -771,7 +964,7 @@
   color: var(--muted);
   background: var(--soft);
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .ma-reveal-status i,
@@ -779,14 +972,14 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #98a2b3;
+  background: var(--faint);
 }
 
 .ma-reveal-status.rolling,
 .ma-reveal-status.decoy {
-  border-color: #fedf89;
-  color: #93370d;
-  background: #fffaeb;
+  border-color: var(--warn-border);
+  color: var(--warn);
+  background: var(--warn-soft);
 }
 
 .ma-reveal-status.rolling i,
@@ -797,9 +990,9 @@
 
 .ma-reveal-status.third,
 .ma-reveal-status.second {
-  border-color: #fecdca;
-  color: #b42318;
-  background: #fff4f0;
+  border-color: var(--danger-border);
+  color: var(--danger);
+  background: var(--brand-soft);
 }
 
 .ma-reveal-status.third i,
@@ -809,9 +1002,9 @@
 }
 
 .ma-reveal-status.final {
-  border-color: #abefc6;
-  color: #067647;
-  background: #ecfdf3;
+  border-color: var(--success-border);
+  color: var(--success);
+  background: var(--success-soft);
 }
 
 .ma-reveal-status.final i {
@@ -823,12 +1016,12 @@
   padding: 16px;
   border: 1px solid #fee4e2;
   border-radius: 12px;
-  background: linear-gradient(135deg, #fff8f5, #fff);
+  background: linear-gradient(135deg, var(--brand-softer), #fff);
 }
 
 .ma-reveal-intro strong {
   display: block;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .ma-reveal-intro p {
@@ -876,9 +1069,9 @@
   align-self: center;
   border-radius: 11px;
   color: var(--r);
-  background: #fff4f0;
+  background: var(--brand-soft);
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 800;
   letter-spacing: 0.08em;
 }
 
@@ -924,7 +1117,7 @@
 
 .ma-reveal-actions button:disabled {
   border-color: var(--border);
-  color: #98a2b3;
+  color: var(--faint);
   background: var(--soft);
   box-shadow: none;
   cursor: not-allowed;
@@ -932,7 +1125,7 @@
 }
 
 .ma-reveal-actions button:disabled > span {
-  color: #98a2b3;
+  color: var(--faint);
   background: #eaecf0;
 }
 
@@ -963,14 +1156,14 @@
   padding: 0 12px;
   border: 1px solid var(--border);
   border-radius: 9px;
-  color: #475467;
+  color: var(--ink-mid);
   background: var(--panel);
   font-weight: 700;
   cursor: pointer;
 }
 
 .ma-reveal-footer button:disabled {
-  color: #98a2b3;
+  color: var(--faint);
   background: var(--soft);
   cursor: not-allowed;
 }
@@ -1000,7 +1193,7 @@
   place-items: center;
   border-radius: 8px;
   color: var(--r);
-  background: #fff4f0;
+  background: var(--brand-soft);
   font-size: 12px;
   font-style: normal;
   font-weight: 800;
@@ -1024,10 +1217,16 @@
 }
 
 .ma-reveal-result > b {
-  font-size: 17px;
+  font-size: 18px;
   font-variant-numeric: tabular-nums;
 }
 
+
+/* --------------------------------------------------------------------------
+   8. Bảng dữ liệu
+   -------------------------------------------------------------------------- */
+
+/* Bảng danh sách trong panel (phiếu bầu, nhân sự…) */
 .ma-table {
   overflow: auto;
 }
@@ -1044,7 +1243,7 @@
   color: var(--muted);
   background: var(--soft);
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 700;
   letter-spacing: 0.05em;
   text-align: left;
   text-transform: uppercase;
@@ -1077,15 +1276,15 @@
   display: inline-flex;
   padding: 5px 8px;
   border-radius: 999px;
-  color: #067647;
-  background: #ecfdf3;
+  color: var(--success);
+  background: var(--success-soft);
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .ma-table .badge.revoked {
-  color: #b42318;
-  background: #fef3f2;
+  color: var(--danger);
+  background: var(--danger-soft);
 }
 
 .ma-table button {
@@ -1101,9 +1300,10 @@
 }
 
 .ma-table button:hover {
-  background: #fff4f0;
+  background: var(--brand-soft);
 }
 
+/* Chi tiết phiếu trong bảng (details/summary) */
 .ma-ballot-detail {
   position: relative;
   min-width: 128px;
@@ -1131,11 +1331,11 @@
 .ma-ballot-detail summary span {
   color: var(--muted);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .ma-ballot-detail summary:focus-visible {
-  outline: 3px solid rgba(227, 30, 36, 0.18);
+  outline: var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -1156,7 +1356,7 @@
   justify-content: space-between;
   gap: 16px;
   margin: 0;
-  color: #475467;
+  color: var(--ink-mid);
   font-size: 13px;
 }
 
@@ -1165,6 +1365,145 @@
   font-size: 14px;
 }
 
+/* Bảng điểm / bảng nhân sự: cuộn ngang mobile, ghim cột đầu */
+.ma-board-table,
+.ma-people-table {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.ma-board-table table,
+.ma-people-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ma-board-table table {
+  min-width: 640px;
+  table-layout: fixed;
+}
+
+.ma-board-table th,
+.ma-people-table th,
+.ma-board-table td,
+.ma-people-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 13px;
+}
+
+.ma-board-table th,
+.ma-board-table td {
+  overflow-wrap: anywhere;
+}
+
+.ma-board-table tbody tr:hover td,
+.ma-people-table tbody tr:hover td {
+  background: var(--soft);
+}
+
+/* Ghim cột đầu bên trái khi cuộn ngang */
+.ma-board-table th:first-child,
+.ma-board-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  width: 180px;
+  min-width: 180px;
+  background: var(--panel);
+  box-shadow: 1px 0 0 var(--border);
+}
+
+.ma-board-table thead th:first-child {
+  z-index: 2;
+}
+
+.ma-board-table tbody tr:hover td:first-child {
+  background: var(--soft);
+}
+
+/* Biến thể ghim thêm cột thứ 2 (bảng tổng kết: hạng + team) */
+.ma-board-table.ma-pin-2 th:first-child,
+.ma-board-table.ma-pin-2 td:first-child {
+  width: 60px;
+  min-width: 60px;
+}
+
+.ma-board-table.ma-pin-2 th:nth-child(2),
+.ma-board-table.ma-pin-2 td:nth-child(2) {
+  position: sticky;
+  left: 56px;
+  z-index: 1;
+  width: 180px;
+  min-width: 180px;
+  background: var(--panel);
+  box-shadow: 1px 0 0 var(--border);
+}
+
+.ma-board-table.ma-pin-2 thead th:nth-child(2) {
+  z-index: 2;
+}
+
+.ma-board-table.ma-pin-2 tbody tr:hover td:nth-child(2) {
+  background: var(--soft);
+}
+
+/* Biến thể bỏ sticky (bảng tài khoản quét QR) */
+.ma-board-table.ma-no-sticky th:first-child,
+.ma-board-table.ma-no-sticky td:first-child {
+  position: static;
+  width: auto;
+  min-width: 0;
+  box-shadow: none;
+}
+
+/* Header trạm 2 dòng: "Trạm N" + tên trạm nhỏ bên dưới */
+.ma-board-table thead th small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: normal;
+}
+
+/* Dòng phụ trong ô bảng (TB phiếu văn nghệ) */
+.ma-cell-sub {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Ô tiến độ check-in theo trạm */
+.ma-progress-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ma-progress-cell strong {
+  display: block;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ma-progress-cell small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   9. Tab Nhân sự & QR: khối dữ liệu, import CSV, modal QR
+   -------------------------------------------------------------------------- */
 .ma-data {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1185,69 +1524,27 @@
   height: 48px;
   margin-bottom: 20px;
   place-items: center;
-  border: 1px solid #fed7cc;
+  border: 1px solid var(--brand-border);
   border-radius: 12px;
   color: var(--r);
-  background: #fff6f2;
-  font-size: 21px;
+  background: var(--brand-tint);
+  font-size: 20px;
 }
 
 .ma-data h2 {
   margin: 6px 0 8px;
-  font-size: 23px;
+  font-size: 24px;
   letter-spacing: -0.025em;
 }
 
 .ma-data p {
-  max-width: 420px;
+  max-width: 515px;
   color: var(--muted);
   line-height: 1.55;
   font-size: 14px;
 }
 
-.ma-data a,
-.ma-primary {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  justify-content: center;
-  margin-top: 9px;
-  padding: 0 15px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--panel);
-  color: #344054;
-  font-weight: 700;
-  font-size: 14px;
-  text-decoration: none;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
-}
-
-.ma-data a:hover,
-.ma-primary:hover {
-  border-color: var(--border-strong);
-  background: var(--soft);
-}
-
-.ma-data .ma-primary,
-.ma-modal-actions .ma-primary {
-  margin-top: auto;
-  border: 0;
-  color: #fff;
-  background: var(--grad);
-  box-shadow: 0 7px 18px rgba(227, 30, 36, 0.2);
-}
-
-.ma-primary:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.ma-primary input {
-  display: none;
-}
-
+/* Cảnh báo permalink / import thành công */
 .ma-permalink-warning,
 .ma-import-success {
   display: flex;
@@ -1255,10 +1552,10 @@
   gap: 12px;
   margin-bottom: 16px;
   padding: 14px 16px;
-  border: 1px solid #fedf89;
+  border: 1px solid var(--warn-border);
   border-radius: 12px;
-  color: #93370d;
-  background: #fffaeb;
+  color: var(--warn);
+  background: var(--warn-soft);
   font-size: 13px;
 }
 
@@ -1275,9 +1572,9 @@
 }
 
 .ma-import-success {
-  border-color: #abefc6;
-  color: #067647;
-  background: #ecfdf3;
+  border-color: var(--success-border);
+  color: var(--success);
+  background: var(--success-soft);
 }
 
 .ma-import-success > span {
@@ -1295,6 +1592,145 @@
   color: #17875b;
 }
 
+/* Modal xem trước CSV */
+.ma-file-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--soft);
+}
+
+.ma-file-summary > span {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--r);
+  background: var(--brand-soft);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.ma-file-summary > div {
+  display: grid;
+  min-width: 0;
+}
+
+.ma-file-summary strong,
+.ma-file-summary small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ma-file-summary small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ma-import-warning,
+.ma-import-ready {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--warn-border);
+  border-radius: 10px;
+  color: var(--warn);
+  background: var(--warn-soft);
+  font-size: 13px;
+}
+
+.ma-import-ready {
+  border-color: var(--success-border);
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.ma-preview-count {
+  margin: 14px 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ma-preview-table {
+  max-height: 300px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.ma-preview-table table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+}
+
+.ma-preview-table th,
+.ma-preview-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  text-align: left;
+}
+
+.ma-preview-table th {
+  position: sticky;
+  top: 0;
+  color: var(--muted);
+  background: var(--soft);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+/* Overlay đang kiểm tra file import */
+.ma-import-checking {
+  position: fixed;
+  z-index: 100001;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--ink);
+  background: rgba(245, 245, 247, 0.86);
+  backdrop-filter: blur(8px);
+}
+
+.ma-import-checking span {
+  width: 22px;
+  height: 22px;
+  border: 3px solid var(--brand-border);
+  border-top-color: var(--r);
+  border-radius: 50%;
+  animation: ma-spin 0.8s linear infinite;
+}
+
+/* Modal preview QR cá nhân */
+.ma-qr-modal-preview {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 8px 0 16px;
+  text-align: center;
+}
+
+.ma-qr-modal-preview canvas {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   10. Modal & hộp thoại xác nhận
+   -------------------------------------------------------------------------- */
 .ma-modal {
   position: fixed;
   z-index: 100000;
@@ -1351,106 +1787,6 @@
   cursor: pointer;
 }
 
-.ma-file-summary {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 18px 0 14px;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--soft);
-}
-
-.ma-file-summary > span {
-  display: grid;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 10px;
-  color: var(--r);
-  background: #fff4f0;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.ma-file-summary > div {
-  display: grid;
-  min-width: 0;
-}
-
-.ma-file-summary strong,
-.ma-file-summary small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ma-file-summary small {
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.ma-import-warning,
-.ma-import-ready {
-  margin: 12px 0;
-  padding: 12px 14px;
-  border: 1px solid #fedf89;
-  border-radius: 10px;
-  color: #93370d;
-  background: #fffaeb;
-  font-size: 13px;
-}
-
-.ma-import-warning,
-.ma-import-ready {
-  display: grid;
-  gap: 4px;
-}
-
-.ma-preview-count {
-  margin: 14px 0 8px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.ma-import-ready {
-  border-color: #abefc6;
-  color: #067647;
-  background: #ecfdf3;
-}
-
-.ma-preview-table {
-  max-height: 300px;
-  overflow: auto;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-
-.ma-preview-table table {
-  width: 100%;
-  min-width: 620px;
-  border-collapse: collapse;
-}
-
-.ma-preview-table th,
-.ma-preview-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-  text-align: left;
-}
-
-.ma-preview-table th {
-  position: sticky;
-  top: 0;
-  color: var(--muted);
-  background: var(--soft);
-  font-size: 12px;
-  text-transform: uppercase;
-}
-
 .ma-modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -1464,7 +1800,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--panel);
-  color: #344054;
+  color: var(--ink-soft);
   font-weight: 700;
   cursor: pointer;
 }
@@ -1473,6 +1809,95 @@
   margin-top: 0;
 }
 
+.ma-modal-actions .ma-danger-button {
+  border-color: var(--danger-strong);
+  color: #fff;
+  background: var(--danger-strong);
+}
+
+.ma-modal-actions .ma-danger-button:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: var(--danger);
+}
+
+.ma-modal-actions .ma-danger-button:disabled {
+  border-color: var(--danger-border);
+  color: #fda29b;
+  background: var(--danger-soft);
+  cursor: not-allowed;
+}
+
+.ma-modal-actions .ma-danger-button.is-loading {
+  cursor: wait;
+}
+
+/* Hộp thoại xác nhận gọn (confirmDialog) */
+.ma-confirm-card {
+  width: min(100%, 440px);
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.ma-confirm-card .ma-modal-head {
+  padding-bottom: 10px;
+  border-bottom: 0;
+}
+
+.ma-confirm-card .ma-modal-head h2 {
+  font-size: 20px;
+}
+
+.ma-confirm-card .ma-modal-head button {
+  display: none;
+}
+
+.ma-confirm-card .ma-confirm-message,
+.ma-confirm-card .ma-prompt-label {
+  padding: 0 0 18px;
+}
+
+.ma-confirm-card .ma-modal-actions {
+  margin-top: 0;
+}
+
+.ma-confirm-card .ma-modal-actions button {
+  border-radius: 12px;
+}
+
+.ma-confirm-message {
+  margin: 0;
+  padding: 0 20px 18px;
+  color: var(--ink-mid);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* Nhãn + ô nhập trong popup dạng prompt */
+.ma-prompt-label {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ma-prompt-label input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Modal xung đột khi mở lượt vote */
 .ma-round-conflict-modal {
   width: min(100%, 560px);
 }
@@ -1483,10 +1908,10 @@
   gap: 12px;
   margin-top: 18px;
   padding: 14px;
-  border: 1px solid #fedf89;
+  border: 1px solid var(--warn-border);
   border-radius: 12px;
   color: #7a2e0e;
-  background: #fffaeb;
+  background: var(--warn-soft);
 }
 
 .ma-round-conflict-warning > span {
@@ -1509,7 +1934,7 @@
 
 .ma-round-conflict-warning p {
   margin: 4px 0 0;
-  color: #93370d;
+  color: var(--warn);
   font-size: 13px;
   line-height: 1.55;
 }
@@ -1539,11 +1964,11 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #98a2b3;
+  background: var(--faint);
 }
 
 .ma-round-conflict-flow .is-open {
-  color: #b42318;
+  color: var(--danger);
 }
 
 .ma-round-conflict-flow .is-open i {
@@ -1552,9 +1977,10 @@
 }
 
 .ma-round-conflict-flow b {
-  color: #98a2b3;
+  color: var(--faint);
 }
 
+/* Modal đặt lại sự kiện */
 .ma-reset-modal {
   width: min(100%, 580px);
 }
@@ -1565,10 +1991,10 @@
   gap: 12px;
   margin: 18px 0 16px;
   padding: 14px;
-  border: 1px solid #fecdca;
+  border: 1px solid var(--danger-border);
   border-radius: 12px;
   color: #912018;
-  background: #fef3f2;
+  background: var(--danger-soft);
 }
 
 .ma-reset-warning > span {
@@ -1579,13 +2005,13 @@
   place-items: center;
   border-radius: 50%;
   color: #fff;
-  background: #d92d20;
+  background: var(--danger-strong);
   font-weight: 800;
 }
 
 .ma-reset-warning p {
   margin: 4px 0 0;
-  color: #b42318;
+  color: var(--danger);
   font-size: 13px;
 }
 
@@ -1594,7 +2020,7 @@
   gap: 8px;
   margin: 0;
   padding: 0 0 0 22px;
-  color: #475467;
+  color: var(--ink-mid);
   font-size: 14px;
 }
 
@@ -1602,15 +2028,15 @@
   display: grid;
   gap: 8px;
   margin-top: 20px;
-  color: #344054;
+  color: var(--ink-soft);
   font-weight: 700;
 }
 
 .ma-reset-confirm code {
   padding: 2px 6px;
   border-radius: 5px;
-  color: #b42318;
-  background: #fef3f2;
+  color: var(--danger);
+  background: var(--danger-soft);
 }
 
 .ma-reset-confirm input {
@@ -1622,33 +2048,102 @@
   background: var(--panel);
   color: var(--ink);
   font-size: 16px;
-  font-weight: 750;
+  font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.ma-modal-actions .ma-danger-button {
-  border-color: #d92d20;
-  color: #fff;
-  background: #d92d20;
+/* Modal thêm nhân sự / cấp quyền */
+.ma-person-modal {
+  width: min(100%, 560px);
 }
 
-.ma-modal-actions .ma-danger-button:hover:not(:disabled) {
-  border-color: #b42318;
-  background: #b42318;
+.ma-person-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
 }
 
-.ma-modal-actions .ma-danger-button:disabled {
-  border-color: #fecdca;
-  color: #fda29b;
-  background: #fef3f2;
-  cursor: not-allowed;
+.ma-person-form .ma-span-2 {
+  grid-column: 1 / -1;
 }
 
-.ma-modal-actions .ma-danger-button.is-loading {
-  cursor: wait;
+.ma-person-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
+.ma-person-form input,
+.ma-person-form select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ma-person-form select {
+  padding-right: 40px;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ma-person-form input:focus,
+.ma-person-form select:focus {
+  border-color: var(--r);
+  outline: 2px solid rgba(227, 30, 36, 0.18);
+  outline-offset: 1px;
+}
+
+.ma-field-hint {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ma-person-form .ma-modal-actions {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+}
+
+.ma-grant-summary {
+  display: grid;
+  gap: 2px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--soft);
+}
+
+.ma-grant-summary strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.ma-grant-summary small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   11. Quản lý team
+   -------------------------------------------------------------------------- */
 .ma-team-manager {
   margin-top: 16px;
   padding: 24px;
@@ -1673,7 +2168,7 @@
 .ma-team-edit label {
   display: block;
   margin-bottom: 6px;
-  color: #475467;
+  color: var(--ink-mid);
   font-size: 12px;
   font-weight: 700;
 }
@@ -1692,14 +2187,6 @@
   border-radius: 10px;
   background: var(--panel);
   color: var(--ink);
-}
-
-#ma-team-add .ma-primary {
-  flex: 0 0 auto;
-  margin: 0;
-  border: 0;
-  color: #fff;
-  background: var(--grad);
 }
 
 .ma-team-list {
@@ -1726,7 +2213,7 @@
   place-items: center;
   border-radius: 10px;
   color: var(--r);
-  background: #fff4f0;
+  background: var(--brand-soft);
   font-weight: 800;
 }
 
@@ -1740,20 +2227,20 @@
 .ma-team-meta span {
   padding: 5px 8px;
   border-radius: 999px;
-  color: #475467;
+  color: var(--ink-mid);
   background: #eaecf0;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .ma-team-meta .scheduled {
-  color: #067647;
-  background: #ecfdf3;
+  color: var(--success);
+  background: var(--success-soft);
 }
 
 .ma-team-meta .unscheduled {
-  color: #93370d;
-  background: #fffaeb;
+  color: var(--warn);
+  background: var(--warn-soft);
 }
 
 .ma-team-actions {
@@ -1768,15 +2255,15 @@
   padding: 0 11px;
   border: 1px solid var(--border);
   border-radius: 9px;
-  color: #344054;
+  color: var(--ink-soft);
   background: var(--panel);
   font-weight: 700;
   cursor: pointer;
 }
 
 .ma-team-actions button.danger {
-  border-color: #fecdca;
-  color: #b42318;
+  border-color: var(--danger-border);
+  color: var(--danger);
 }
 
 .ma-team-actions button:disabled {
@@ -1784,36 +2271,799 @@
   cursor: not-allowed;
 }
 
-.ma-import-checking {
-  position: fixed;
-  z-index: 100001;
-  inset: 0;
+/* --------------------------------------------------------------------------
+   12. Tab Check-in: cổng, trạm, cửa sổ, miễn check-in, tài khoản quét QR
+   -------------------------------------------------------------------------- */
+
+/* Cổng văn nghệ */
+.ma-gate header {
+  align-items: flex-start;
+}
+
+.ma-gate p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ma-gate.is-on {
+  border-color: var(--success-border);
+}
+
+.ma-gate.is-off header h2 {
+  color: var(--muted);
+}
+
+.ma-gate-status {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.ma-gate.is-on .ma-gate-status {
+  color: #065f46;
+  background: var(--success-soft);
+}
+
+.ma-gate.is-off .ma-gate-status {
+  color: var(--warn);
+  background: var(--warn-soft);
+}
+
+.ma-gate #ma-gate {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ma-gate button.danger {
+  color: var(--danger);
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
+}
+
+.ma-gate button.danger:hover:not(:disabled) {
+  border-color: #f97066;
+  background: #fee4e2;
+}
+
+/* Lưới thẻ trạm */
+.ma-check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ma-check-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.ma-check-card.open {
+  border-color: #f3a893;
+  background: #fffaf8;
+}
+
+.ma-check-card.closed {
+  background: var(--soft);
+}
+
+.ma-check-card small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.ma-check-card h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.ma-check-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ma-check-card .ma-check-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.ma-check-card button {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.ma-check-card button:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--soft);
+}
+
+.ma-check-card button.danger {
+  color: var(--danger);
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
+}
+
+.ma-check-card button.danger:hover:not(:disabled) {
+  border-color: #f97066;
+  background: #fee4e2;
+}
+
+.ma-check-fixed {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: #065f46;
+  background: var(--success-soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Badge cửa sổ check-in của team */
+.ma-window-badge {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ma-window-badge.live {
+  color: var(--info);
+  background: var(--info-soft);
+  border: 1px solid var(--info-border);
+}
+
+.ma-window-badge.locked {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-border);
+}
+
+.ma-window-badge.idle {
+  color: var(--ink-mid);
+  background: #f9fafb;
+  border: 1px solid var(--border);
+}
+
+/* Form miễn check-in */
+.ma-exempt-form {
+  display: grid;
+  gap: 12px;
+  padding: 16px 20px 20px;
+}
+
+.ma-exempt-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ma-exempt-form select,
+.ma-exempt-form input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+/* Lọc danh sách nhân sự */
+.ma-people-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.ma-people-filter select,
+.ma-people-filter input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.ma-people-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ma-people-actions button {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ma-people-actions button:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--soft);
+}
+
+/* Form chọn tài khoản quét QR */
+.ma-staff-form {
+  display: grid;
+  gap: 12px;
+  padding: 16px 20px 20px;
+}
+
+.ma-staff-form > label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ma-staff-form select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 40px 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Lưới chọn team cho tài khoản quét QR: 3 cột desktop, 2 cột mobile */
+.ma-staff-teams {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ma-staff-teams label {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--soft);
+}
+
+/* Ô tên + email trong bảng tài khoản quét QR */
+.ma-staff-cell {
+  display: grid;
+  gap: 2px;
+}
+
+.ma-staff-cell small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.ma-staff-passwords ul {
+  margin: 8px 0 0;
+  padding: 0 0 0 18px;
+}
+
+.ma-scanner-cta header {
+  align-items: center;
+}
+
+/* --------------------------------------------------------------------------
+   13. Tab Trò chơi lớn
+   -------------------------------------------------------------------------- */
+.ma-games-panel select {
+  min-height: 40px;
+  width: 100%;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  font-size: 13px;
+}
+
+.ma-games-panel .ma-games-total td {
+  border-top: 2px solid var(--border);
+  background: #f9fafb;
+}
+
+.ma-ladder {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 20px 20px;
+}
+
+.ma-ladder-chip {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #f9fafb;
+  color: var(--ink-mid);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ma-ladder-chip.rank-1 {
+  color: #93610b;
+  border-color: #fde29b;
+  background: #fef0c7;
+}
+
+.ma-ladder-chip.rank-2 {
+  color: var(--ink-mid);
+  border-color: var(--border-strong);
+  background: #f2f4f7;
+}
+
+.ma-ladder-chip.rank-3 {
+  color: var(--warn);
+  border-color: #f9dbaf;
+  background: #fdf2ec;
+}
+
+.ma-ladder-chip.rank-4 {
+  color: var(--info);
+  border-color: var(--info-border);
+  background: var(--info-soft);
+}
+
+.ma-ladder-chip.rank-5 {
+  color: var(--success);
+  border-color: var(--success-border);
+  background: var(--success-soft);
+}
+
+.ma-ladder-chip.rank-6 {
+  color: var(--faint);
+  border-color: var(--border);
+  background: #fff;
+}
+
+.ma-game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.ma-game-card header {
+  align-items: center;
+}
+
+.ma-game-max {
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ma-game-rows {
+  display: grid;
+  gap: 10px;
+  padding: 16px 20px 20px;
+}
+
+.ma-game-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  gap: 10px;
+}
+
+.ma-game-team {
+  flex: 1;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ma-game-team b {
   color: var(--ink);
-  background: rgba(245, 245, 247, 0.86);
-  backdrop-filter: blur(8px);
 }
 
-.ma-import-checking span {
-  width: 22px;
-  height: 22px;
-  border: 3px solid #fed7cc;
-  border-top-color: var(--r);
-  border-radius: 50%;
-  animation: ma-spin 0.8s linear infinite;
+.ma-game-row select {
+  min-height: 40px;
+  max-width: 170px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  font-size: 13px;
 }
 
+.ma-game-row select:hover {
+  border-color: var(--border-strong);
+}
+
+.ma-game-points {
+  min-width: 44px;
+  text-align: right;
+  color: var(--faint);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ma-game-points.rank-1 {
+  color: #93610b;
+}
+
+.ma-game-points.rank-2 {
+  color: var(--ink-mid);
+}
+
+.ma-game-points.rank-3 {
+  color: var(--warn);
+}
+
+.ma-game-points.rank-4 {
+  color: var(--info);
+}
+
+.ma-game-points.rank-5 {
+  color: var(--success);
+}
+
+.ma-game-points.rank-6 {
+  color: var(--faint);
+}
+
+.ma-rank-chip {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--ink-mid);
+  background: #f2f4f7;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ma-rank-chip.rank-1 {
+  color: #93610b;
+  background: #fef0c7;
+}
+
+.ma-rank-chip.rank-2 {
+  background: #eaecf0;
+}
+
+.ma-rank-chip.rank-3 {
+  color: var(--warn);
+  background: #fdf2ec;
+}
+
+.ma-rank-chip.rank-4 {
+  color: var(--info);
+  background: var(--info-soft);
+}
+
+.ma-rank-chip.rank-5 {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.ma-rank-chip.rank-6 {
+  color: var(--faint);
+  background: #f9fafb;
+}
+
+/* --------------------------------------------------------------------------
+   14. Tab Thi đua (awards)
+   -------------------------------------------------------------------------- */
+.ma-award {
+  display: grid;
+  gap: 8px;
+  padding: 8px 0 16px;
+}
+
+.ma-award-step {
+  padding: 16px 20px 8px;
+}
+
+.ma-award-step h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ma-award-step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.ma-award-cat-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ma-award-cat-actions button {
+  display: inline-flex;
+  min-width: 36px;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--r);
+  background: var(--panel);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ma-award-cat-actions button:hover:not(:disabled) {
+  background: var(--soft);
+}
+
+.ma-award-cat-actions button.is-danger {
+  color: var(--danger);
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
+}
+
+.ma-award-cat-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ma-award select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.ma-award-teams,
+.ma-award-presets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ma-award-teams {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ma-award-teams button,
+.ma-award-presets button,
+.ma-award-custom button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--r);
+  background: var(--panel);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ma-award-teams button {
+  display: grid;
+  align-content: center;
+  gap: 2px;
+}
+
+.ma-award-teams button small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ma-award-teams button:hover:not(:disabled):not(.is-selected),
+.ma-award-presets button:hover:not(:disabled):not(.is-selected),
+.ma-award-custom button:hover:not(:disabled):not(.is-selected) {
+  border-color: var(--brand-border);
+  background: var(--brand-softer);
+}
+
+.ma-award-teams button.is-selected,
+.ma-award-presets button.is-selected {
+  border: 0;
+  color: #fff;
+  background: var(--grad);
+}
+
+.ma-award-teams button.is-selected small {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.ma-award-presets button.is-minus:not(.is-selected) {
+  color: var(--danger);
+}
+
+.ma-award-presets button.is-zero {
+  color: var(--ink-mid);
+}
+
+.ma-award-presets button.is-zero.is-selected {
+  color: #fff;
+  background: var(--ink-mid);
+}
+
+.ma-award-teams button:disabled,
+.ma-award-presets button:disabled,
+.ma-award-custom button:disabled,
+.ma-award-custom input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ma-award-custom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ma-award-custom input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.ma-award-current {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ma-cat-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* --------------------------------------------------------------------------
+   15. Tổng điểm 4 trụ cột (thẻ lớn đầu tab Tổng quan)
+   -------------------------------------------------------------------------- */
+.ma-total-teams {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ma-total-card {
+  display: grid;
+  gap: 4px;
+  min-height: 132px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+}
+
+.ma-total-card small {
+  color: var(--r);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.ma-total-card h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ma-total-card strong {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.ma-total-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   16. Ô nhập thời gian inline (phút tự đóng)
+   -------------------------------------------------------------------------- */
+.ma-duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ma-duration input {
+  width: 64px;
+  min-height: 40px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ma-duration input:hover {
+  border-color: var(--border-strong);
+}
+
+.ma-duration input:focus {
+  outline: 2px solid #f3a893;
+  outline-offset: 1px;
+}
+
+/* --------------------------------------------------------------------------
+   17. Trạng thái lỗi tải dữ liệu
+   -------------------------------------------------------------------------- */
 .ma-load-error {
   width: min(520px, calc(100% - 32px));
   margin: 64px auto;
   padding: 24px;
-  border: 1px solid #fecdca;
+  border: 1px solid var(--danger-border);
   border-radius: 14px;
-  color: #b42318;
-  background: #fef3f2;
+  color: var(--danger);
+  background: var(--danger-soft);
   text-align: center;
 }
 
@@ -1840,14 +3090,421 @@
   to { transform: rotate(360deg); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .mac-admin-app *,
-  .mac-admin-app *::before,
-  .mac-admin-app *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
+/* --------------------------------------------------------------------------
+   18. Đăng nhập dashboard (.ma-login + #ma-admin-login)
+   -------------------------------------------------------------------------- */
+.ma-login {
+  --r: #e31e24;
+  --o: #ff6a2c;
+  --grad: linear-gradient(135deg, var(--r) 0%, #f04423 55%, var(--o) 100%);
+  --ink: #111827;
+  --muted: #667085;
+  --page: #f5f5f7;
+  --panel: #ffffff;
+  --border: #e4e7ec;
+  box-sizing: border-box;
+  width: min(100%, 440px);
+  margin: 48px auto;
+  padding: 32px 24px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--panel);
+  box-shadow: 0 20px 55px rgba(16, 24, 40, 0.08);
+  color: var(--ink);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.ma-login img {
+  display: block;
+  width: 112px;
+  height: auto;
+}
+
+.ma-login-kicker {
+  margin: 16px 0 0;
+  color: var(--r);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.ma-login h1 {
+  margin: 8px 0 12px;
+  color: var(--ink);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.ma-login p {
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ma-login label {
+  display: block;
+  margin: 0 0 8px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ma-login-email {
+  display: flex;
+  min-height: 44px;
+  margin: 0 0 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fafafc;
+}
+
+.ma-login-email input {
+  min-width: 0;
+  flex: 1;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.ma-login-domain {
+  display: flex;
+  align-items: center;
+  margin: 0 !important;
+  border-left: 1px solid var(--border);
+}
+
+.ma-login-domain select {
+  min-height: 42px;
+  max-width: 196px;
+  padding: 0 28px 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' stroke='%23667085' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+}
+
+.ma-login-domain select:focus-visible {
+  outline: 3px solid rgba(227, 30, 36, 0.18);
+  outline-offset: -3px;
+}
+
+.ma-login input[type="password"] {
+  width: 100%;
+  min-height: 44px;
+  margin: 0 0 16px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fafafc;
+  color: var(--ink);
+}
+
+.ma-login .ma-primary {
+  width: 100%;
+  min-height: 44px;
+}
+
+.ma-login .ma-primary[disabled] {
+  opacity: 0.56;
+}
+
+.ma-login-error {
+  margin: 0 0 12px !important;
+  color: #b42318;
+}
+
+.ma-side-logout {
+  min-height: 44px;
+  margin-top: 8px;
+}
+
+/* Theme-proof cho form đăng nhập dựng trong trang theme (shortcode). */
+#ma-admin-login .ma-login-email {
+  border: 1px solid var(--border) !important;
+  background: #fafafc !important;
+  box-shadow: none !important;
+}
+
+#ma-admin-login .ma-login-email input,
+#ma-admin-login .ma-login-email input:hover,
+#ma-admin-login .ma-login-email input:focus {
+  border: 0 !important;
+  outline: none;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #111827 !important;
+}
+
+#ma-admin-login input[type="password"] {
+  border: 1px solid var(--border) !important;
+  background: #fafafc !important;
+  box-shadow: none !important;
+  color: #111827 !important;
+}
+
+#ma-admin-login .ma-login-email:focus-within,
+#ma-admin-login input[type="password"]:focus {
+  border-color: #e31e24 !important;
+  box-shadow: 0 0 0 3px rgba(227, 30, 36, 0.16) !important;
+}
+
+#ma-admin-login .ma-primary,
+#ma-admin-login .ma-primary:hover,
+#ma-admin-login .ma-primary:focus,
+#ma-admin-login .ma-primary:active {
+  border: 0 !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, #e31e24 0%, #f04423 55%, #ff6a2c 100%) !important;
+  box-shadow: 0 7px 18px rgba(227, 30, 36, 0.22) !important;
+  font-weight: 700;
+}
+
+#ma-admin-login .ma-primary:hover {
+  filter: brightness(1.06);
+}
+
+#ma-admin-login .ma-primary:active {
+  filter: brightness(0.96);
+}
+
+#ma-admin-login .ma-primary[disabled],
+#ma-admin-login .ma-primary[disabled]:hover {
+  opacity: 0.56;
+  filter: none;
+}
+
+/* --------------------------------------------------------------------------
+   19. Loader bánh xe thương hiệu (dùng chung 3 nơi dựng dashboard)
+   -------------------------------------------------------------------------- */
+.mac-admin-loading {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  padding: 72px 16px;
+}
+
+.mac-loader-wheel {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.mac-loader-spoke {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: rotate(var(--rot));
+}
+
+.mac-loader-ball {
+  position: absolute;
+  top: -7px;
+  left: -7px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e31e24 0%, #ff6a2c 100%);
+  box-shadow: 0 2px 8px rgba(227, 30, 36, 0.35);
+  animation: mac-loader-ball 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation-delay: calc(var(--delay) * -1);
+}
+
+@keyframes mac-loader-ball {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(102px);
+    opacity: 0.45;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.mac-admin-loading-text {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   20. Chế độ chỉ đọc
+   -------------------------------------------------------------------------- */
+.mac-admin-app.is-readonly .ma-reveal-actions,
+.mac-admin-app.is-readonly .ma-reveal-footer button,
+.mac-admin-app.is-readonly .ma-panel > header > b,
+.mac-admin-app.is-readonly .ma-permalink-warning a {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   21. Hardening body.mac-admin-public-page — chống theme đè giao diện
+   -------------------------------------------------------------------------- */
+body.mac-admin-public-page {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #f5f5f7 !important;
+}
+
+body.mac-admin-public-page .site-header,
+body.mac-admin-public-page .site-footer,
+body.mac-admin-public-page #masthead,
+body.mac-admin-public-page #colophon,
+body.mac-admin-public-page header.wp-block-template-part,
+body.mac-admin-public-page footer.wp-block-template-part,
+body.mac-admin-public-page .elementor-location-header,
+body.mac-admin-public-page .elementor-location-footer,
+body.mac-admin-public-page [data-elementor-type="header"],
+body.mac-admin-public-page [data-elementor-type="footer"],
+body.mac-admin-public-page .page-header,
+body.mac-admin-public-page .entry-title,
+body.mac-admin-public-page .wp-block-post-title {
+  display: none !important;
+}
+
+body.mac-admin-public-page .site-main,
+body.mac-admin-public-page .site-content,
+body.mac-admin-public-page .page-content,
+body.mac-admin-public-page .entry-content,
+body.mac-admin-public-page .wp-block-post-content {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body.mac-admin-public-page .mac-admin-app {
+  color: #111827 !important;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+body.mac-admin-public-page .ma-layout {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+body.mac-admin-public-page .ma-side {
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+}
+
+body.mac-admin-public-page .ma-panel {
+  border: 1px solid #e4e7ec !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05) !important;
+}
+
+/* Nút trung tính — giữ nền trắng, viền chuẩn. */
+body.mac-admin-public-page .mac-admin-app .ma-primary,
+body.mac-admin-public-page .ma-login .ma-primary,
+body.mac-admin-public-page .ma-top-actions button,
+body.mac-admin-public-page .ma-subnav button,
+body.mac-admin-public-page .ma-side nav button,
+body.mac-admin-public-page .ma-people-actions button,
+body.mac-admin-public-page .ma-award-presets button,
+body.mac-admin-public-page .ma-award-teams button,
+body.mac-admin-public-page .ma-check-card button,
+body.mac-admin-public-page .ma-gate #ma-gate {
+  font-family: inherit !important;
+  font-size: 14px !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+}
+
+body.mac-admin-public-page .ma-top-actions button:not(.ma-primary),
+body.mac-admin-public-page .ma-subnav button:not(.ma-primary),
+body.mac-admin-public-page .ma-side nav button:not(.ma-primary),
+body.mac-admin-public-page .ma-people-actions button:not(.ma-primary),
+body.mac-admin-public-page .ma-check-card button:not(.ma-primary):not(.danger),
+body.mac-admin-public-page .ma-gate #ma-gate:not(.ma-primary):not(.danger) {
+  border: 1px solid #e4e7ec !important;
+  background: #fff !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+}
+
+/* Nút nguy hiểm / reset trigger. */
+body.mac-admin-public-page .ma-check-card button.danger,
+body.mac-admin-public-page .ma-gate button.danger {
+  color: #b42318 !important;
+  border: 1px solid #fecdca !important;
+  background: #fef3f2 !important;
+}
+
+/* Nút chính — gradient thương hiệu. */
+body.mac-admin-public-page .mac-admin-app .ma-primary,
+body.mac-admin-public-page .ma-login .ma-primary {
+  border: 0 !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, #e31e24 0%, #f04423 55%, #ff6a2c 100%) !important;
+  font-weight: 700 !important;
+}
+
+/* Bảng. */
+body.mac-admin-public-page .ma-board-table,
+body.mac-admin-public-page .ma-people-table {
+  border: 1px solid #e4e7ec !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+}
+
+body.mac-admin-public-page .ma-board-table th,
+body.mac-admin-public-page .ma-board-table td,
+body.mac-admin-public-page .ma-people-table th,
+body.mac-admin-public-page .ma-people-table td {
+  border-color: #e4e7ec !important;
+  color: #111827 !important;
+  font-size: 13px !important;
+}
+
+/* Ô nhập liệu. */
+body.mac-admin-public-page .mac-admin-app input,
+body.mac-admin-public-page .mac-admin-app select {
+  border: 1px solid #e4e7ec !important;
+  background: #fff !important;
+  color: #111827 !important;
+  font-family: inherit !important;
+}
+
+/* Link sidebar. */
+body.mac-admin-public-page .ma-side-links a,
+body.mac-admin-public-page .ma-side > a {
+  color: #475467 !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   22. Responsive — gộp một chỗ, giảm dần breakpoint
+   -------------------------------------------------------------------------- */
+@media (max-width: 1180px) {
+  .ma-total-teams {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ma-chart {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ma-award-teams,
+  .ma-award-presets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1902,12 +3559,101 @@
   .ma-team-meta {
     grid-column: 2 / 3;
   }
+
+  body.mac-admin-public-page .ma-side {
+    height: auto;
+  }
+
+  .ma-side-logout {
+    margin: 0 0 0 auto;
+  }
 }
 
-/* Thanh tab dính dưới admin bar (admin bar cao 46px từ 782px trở xuống) */
+@media (max-width: 900px) {
+  .ma-check-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Thanh tab nằm dưới admin bar (admin bar cao 46px từ 782px trở xuống). */
 @media (max-width: 782px) {
   .ma-side {
     top: 46px;
+  }
+}
+
+@media (max-width: 700px) {
+  .ma-total-teams {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ma-chart {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding: 12px 12px 18px;
+  }
+
+  .ma-chart-col {
+    min-height: 210px;
+  }
+
+  .ma-chart-track {
+    height: 120px;
+  }
+
+  .ma-check-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ma-panel > header {
+    flex-wrap: wrap;
+  }
+
+  .ma-panel > header > a,
+  .ma-panel > header > button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Mobile: cột team co đúng bằng tên đội dài nhất (width: 1px + nowrap =
+     shrink-to-fit), khoảng trống còn lại dồn cho các cột số nên mọi bảng
+     cùng nội dung team luôn thẳng hàng với nhau. */
+  .ma-board-table table {
+    table-layout: auto;
+  }
+
+  .ma-board-table th:first-child,
+  .ma-board-table td:first-child {
+    width: 1px;
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  /* Mobile: bảng tổng kết ẩn cột hạng, chỉ giữ cột team. */
+  .ma-board-table.ma-pin-2 th:first-child,
+  .ma-board-table.ma-pin-2 td:first-child {
+    display: none;
+  }
+
+  .ma-board-table.ma-pin-2 th:nth-child(2),
+  .ma-board-table.ma-pin-2 td:nth-child(2) {
+    left: 0;
+    width: 1px;
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  /* Mobile: nút màn hình trình chiếu xuống hàng như các nút khác. */
+  .ma-art-block-head {
+    flex-wrap: wrap;
+  }
+
+  .ma-art-block-head .ma-screen-link {
+    width: 100%;
+  }
+
+  .ma-staff-teams {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1952,7 +3698,7 @@
   }
 
   .ma-top h1 {
-    font-size: 25px;
+    font-size: 24px;
   }
 
   .ma-screen-link {
@@ -2039,1074 +3785,7 @@
   .ma-ballot-detail[open] > div {
     min-width: 220px;
   }
-}
 
-.ma-gate header {
-  align-items: flex-start;
-}
-
-.ma-gate p {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.ma-gate.is-on {
-  border-color: #abefc6;
-}
-
-.ma-gate.is-off header h2 {
-  color: var(--muted);
-}
-
-.ma-gate-status {
-  display: inline-flex;
-  min-height: 32px;
-  align-items: center;
-  padding: 0 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-}
-
-.ma-gate.is-on .ma-gate-status {
-  color: #065f46;
-  background: #ecfdf3;
-}
-
-.ma-gate.is-off .ma-gate-status {
-  color: #93370d;
-  background: #fffaeb;
-}
-
-.ma-check-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.ma-check-card {
-  display: grid;
-  gap: 10px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--panel);
-}
-
-.ma-check-card.open {
-  border-color: #f3a893;
-  background: #fffaf8;
-}
-
-.ma-check-card.closed {
-  background: var(--soft);
-}
-
-.ma-check-card small {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.ma-check-card h2 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.ma-check-card p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.ma-check-card .ma-check-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.ma-check-card button {
-  min-height: 40px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--panel);
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.ma-check-card button.ma-primary {
-  margin-top: 0;
-  color: #fff;
-  border: 0;
-  background: var(--grad);
-}
-
-.ma-check-card button.danger {
-  color: #b42318;
-  border-color: #fecdca;
-  background: #fef3f2;
-}
-
-.ma-board-table,
-.ma-people-table {
-  overflow: auto;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--panel);
-}
-
-.ma-board-table table,
-.ma-people-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.ma-board-table th,
-.ma-people-table th,
-.ma-board-table td,
-.ma-people-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  font-size: 13px;
-}
-
-.ma-people-filter {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 12px;
-}
-
-.ma-people-filter select,
-.ma-people-filter input {
-  min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--panel);
-}
-
-.ma-people-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.ma-people-actions button {
-  min-height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--panel);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.ma-qr-modal-preview {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  margin: 8px 0 16px;
-  text-align: center;
-}
-
-.ma-qr-modal-preview canvas {
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fff;
-}
-
-.ma-staff-form {
-  display: grid;
-  gap: 12px;
-  padding: 16px 20px 20px;
-}
-
-.ma-staff-form select {
-  min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-
-.ma-staff-teams {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.ma-staff-teams label {
-  display: inline-flex;
-  min-height: 40px;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--soft);
-}
-
-@media (max-width: 900px) {
-  .ma-check-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.ma-total-teams {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.ma-total-card {
-  display: grid;
-  gap: 4px;
-  min-height: 132px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--panel);
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
-}
-
-.ma-total-card small {
-  color: var(--r);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.ma-total-card h2 {
-  margin: 0;
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.ma-total-card strong {
-  font-size: 30px;
-  font-weight: 720;
-  letter-spacing: -0.03em;
-}
-
-.ma-total-card p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.ma-award {
-  display: grid;
-  gap: 8px;
-  padding: 8px 0 16px;
-}
-
-.ma-award-step {
-  padding: 16px 20px 8px;
-}
-
-.ma-award-step h2 {
-  margin: 0;
-  color: var(--ink);
-  font-size: 16px;
-  font-weight: 750;
-}
-
-.ma-award-step-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.ma-award-cat-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.ma-award-cat-actions button {
-  display: inline-flex;
-  min-width: 36px;
-  min-height: 36px;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--r);
-  background: var(--panel);
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.ma-award-cat-actions button:hover:not(:disabled) {
-  background: var(--soft);
-}
-
-.ma-award-cat-actions button.is-danger {
-  color: #b42318;
-  border-color: #fecdca;
-  background: #fef3f2;
-}
-
-.ma-award-cat-actions button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.ma-award select {
-  width: 100%;
-  min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  color: var(--ink);
-  background: var(--panel);
-}
-
-.ma-award-teams,
-.ma-award-presets {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.ma-award-teams {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.ma-award-teams button,
-.ma-award-presets button,
-.ma-award-custom button {
-  min-height: 44px;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  color: var(--r);
-  background: var(--panel);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.ma-award-teams button {
-  display: grid;
-  align-content: center;
-  gap: 2px;
-}
-
-.ma-award-teams button small {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.ma-award-teams button:hover:not(:disabled):not(.is-selected),
-.ma-award-presets button:hover:not(:disabled):not(.is-selected),
-.ma-award-custom button:hover:not(:disabled):not(.is-selected) {
-  border-color: #fed7cc;
-  background: #fff8f5;
-}
-
-.ma-award-teams button.is-selected,
-.ma-award-presets button.is-selected {
-  border: 0;
-  color: #fff;
-  background: var(--grad);
-}
-
-.ma-award-teams button.is-selected small {
-  color: rgba(255, 255, 255, 0.86);
-}
-
-.ma-award-presets button.is-minus:not(.is-selected) {
-  color: #b42318;
-}
-
-.ma-award-teams button:disabled,
-.ma-award-presets button:disabled,
-.ma-award-custom button:disabled,
-.ma-award-custom input:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.ma-award-custom {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.ma-award-custom input {
-  min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--panel);
-}
-
-.ma-award-current {
-  margin: 10px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.ma-cat-empty {
-  margin: 0;
-  color: var(--muted);
-}
-
-@media (max-width: 1180px) {
-  .ma-total-teams {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .ma-chart {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .ma-award-teams,
-  .ma-award-presets {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 700px) {
-  .ma-total-teams,
-  .ma-chart {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.mac-admin-wrap.mac-admin-public {
-  margin: 0;
-}
-
-body.mac-admin-public-page {
-  margin: 0 !important;
-  padding: 0 !important;
-  background: #f5f5f7;
-}
-
-body.mac-admin-public-page .site-header,
-body.mac-admin-public-page .site-footer,
-body.mac-admin-public-page #masthead,
-body.mac-admin-public-page #colophon,
-body.mac-admin-public-page header.wp-block-template-part,
-body.mac-admin-public-page footer.wp-block-template-part,
-body.mac-admin-public-page .elementor-location-header,
-body.mac-admin-public-page .elementor-location-footer,
-body.mac-admin-public-page [data-elementor-type="header"],
-body.mac-admin-public-page [data-elementor-type="footer"],
-body.mac-admin-public-page .page-header,
-body.mac-admin-public-page .entry-title,
-body.mac-admin-public-page .wp-block-post-title {
-  display: none !important;
-}
-
-body.mac-admin-public-page .site-main,
-body.mac-admin-public-page .site-content,
-body.mac-admin-public-page .page-content,
-body.mac-admin-public-page .entry-content,
-body.mac-admin-public-page .wp-block-post-content {
-  width: 100% !important;
-  max-width: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-body.mac-admin-public-page .ma-layout {
-  min-height: 100vh;
-  min-height: 100svh;
-}
-
-body.mac-admin-public-page .ma-side {
-  top: 0;
-  height: 100vh;
-  height: 100svh;
-}
-
-.ma-login {
-  --r: #e31e24;
-  --o: #ff6a2c;
-  --grad: linear-gradient(135deg, var(--r) 0%, #f04423 55%, var(--o) 100%);
-  --ink: #111827;
-  --muted: #667085;
-  --page: #f5f5f7;
-  --panel: #ffffff;
-  --border: #e4e7ec;
-  box-sizing: border-box;
-  width: min(100%, 440px);
-  margin: 48px auto;
-  padding: 32px 24px;
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  background: var(--panel);
-  box-shadow: 0 20px 55px rgba(16, 24, 40, 0.08);
-  color: var(--ink);
-}
-
-.ma-login img {
-  display: block;
-  width: 112px;
-  height: auto;
-}
-
-.ma-login-kicker {
-  margin: 16px 0 0;
-  color: var(--r);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-}
-
-.ma-login h1 {
-  margin: 8px 0 12px;
-  font-size: 24px;
-  line-height: 1.2;
-}
-
-.ma-login p {
-  margin: 0 0 24px;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.ma-login label {
-  display: block;
-  margin: 0 0 8px;
-  color: #344054;
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.ma-login-email {
-  display: flex;
-  min-height: 44px;
-  margin: 0 0 16px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fafafc;
-}
-
-.ma-login-email input {
-  min-width: 0;
-  flex: 1;
-  padding: 0 12px;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
-}
-
-.ma-login-domain {
-  display: flex;
-  align-items: center;
-  border-left: 1px solid var(--border);
-  margin: 0 !important;
-}
-
-.ma-login-domain select {
-  min-height: 42px;
-  max-width: 196px;
-  padding: 0 28px 0 12px;
-  border: 0;
-  border-radius: 0;
-  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' stroke='%23667085' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 650;
-  cursor: pointer;
-  appearance: none;
-}
-
-.ma-login-domain select:focus-visible {
-  outline: 3px solid rgba(227, 30, 36, 0.18);
-  outline-offset: -3px;
-}
-
-.ma-login input[type="password"] {
-  width: 100%;
-  min-height: 44px;
-  margin: 0 0 16px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fafafc;
-  color: var(--ink);
-}
-
-.ma-login .ma-primary {
-  width: 100%;
-  min-height: 44px;
-}
-
-.ma-login-error {
-  margin: 0 0 12px !important;
-  color: #b42318;
-}
-
-.ma-login .ma-primary[disabled] {
-  opacity: 0.56;
-}
-
-.ma-side-logout {
-  margin-top: 8px;
-  min-height: 44px;
-}
-
-.ma-scanner-cta header {
-  align-items: center;
-}
-
-.mac-admin-app.is-readonly .ma-reveal-actions,
-.mac-admin-app.is-readonly .ma-reveal-footer button,
-.mac-admin-app.is-readonly .ma-panel > header > b,
-.mac-admin-app.is-readonly .ma-permalink-warning a {
-  display: none !important;
-}
-
-.ma-staff-passwords ul {
-  margin: 8px 0 0;
-  padding: 0 0 0 18px;
-}
-
-@media (max-width: 960px) {
-  body.mac-admin-public-page .ma-side {
-    height: auto;
-  }
-
-  .ma-side-logout {
-    margin: 0 0 0 auto;
-  }
-}
-
-.ma-check-fixed {
-  display: inline-flex;
-  min-height: 32px;
-  align-items: center;
-  padding: 0 12px;
-  border-radius: 999px;
-  color: #065f46;
-  background: #ecfdf3;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.ma-window-badge {
-  display: inline-flex;
-  min-height: 26px;
-  align-items: center;
-  padding: 0 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.ma-window-badge.live {
-  color: #175cd3;
-  background: #eff8ff;
-  border: 1px solid #b2ddff;
-}
-
-.ma-window-badge.locked {
-  color: #b42318;
-  background: #fef3f2;
-  border: 1px solid #fecdca;
-}
-
-.ma-window-badge.idle {
-  color: #475467;
-  background: #f9fafb;
-  border: 1px solid var(--border);
-}
-
-.ma-exempt-form {
-  display: grid;
-  gap: 12px;
-  padding: 16px 20px 20px;
-}
-
-.ma-exempt-form label {
-  display: grid;
-  gap: 6px;
-  color: #344054;
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.ma-exempt-form select,
-.ma-exempt-form input {
-  min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--panel);
-}
-
-.ma-exempt-form .ma-primary {
-  justify-self: start;
-}
-
-.ma-games-panel select {
-  min-height: 40px;
-  width: 100%;
-  padding: 0 8px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--panel);
-  font-size: 13px;
-}
-
-.ma-games-panel .ma-games-total td {
-  border-top: 2px solid var(--border);
-  background: #f9fafb;
-}
-
-.ma-award-presets button.is-zero {
-  color: #475467;
-}
-
-.ma-award-presets button.is-zero.is-selected {
-  color: #fff;
-  background: #475467;
-}
-
-/* v1.7.1 — inline duration inputs */
-.ma-duration {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #667085;
-  font-size: 12px;
-  font-weight: 650;
-  white-space: nowrap;
-}
-
-.ma-duration input {
-  width: 64px;
-  min-height: 40px;
-  padding: 0 6px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--panel);
-  text-align: center;
-  font-size: 13px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.ma-duration input:focus {
-  outline: 2px solid #f3a893;
-  outline-offset: 1px;
-}
-
-.ma-round-head {
-  flex-wrap: wrap;
-}
-
-.ma-check-card .ma-check-actions {
-  align-items: center;
-}
-
-/* v1.7.1 — compact check-in progress matrix */
-.ma-progress-cell {
-  text-align: center;
-  white-space: nowrap;
-}
-
-.ma-progress-cell strong {
-  display: block;
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-}
-
-.ma-progress-cell small {
-  display: block;
-  margin-top: 2px;
-  color: #667085;
-  font-size: 12px;
-}
-
-/* v1.7.1 — games tab */
-.ma-ladder {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 16px 20px 20px;
-}
-
-.ma-ladder-chip {
-  padding: 8px 14px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: #f9fafb;
-  color: #475467;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.ma-ladder-chip.rank-1 {
-  color: #93610b;
-  border-color: #fde29b;
-  background: #fef0c7;
-}
-
-.ma-ladder-chip.rank-2 {
-  color: #475467;
-  border-color: #d0d5dd;
-  background: #f2f4f7;
-}
-
-.ma-ladder-chip.rank-3 {
-  color: #93370d;
-  border-color: #f9dbaf;
-  background: #fdf2ec;
-}
-
-.ma-game-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 16px;
-}
-
-.ma-game-card header {
-  align-items: center;
-}
-
-.ma-game-max {
-  padding: 4px 10px;
-  border-radius: 999px;
-  color: #667085;
-  background: #f9fafb;
-  border: 1px solid var(--border);
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.ma-game-rows {
-  display: grid;
-  gap: 10px;
-  padding: 16px 20px 20px;
-}
-
-.ma-game-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.ma-game-team {
-  flex: 1;
-  min-width: 0;
-  color: #667085;
-  font-size: 13px;
-}
-
-.ma-game-team b {
-  color: #111827;
-}
-
-.ma-game-row select {
-  min-height: 40px;
-  max-width: 170px;
-  padding: 0 8px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--panel);
-  font-size: 13px;
-}
-
-.ma-game-points {
-  min-width: 44px;
-  text-align: right;
-  color: #98a2b3;
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-}
-
-.ma-game-points.rank-1 {
-  color: #93610b;
-}
-
-.ma-game-points.rank-2 {
-  color: #475467;
-}
-
-.ma-game-points.rank-3 {
-  color: #93370d;
-}
-
-.ma-rank-chip {
-  display: inline-block;
-  margin-right: 6px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  color: #475467;
-  background: #f2f4f7;
-  font-size: 11px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.ma-rank-chip.rank-1 {
-  color: #93610b;
-  background: #fef0c7;
-}
-
-.ma-rank-chip.rank-2 {
-  background: #eaecf0;
-}
-
-.ma-rank-chip.rank-3 {
-  color: #93370d;
-  background: #fdf2ec;
-}
-
-/* v1.7.1 — hover & interaction sync */
-.ma-panel button,
-.ma-check-card button,
-.ma-round-head button,
-.ma-top-actions button,
-.ma-subnav button,
-.ma-side nav button,
-.ma-side-links a,
-.ma-people-actions button,
-.ma-award-presets button,
-.ma-award-teams button,
-.ma-duration input,
-.ma-game-row select {
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
-}
-
-.ma-board-table tbody tr:hover td,
-.ma-people-table tbody tr:hover td {
-  background: var(--soft);
-}
-
-/* v1.7.3 — confirm dialog message, gate button, hover sync, chart wrap, mobile/tablet */
-.ma-confirm-message {
-  margin: 0;
-  padding: 0 20px 18px;
-  color: #475467;
-  font-size: 14px;
-  line-height: 1.55;
-}
-
-.ma-panel .ma-board-table {
-  margin: 12px 16px 16px;
-}
-
-.ma-round-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin-left: auto;
-}
-
-.ma-gate #ma-gate {
-  min-height: 44px;
-  padding: 0 18px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.ma-gate button.danger {
-  color: #b42318;
-  border-color: #fecdca;
-  background: #fef3f2;
-}
-
-.ma-gate button.danger:hover:not(:disabled) {
-  border-color: #f97066;
-  background: #fee4e2;
-}
-
-.ma-gate button.ma-primary:hover:not(:disabled) {
-  filter: brightness(1.06);
-  box-shadow: 0 6px 14px rgba(227, 30, 36, 0.25);
-}
-
-.ma-check-card button:hover:not(:disabled) {
-  border-color: var(--border-strong);
-  background: var(--soft);
-}
-
-.ma-check-card button.danger:hover:not(:disabled) {
-  border-color: #f97066;
-  background: #fee4e2;
-}
-
-.ma-check-card button.ma-primary:hover:not(:disabled) {
-  filter: brightness(1.06);
-  box-shadow: 0 6px 14px rgba(227, 30, 36, 0.25);
-  background: var(--grad);
-}
-
-.ma-people-actions button:hover:not(:disabled) {
-  border-color: var(--border-strong);
-  background: var(--soft);
-}
-
-.ma-game-row select:hover {
-  border-color: var(--border-strong);
-}
-
-.ma-duration input:hover {
-  border-color: var(--border-strong);
-}
-
-.ma-chart-col figcaption b,
-.ma-chart-col figcaption small {
-  overflow-wrap: anywhere;
-}
-
-@media (max-width: 700px) {
-  .ma-chart {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
-    padding: 12px 12px 18px;
-  }
-
-  .ma-chart-col {
-    min-height: 210px;
-  }
-
-  .ma-chart-track {
-    height: 120px;
-  }
-
-  .ma-check-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 430px) {
-  .ma-chart {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 600px) {
   .ma-round-controls {
     width: 100%;
     margin-left: 0;
@@ -3122,467 +3801,29 @@ body.mac-admin-public-page .ma-side {
   }
 }
 
-/* v1.7.4 — fixed table columns, panel gaps, staff form, hover fixes, compact popups */
-.ma-board-table table {
-  table-layout: fixed;
-}
-
-.ma-board-table th,
-.ma-board-table td {
-  overflow-wrap: anywhere;
-}
-
-.ma-content > section + section,
-.ma-content > section + div,
-.ma-content > div + section {
-  margin-top: 16px;
-}
-
-.ma-data .ma-primary:hover:not(:disabled),
-.ma-modal-actions .ma-primary:hover:not(:disabled),
-.ma-staff-form .ma-primary:hover:not(:disabled) {
-  border-color: transparent;
-  background: var(--grad);
-  filter: brightness(1.06);
-  box-shadow: 0 6px 14px rgba(227, 30, 36, 0.25);
-}
-
-.ma-staff-form .ma-primary {
-  justify-self: start;
-  border: 0;
-  color: #fff;
-  background: var(--grad);
-  box-shadow: 0 7px 18px rgba(227, 30, 36, 0.2);
-}
-
-.ma-staff-form > label {
-  display: grid;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.ma-staff-form select {
-  width: 100%;
-  min-height: 44px;
-  padding: 0 40px 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px;
-  appearance: none;
-  -webkit-appearance: none;
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.ma-prompt-label {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.ma-prompt-label input {
-  min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fff;
-  color: var(--ink);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.ma-confirm-card {
-  width: min(100%, 440px);
-  padding: 20px;
-  border-radius: 20px;
-}
-
-.ma-confirm-card .ma-modal-head {
-  padding-bottom: 10px;
-  border-bottom: 0;
-}
-
-.ma-confirm-card .ma-modal-head h2 {
-  font-size: 20px;
-}
-
-.ma-confirm-card .ma-modal-head button {
-  display: none;
-}
-
-.ma-confirm-card .ma-confirm-message,
-.ma-confirm-card .ma-prompt-label {
-  padding: 0 0 18px;
-}
-
-.ma-confirm-card .ma-modal-actions {
-  margin-top: 0;
-}
-
-.ma-confirm-card .ma-modal-actions button {
-  border-radius: 12px;
-}
-
-/* v1.7.6 — staff cell, rank colors 4-6 */
-.ma-staff-cell {
-  display: grid;
-  gap: 2px;
-}
-
-.ma-staff-cell small {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 500;
-  overflow-wrap: anywhere;
-}
-
-.ma-ladder-chip.rank-4 {
-  color: #175cd3;
-  border-color: #b2ddff;
-  background: #eff8ff;
-}
-
-.ma-ladder-chip.rank-5 {
-  color: #067647;
-  border-color: #abefc6;
-  background: #ecfdf3;
-}
-
-.ma-ladder-chip.rank-6 {
-  color: #98a2b3;
-  border-color: #e4e7ec;
-  background: #fff;
-}
-
-.ma-rank-chip.rank-4 {
-  color: #175cd3;
-  background: #eff8ff;
-}
-
-.ma-rank-chip.rank-5 {
-  color: #067647;
-  background: #ecfdf3;
-}
-
-.ma-rank-chip.rank-6 {
-  color: #98a2b3;
-  background: #f9fafb;
-}
-
-.ma-game-points.rank-4 {
-  color: #175cd3;
-}
-
-.ma-game-points.rank-5 {
-  color: #067647;
-}
-
-.ma-game-points.rank-6 {
-  color: #98a2b3;
-}
-
-/* v1.7.9 — login theme-proof + primary CTA */
-#ma-admin-login .ma-login-email {
-  border: 1px solid var(--border) !important;
-  background: #fafafc !important;
-  box-shadow: none !important;
-}
-
-#ma-admin-login .ma-login-email input,
-#ma-admin-login .ma-login-email input:hover,
-#ma-admin-login .ma-login-email input:focus {
-  border: 0 !important;
-  outline: none;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: #111827 !important;
-}
-
-#ma-admin-login input[type="password"] {
-  border: 1px solid var(--border) !important;
-  background: #fafafc !important;
-  box-shadow: none !important;
-  color: #111827 !important;
-}
-
-#ma-admin-login .ma-login-email:focus-within,
-#ma-admin-login input[type="password"]:focus {
-  border-color: #e31e24 !important;
-  box-shadow: 0 0 0 3px rgba(227, 30, 36, 0.16) !important;
-}
-
-#ma-admin-login .ma-primary,
-#ma-admin-login .ma-primary:hover,
-#ma-admin-login .ma-primary:focus,
-#ma-admin-login .ma-primary:active {
-  border: 0 !important;
-  color: #fff !important;
-  background: linear-gradient(135deg, #e31e24 0%, #f04423 55%, #ff6a2c 100%) !important;
-  box-shadow: 0 7px 18px rgba(227, 30, 36, 0.22) !important;
-  font-weight: 700;
-}
-
-#ma-admin-login .ma-primary:hover {
-  filter: brightness(1.06);
-}
-
-/* v1.8.0 — mobile boards: horizontal scroll with pinned leading columns */
-.ma-board-table {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.ma-board-table table {
-  min-width: 640px;
-}
-
-.ma-board-table th:first-child,
-.ma-board-table td:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  width: 180px;
-  min-width: 180px;
-  background: var(--panel);
-  box-shadow: 1px 0 0 var(--border);
-}
-
-.ma-board-table thead th:first-child {
-  z-index: 2;
-}
-
-.ma-board-table tbody tr:hover td:first-child {
-  background: var(--soft);
-}
-
-.ma-board-table.ma-pin-2 th:first-child,
-.ma-board-table.ma-pin-2 td:first-child {
-  width: 60px;
-  min-width: 60px;
-}
-
-.ma-board-table.ma-pin-2 th:nth-child(2),
-.ma-board-table.ma-pin-2 td:nth-child(2) {
-  position: sticky;
-  left: 56px;
-  z-index: 1;
-  width: 180px;
-  min-width: 180px;
-  background: var(--panel);
-  box-shadow: 1px 0 0 var(--border);
-}
-
-.ma-board-table.ma-pin-2 thead th:nth-child(2) {
-  z-index: 2;
-}
-
-.ma-board-table.ma-pin-2 tbody tr:hover td:nth-child(2) {
-  background: var(--soft);
-}
-
-@media (max-width: 700px) {
-  .ma-panel > header {
-    flex-wrap: wrap;
-  }
-
-  .ma-panel > header > a,
-  .ma-panel > header > button {
-    width: 100%;
-    justify-content: center;
-  }
-
-  /* Mobile: cột team tự co vừa tên đội dài nhất thay vì cứng 180px.
-     Các bảng cùng nội dung team nên vẫn thẳng hàng với nhau. */
-  .ma-board-table table {
-    table-layout: auto;
-  }
-
-  .ma-board-table th:first-child,
-  .ma-board-table td:first-child {
-    width: auto;
-    min-width: 0;
-    white-space: nowrap;
-  }
-
-  /* Mobile: bảng tổng kết ẩn cột hạng, chỉ giữ cột team */
-  .ma-board-table.ma-pin-2 th:first-child,
-  .ma-board-table.ma-pin-2 td:first-child {
-    display: none;
-  }
-
-  .ma-board-table.ma-pin-2 th:nth-child(2),
-  .ma-board-table.ma-pin-2 td:nth-child(2) {
-    left: 0;
-    width: auto;
-    min-width: 0;
-    white-space: nowrap;
-  }
-
-  /* Mobile: nút màn hình trình chiếu xuống hàng như các nút khác */
-  .ma-art-block-head {
-    flex-wrap: wrap;
-  }
-
-  .ma-art-block-head .ma-screen-link {
-    width: 100%;
-  }
-}
-
-#ma-admin-login .ma-primary:active {
-  filter: brightness(0.96);
-}
-
-#ma-admin-login .ma-primary[disabled],
-#ma-admin-login .ma-primary[disabled]:hover {
-  opacity: 0.56;
-  filter: none;
-}
-
-/* v1.8.7 — modal thêm nhân sự / cấp quyền máy quét trong tab Nhân sự & QR */
-.ma-panel-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.ma-person-modal {
-  width: min(100%, 560px);
-}
-
-.ma-person-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.ma-person-form .ma-span-2 {
-  grid-column: 1 / -1;
-}
-
-.ma-person-form label {
-  display: grid;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.ma-person-form input,
-.ma-person-form select {
-  width: 100%;
-  min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fff;
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.ma-person-form select {
-  padding-right: 40px;
-  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px;
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-.ma-person-form input:focus,
-.ma-person-form select:focus {
-  border-color: var(--r);
-  outline: 2px solid rgba(227, 30, 36, 0.18);
-  outline-offset: 1px;
-}
-
-.ma-field-hint {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.ma-person-form .ma-modal-actions {
-  grid-column: 1 / -1;
-  margin-top: 6px;
-}
-
-.ma-grant-summary {
-  display: grid;
-  gap: 2px;
-  margin-top: 18px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fafafc;
-}
-
-.ma-grant-summary strong {
-  color: var(--ink);
-  font-size: 15px;
-}
-
-.ma-grant-summary small {
-  color: var(--muted);
-  font-size: 12.5px;
-}
-
 @media (max-width: 560px) {
   .ma-person-form {
     grid-template-columns: 1fr;
   }
 }
 
-/* v1.8.8 — TB điểm văn nghệ xuống dòng, header trạm 2 dòng, bảng BTC bỏ sticky, team grid 3/2 cột */
-.ma-cell-sub {
-  display: block;
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.ma-board-table thead th small {
-  display: block;
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  white-space: normal;
-}
-
-.ma-board-table.ma-no-sticky th:first-child,
-.ma-board-table.ma-no-sticky td:first-child {
-  position: static;
-  width: auto;
-  min-width: 0;
-  box-shadow: none;
-}
-
-@media (max-width: 700px) {
-  .ma-staff-teams {
+@media (max-width: 430px) {
+  .ma-chart {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mac-admin-app *,
+  .mac-admin-app *::before,
+  .mac-admin-app *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .mac-loader-ball {
+    animation: none;
   }
 }

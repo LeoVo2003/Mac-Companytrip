@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.9** (đã release & verify ngày 2026-08-20).
+> Phiên bản hiện tại: **v1.8.9** (đã release & verify ngày 2026-08-20). **v1.8.10** đang làm: loader bánh xe, hardening theme, refactor CSS toàn bộ.
 
 ---
 
@@ -92,7 +92,8 @@ Chấm Điểm Văn Nghệ/
 
 - Đọc `AGENTS.md` + `.agents/skills/premium/SKILL.md` trước khi làm UI. KHÔNG tự thay đổi design system trừ khi user yêu cầu.
 - Brand MAC Marketing (không dùng xanh/tím mặc định của Premium): đỏ `#E31E24`, cam `#FF6A2C`, gradient action chính đỏ→cam.
-- Nền: page `#F5F5F7`, panel `#FFFFFF`, subtle `#FAFAFC`, text `#111827`, muted `#667085`. Font Inter (woff2 bundle sẵn trong assets/fonts).
+- Nền: page `#F5F5F7`, panel `#FFFFFF`, subtle `#FAFAFC`, text `#111827`, muted `#667085`. Font Inter (woff2 bundle sẵn trong assets/fonts
+).
 - Spacing scale 4/8/12/16/24/32; radius card 18–24px, control 12–14px; touch target ≥44px; mobile-first.
 - Pattern UI đang dùng trong `admin.js`: `.ma-panel` > `header`, `.ma-board-table` (scroll ngang mobile, sticky cột đầu, biến thể `ma-pin-2`, `ma-no-sticky`), modal `.ma-modal`/`.ma-modal-card` với `bindModalClose` (Escape + click nền), `confirmDialog()` tùy chỉnh (không dùng `confirm()` native), `notify()`, `esc()` escape HTML.
 - Nút chính luôn có class `ma-primary`.
@@ -137,7 +138,14 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.9 (2026-08-20, commit ecc1899, release id 373465418) — mới nhất
+### v1.8.10 (đang làm, chưa release)
+
+- Loader bánh xe thương hiệu: `MAC_Voting_Admin::loading_markup()` (9 spoke, biến `--rot`/`--delay`), CSS `.mac-admin-loading`/`.mac-loader-wheel`/`.mac-loader-spoke`/`.mac-loader-ball` trong `admin.css` — dùng chung cả 3 nơi dựng dashboard (wp-admin, shortcode, standalone).
+- Hardening `body.mac-admin-public-page`: nút trung tính/nguy hiểm/gradient, bảng, ô nhập, link sidebar dùng `!important` (mục 21 trong `admin.css`); form login có block `#ma-admin-login` riêng.
+- **Refactor CSS toàn bộ (2026-08-20)**: `assets/admin.css` viết lại theo cấu trúc tokens → layout → components → login → loader → hardening → responsive (breakpoint gom 1 khối giảm dần 1180→430). Gộp toàn bộ rule trùng do append theo version; thang chữ thống nhất: size 10/11/12/13/14/16/18/20/24/30px, weight 500/600/700/800 (bỏ 650/720/750/820/850). Token màu/bóng/focus dùng CSS custom properties trên `.mac-admin-app`. `admin-qr.css` bỏ rule `.ma-data` trùng; `checkin.css`/`public.css`/`results.css` đồng bộ weight. KHÔNG đổi tên selector (JS/PHP hook hết rồi).
+- **Fix mobile (2026-08-20)**: (1) Cột team các bảng tổng quan thẳng hàng — breakpoint 700px dùng `width: 1px` + `white-space: nowrap` (shrink-to-fit) cho cột đầu/`.ma-pin-2` cột 2 để cột team luôn đúng bằng tên đội dài nhất, khoảng trống dồn cho cột số. (2) Chuyển tab không giật về đầu — `render()` trong `admin.js` tìm đúng phần tử cuộn ngang (`.ma-side` trên mobile, không phải `nav`) rồi `scrollTo` đưa tab active vào giữa.
+
+### v1.8.9 (2026-08-20, commit ecc1899, release id 373465418)
 
 - `/company-trip-admin/` chuyển sang **standalone template** (`template_include` → `includes/template-admin-page.php`): tự xuất HTML đầy đủ, chỉ nạp asset của plugin, bỏ hoàn toàn header/footer/CSS của theme nên giao diện khớp 100% với dashboard. Shortcode `mac_companytrip_admin` vẫn giữ cho backward compat.
 
@@ -162,7 +170,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu gần nhất đã xong, build pass, release đã verify bằng cách tải zip về grep marker.
+Mọi yêu cầu trước 1.8.10 đã xong, build pass, release đã verify bằng cách tải zip về grep marker. Việc 1.8.10 còn lại: push + tạo release theo mục 5 (code + docs đã sẵn sàng).
 
 ---
 

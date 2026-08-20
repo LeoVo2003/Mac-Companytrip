@@ -103,7 +103,7 @@ final class MAC_Admin_Public {
         ?>
         <div class="mac-admin-wrap mac-admin-public">
             <div id="mac-voting-admin" class="mac-admin-app">
-                <div class="mac-admin-loading">Đang tải dashboard...</div>
+                <?php echo MAC_Voting_Admin::loading_markup(); ?>
             </div>
         </div>
         <?php

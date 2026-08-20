@@ -220,14 +220,14 @@ body.mac-results-page .elementor-shortcode {
   margin: 0 0 6px;
   color: #ff8a55;
   font-size: clamp(9px, 0.7vw, 12px);
-  font-weight: 850;
+  font-weight: 800;
   letter-spacing: 0.2em;
 }
 
 .mr-heading h1 {
   margin: 0;
   font-size: clamp(30px, 3.4vw, 62px);
-  font-weight: 820;
+  font-weight: 800;
   line-height: 1.02;
   letter-spacing: -0.045em;
   text-wrap: balance;
@@ -382,7 +382,7 @@ body.mac-results-page .elementor-shortcode {
 .mr-team-name b {
   color: #ff7946;
   font-size: clamp(9px, 0.66vw, 12px);
-  font-weight: 850;
+  font-weight: 800;
   letter-spacing: 0.12em;
 }
 
@@ -419,7 +419,7 @@ body.mac-results-page .elementor-shortcode {
   color: #fff;
   background: rgba(16, 24, 40, 0.84);
   font-size: clamp(8px, 0.6vw, 11px);
-  font-weight: 850;
+  font-weight: 800;
   letter-spacing: 0.1em;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
   transform: translateY(8px) scale(0.8);
@@ -474,7 +474,7 @@ body.mac-results-page .elementor-shortcode {
   color: #667085;
   background: rgba(7, 8, 12, 0.66);
   font-size: clamp(9px, 0.66vw, 12px);
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.06em;
 }
 
@@ -536,7 +536,7 @@ body.mac-results-page .elementor-shortcode {
   color: #fff;
   background: linear-gradient(120deg, var(--red), var(--orange));
   font: inherit;
-  font-weight: 750;
+  font-weight: 700;
   cursor: pointer;
 }
 

@@ -1,7 +1,7 @@
-.ma-data {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
+/* ==========================================================================
+   MAC Company Trip — khối QR (admin-qr.css)
+   Nạp sau admin.css; chỉ chứa style thẻ QR và breakpoint riêng của tab QR.
+   ========================================================================== */
 .ma-qr-card {
   display: flex;
   min-height: 340px;
@@ -29,13 +29,13 @@
 .ma-qr-card code {
   display: block;
   max-width: 100%;
+  margin-bottom: 10px;
   overflow: hidden;
   color: var(--muted);
   font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-bottom: 10px;
 }
 
 .ma-qr-card button {
@@ -45,11 +45,11 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--panel);
-  color: #344054;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  color: var(--ink-soft);
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
 }
 
 .ma-qr-card button:hover {
@@ -57,6 +57,7 @@
   background: var(--soft);
 }
 
+/* Từ 1180px trở xuống tab QR xếp 1 cột (.ma-data kế thừa breakpoint admin.css). */
 @media (max-width: 1180px) {
   .ma-data {
     grid-template-columns: 1fr;
@@ -64,10 +65,6 @@
 }
 
 @media (max-width: 700px) {
-  .ma-data {
-    grid-template-columns: 1fr;
-  }
-
   .ma-qr-card {
     grid-column: auto;
   }

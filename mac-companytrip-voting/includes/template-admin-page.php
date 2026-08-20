@@ -11,6 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 $mac_logo = esc_url(MAC_VOTING_URL . 'assets/mac-marketing-logo.png');
+$mac_favicon = esc_url(MAC_VOTING_URL . 'assets/favicon_mac_one.png');
 $mac_ver = MAC_VOTING_VERSION;
 $mac_url = MAC_VOTING_URL;
 $mac_can_access = is_user_logged_in() && MAC_Voting_Admin::can_access_dashboard();
@@ -23,7 +24,7 @@ nocache_headers();
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Company Trip Dashboard — MAC Marketing</title>
-<link rel="icon" href="<?php echo $mac_logo; ?>">
+<link rel="icon" href="<?php echo $mac_favicon; ?>">
 <link rel="stylesheet" href="<?php echo esc_url($mac_url . 'assets/admin.css'); ?>?v=<?php echo esc_attr($mac_ver); ?>">
 <link rel="stylesheet" href="<?php echo esc_url($mac_url . 'assets/admin-qr.css'); ?>?v=<?php echo esc_attr($mac_ver); ?>">
 <link rel="stylesheet" href="<?php echo esc_url($mac_url . 'assets/ui-refinements.css'); ?>?v=<?php echo esc_attr($mac_ver); ?>">
@@ -31,7 +32,7 @@ nocache_headers();
 <body class="mac-admin-public-page mac-admin-standalone">
 <?php if ($mac_can_access) : ?>
 <div id="mac-voting-admin" class="mac-admin-app">
-    <div class="mac-admin-loading">Đang tải dashboard...</div>
+    <?php echo MAC_Voting_Admin::loading_markup(); ?>
 </div>
 <script>window.MACVotingAdmin = <?php echo wp_json_encode(MAC_Voting_Admin::script_config()); ?>;</script>
 <script src="<?php echo esc_url($mac_url . 'assets/qrcode.bundle.js'); ?>?v=<?php echo esc_attr($mac_ver); ?>"></script>

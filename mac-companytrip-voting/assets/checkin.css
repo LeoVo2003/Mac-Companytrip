@@ -125,7 +125,7 @@ body.mac-checkin-page .wp-block-post-content {
   background: var(--panel);
   color: var(--muted);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
   text-decoration: none;
 }
 
@@ -296,7 +296,7 @@ button.mc-back {
   background: var(--panel);
   color: var(--text);
   font: inherit;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   text-align: left;
   cursor: pointer;
@@ -324,7 +324,7 @@ button.mc-back {
   margin-top: 2px;
   color: var(--muted);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 /* v1.8.2 — danh sách thành viên dưới máy quét: đã quét thì mờ đi */
@@ -348,13 +348,13 @@ button.mc-back {
   background: var(--panel);
   color: var(--text);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mc-members li small {
   color: var(--muted);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -412,7 +412,7 @@ button.mc-back {
   margin-bottom: 12px;
   padding: 14px 16px;
   border-radius: 14px;
-  font-weight: 650;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 

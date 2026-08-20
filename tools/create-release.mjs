@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.9";
+const tag = "v1.8.10";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,11 @@ const headers = {
 };
 
 const notes = [
-  "- /company-trip-admin/ render toàn trang bằng template riêng của plugin (không wp_head/footer), bỏ hoàn toàn header/footer/CSS của theme nên giao diện khớp 100% với dashboard.",
+  "- Thay màn hình chờ bằng loader bánh xe phối màu thương hiệu MAC (cảm hứng lucky-hound-44) cho cả 3 nơi dựng dashboard.",
+  "- Hardening toàn bộ giao diện /company-trip-admin/ chống theme đè: nút, bảng, ô nhập liệu, link sidebar dùng !important scope theo body.mac-admin-public-page.",
+  "- Refactor toàn bộ CSS dashboard: gộp rule trùng lặp, thống nhất thang font-size/font-weight, gom responsive breakpoint về một khối.",
+  "- Mobile: cột team trong các bảng điểm tổng quan thẳng hàng nhau (co đúng bằng tên đội dài nhất).",
+  "- Mobile: chuyển tab xong thanh tab tự kéo tab đang chọn vào giữa tầm nhìn.",
 ].join("\n");
 
 let release;

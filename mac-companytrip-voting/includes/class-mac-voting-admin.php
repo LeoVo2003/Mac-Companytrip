@@ -52,10 +52,27 @@ final class MAC_Voting_Admin {
         <div class="wrap mac-admin-wrap">
             <p class="ma-wp-admin-note">Dashboard chính chạy ngoài wp-admin: <a href="<?php echo esc_url($public_url); ?>"><?php echo esc_html($public_url); ?></a></p>
             <div id="mac-voting-admin" class="mac-admin-app">
-                <div class="mac-admin-loading"><span class="spinner is-active"></span> Đang tải dashboard...</div>
+                <?php echo self::loading_markup(); ?>
             </div>
         </div>
         <?php
+    }
+
+    /**
+     * Loader "bánh xe" (cảm hứng lucky-hound-44, phối màu thương hiệu MAC)
+     * hiển thị trong lúc dashboard đang dựng giao diện.
+     */
+    public static function loading_markup(): string {
+        $spokes = '';
+        for ($i = 0; $i < 9; $i++) {
+            $rot = $i * 20;
+            $delay = $i * 0.2;
+            $spokes .= '<span class="mac-loader-spoke" style="--rot:' . $rot . 'deg;--delay:' . $delay . 's"><span class="mac-loader-ball"></span></span>';
+        }
+        return '<div class="mac-admin-loading" role="status" aria-live="polite">'
+            . '<div class="mac-loader-wheel" aria-hidden="true">' . $spokes . '</div>'
+            . '<span class="mac-admin-loading-text">Đang tải dashboard...</span>'
+            . '</div>';
     }
 
     public static function can_access_dashboard(): bool {
