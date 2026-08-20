@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.13** (đã release & verify ngày 2026-08-20, release id 373653911, commit e07f4da) — redesign màn công bố kết quả theo bộ nhận diện "One Compass" (la bàn đồng cổ + biển đêm). Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
+> Phiên bản hiện tại: **v1.8.14** (đã release & verify ngày 2026-08-20, release id 373658136, commit 5acac3c) — kicker màn chờ "KẾT QUẢ VĂN NGHỆ" + h1 line-height 1.2. Trước đó v1.8.13 redesign màn công bố theo bộ nhận diện "One Compass" (la bàn đồng cổ + biển đêm). Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
 
 ---
 
@@ -138,7 +138,12 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.13 (2026-08-20, commit e07f4da, release id 373653911) — mới nhất
+### v1.8.14 (2026-08-20, commit 5acac3c, release id 373658136) — mới nhất
+
+- Kicker `.mr-heading p` màn chờ đổi "MAC MARKETING" → "KẾT QUẢ VĂN NGHỆ" (cả markup `shell()` lẫn `renderIdle()`).
+- `.mr-heading h1` nâng `line-height` từ 1.04 lên 1.2 cho thoáng chữ có dấu tiếng Việt.
+
+### v1.8.13 (2026-08-20, commit e07f4da, release id 373653911)
 
 - **Redesign toàn bộ `results.css`** theo mood "la bàn đồng cổ trên biển đêm sâu" (spec `prompt-qwen-redesign-ket-qua-van-nghe.md`): palette mới `--abyss/--deep-sea/--sea-teal/--sea-glint` + brass `--brass-dark/--brass/--brass-light/--brass-highlight/--copper` + sunset `--sunset-red/--sunset-orange/--sunset-gold` + silver `--silver-*`; bỏ hẳn bộ `--sky/--foam/--sea/--deep/--gold` cũ. Nền gradient biển đêm + glow hoàng hôn mỏng mép trên; h1 + `.mr-event strong` dùng serif display **Cormorant Garamond** (Google Fonts `@import` đầu file) kiểu khắc bảng đồng; cột điểm mặc định gradient brass.
 - **La bàn SVG watermark** thêm vào `shell()` trong `results.js` (khối `.mr-compass` ngay sau `.mr-aurora`, aria-hidden, line-art `currentColor`): vòng chia độ, tick dasharray, chữ N/E/S/W, hoa 8 cánh, kim riêng `.mr-needle` quay **thuần CSS** theo `data-stage`: idle đung đưa → rolling spin 0.9s → decoy lưỡng lự alternate → third/second settle forwards → final lock 345° (vượt đích + rung nhẹ) kèm glow vàng đồng trên la bàn. Reduced-motion block cũ tự tắt hết.
@@ -190,7 +195,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.8.13 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: `mr-compass` + `#ffe9ad` trong results.js, `--brass-dark`/`Cormorant`/`mr-needle-lock` trong results.css, Version 1.8.13 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.13 là release mới nhất, updater sẽ không kéo ngược bản cũ.
+Mọi yêu cầu tới 1.8.14 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: kicker "KẾT QUẢ VĂN NGHỆ" ×2 trong results.js, `line-height: 1.2` trong results.css, Version 1.8.14 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.14 là release mới nhất, updater sẽ không kéo ngược bản cũ.
 
 ---
 
