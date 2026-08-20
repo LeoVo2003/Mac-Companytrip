@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.9** (đã release & verify ngày 2026-08-20). **v1.8.10** đang làm: loader bánh xe, hardening theme, refactor CSS toàn bộ.
+> Phiên bản hiện tại: **v1.8.10** (đã release & verify ngày 2026-08-20, release id 373504956).
 
 ---
 
@@ -138,7 +138,7 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.10 (đang làm, chưa release)
+### v1.8.10 (2026-08-20, commit e8104f0, release id 373504956) — mới nhất
 
 - Loader bánh xe thương hiệu: `MAC_Voting_Admin::loading_markup()` (9 spoke, biến `--rot`/`--delay`), CSS `.mac-admin-loading`/`.mac-loader-wheel`/`.mac-loader-spoke`/`.mac-loader-ball` trong `admin.css` — dùng chung cả 3 nơi dựng dashboard (wp-admin, shortcode, standalone).
 - Hardening `body.mac-admin-public-page`: nút trung tính/nguy hiểm/gradient, bảng, ô nhập, link sidebar dùng `!important` (mục 21 trong `admin.css`); form login có block `#ma-admin-login` riêng.
@@ -170,7 +170,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu trước 1.8.10 đã xong, build pass, release đã verify bằng cách tải zip về grep marker. Việc 1.8.10 còn lại: push + tạo release theo mục 5 (code + docs đã sẵn sàng).
+Mọi yêu cầu tới 1.8.10 đã xong, build pass, release đã verify (tải zip từ GitHub về so cây file với build local: chỉ khác line-ending 2 file PHP do GitHub re-zip, nội dung như nhau).
 
 ---
 
