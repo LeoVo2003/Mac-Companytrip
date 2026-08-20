@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700;800&display=swap");
+
 @font-face {
   font-family: "Inter";
   src: url("fonts/inter-vietnamese.woff2") format("woff2");
@@ -8,14 +10,14 @@
 
 html:has(body.mac-results-page) {
   margin-top: 0 !important;
-  background: #061a40;
+  background: #040d1c;
 }
 
 body.mac-results-page {
   min-width: 320px;
   margin: 0 !important;
   overflow: hidden;
-  background: #061a40 !important;
+  background: #040d1c !important;
 }
 
 body.mac-results-page #wpadminbar,
@@ -56,16 +58,29 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mac-results-app {
-  /* Chủ đề hải trình: bầu trời powder-blue đổ dần xuống lòng biển sâu,
-     chrome bạc cho tiêu đề, vàng kim chỉ dành riêng cho quán quân. */
-  --sky: #cfe9ff;
-  --foam: #9ed2ff;
-  --sea: #2f6fbe;
-  --deep: #0a2e6e;
-  --abyss: #061a40;
-  --gold: #ffc34e;
-  --ink: #f4f9ff;
-  --muted: #a9c6e8;
+  /* One Compass — biển đêm sâu thẳm + la bàn đồng cổ: brass cho khung/cột mặc định,
+     hoàng hôn chỉ dùng nhẹ tay, vàng đồng rực chỉ bung lúc công bố quán quân. */
+  --abyss: #040d1c;
+  --deep-sea: #0a2338;
+  --sea-teal: #123a52;
+  --sea-glint: #2c5b74;
+
+  --brass-dark: #5a3b1f;
+  --brass: #b8823f;
+  --brass-light: #e8c17a;
+  --brass-highlight: #ffe3ad;
+  --copper: #c9703f;
+
+  --sunset-red: #d8432c;
+  --sunset-orange: #ff8a4c;
+  --sunset-gold: #ffcf7d;
+
+  --silver-dark: #5c6672;
+  --silver: #9aa6b2;
+  --silver-light: #e4e9ee;
+
+  --ink: #f7ecd9;
+  --muted: #9fb3c4;
   position: fixed;
   z-index: 99999;
   inset: 0;
@@ -77,6 +92,7 @@ body.mac-results-page .elementor-shortcode {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Nền: ánh hoàng hôn sót lại ở chân trời trên cùng, đổ dần xuống lòng biển sâu. */
 .mr-shell {
   position: relative;
   display: grid;
@@ -87,17 +103,18 @@ body.mac-results-page .elementor-shortcode {
   overflow: hidden;
   isolation: isolate;
   background:
-    radial-gradient(120% 58% at 50% -10%, rgba(255, 246, 220, 0.55), transparent 58%),
-    linear-gradient(180deg, #b7dcf8 0%, #7cb6e8 20%, #3273c4 46%, #0e3f92 72%, #061f4e 100%);
+    radial-gradient(140% 40% at 50% -14%, rgba(255, 138, 76, 0.32), rgba(216, 67, 44, 0.08) 46%, transparent 62%),
+    linear-gradient(180deg, #2c5b74 0%, #123a52 26%, #0a2338 62%, #040d1c 100%);
 }
 
+/* Lưới hải đồ mờ như bản đồ hàng hải cổ. */
 .mr-shell::before {
   position: absolute;
   z-index: -1;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(232, 193, 122, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232, 193, 122, 0.04) 1px, transparent 1px);
   background-size: 72px 72px;
   content: "";
   mask-image: linear-gradient(to bottom, transparent, #000 34%, #000);
@@ -111,22 +128,82 @@ body.mac-results-page .elementor-shortcode {
   pointer-events: none;
 }
 
-/* Tia nắng xuyên từ bầu trời xuống mặt biển (god rays). */
+/* Tia sáng ấm xuyên xuống mặt biển — ánh trăng/hoàng hôn trên sóng. */
 .mr-aurora i {
   position: absolute;
   top: -32%;
   width: 28vw;
   height: 86vh;
   border-radius: 50%;
-  background: linear-gradient(180deg, rgba(255, 252, 240, 0.55), rgba(255, 255, 255, 0.1) 56%, transparent 78%);
+  background: linear-gradient(180deg, rgba(255, 207, 125, 0.34), rgba(232, 193, 122, 0.07) 56%, transparent 78%);
   filter: blur(42px);
-  opacity: 0.5;
+  opacity: 0.42;
   transform: rotate(20deg);
 }
 
 .mr-aurora i:nth-child(1) { left: 4%; }
-.mr-aurora i:nth-child(2) { left: 38%; opacity: 0.3; }
+.mr-aurora i:nth-child(2) { left: 38%; opacity: 0.24; }
 .mr-aurora i:nth-child(3) { right: 1%; transform: rotate(-18deg); }
+
+/* ── La bàn đồng — hero decor, kim quay theo data-stage (thuần CSS) ── */
+
+.mr-compass {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--brass-light);
+  pointer-events: none;
+}
+
+.mr-compass svg {
+  width: min(72vh, 56vw);
+  height: auto;
+  opacity: 0.15;
+  transition: opacity 700ms ease, filter 700ms ease;
+}
+
+.mr-shell[data-stage="rolling"] .mr-compass svg {
+  opacity: 0.19;
+}
+
+/* Lúc công bố quán quân: la bàn sáng bừng vàng đồng. */
+.mr-shell[data-stage="final"] .mr-compass svg {
+  opacity: 0.32;
+  filter: drop-shadow(0 0 46px rgba(255, 207, 125, 0.4));
+}
+
+.mr-needle {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+}
+
+/* Idle: kim đung đưa rất nhẹ như thuyền trôi. */
+.mr-shell[data-stage="idle"] .mr-needle {
+  animation: mr-needle-idle 7s ease-in-out infinite;
+}
+
+/* Rolling: kim quay loạn xạ, tốc độ cao — điểm đang nhảy số. */
+.mr-shell[data-stage="rolling"] .mr-needle {
+  animation: mr-needle-spin 0.9s linear infinite;
+}
+
+/* Decoy: quay chậm dần, lưỡng lự đổi hướng. */
+.mr-shell[data-stage="decoy"] .mr-needle {
+  animation: mr-needle-decoy 5.2s ease-in-out infinite alternate;
+}
+
+/* Hạng ba / hạng nhì: kim tiến dần về một hướng. */
+.mr-shell[data-stage="third"] .mr-needle,
+.mr-shell[data-stage="second"] .mr-needle {
+  animation: mr-needle-settle 5s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+/* Final: khóa cứng hướng, rung nhẹ rồi đứng im — đã tìm ra phương hướng. */
+.mr-shell[data-stage="final"] .mr-needle {
+  animation: mr-needle-lock 1.6s cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
+}
 
 .mr-header,
 .mr-footer {
@@ -141,15 +218,16 @@ body.mac-results-page .elementor-shortcode {
 
 .mr-header {
   min-height: clamp(76px, 9vh, 104px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(6, 26, 64, 0.42);
+  border-bottom: 1px solid rgba(232, 193, 122, 0.22);
+  background: rgba(4, 13, 28, 0.5);
   backdrop-filter: blur(20px);
 }
 
 .mr-header > img {
-  width: clamp(112px, 10.5vw, 188px);
+  width: clamp(58px, 5.6vw, 104px);
   height: auto;
   filter: brightness(0) invert(1);
+  opacity: 0.85;
 }
 
 .mr-event {
@@ -157,7 +235,7 @@ body.mac-results-page .elementor-shortcode {
   gap: 2px;
   margin-right: auto;
   padding-left: 24px;
-  border-left: 1px solid rgba(255, 255, 255, 0.26);
+  border-left: 1px solid rgba(232, 193, 122, 0.3);
 }
 
 .mr-event span,
@@ -166,14 +244,17 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mr-event span {
-  color: #ffe3a1;
+  color: var(--sunset-gold);
   font-size: clamp(8px, 0.62vw, 11px);
   font-weight: 700;
 }
 
 .mr-event strong {
-  font-size: clamp(10px, 0.78vw, 14px);
+  color: var(--ink);
+  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  font-size: clamp(13px, 1vw, 18px);
   font-weight: 800;
+  letter-spacing: 0.08em;
 }
 
 .mr-connection {
@@ -182,10 +263,10 @@ body.mac-results-page .elementor-shortcode {
   align-items: center;
   gap: 8px;
   padding: 0 12px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  border: 1px solid rgba(232, 193, 122, 0.28);
   border-radius: 999px;
-  color: #eaf4ff;
-  background: rgba(255, 255, 255, 0.12);
+  color: var(--ink);
+  background: rgba(10, 35, 56, 0.55);
   font-size: 11px;
   font-weight: 700;
 }
@@ -224,7 +305,7 @@ body.mac-results-page .elementor-shortcode {
 
 .mr-heading p {
   margin: 0 0 6px;
-  color: #ffd76a;
+  color: var(--brass-highlight);
   font-size: clamp(9px, 0.7vw, 12px);
   font-weight: 800;
   letter-spacing: 0.2em;
@@ -233,34 +314,37 @@ body.mac-results-page .elementor-shortcode {
 /* Ngôi sao ✦ hai bên kicker — họa tiết la bàn của chủ đề hải trình. */
 .mr-heading p::before {
   content: "✦  ";
-  color: rgba(255, 215, 106, 0.75);
+  color: rgba(255, 227, 173, 0.7);
 }
 
 .mr-heading p::after {
   content: "  ✦";
-  color: rgba(255, 215, 106, 0.75);
+  color: rgba(255, 227, 173, 0.7);
 }
 
+/* Tiêu đề lớn: serif display kiểu "khắc bảng đồng". */
 .mr-heading h1 {
   margin: 0;
-  background: linear-gradient(180deg, #ffffff 6%, #eaf3fc 38%, #b4cbe6 52%, #f8fbff 92%);
+  background: linear-gradient(180deg, #fff6e0 8%, var(--brass-highlight) 40%, var(--brass-light) 54%, var(--brass) 78%, var(--brass-highlight) 96%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 4px 16px rgba(7, 31, 78, 0.4));
-  font-size: clamp(30px, 3.4vw, 62px);
+  filter: drop-shadow(0 4px 18px rgba(4, 13, 28, 0.55));
+  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  font-size: clamp(34px, 3.8vw, 70px);
   font-weight: 800;
-  line-height: 1.02;
-  letter-spacing: -0.045em;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
   text-wrap: balance;
 }
 
 .mr-heading > span {
-  margin-top: 8px;
-  color: #d6e8fb;
+  margin-top: 10px;
+  color: var(--muted);
   font-size: clamp(11px, 0.9vw, 16px);
 }
 
+/* Khoảng thở giữa tiêu đề và biểu đồ. */
 .mr-chart {
   position: relative;
   z-index: 2;
@@ -269,18 +353,19 @@ body.mac-results-page .elementor-shortcode {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   align-items: end;
   gap: clamp(12px, 2vw, 40px);
-  margin-top: clamp(18px, 3vh, 38px);
+  margin-top: clamp(42px, 7vh, 84px);
   padding: 0 clamp(4px, 1.2vw, 24px);
 }
 
+/* Đường chân trời — mực nước đồng mờ nơi các cột điểm chạm vào. */
 .mr-chart::after {
   position: absolute;
   right: 0;
   bottom: 58px;
   left: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42) 12%, rgba(255, 255, 255, 0.42) 88%, transparent);
-  box-shadow: 0 8px 32px rgba(6, 31, 78, 0.3);
+  background: linear-gradient(90deg, transparent, rgba(232, 193, 122, 0.42) 12%, rgba(232, 193, 122, 0.42) 88%, transparent);
+  box-shadow: 0 8px 32px rgba(4, 13, 28, 0.4);
   content: "";
 }
 
@@ -301,9 +386,9 @@ body.mac-results-page .elementor-shortcode {
   align-items: baseline;
   justify-content: center;
   gap: 6px;
-  color: #fff;
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 .mr-score span {
@@ -314,7 +399,7 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mr-score small {
-  color: #9dbfe6;
+  color: var(--muted);
   font-size: clamp(7px, 0.52vw, 9px);
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -330,18 +415,18 @@ body.mac-results-page .elementor-shortcode {
   padding-inline: clamp(5px, 0.7vw, 12px);
 }
 
-/* Cột điểm = trụ nước biển: mặt kính sáng, thân xanh đại dương, chân chìm vào bóng sâu. */
+/* Cột điểm mặc định: trụ đồng brass khắc nổi. */
 .mr-bar {
   position: relative;
   width: min(100%, 112px);
   height: var(--bar-level);
   min-height: 34px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(232, 193, 122, 0.5);
   border-bottom: 0;
   border-radius: clamp(12px, 1.15vw, 20px) clamp(12px, 1.15vw, 20px) 5px 5px;
-  background: linear-gradient(165deg, #a8d4f7 0%, #4a8fdc 45%, #123f8f 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 14px 36px rgba(10, 46, 110, 0.35);
+  background: linear-gradient(165deg, var(--brass-light) 0%, var(--brass) 45%, var(--brass-dark) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 246, 224, 0.5), 0 14px 36px rgba(4, 13, 28, 0.45);
   transform-origin: center bottom;
   transition: height 900ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 350ms ease, opacity 350ms ease, box-shadow 350ms ease;
 }
@@ -349,7 +434,7 @@ body.mac-results-page .elementor-shortcode {
 .mr-bar::after {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.16), transparent 28%, transparent 72%, rgba(0, 0, 0, 0.2));
+  background: linear-gradient(90deg, rgba(255, 246, 224, 0.18), transparent 28%, transparent 72%, rgba(0, 0, 0, 0.24));
   content: "";
 }
 
@@ -359,7 +444,7 @@ body.mac-results-page .elementor-shortcode {
   left: -120%;
   width: 54%;
   height: 150%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.48), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 240, 205, 0.4), transparent);
   filter: blur(4px);
   transform: rotate(12deg);
 }
@@ -379,17 +464,17 @@ body.mac-results-page .elementor-shortcode {
   left: 10%;
   height: 3px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 18px rgba(190, 225, 255, 0.9);
+  background: rgba(255, 240, 205, 0.85);
+  box-shadow: 0 0 18px rgba(255, 227, 173, 0.85);
 }
 
 .mr-base {
   width: min(115%, 128px);
   height: 8px;
   border-radius: 50%;
-  background: linear-gradient(90deg, transparent, rgba(158, 210, 255, 0.8), transparent);
+  background: linear-gradient(90deg, transparent, rgba(232, 193, 122, 0.7), transparent);
   filter: blur(1px);
-  box-shadow: 0 0 24px rgba(63, 134, 214, 0.45);
+  box-shadow: 0 0 24px rgba(184, 130, 63, 0.4);
 }
 
 .mr-team-name {
@@ -403,7 +488,7 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mr-team-name b {
-  color: var(--foam);
+  color: var(--brass-light);
   font-size: clamp(9px, 0.66vw, 12px);
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -423,10 +508,11 @@ body.mac-results-page .elementor-shortcode {
   filter: saturate(0.35);
 }
 
+/* Đội đang được spotlight ở màn decoy: đồng sáng rực. */
 .mr-team.is-featured .mr-bar {
-  border-color: rgba(255, 255, 255, 0.85);
-  background: linear-gradient(165deg, #ffffff 0%, #bcd9f4 42%, #4a8fdc 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.2), 0 20px 48px rgba(120, 180, 240, 0.45);
+  border-color: rgba(255, 227, 173, 0.85);
+  background: linear-gradient(165deg, #fff2d4 0%, var(--brass-light) 42%, var(--brass) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 246, 224, 0.7), 0 0 0 1px rgba(255, 227, 173, 0.2), 0 20px 48px rgba(232, 193, 122, 0.35);
   animation: mr-featured-pulse 1.7s ease-in-out infinite alternate;
 }
 
@@ -437,14 +523,14 @@ body.mac-results-page .elementor-shortcode {
   min-width: max-content;
   margin: 0 0 8px;
   padding: 7px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(232, 193, 122, 0.35);
   border-radius: 999px;
-  color: #fff;
-  background: rgba(6, 26, 64, 0.78);
+  color: var(--ink);
+  background: rgba(4, 13, 28, 0.78);
   font-size: clamp(8px, 0.6vw, 11px);
   font-weight: 800;
   letter-spacing: 0.1em;
-  box-shadow: 0 8px 24px rgba(4, 18, 46, 0.4);
+  box-shadow: 0 8px 24px rgba(4, 13, 28, 0.45);
   transform: translateY(8px) scale(0.8);
   opacity: 0;
   transition: opacity 450ms ease 520ms, transform 450ms ease 520ms;
@@ -455,38 +541,50 @@ body.mac-results-page .elementor-shortcode {
   transform: translateY(0) scale(1);
 }
 
-/* Á quân / hạng ba: chrome bạc ánh kim. */
+/* Top 3 nói chung: khung bạc/đồng nổi bật hơn cột mặc định. */
 .mr-team.is-finalist .mr-bar {
-  border-color: rgba(255, 255, 255, 0.85);
-  background: linear-gradient(165deg, #fdfefe 0%, #c9d8ea 36%, #8fa8c6 68%, #e8f0fa 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 18px 52px rgba(190, 210, 235, 0.42);
+  border-color: rgba(255, 246, 224, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 246, 224, 0.65), 0 18px 52px rgba(4, 13, 28, 0.5);
 }
 
 .mr-team.is-finalist .mr-score {
-  color: #f2f7ff;
+  color: #fff;
+}
+
+/* Hạng ba: đồng tối — trầm hơn quán quân. */
+.mr-team.is-finalist.is-third .mr-bar {
+  border-color: rgba(201, 112, 63, 0.65);
+  background: linear-gradient(165deg, var(--brass-light) 0%, var(--copper) 48%, var(--brass-dark) 100%);
+}
+
+/* Hạng nhì: bạc pewter cổ, không phải chrome công nghệ. */
+.mr-team.is-finalist.is-runner-up .mr-bar {
+  border-color: rgba(228, 233, 238, 0.75);
+  background: linear-gradient(165deg, var(--silver-light) 0%, var(--silver) 45%, var(--silver-dark) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 18px 52px rgba(154, 166, 178, 0.3);
 }
 
 .mr-team.is-champion {
   z-index: 4;
 }
 
-/* Quán quân: vàng kim duy nhất của đêm — vương miện của hải trình. */
+/* Quán quân: vàng đồng ánh nắng — khoảnh khắc gala bùng sáng. */
 .mr-team.is-champion .mr-bar {
-  border-color: rgba(255, 226, 141, 0.9);
-  background: linear-gradient(165deg, #fff6c9 0%, #ffd76a 32%, #f0a92e 68%, #b97710 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 0 42px rgba(255, 195, 78, 0.55), 0 26px 80px rgba(185, 119, 16, 0.45);
+  border-color: rgba(255, 227, 173, 0.9);
+  background: linear-gradient(165deg, var(--sunset-gold) 0%, var(--brass-light) 38%, var(--brass) 72%, var(--brass-dark) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 246, 224, 0.85), 0 0 46px rgba(255, 207, 125, 0.5), 0 26px 80px rgba(90, 59, 31, 0.5);
   animation: mr-champion 900ms ease-in-out infinite alternate;
 }
 
 .mr-team.is-champion .mr-score {
-  color: #ffe9ad;
+  color: var(--brass-highlight);
 }
 
 .mr-team.is-champion .mr-rank {
-  border-color: rgba(255, 215, 106, 0.72);
-  color: #17100a;
-  background: linear-gradient(135deg, #fff2a8, #ffbd4a);
-  box-shadow: 0 0 32px rgba(255, 194, 82, 0.48);
+  border-color: rgba(255, 227, 173, 0.8);
+  color: #241304;
+  background: linear-gradient(135deg, var(--brass-highlight), var(--brass));
+  box-shadow: 0 0 32px rgba(255, 207, 125, 0.5);
 }
 
 .mr-pyro {
@@ -498,28 +596,9 @@ body.mac-results-page .elementor-shortcode {
   pointer-events: none;
 }
 
+/* Footer đã được ẩn theo yêu cầu — chỉ giữ DOM cho JS set text. */
 .mr-footer {
-  min-height: clamp(42px, 5.5vh, 62px);
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
-  color: #9dbfe6;
-  background: rgba(4, 18, 46, 0.55);
-  font-size: clamp(9px, 0.66vw, 12px);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-}
-
-.mr-footer > div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.mr-footer i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 14px rgba(255, 195, 78, 0.75);
+  display: none;
 }
 
 .mr-loading,
@@ -530,9 +609,11 @@ body.mac-results-page .elementor-shortcode {
   justify-items: center;
   gap: 14px;
   padding: 32px;
-  color: #d6e8fb;
+  color: var(--ink);
   text-align: center;
-  background: radial-gradient(circle at 50% 30%, rgba(76, 141, 217, 0.28), transparent 46%), var(--abyss);
+  background:
+    radial-gradient(circle at 50% 30%, rgba(184, 130, 63, 0.2), transparent 46%),
+    linear-gradient(180deg, var(--sea-teal) 0%, var(--deep-sea) 58%, var(--abyss) 100%);
 }
 
 .mr-loading img,
@@ -542,7 +623,7 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mr-loading span {
-  color: #a9c6e8;
+  color: var(--muted);
   font-size: 13px;
 }
 
@@ -555,20 +636,22 @@ body.mac-results-page .elementor-shortcode {
 .mr-error p {
   max-width: 520px;
   margin: 0;
-  color: #a9c6e8;
+  color: var(--muted);
 }
 
 .mr-error button {
   min-height: 44px;
   padding: 0 18px;
-  border: 0;
+  border: 1px solid rgba(232, 193, 122, 0.45);
   border-radius: 12px;
   color: #fff;
-  background: linear-gradient(120deg, var(--sea), var(--deep));
+  background: linear-gradient(120deg, var(--copper), var(--brass-dark));
   font: inherit;
   font-weight: 700;
   cursor: pointer;
 }
+
+/* ── Keyframes ── */
 
 @keyframes mr-scan {
   to { left: 150%; }
@@ -582,6 +665,42 @@ body.mac-results-page .elementor-shortcode {
   to { filter: brightness(1.12); transform: scaleX(1.035); }
 }
 
+/* Kim la bàn: idle đung đưa như thuyền trôi. */
+@keyframes mr-needle-idle {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(6deg); }
+}
+
+/* Kim la bàn: rolling quay liên tục tốc độ cao. */
+@keyframes mr-needle-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Kim la bàn: decoy lưỡng lự, đổi hướng biên độ nhỏ. */
+@keyframes mr-needle-decoy {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(110deg); }
+  45% { transform: rotate(62deg); }
+  70% { transform: rotate(198deg); }
+  100% { transform: rotate(150deg); }
+}
+
+/* Kim la bàn: third/second quay chậm, tiến dần về một hướng. */
+@keyframes mr-needle-settle {
+  0% { transform: rotate(0deg); }
+  60% { transform: rotate(290deg); }
+  100% { transform: rotate(312deg); }
+}
+
+/* Kim la bàn: final khóa hướng — vượt đích rồi rung nhẹ và đứng im. */
+@keyframes mr-needle-lock {
+  0% { transform: rotate(0deg); }
+  55% { transform: rotate(352deg); }
+  72% { transform: rotate(341deg); }
+  86% { transform: rotate(348deg); }
+  100% { transform: rotate(345deg); }
+}
+
 @media (max-width: 900px) {
   .mr-shell {
     min-height: 520px;
@@ -589,6 +708,10 @@ body.mac-results-page .elementor-shortcode {
 
   .mr-event {
     display: none;
+  }
+
+  .mr-compass svg {
+    width: min(88vh, 92vw);
   }
 
   .mr-chart {
@@ -617,7 +740,7 @@ body.mac-results-page .elementor-shortcode {
   }
 
   .mr-header > img {
-    width: 104px;
+    width: 52px;
   }
 
   .mr-connection {
@@ -637,8 +760,9 @@ body.mac-results-page .elementor-shortcode {
     max-width: 32ch;
   }
 
+  /* Nới khoảng cách heading ↔ chart nhưng bớt gắt trên màn hẹp. */
   .mr-chart {
-    margin-top: 16px;
+    margin-top: clamp(28px, 5vh, 48px);
   }
 
   .mr-team {
@@ -675,8 +799,11 @@ body.mac-results-page .elementor-shortcode {
     bottom: 52px;
   }
 
-  .mr-footer > div {
-    display: none;
+  /* Bonus fix: badge hạng gọn lại để 6 cột không tràn lên nhau. */
+  .mr-rank {
+    padding: 3px 6px;
+    font-size: 7px;
+    letter-spacing: 0.02em;
   }
 }
 

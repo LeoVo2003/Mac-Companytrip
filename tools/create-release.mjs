@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.12";
+const tag = "v1.8.13";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Nút \"Áp dữ liệu demo\" kín ở sidebar (chỉ super admin): 1 click ghi 48 nhân sự ảo + 240 phiếu + điểm check-in/trò chơi/thi đua vào database.",
-  "- Bấm lại chỉ ghi đè bộ demo, không nhân bản; dữ liệu giữ nguyên tới khi Đặt lại sự kiện.",
-  "- Màn hình công bố kết quả đổi chủ đề hải trình: sky → deep sea, tiêu đề chrome bạc, cột xanh đại dương, vàng kim chỉ cho quán quân.",
-  "- Pháo hoa và copy màn hình theo tông biển (One Compass, ✦).",
+  "- Redesign màn công bố kết quả theo bộ nhận diện \"One Compass\": biển đêm sâu + la bàn đồng cổ, tiêu đề serif khắc bảng đồng.",
+  "- La bàn SVG watermark sau biểu đồ, kim quay thuần CSS theo từng giai đoạn: đung đưa → quay loạn → lưỡng lự → khóa hướng + glow vàng đồng khi quán quân.",
+  "- Cột điểm: mặc định đồng brass, hạng nhì bạc pewter, hạng ba đồng tối, quán quân vàng đồng hoàng hôn; pháo hoa kim tuyến vàng đồng.",
+  "- Ẩn footer, logo nhỏ hơn, nới khoảng cách tiêu đề ↔ biểu đồ; badge hạng gọn trên mobile.",
 ].join("\n");
 
 let release;
