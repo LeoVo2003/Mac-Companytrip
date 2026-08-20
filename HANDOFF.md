@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.14** (đã release & verify ngày 2026-08-20, release id 373658136, commit 5acac3c) — kicker màn chờ "KẾT QUẢ VĂN NGHỆ" + h1 line-height 1.2. Trước đó v1.8.13 redesign màn công bố theo bộ nhận diện "One Compass" (la bàn đồng cổ + biển đêm). Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
+> Phiên bản hiện tại: **v1.8.15** (đã release & verify ngày 2026-08-20, release id 373664494, commit 85b0c92) — la bàn nét mảnh/mờ hơn, kim luôn đung đưa, bỏ dòng mô tả màn chờ, header "company trip - One Direction". Trước đó v1.8.13 redesign màn công bố theo bộ nhận diện "One Compass" (la bàn đồng cổ + biển đêm). Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
 
 ---
 
@@ -138,7 +138,13 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.14 (2026-08-20, commit 5acac3c, release id 373658136) — mới nhất
+### v1.8.15 (2026-08-20, commit 85b0c92, release id 373664494) — mới nhất
+
+- La bàn SVG vẽ lại line-art mảnh hơn (stroke 0.35–0.6, bỏ vòng r=70, chữ N/E/S/W nhỏ hơn) và mờ hơn (opacity 0.1, final 0.18); kim `.mr-needle` **luôn đung đưa nhẹ** (`mr-needle-idle` 7s infinite ở mọi stage) — gỡ các animation quay/khóa theo stage và 4 keyframe thừa.
+- Bỏ dòng mô tả màn chờ "6 đội · 1 hải trình · 1 ngôi vị cao nhất" (user dành câu đó cho mục đích khác): `shell()`/`renderIdle()` set description rỗng + CSS `.mr-heading > span:empty { display: none }` (các stage khác vẫn hiện mô tả riêng).
+- Header `.mr-event span` đổi "COMPANY TRIP · ONE COMPASS" → "company trip - One Direction".
+
+### v1.8.14 (2026-08-20, commit 5acac3c, release id 373658136)
 
 - Kicker `.mr-heading p` màn chờ đổi "MAC MARKETING" → "KẾT QUẢ VĂN NGHỆ" (cả markup `shell()` lẫn `renderIdle()`).
 - `.mr-heading h1` nâng `line-height` từ 1.04 lên 1.2 cho thoáng chữ có dấu tiếng Việt.
@@ -195,7 +201,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.8.14 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: kicker "KẾT QUẢ VĂN NGHỆ" ×2 trong results.js, `line-height: 1.2` trong results.css, Version 1.8.14 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.14 là release mới nhất, updater sẽ không kéo ngược bản cũ.
+Mọi yêu cầu tới 1.8.15 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: "One Direction" trong results.js, `mr-needle-idle` + `span:empty` trong results.css, Version 1.8.15 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.15 là release mới nhất, updater sẽ không kéo ngược bản cũ.
 
 ---
 
