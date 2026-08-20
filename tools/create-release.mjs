@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.14";
+const tag = "v1.8.15";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Kicker màn chờ đổi từ \"MAC MARKETING\" sang \"KẾT QUẢ VĂN NGHỆ\".",
-  "- h1 nâng line-height lên 1.2 cho thoáng chữ có dấu tiếng Việt.",
+  "- La bàn vẽ lại nét mảnh và mờ hơn (line-art clean), kim luôn đung đưa nhẹ ở mọi giai đoạn.",
+  "- Bỏ dòng mô tả màn chờ \"6 đội · 1 hải trình · 1 ngôi vị cao nhất\"; header đổi \"COMPANY TRIP · ONE COMPASS\" → \"company trip - One Direction\".",
 ].join("\n");
 
 let release;

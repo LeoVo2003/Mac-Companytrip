@@ -160,49 +160,21 @@ body.mac-results-page .elementor-shortcode {
 .mr-compass svg {
   width: min(72vh, 56vw);
   height: auto;
-  opacity: 0.15;
+  opacity: 0.1;
   transition: opacity 700ms ease, filter 700ms ease;
 }
 
-.mr-shell[data-stage="rolling"] .mr-compass svg {
-  opacity: 0.19;
-}
-
-/* Lúc công bố quán quân: la bàn sáng bừng vàng đồng. */
+/* Lúc công bố quán quân: la bàn hừng sáng vàng đồng nhẹ. */
 .mr-shell[data-stage="final"] .mr-compass svg {
-  opacity: 0.32;
-  filter: drop-shadow(0 0 46px rgba(255, 207, 125, 0.4));
+  opacity: 0.18;
+  filter: drop-shadow(0 0 34px rgba(255, 207, 125, 0.3));
 }
 
 .mr-needle {
   transform-box: view-box;
   transform-origin: 50% 50%;
-}
-
-/* Idle: kim đung đưa rất nhẹ như thuyền trôi. */
-.mr-shell[data-stage="idle"] .mr-needle {
+  /* Kim luôn đung đưa nhẹ như thuyền trôi ở mọi giai đoạn. */
   animation: mr-needle-idle 7s ease-in-out infinite;
-}
-
-/* Rolling: kim quay loạn xạ, tốc độ cao — điểm đang nhảy số. */
-.mr-shell[data-stage="rolling"] .mr-needle {
-  animation: mr-needle-spin 0.9s linear infinite;
-}
-
-/* Decoy: quay chậm dần, lưỡng lự đổi hướng. */
-.mr-shell[data-stage="decoy"] .mr-needle {
-  animation: mr-needle-decoy 5.2s ease-in-out infinite alternate;
-}
-
-/* Hạng ba / hạng nhì: kim tiến dần về một hướng. */
-.mr-shell[data-stage="third"] .mr-needle,
-.mr-shell[data-stage="second"] .mr-needle {
-  animation: mr-needle-settle 5s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
-}
-
-/* Final: khóa cứng hướng, rung nhẹ rồi đứng im — đã tìm ra phương hướng. */
-.mr-shell[data-stage="final"] .mr-needle {
-  animation: mr-needle-lock 1.6s cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
 }
 
 .mr-header,
@@ -342,6 +314,11 @@ body.mac-results-page .elementor-shortcode {
   margin-top: 10px;
   color: var(--muted);
   font-size: clamp(11px, 0.9vw, 16px);
+}
+
+/* Màn chờ không còn dòng mô tả — ẩn khi span rỗng để không thừa khoảng hở. */
+.mr-heading > span:empty {
+  display: none;
 }
 
 /* Khoảng thở giữa tiêu đề và biểu đồ. */
@@ -665,40 +642,10 @@ body.mac-results-page .elementor-shortcode {
   to { filter: brightness(1.12); transform: scaleX(1.035); }
 }
 
-/* Kim la bàn: idle đung đưa như thuyền trôi. */
+/* Kim la bàn: luôn đung đưa nhẹ như thuyền trôi. */
 @keyframes mr-needle-idle {
   0%, 100% { transform: rotate(-5deg); }
   50% { transform: rotate(6deg); }
-}
-
-/* Kim la bàn: rolling quay liên tục tốc độ cao. */
-@keyframes mr-needle-spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Kim la bàn: decoy lưỡng lự, đổi hướng biên độ nhỏ. */
-@keyframes mr-needle-decoy {
-  0% { transform: rotate(0deg); }
-  25% { transform: rotate(110deg); }
-  45% { transform: rotate(62deg); }
-  70% { transform: rotate(198deg); }
-  100% { transform: rotate(150deg); }
-}
-
-/* Kim la bàn: third/second quay chậm, tiến dần về một hướng. */
-@keyframes mr-needle-settle {
-  0% { transform: rotate(0deg); }
-  60% { transform: rotate(290deg); }
-  100% { transform: rotate(312deg); }
-}
-
-/* Kim la bàn: final khóa hướng — vượt đích rồi rung nhẹ và đứng im. */
-@keyframes mr-needle-lock {
-  0% { transform: rotate(0deg); }
-  55% { transform: rotate(352deg); }
-  72% { transform: rotate(341deg); }
-  86% { transform: rotate(348deg); }
-  100% { transform: rotate(345deg); }
 }
 
 @media (max-width: 900px) {
