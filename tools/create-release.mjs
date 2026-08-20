@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.10";
+const tag = "v1.8.11";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,11 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Thay màn hình chờ bằng loader bánh xe phối màu thương hiệu MAC (cảm hứng lucky-hound-44) cho cả 3 nơi dựng dashboard.",
-  "- Hardening toàn bộ giao diện /company-trip-admin/ chống theme đè: nút, bảng, ô nhập liệu, link sidebar dùng !important scope theo body.mac-admin-public-page.",
-  "- Refactor toàn bộ CSS dashboard: gộp rule trùng lặp, thống nhất thang font-size/font-weight, gom responsive breakpoint về một khối.",
-  "- Mobile: cột team trong các bảng điểm tổng quan thẳng hàng nhau (co đúng bằng tên đội dài nhất).",
-  "- Mobile: chuyển tab xong thanh tab tự kéo tab đang chọn vào giữa tầm nhìn.",
+  "- Sửa loader bánh xe: 9 bi nằm đều trên vành khuyên, pulse đuổi tuần tự.",
+  "- Khôi phục active của tab sidebar/subnav trên trang WP (bị hardening đè ở 1.8.10).",
+  "- Desktop: tab sidebar không còn border, nền trong suốt như bản gốc.",
+  "- Nút Đặt lại sự kiện nổi bật màu danger đỏ đậm như bản gốc.",
 ].join("\n");
 
 let release;

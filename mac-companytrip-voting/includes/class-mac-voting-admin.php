@@ -65,7 +65,7 @@ final class MAC_Voting_Admin {
     public static function loading_markup(): string {
         $spokes = '';
         for ($i = 0; $i < 9; $i++) {
-            $rot = $i * 20;
+            $rot = $i * 40;
             $delay = $i * 0.2;
             $spokes .= '<span class="mac-loader-spoke" style="--rot:' . $rot . 'deg;--delay:' . $delay . 's"><span class="mac-loader-ball"></span></span>';
         }

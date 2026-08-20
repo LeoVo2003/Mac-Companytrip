@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.8.10
+Stable tag: 1.8.11
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,12 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.8.11 =
+- Sửa loader bánh xe: 9 bi nằm đều trên vành khuyên, pulse đuổi tuần tự (bản trước bi bay từ tâm ra nên tụm lại xấu).
+- Khôi phục trạng thái active của tab sidebar và subnav trên trang WP (bản trước bị nhóm hardening đè mất màu đỏ).
+- Desktop: tab sidebar không còn border trắng, trở lại nền trong suốt như bản gốc.
+- Nút "Đặt lại sự kiện" nổi bật màu danger đỏ đậm như bản gốc, không còn giống nút trung tính.
 
 = 1.8.10 =
 - Thay màn hình chờ bằng loader bánh xe phối màu thương hiệu MAC (cảm hứng lucky-hound-44) cho cả 3 nơi dựng dashboard.

@@ -3300,38 +3300,34 @@
 
 .mac-loader-spoke {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
+  inset: 0;
   transform: rotate(var(--rot));
 }
 
+/* Bi nằm trên vành khuyên (đỉnh spoke đã xoay), pulse tuần tự tạo hiệu ứng đuổi. */
 .mac-loader-ball {
   position: absolute;
-  top: -7px;
-  left: -7px;
+  top: 0;
+  left: 50%;
   width: 14px;
   height: 14px;
+  margin: -7px 0 0 -7px;
   border-radius: 50%;
   background: linear-gradient(135deg, #e31e24 0%, #ff6a2c 100%);
   box-shadow: 0 2px 8px rgba(227, 30, 36, 0.35);
-  animation: mac-loader-ball 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation: mac-loader-ball 1.8s ease-in-out infinite;
   animation-delay: calc(var(--delay) * -1);
 }
 
 @keyframes mac-loader-ball {
-  0% {
-    transform: translateY(0);
+  0%,
+  100% {
+    transform: scale(1);
     opacity: 1;
   }
   50% {
-    transform: translateY(102px);
-    opacity: 0.45;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
+    transform: scale(0.72);
+    opacity: 0.25;
   }
 }
 
@@ -3410,12 +3406,12 @@ body.mac-admin-public-page .ma-panel {
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05) !important;
 }
 
-/* Nút trung tính — giữ nền trắng, viền chuẩn. */
+/* Nút trung tính — giữ nền trắng, viền chuẩn.
+   KHÔNG áp cho tab sidebar/subnav (cần nền trong suốt + active đỏ)
+   và không áp cho nút đặt lại sự kiện (cần màu danger). */
 body.mac-admin-public-page .mac-admin-app .ma-primary,
 body.mac-admin-public-page .ma-login .ma-primary,
-body.mac-admin-public-page .ma-top-actions button,
-body.mac-admin-public-page .ma-subnav button,
-body.mac-admin-public-page .ma-side nav button,
+body.mac-admin-public-page .ma-top-actions button:not(.ma-reset-trigger),
 body.mac-admin-public-page .ma-people-actions button,
 body.mac-admin-public-page .ma-award-presets button,
 body.mac-admin-public-page .ma-award-teams button,
@@ -3427,9 +3423,7 @@ body.mac-admin-public-page .ma-gate #ma-gate {
   cursor: pointer !important;
 }
 
-body.mac-admin-public-page .ma-top-actions button:not(.ma-primary),
-body.mac-admin-public-page .ma-subnav button:not(.ma-primary),
-body.mac-admin-public-page .ma-side nav button:not(.ma-primary),
+body.mac-admin-public-page .ma-top-actions button:not(.ma-primary):not(.ma-reset-trigger),
 body.mac-admin-public-page .ma-people-actions button:not(.ma-primary),
 body.mac-admin-public-page .ma-check-card button:not(.ma-primary):not(.danger),
 body.mac-admin-public-page .ma-gate #ma-gate:not(.ma-primary):not(.danger) {
@@ -3437,6 +3431,40 @@ body.mac-admin-public-page .ma-gate #ma-gate:not(.ma-primary):not(.danger) {
   background: #fff !important;
   color: #111827 !important;
   box-shadow: none !important;
+}
+
+/* Tab sidebar / subnav — không border, chữ xám; active đỏ mềm như bản gốc. */
+body.mac-admin-public-page .ma-side nav button,
+body.mac-admin-public-page .ma-subnav button {
+  border: 0 !important;
+  background: transparent !important;
+  color: #667085 !important;
+  box-shadow: none !important;
+}
+
+body.mac-admin-public-page .ma-side nav button:hover,
+body.mac-admin-public-page .ma-subnav button:hover {
+  color: #111827 !important;
+  background: #fafafc !important;
+}
+
+body.mac-admin-public-page .ma-side nav button.active,
+body.mac-admin-public-page .ma-subnav button.active {
+  color: #e31e24 !important;
+  background: #fff4f0 !important;
+  box-shadow: inset 0 0 0 1px #fed7cc !important;
+}
+
+/* Nút đặt lại sự kiện — danger đỏ đậm, nổi bật như bản gốc. */
+body.mac-admin-public-page .ma-reset-trigger {
+  border: 1px solid #fecdca !important;
+  color: #b42318 !important;
+  background: #fff !important;
+}
+
+body.mac-admin-public-page .ma-reset-trigger:hover {
+  border-color: #f97066 !important;
+  background: #fef3f2 !important;
 }
 
 /* Nút nguy hiểm / reset trigger. */
