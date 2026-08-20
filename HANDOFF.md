@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.10** (đã release & verify ngày 2026-08-20, release id 373504956).
+> Phiên bản hiện tại: **v1.8.11** (đã release & verify ngày 2026-08-20, release id 373515064).
 
 ---
 
@@ -138,7 +138,12 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.10 (2026-08-20, commit e8104f0, release id 373504956) — mới nhất
+### v1.8.11 (2026-08-20, commit 1fff36a, release id 373515064) — mới nhất
+
+- Sửa loader bánh xe: spoke giờ là `inset: 0` xoay nguyên bánh, bi nằm trên vành khuyên (`top: 0; left: 50%`), keyframes chỉ pulse scale/opacity tuần tự; PHP `loading_markup()` đổi `--rot` từ `i*20` sang `i*40` để 9 bi phủ đủ vòng tròn (bản 1.8.10 bi bay từ tâm ra nên tụm một chỗ).
+- Sửa hardening mục 21 `admin.css`: nhóm nút trung tính `!important` của 1.8.10 đè mất active của tab sidebar/subnav, thêm border trắng lên tab desktop và biến nút "Đặt lại sự kiện" thành nút trung tính. Giờ nhóm trung tính loại `.ma-side nav button`/`.ma-subnav button`/`.ma-reset-trigger`; thêm guard riêng: tab trong suốt không border, active `#fff4f0` + ring `#fed7cc` + chữ `#e31e24`, reset trigger danger `#b42318`/`#fecdca` — tất cả `!important` để theme không đè.
+
+### v1.8.10 (2026-08-20, commit e8104f0, release id 373504956)
 
 - Loader bánh xe thương hiệu: `MAC_Voting_Admin::loading_markup()` (9 spoke, biến `--rot`/`--delay`), CSS `.mac-admin-loading`/`.mac-loader-wheel`/`.mac-loader-spoke`/`.mac-loader-ball` trong `admin.css` — dùng chung cả 3 nơi dựng dashboard (wp-admin, shortcode, standalone).
 - Hardening `body.mac-admin-public-page`: nút trung tính/nguy hiểm/gradient, bảng, ô nhập, link sidebar dùng `!important` (mục 21 trong `admin.css`); form login có block `#ma-admin-login` riêng.
@@ -170,7 +175,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.8.10 đã xong, build pass, release đã verify (tải zip từ GitHub về so cây file với build local: chỉ khác line-ending 2 file PHP do GitHub re-zip, nội dung như nhau).
+Mọi yêu cầu tới 1.8.11 đã xong, build pass, release đã verify (tải zip từ GitHub về grep marker: active guard, reset-trigger guard, `$i * 40` đều có trong asset).
 
 ---
 
@@ -186,6 +191,7 @@ Mọi yêu cầu tới 1.8.10 đã xong, build pass, release đã verify (tải 
 8. **SearchReplace của agent không sửa được file ngoài workspace**; file zip temp nên tạo trong `dist/`.
 9. Linter báo undefined các hàm WordPress (`plugin_dir_path`, `get_option`…) — false positive, bỏ qua.
 10. **GitHub push protection**: KHÔNG bao giờ ghi token (GH_TOKEN…) vào file được commit — push sẽ bị chặn (đã bị với HANDOFF.md). Token chỉ truyền qua biến môi trường.
+11. **Hardening `!important` đè luôn state của mình** (vụ 1.8.10→1.8.11): nhóm nút trung tính scope rộng đè mất `.active` của tab, thêm border lên tab desktop và neutralize nút danger. Khi hardening phải `:not()` loại các class state (`.active`, `.ma-reset-trigger`, `.danger`, `.ma-primary`) và thêm guard riêng cho từng state.
 
 ---
 
@@ -193,7 +199,7 @@ Mọi yêu cầu tới 1.8.10 đã xong, build pass, release đã verify (tải 
 
 - Windows (25H2), shell `WindowsPowerShell v1.0` (không có `&&`).
 - Node dùng để chạy tools (không cần server local; site WordPress chạy ở chỗ khác, plugin update trực tiếp từ GitHub Release).
-- `npm run check` validate: 16 PHP, 7 JS, 6 CSS phải đủ — thiếu file là build fail.
+- `npm run check` validate: 17 PHP, 7 JS, 6 CSS phải đủ — thiếu file là build fail.
 
 ---
 
