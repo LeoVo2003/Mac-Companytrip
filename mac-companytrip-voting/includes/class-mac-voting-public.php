@@ -24,6 +24,8 @@ final class MAC_Voting_Public {
         if ($checkin_page_id) add_rewrite_rule('^company-trip-checkin/?$', 'index.php?page_id=' . $checkin_page_id, 'top');
         $admin_page_id = (int) get_option('mac_voting_admin_page_id');
         if ($admin_page_id) add_rewrite_rule('^company-trip-admin/?$', 'index.php?page_id=' . $admin_page_id, 'top');
+        $final_page_id = (int) get_option('mac_voting_final_page_id');
+        if ($final_page_id) add_rewrite_rule('^ket-qua-tong/?$', 'index.php?page_id=' . $final_page_id, 'top');
         add_rewrite_rule('^company-trip/q/([^/]+)/?$', 'index.php?mac_qr_token=$matches[1]', 'top');
     }
 
@@ -38,6 +40,8 @@ final class MAC_Voting_Public {
         wp_register_script('mac-voting-public', MAC_VOTING_URL . 'assets/public.js', array(), MAC_VOTING_VERSION, true);
         wp_register_style('mac-voting-results', MAC_VOTING_URL . 'assets/results.css', array(), MAC_VOTING_VERSION);
         wp_register_script('mac-voting-results', MAC_VOTING_URL . 'assets/results.js', array(), MAC_VOTING_VERSION, true);
+        wp_register_style('mac-voting-final', MAC_VOTING_URL . 'assets/final.css', array(), MAC_VOTING_VERSION);
+        wp_register_script('mac-voting-final', MAC_VOTING_URL . 'assets/final.js', array(), MAC_VOTING_VERSION, true);
 
         // Enqueue before wp_head so themes do not miss the stylesheet. The
         // shortcode also enqueues as a fallback for page-builder previews.
@@ -49,6 +53,10 @@ final class MAC_Voting_Public {
         if (self::is_results_page()) {
             wp_enqueue_style('mac-voting-results');
             wp_enqueue_script('mac-voting-results');
+        }
+        if (MAC_Final_Reveal::is_final_page()) {
+            wp_enqueue_style('mac-voting-final');
+            wp_enqueue_script('mac-voting-final');
         }
     }
 
@@ -72,6 +80,9 @@ final class MAC_Voting_Public {
         }
         if (self::is_results_page()) {
             $classes[] = 'mac-results-page';
+        }
+        if (MAC_Final_Reveal::is_final_page()) {
+            $classes[] = 'mac-final-page';
         }
         return $classes;
     }

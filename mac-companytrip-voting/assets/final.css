@@ -1,0 +1,588 @@
+/* ==========================================================================
+   MAC Company Trip — Màn công bố tổng điểm "Race to the Crown" (final.css)
+   Dark cinematic, fullscreen, MAC red/orange; gold chỉ dành cho QUÁN QUÂN.
+   --------------------------------------------------------------------------
+   1. Font + nền tảng dark
+   2. Shell + header + connection
+   3. Heading
+   4. Leaderboard (race rows)
+   5. Trạng thái: build/locked/bottom/top3/bronze/duel/runner-up/champion/board
+   6. Duel lanes + odometer
+   7. Animations + reduced motion
+   ========================================================================== */
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter-vietnamese.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 100 900;
+}
+
+html:has(body.mac-final-page) {
+  margin-top: 0 !important;
+  background: #080808;
+}
+
+body.mac-final-page {
+  min-width: 320px;
+  margin: 0 !important;
+  overflow: hidden;
+  background: #080808 !important;
+}
+
+body.mac-final-page #wpadminbar,
+body.mac-final-page .site-header,
+body.mac-final-page .site-footer,
+body.mac-final-page .entry-header,
+body.mac-final-page header.wp-block-template-part,
+body.mac-final-page footer.wp-block-template-part {
+  display: none !important;
+}
+
+body.mac-final-page #page,
+body.mac-final-page #content,
+body.mac-final-page .site,
+body.mac-final-page .site-content,
+body.mac-final-page .content-area,
+body.mac-final-page .site-main,
+body.mac-final-page article,
+body.mac-final-page .entry-content,
+body.mac-final-page .elementor,
+body.mac-final-page .elementor-section,
+body.mac-final-page .elementor-container,
+body.mac-final-page .elementor-column,
+body.mac-final-page .elementor-widget-wrap,
+body.mac-final-page .elementor-widget,
+body.mac-final-page .elementor-widget-container,
+body.mac-final-page .elementor-shortcode {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.mac-final-app,
+.mac-final-app * {
+  box-sizing: border-box;
+}
+
+.mac-final-app {
+  --red: #e31e24;
+  --orange: #ff6a2c;
+  --gold: #ffc252;
+  --silver: #cdd3dc;
+  --bronze: #d59a6b;
+  --ink: #f6f7f9;
+  --muted: #8b93a1;
+  --line: rgba(255, 255, 255, 0.08);
+  --panel: #101010;
+  position: fixed;
+  z-index: 99999;
+  inset: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 500px at 50% -8%, rgba(227, 30, 36, 0.16), transparent 65%),
+    radial-gradient(900px 420px at 85% 110%, rgba(255, 106, 44, 0.08), transparent 60%),
+    #080808;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Loading ------------------------------------------------------------- */
+.mf-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
+
+.mf-loading img {
+  width: 150px;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+/* --- Shell + header ------------------------------------------------------- */
+.mf-shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  padding: clamp(16px, 3vh, 32px) clamp(16px, 4vw, 56px);
+  gap: clamp(12px, 2.4vh, 28px);
+}
+
+.mf-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mf-header img {
+  width: clamp(90px, 9vw, 140px);
+  filter: brightness(0) invert(1);
+  opacity: 0.92;
+}
+
+.mf-event {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 16px;
+  border-left: 1px solid var(--line);
+}
+
+.mf-event span {
+  color: var(--muted);
+  font-size: clamp(10px, 1vw, 12px);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
+.mf-event strong {
+  font-size: clamp(14px, 1.5vw, 19px);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  background: linear-gradient(90deg, #ff8a52 0%, var(--orange) 45%, var(--red) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.mf-connection {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+.mf-connection i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3ecf8e;
+  animation: mf-pulse 1.8s ease-in-out infinite;
+}
+
+.mf-connection.is-offline {
+  border-color: rgba(227, 30, 36, 0.5);
+  color: #ff8f8f;
+}
+
+.mf-connection.is-offline i {
+  background: var(--red);
+  animation: none;
+}
+
+/* --- Heading -------------------------------------------------------------- */
+.mf-heading {
+  text-align: center;
+}
+
+.mf-heading p {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: clamp(11px, 1.1vw, 14px);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+}
+
+.mf-heading h1 {
+  margin: 0;
+  font-size: clamp(26px, 4.2vw, 58px);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+.mf-heading > span {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: clamp(12px, 1.3vw, 16px);
+  letter-spacing: 0.08em;
+}
+
+.mf-shell[data-stage="champion"] .mf-heading h1,
+.mf-shell[data-stage="board"] .mf-heading h1 .mf-gold {
+  background: linear-gradient(92deg, #ffe6ae 0%, var(--gold) 55%, #f5a623 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --- Ready ---------------------------------------------------------------- */
+.mf-ready {
+  margin: auto;
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  text-align: center;
+  color: var(--muted);
+  font-size: clamp(14px, 1.6vw, 18px);
+  letter-spacing: 0.06em;
+}
+
+.mf-ready-crown {
+  font-size: clamp(42px, 6vw, 72px);
+  line-height: 1;
+  animation: mf-float 3.2s ease-in-out infinite;
+}
+
+/* --- Leaderboard ----------------------------------------------------------- */
+.mf-board {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  width: min(1200px, 100%);
+  margin: 0 auto;
+}
+
+.mf-row {
+  display: grid;
+  grid-template-columns: 2.4fr repeat(4, 1fr) 1.3fr;
+  align-items: center;
+  gap: 8px;
+  padding: clamp(8px, 1.3vh, 14px) clamp(12px, 1.6vw, 22px);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  transition:
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.5s ease,
+    background 0.4s ease,
+    border-color 0.4s ease,
+    filter 0.5s ease;
+}
+
+.mf-row-head {
+  display: grid;
+  grid-template-columns: 2.4fr repeat(4, 1fr) 1.3fr;
+  gap: 8px;
+  padding: 0 clamp(12px, 1.6vw, 22px) 6px;
+  color: var(--muted);
+  font-size: clamp(10px, 1vw, 12px);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.mf-row-head span:not(:first-child),
+.mf-row .mf-cell:not(:first-child) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.mf-team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mf-team-num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: clamp(30px, 3.2vw, 42px);
+  height: clamp(30px, 3.2vw, 42px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 106, 44, 0.35);
+  background: rgba(227, 30, 36, 0.12);
+  color: #ffb199;
+  font-size: clamp(13px, 1.3vw, 16px);
+  font-weight: 800;
+}
+
+.mf-team strong {
+  overflow: hidden;
+  font-size: clamp(15px, 1.7vw, 21px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mf-cell {
+  color: #c6ccd6;
+  font-size: clamp(14px, 1.5vw, 19px);
+  font-weight: 600;
+}
+
+.mf-cell.is-dim {
+  color: #565d68;
+}
+
+.mf-cell.is-on {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.mf-cell.mf-total {
+  color: var(--ink);
+  font-size: clamp(17px, 1.9vw, 24px);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.mf-badge {
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: clamp(10px, 1vw, 12px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+.mf-badge.bronze {
+  border: 1px solid rgba(213, 154, 107, 0.55);
+  background: rgba(213, 154, 107, 0.14);
+  color: #eec09a;
+}
+
+.mf-badge.silver {
+  border: 1px solid rgba(205, 211, 220, 0.55);
+  background: rgba(205, 211, 220, 0.12);
+  color: #e6eaf0;
+}
+
+.mf-badge.gold {
+  border: 1px solid rgba(255, 194, 82, 0.65);
+  background: linear-gradient(135deg, rgba(255, 194, 82, 0.28), rgba(245, 166, 35, 0.14));
+  color: #ffe2a6;
+  animation: mf-glow 2.2s ease-in-out infinite;
+}
+
+/* --- Trạng thái hàng ------------------------------------------------------- */
+.mf-shell[data-stage="build_checkin"] .mf-row:nth-child(odd),
+.mf-shell[data-stage="build_game"] .mf-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.mf-row.is-leader {
+  border-color: rgba(255, 106, 44, 0.4);
+  background: linear-gradient(90deg, rgba(227, 30, 36, 0.16), rgba(255, 106, 44, 0.08));
+}
+
+.mf-row.is-dim {
+  opacity: 0.26;
+  filter: grayscale(0.9);
+}
+
+.mf-row.is-out {
+  opacity: 0.1;
+  filter: grayscale(1);
+}
+
+.mf-row.is-bronze {
+  border-color: rgba(213, 154, 107, 0.5);
+  background: linear-gradient(90deg, rgba(213, 154, 107, 0.16), rgba(213, 154, 107, 0.05));
+}
+
+.mf-row.is-silver {
+  border-color: rgba(205, 211, 220, 0.5);
+  background: linear-gradient(90deg, rgba(205, 211, 220, 0.14), rgba(205, 211, 220, 0.04));
+}
+
+.mf-row.is-gold {
+  border-color: rgba(255, 194, 82, 0.7);
+  background: linear-gradient(90deg, rgba(255, 194, 82, 0.22), rgba(245, 166, 35, 0.07));
+  animation: mf-glow 2.4s ease-in-out infinite;
+}
+
+.mf-row.is-gold .mf-team strong {
+  background: linear-gradient(92deg, #ffe6ae 0%, var(--gold) 60%, #f5a623 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.mf-remain {
+  margin: 6px auto 0;
+  padding: 8px 20px;
+  border: 1px solid rgba(227, 30, 36, 0.45);
+  border-radius: 999px;
+  color: #ff9a8a;
+  font-size: clamp(13px, 1.4vw, 17px);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+/* --- Duel ------------------------------------------------------------------ */
+.mf-duel {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: clamp(14px, 3vw, 40px);
+  width: min(1300px, 100%);
+  margin: 0 auto;
+}
+
+.mf-lane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 1.8vh, 20px);
+  padding: clamp(18px, 3.4vh, 36px) clamp(14px, 2vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+}
+
+.mf-lane.is-chasing {
+  border-color: rgba(205, 211, 220, 0.35);
+}
+
+.mf-lane.is-leading {
+  border-color: rgba(255, 106, 44, 0.55);
+  background: linear-gradient(180deg, rgba(227, 30, 36, 0.14), rgba(255, 106, 44, 0.05));
+}
+
+.mf-lane-tag {
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: clamp(10px, 1vw, 13px);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+}
+
+.mf-lane.is-leading .mf-lane-tag {
+  border-color: rgba(255, 106, 44, 0.5);
+  color: #ffb199;
+}
+
+.mf-lane-teams {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mf-lane-teams span {
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: clamp(14px, 1.6vw, 20px);
+  font-weight: 800;
+}
+
+.mf-odo {
+  font-size: clamp(52px, 9vw, 120px);
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.mf-lane.is-leading .mf-odo {
+  background: linear-gradient(92deg, #ff8a52 0%, var(--orange) 55%, var(--red) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.mf-vs {
+  font-size: clamp(22px, 3vw, 40px);
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+
+/* --- Final board ------------------------------------------------------------ */
+.mf-shell[data-stage="board"] .mf-row .mf-rankno {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.mf-rankno {
+  flex: none;
+  width: 2.2ch;
+  color: #565d68;
+  font-size: clamp(13px, 1.3vw, 16px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Animations -------------------------------------------------------------- */
+@keyframes mf-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@keyframes mf-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes mf-glow {
+  0%, 100% { box-shadow: 0 0 24px rgba(255, 194, 82, 0.18); }
+  50% { box-shadow: 0 0 46px rgba(255, 194, 82, 0.4); }
+}
+
+@keyframes mf-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mf-heading,
+.mf-lane,
+.mf-ready {
+  animation: mf-fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* --- Responsive --------------------------------------------------------------- */
+@media (max-width: 760px) {
+  .mf-row,
+  .mf-row-head {
+    grid-template-columns: 2fr repeat(4, 0.8fr) 1.1fr;
+    gap: 4px;
+    border-radius: 10px;
+  }
+
+  .mf-team strong {
+    max-width: 26vw;
+  }
+
+  .mf-duel {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .mf-vs {
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mac-final-app *,
+  .mac-final-app *::before,
+  .mac-final-app *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

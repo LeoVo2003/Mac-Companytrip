@@ -33,6 +33,7 @@ final class MAC_Voting_DB {
         self::ensure_results_page();
         self::ensure_checkin_page();
         self::ensure_admin_page();
+        self::ensure_final_page();
         if (get_option('mac_voting_public_enabled', null) === false) {
             add_option('mac_voting_public_enabled', '0', '', false);
         }
@@ -47,6 +48,7 @@ final class MAC_Voting_DB {
             self::activate();
         } else {
             self::ensure_admin_page();
+            self::ensure_final_page();
             self::ensure_staff_team();
             self::ensure_games();
         }
@@ -84,6 +86,8 @@ final class MAC_Voting_DB {
         if ($checkin_page_id) add_rewrite_rule('^company-trip-checkin/?$', 'index.php?page_id=' . $checkin_page_id, 'top');
         $admin_page_id = (int) get_option('mac_voting_admin_page_id');
         if ($admin_page_id) add_rewrite_rule('^company-trip-admin/?$', 'index.php?page_id=' . $admin_page_id, 'top');
+        $final_page_id = (int) get_option('mac_voting_final_page_id');
+        if ($final_page_id) add_rewrite_rule('^ket-qua-tong/?$', 'index.php?page_id=' . $final_page_id, 'top');
         add_rewrite_rule('^company-trip/q/([^/]+)/?$', 'index.php?mac_qr_token=$matches[1]', 'top');
         flush_rewrite_rules(false);
     }
@@ -489,6 +493,28 @@ final class MAC_Voting_DB {
         }
     }
 
+    private static function ensure_final_page(): void {
+        $page_id = (int) get_option('mac_voting_final_page_id');
+        if ($page_id && get_post($page_id)) {
+            return;
+        }
+        $existing = get_page_by_path('ket-qua-tong');
+        if ($existing instanceof WP_Post) {
+            update_option('mac_voting_final_page_id', $existing->ID, false);
+            return;
+        }
+        $page_id = wp_insert_post(array(
+            'post_title'   => 'Kết Quả Chung Cuộc',
+            'post_name'    => 'ket-qua-tong',
+            'post_content' => '[mac_companytrip_final]',
+            'post_status'  => 'publish',
+            'post_type'    => 'page',
+        ));
+        if (!is_wp_error($page_id)) {
+            update_option('mac_voting_final_page_id', (int) $page_id, false);
+        }
+    }
+
     public static function utc_now(): string {
         return current_time('mysql', true);
     }
@@ -660,6 +686,11 @@ final class MAC_Voting_DB {
     public static function admin_page_url(): string {
         $page_id = (int) get_option('mac_voting_admin_page_id');
         return $page_id ? (string) get_permalink($page_id) : home_url('/company-trip-admin/');
+    }
+
+    public static function final_page_url(): string {
+        $page_id = (int) get_option('mac_voting_final_page_id');
+        return $page_id ? (string) get_permalink($page_id) : home_url('/ket-qua-tong/');
     }
 
     public static function reveal_state(): array {

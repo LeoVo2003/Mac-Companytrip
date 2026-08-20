@@ -89,6 +89,7 @@ final class MAC_Voting_Admin {
             'resultsUrl' => MAC_Voting_DB::results_page_url(),
             'checkinUrl' => MAC_Voting_DB::checkin_page_url(),
             'adminUrl' => MAC_Voting_DB::admin_page_url(),
+            'finalUrl' => MAC_Voting_DB::final_page_url(),
             'logoutUrl'=> wp_logout_url(MAC_Voting_DB::admin_page_url()),
             'logo'     => MAC_VOTING_URL . 'assets/mac-marketing-logo.png',
             'exportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export'), 'mac_vote_export'),
@@ -140,6 +141,7 @@ final class MAC_Voting_Admin {
         MAC_Points::reset_history();
         $wpdb->query('COMMIT');
         MAC_Voting_DB::set_reveal_state('IDLE');
+        MAC_Final_Reveal::reset();
 
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'EVENT_RESET', 'event', null, array(
             'deletedBallots' => (int) $deleted_ballots,
@@ -618,6 +620,7 @@ final class MAC_Voting_Admin {
         return array(
             'rounds' => $round_rows, 'results' => $results, 'ballots' => $recent,
             'reveal' => MAC_Voting_DB::reveal_state(),
+            'finalReveal' => MAC_Final_Reveal::payload(),
             'votingEnabled' => MAC_Voting_DB::is_voting_enabled(),
             'checkpoints' => MAC_Checkin::checkpoints(),
             'checkinBoard' => self::checkin_overview_board(),

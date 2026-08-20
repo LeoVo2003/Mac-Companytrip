@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.11";
+const tag = "v1.9.0";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Sửa loader bánh xe: 9 bi nằm đều trên vành khuyên, pulse đuổi tuần tự.",
-  "- Khôi phục active của tab sidebar/subnav trên trang WP (bị hardening đè ở 1.8.10).",
-  "- Desktop: tab sidebar không còn border, nền trong suốt như bản gốc.",
-  "- Nút Đặt lại sự kiện nổi bật màu danger đỏ đậm như bản gốc.",
+  "- Màn công bố tổng điểm chung cuộc \"Race to the Crown\" tại /ket-qua-tong/: màn chiếu dark toàn màn hình, đồng bộ ~1 giây.",
+  "- Kịch bản 13 trạng thái: khóa snapshot → mở dần 4 trụ cột → khóa → loại dần → Top 3 → hạng ba → FINAL DUEL chạy số → á quân → quán quân → bảng tổng sắp.",
+  "- Hỗ trợ đồng hạng theo nhóm hạng (1,1,3): phase thiếu nhóm hạng tự bỏ qua, quán quân có thể đồng hạng; LÙI 1 bước + đặt lại kèm xác nhận.",
+  "- Tổng quan thêm sub-tab Chung kết cho super admin điều khiển; đặt lại sự kiện xóa luôn snapshot màn tổng.",
 ].join("\n");
 
 let release;
