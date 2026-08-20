@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.8** (đã release & verify ngày 2026-08-20).
+> Phiên bản hiện tại: **v1.8.9** (đã release & verify ngày 2026-08-20).
 
 ---
 
@@ -31,7 +31,7 @@ Các trang public do plugin tự tạo (rewrite slug):
 Chấm Điểm Văn Nghệ/
 ├── mac-companytrip-voting/          # source plugin (đây là thứ được zip/release)
 │   ├── mac-companytrip-voting.php   # bootstrap, define MAC_VOTING_VERSION
-│   ├── includes/                    # 16 class PHP
+│   ├── includes/                    # 16 class PHP + template-admin-page.php (trang standalone)
 │   ├── assets/                      # admin.js/css, checkin.js/css, public.js/css,
 │   │                                # results.js/css, qrcode.bundle.js, jsqr.js, fonts
 │   ├── readme.txt                   # changelog chính thức
@@ -55,7 +55,8 @@ Chấm Điểm Văn Nghệ/
 - `class-mac-checkin-rest.php` / `class-mac-voting-rest.php` — REST endpoints (bootstrap/scan/team, vote_state/submit)
 - `class-mac-voting-qr.php` — ký/verify QR token (HMAC sha256 với `wp_salt('auth')`), có fallback chữ ký lệch environment kèm audit
 - `class-mac-points.php` — điểm thi đua + audit log cộng điểm
-- `class-mac-admin-public.php` / `class-mac-admin-rest.php` — trang login dashboard + auth
+- `class-mac-admin-public.php` — trang login dashboard + auth + **standalone template**: `/company-trip-admin/` render bằng `includes/template-admin-page.php` (không wp_head/footer → theme không can thiệp, giao diện khớp 100% với dashboard)
+- `class-mac-admin-rest.php` — REST login (`/admin/login`, wp_signon)
 - `class-mac-voting-auth.php` — rate limit login
 - `class-mac-voting-updater.php` — tự cập nhật plugin từ GitHub Release
 - `class-mac-checkin-public.php` / `class-mac-voting-public.php` — render trang public
@@ -136,7 +137,11 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.8 (2026-08-20, commit 27527a0, release id 373460018) — mới nhất
+### v1.8.9 (2026-08-20, commit ecc1899, release id 373465418) — mới nhất
+
+- `/company-trip-admin/` chuyển sang **standalone template** (`template_include` → `includes/template-admin-page.php`): tự xuất HTML đầy đủ, chỉ nạp asset của plugin, bỏ hoàn toàn header/footer/CSS của theme nên giao diện khớp 100% với dashboard. Shortcode `mac_companytrip_admin` vẫn giữ cho backward compat.
+
+### v1.8.8 (2026-08-20, commit 27527a0, release id 373460018)
 
 1. Fix auto-close: `overview()` của admin gọi expiry để trạm hết hạn đóng đồng bộ cả trong dashboard CHECK-IN (trước chỉ có phía scanner).
 2. Đổi tên toàn bộ "mốc" → "Trạm", "máy quét BTC" → "Quét QR check-in" (JS + PHP + trang login).
@@ -157,7 +162,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-7/7 yêu cầu v1.8.8 đã xong, build pass, release đã verify bằng cách tải zip về grep marker.
+Mọi yêu cầu gần nhất đã xong, build pass, release đã verify bằng cách tải zip về grep marker.
 
 ---
 
@@ -172,6 +177,7 @@ Chi tiết:
 7. **QR full URL**: token extraction từng fail khi quét URL đầy đủ — đã hardening nhiều lớp bóc link.
 8. **SearchReplace của agent không sửa được file ngoài workspace**; file zip temp nên tạo trong `dist/`.
 9. Linter báo undefined các hàm WordPress (`plugin_dir_path`, `get_option`…) — false positive, bỏ qua.
+10. **GitHub push protection**: KHÔNG bao giờ ghi token (GH_TOKEN…) vào file được commit — push sẽ bị chặn (đã bị với HANDOFF.md). Token chỉ truyền qua biến môi trường.
 
 ---
 
