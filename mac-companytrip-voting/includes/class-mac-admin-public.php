@@ -114,7 +114,7 @@ final class MAC_Admin_Public {
             <img src="<?php echo $logo; ?>" alt="MAC Marketing">
             <p class="ma-login-kicker">COMPANY TRIP</p>
             <h1>Đăng nhập dashboard</h1>
-            <p>Super admin thao tác toàn bộ. Admin xem dashboard và vào máy quét check-in.</p>
+            <p>Super admin thao tác toàn bộ. Admin xem dashboard và vào trang Quét QR check-in.</p>
             <form id="ma-login-form">
                 <label for="ma-login-user">Username</label>
                 <div class="ma-login-email">

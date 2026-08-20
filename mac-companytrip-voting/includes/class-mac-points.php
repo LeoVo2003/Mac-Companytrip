@@ -300,7 +300,7 @@ final class MAC_Points {
             $actor = self::actor_label($row['actor_id']);
             $at = MAC_Voting_DB::hanoi_time($row['created_at']);
             if ($row['action'] === 'CHECKPOINT_POINTS_FINALIZED') {
-                $checkpoint_name = $details['checkpointName'] ?? ('Mốc ' . $row['entity_id']);
+                $checkpoint_name = $details['checkpointName'] ?? ('Trạm ' . $row['entity_id']);
                 $awards = isset($details['awards']) && is_array($details['awards']) ? $details['awards'] : array();
                 if ($awards) {
                     foreach ($awards as $award) {

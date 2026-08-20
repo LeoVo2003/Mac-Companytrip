@@ -58,7 +58,7 @@ final class MAC_Voting_QR {
         $expected = hash_hmac('sha256', $encoded, wp_salt('auth'));
         $signature_ok = self::signature_matches($expected, $signature);
         if (!$signature_ok && !$allow_unsigned) {
-            return new WP_Error('qr_bad_signature', 'QR không khớp chữ ký của website này. Hãy đảm bảo dashboard và máy quét cùng mở trên một miền.', array('status' => 400) + $scanned);
+            return new WP_Error('qr_bad_signature', 'QR không khớp chữ ký của website này. Hãy đảm bảo dashboard và trang Quét QR check-in cùng mở trên một miền.', array('status' => 400) + $scanned);
         }
         $payload = json_decode(self::base64url_decode($encoded), true);
         $voter_id = is_array($payload) ? ($payload['voter_id'] ?? $payload['i'] ?? null) : null;

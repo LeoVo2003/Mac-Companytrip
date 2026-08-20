@@ -110,14 +110,14 @@ final class MAC_Checkin {
         $table = MAC_Voting_DB::table('checkpoints');
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id=%d", $checkpoint_id), ARRAY_A);
         if (!$row) {
-            return new WP_Error('not_found', 'Mốc check-in không tồn tại.', array('status' => 404));
+            return new WP_Error('not_found', 'Trạm check-in không tồn tại.', array('status' => 404));
         }
         if ($row['status'] === 'OPEN') {
             return $row;
         }
         $open = (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $table WHERE status='OPEN' AND id!=%d LIMIT 1", $checkpoint_id));
         if ($open) {
-            return new WP_Error('checkpoint_already_open', sprintf('Mốc %d vẫn đang mở. Hãy đóng mốc này trước.', $open), array(
+            return new WP_Error('checkpoint_already_open', sprintf('Trạm %d vẫn đang mở. Hãy đóng trạm này trước.', $open), array(
                 'status' => 409,
                 'openCheckpointId' => $open,
             ));
@@ -139,14 +139,14 @@ final class MAC_Checkin {
         $table = MAC_Voting_DB::table('checkpoints');
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id=%d", $checkpoint_id), ARRAY_A);
         if (!$row) {
-            return new WP_Error('not_found', 'Mốc check-in không tồn tại.', array('status' => 404));
+            return new WP_Error('not_found', 'Trạm check-in không tồn tại.', array('status' => 404));
         }
         if ($row['status'] !== 'CLOSED') {
-            return new WP_Error('invalid_state', 'Chỉ mở lại được mốc đã đóng.', array('status' => 409));
+            return new WP_Error('invalid_state', 'Chỉ mở lại được trạm đã đóng.', array('status' => 409));
         }
         $open = (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $table WHERE status='OPEN' AND id!=%d LIMIT 1", $checkpoint_id));
         if ($open) {
-            return new WP_Error('checkpoint_already_open', sprintf('Mốc %d vẫn đang mở. Hãy đóng mốc này trước.', $open), array(
+            return new WP_Error('checkpoint_already_open', sprintf('Trạm %d vẫn đang mở. Hãy đóng trạm này trước.', $open), array(
                 'status' => 409,
                 'openCheckpointId' => $open,
             ));
@@ -168,10 +168,10 @@ final class MAC_Checkin {
         $table = MAC_Voting_DB::table('checkpoints');
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id=%d", $checkpoint_id), ARRAY_A);
         if (!$row) {
-            return new WP_Error('not_found', 'Mốc check-in không tồn tại.', array('status' => 404));
+            return new WP_Error('not_found', 'Trạm check-in không tồn tại.', array('status' => 404));
         }
         if ($row['status'] !== 'OPEN') {
-            return new WP_Error('invalid_state', 'Mốc không đang mở.', array('status' => 409));
+            return new WP_Error('invalid_state', 'Trạm không đang mở.', array('status' => 409));
         }
         $wpdb->query('START TRANSACTION');
         $results = self::recalculate_checkpoint($checkpoint_id, true);
@@ -189,7 +189,7 @@ final class MAC_Checkin {
         );
         if ($updated === false) {
             $wpdb->query('ROLLBACK');
-            return new WP_Error('db_error', 'Không thể đóng mốc.', array('status' => 500));
+            return new WP_Error('db_error', 'Không thể đóng trạm.', array('status' => 500));
         }
         $wpdb->query('COMMIT');
         $awards = array();
@@ -218,10 +218,10 @@ final class MAC_Checkin {
         }
         $checkpoint = self::checkpoint_row($checkpoint_id);
         if (!$checkpoint) {
-            return new WP_Error('not_found', 'Mốc check-in không tồn tại.', array('status' => 404));
+            return new WP_Error('not_found', 'Trạm check-in không tồn tại.', array('status' => 404));
         }
         if ($checkpoint['status'] !== 'OPEN') {
-            return new WP_Error('checkpoint_closed', 'Mốc này chưa mở hoặc đã đóng.', array('status' => 409));
+            return new WP_Error('checkpoint_closed', 'Trạm này chưa mở hoặc đã đóng.', array('status' => 409));
         }
         $voter = MAC_Voting_QR::verify($token, true);
         if (is_wp_error($voter)) {
@@ -461,10 +461,10 @@ final class MAC_Checkin {
         global $wpdb;
         $checkpoint = self::checkpoint_row($checkpoint_id);
         if (!$checkpoint) {
-            return new WP_Error('not_found', 'Mốc check-in không tồn tại.', array('status' => 404));
+            return new WP_Error('not_found', 'Trạm check-in không tồn tại.', array('status' => 404));
         }
         if ($checkpoint['status'] === 'CLOSED') {
-            return new WP_Error('checkpoint_closed', 'Mốc đã đóng, không thay đổi được danh sách miễn.', array('status' => 409));
+            return new WP_Error('checkpoint_closed', 'Trạm đã đóng, không thay đổi được danh sách miễn.', array('status' => 409));
         }
         $voter = $wpdb->get_row($wpdb->prepare(
             'SELECT id,full_name,team_id FROM ' . MAC_Voting_DB::table('voters') . ' WHERE id=%d',
@@ -714,7 +714,7 @@ final class MAC_Checkin {
         global $wpdb;
         $checkpoint = self::checkpoint_row($checkpoint_id);
         if (!$checkpoint) {
-            return new WP_Error('not_found', 'Mốc check-in không tồn tại.', array('status' => 404));
+            return new WP_Error('not_found', 'Trạm check-in không tồn tại.', array('status' => 404));
         }
         $teams = $wpdb->get_results($wpdb->prepare(
             'SELECT id FROM ' . MAC_Voting_DB::table('teams') . ' WHERE team_no<>%d ORDER BY team_no',
@@ -768,7 +768,7 @@ final class MAC_Checkin {
                     'source_type' => 'CHECKIN',
                     'source_id' => $source_id,
                     'points' => $points,
-                    'note' => 'Mốc ' . $checkpoint_id . ' · tỷ lệ có mặt',
+                    'note' => 'Trạm ' . $checkpoint_id . ' · tỷ lệ có mặt',
                     'created_by' => get_current_user_id(),
                     'updated_at' => $now,
                 );

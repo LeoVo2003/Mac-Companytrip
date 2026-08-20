@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.7";
+const tag = "v1.8.8";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,12 @@ const headers = {
 };
 
 const notes = [
-  "- '+ Thêm người' giờ mở popup: họ tên, email ảo tự sinh @macusaone.com, team, vai trò, mật khẩu; mặc định chỉ thêm vào danh sách, không tạo tài khoản WordPress.",
-  "- Danh sách Gửi QR qua email thêm nút 'Cấp quyền' từng người: gán BTC/Super admin cho bất kỳ ai có email, tạo tài khoản máy quét tại chỗ.",
+  "- Trạm check-in hết hạn tự đóng hiển thị đồng bộ trong cả dashboard admin lẫn trang Quét QR check-in.",
+  "- Đổi tên toàn bộ 'mốc' thành 'Trạm' và 'Máy quét BTC' thành 'Quét QR check-in'.",
+  "- Bảng điểm: TB phiếu văn nghệ (x/150) xuống dòng riêng dưới điểm cột Văn nghệ.",
+  "- Khối Tài khoản Quét QR check-in: desktop 3 cột, mobile 2 cột, bỏ sticky cột BTC; bảng tiến độ hiện 'Trạm N' kèm tên trạm làm mô tả nhỏ.",
+  "- Mật khẩu mặc định mọi tài khoản BTC/Super admin là Mac-123; nâng cấp lên 1.8.8 tự đồng bộ tài khoản cũ.",
+  "- Nút 'Gửi QR cho danh sách đang lọc' đồng bộ style nút chính.",
 ].join("\n");
 
 let release;

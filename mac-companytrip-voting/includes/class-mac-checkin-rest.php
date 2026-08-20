@@ -64,7 +64,7 @@ final class MAC_Checkin_REST {
             $checkpoint_id = $active ? (int) $active['id'] : 0;
         }
         if (!$checkpoint_id || !$team_id) {
-            return new WP_Error('invalid', 'Thiếu mốc hoặc team.', array('status' => 400));
+            return new WP_Error('invalid', 'Thiếu trạm hoặc team.', array('status' => 400));
         }
         if (!in_array($team_id, MAC_Checkin::allowed_team_ids(), true)) {
             return new WP_Error('forbidden', 'Bạn không phụ trách team này.', array('status' => 403));

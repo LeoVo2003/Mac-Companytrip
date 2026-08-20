@@ -9,7 +9,7 @@ final class MAC_Voting_DB {
     public const COMPANY_EMAIL_DOMAINS = array('macusaone.com', 'yesoffice.vn', 'macmarketing.vn');
     public const STAFF_TEAM_NO = 7;
     public const STAFF_TEAM_NAME = 'Hoa tiêu';
-    public const DEFAULT_STAFF_PASSWORD = 'MAC-Trip2026';
+    public const DEFAULT_STAFF_PASSWORD = 'Mac-123';
     public const DEFAULT_VOTE_DURATION_MINUTES = 5;
     public const DEFAULT_CHECKIN_DURATION_MINUTES = 15;
     public const CHECKIN_MAX_PER_CHECKPOINT = 150;
@@ -51,8 +51,24 @@ final class MAC_Voting_DB {
             self::ensure_games();
         }
         if (get_option('mac_voting_plugin_version') !== MAC_VOTING_VERSION) {
+            if (version_compare((string) get_option('mac_voting_plugin_version', '0'), '1.8.8', '<')) {
+                self::reset_dashboard_passwords();
+            }
             self::register_rewrites();
             update_option('mac_voting_plugin_version', MAC_VOTING_VERSION, false);
+        }
+    }
+
+    /**
+     * v1.8.8: đồng bộ mật khẩu mọi tài khoản BTC / Super admin về mật khẩu mặc định chung.
+     */
+    public static function reset_dashboard_passwords(): void {
+        $users = get_users(array(
+            'role__in' => array(MAC_Checkin::ROLE, MAC_Checkin::SUPER_ROLE),
+            'fields' => array('ID'),
+        ));
+        foreach ($users as $user) {
+            wp_set_password(self::DEFAULT_STAFF_PASSWORD, (int) $user->ID);
         }
     }
 

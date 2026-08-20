@@ -63,7 +63,7 @@
       render();
       if (view === "scanner") await startCamera();
     } catch (err) {
-      root.innerHTML = `<main class="mc-shell"><section class="mc-card"><p class="mc-kicker">CHECK-IN</p><h1>Không mở được máy quét</h1><p class="mc-meta">${esc(err.message)}</p></section></main>`;
+      root.innerHTML = `<main class="mc-shell"><section class="mc-card"><p class="mc-kicker">CHECK-IN</p><h1>Không mở được camera quét</h1><p class="mc-meta">${esc(err.message)}</p></section></main>`;
     }
   }
 
@@ -82,7 +82,7 @@
 
   function teamsView(checkpoint) {
     const teams = bootstrap?.allowedTeams || [];
-    return `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing">${backLink()}</header><section class="mc-card"><p class="mc-kicker">CHECK-IN · MỐC ${checkpoint.id}</p><h1>Chọn team để quét</h1><p class="mc-meta">${esc(checkpoint.name)} · chạm vào một team để mở máy quét và danh sách thành viên.</p><ul class="mc-team-pick">${teams.map((item) => { const ratio = item.eligible ? Math.round((item.checkedIn / item.eligible) * 100) : 0; return `<li><button type="button" data-pick-team="${item.teamId}"><span class="mc-pick-name">#${item.teamNumber} ${esc(item.teamName)}</span><span class="mc-pick-meta"><strong>${item.checkedIn}/${item.eligible}</strong><small>${item.completed ? "Đã đủ" : item.windowLocked ? "Hết giờ" : `${ratio}%`}</small></span></button></li>`; }).join("")}</ul></section></main>`;
+    return `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing">${backLink()}</header><section class="mc-card"><p class="mc-kicker">CHECK-IN · TRẠM ${checkpoint.id}</p><h1>Chọn team để quét</h1><p class="mc-meta">${esc(checkpoint.name)} · chạm vào một team để mở camera quét và danh sách thành viên.</p><ul class="mc-team-pick">${teams.map((item) => { const ratio = item.eligible ? Math.round((item.checkedIn / item.eligible) * 100) : 0; return `<li><button type="button" data-pick-team="${item.teamId}"><span class="mc-pick-name">#${item.teamNumber} ${esc(item.teamName)}</span><span class="mc-pick-meta"><strong>${item.checkedIn}/${item.eligible}</strong><small>${item.completed ? "Đã đủ" : item.windowLocked ? "Hết giờ" : `${ratio}%`}</small></span></button></li>`; }).join("")}</ul></section></main>`;
   }
 
   function render() {
@@ -90,7 +90,7 @@
     const checkpoint = bootstrap?.activeCheckpoint;
     if (!checkpoint) {
       stopCamera();
-      root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing">${backLink()}</header><section class="mc-card mc-empty"><p class="mc-kicker">CHECK-IN</p><h1>Chưa có mốc đang mở</h1><p class="mc-meta">Đợi admin mở một checkpoint rồi tải lại trang.</p></section></main>`;
+      root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing">${backLink()}</header><section class="mc-card mc-empty"><p class="mc-kicker">CHECK-IN</p><h1>Chưa có trạm check-in nào đang mở</h1><p class="mc-meta">Đợi admin mở một trạm check-in rồi tải lại trang.</p></section></main>`;
       return;
     }
     if (!team) {
@@ -118,7 +118,7 @@
         ? `<div class="mc-window live" data-window-closes="${esc(team.windowClosesAt)}"><span>${windowLabel()}</span><strong>Còn ${remainingClock(team.windowClosesAt)}</strong></div>`
         : `<div class="mc-window idle"><span>${windowLabel()}</span><strong>Mở ở lượt quét đầu tiên</strong></div>`;
     const doneHtml = team.completed ? `<div class="mc-done"><span>TEAM ĐÃ ĐỦ</span><strong>${team.checkedIn} / ${team.eligible}</strong><p>Hoàn thành ${esc(team.completedAt || "")}${team.temporaryRank ? ` · Hạng tạm thời #${team.temporaryRank}` : ""}</p></div>` : "";
-    root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing"><button type="button" class="mc-back" id="mc-back-teams">← Chọn team</button></header><section class="mc-card"><p class="mc-kicker">CHECK-IN — TEAM ${team.teamNumber}</p><h1>${esc(team.teamName)}</h1><p class="mc-meta">MỐC ${checkpoint.id} · ${esc(checkpoint.name)}</p>${windowHtml}<div class="mc-progress"><strong>${team.checkedIn} / ${team.eligible}</strong><div class="mc-bar" aria-hidden="true"><b style="width:${ratio}%"></b></div></div>${flashHtml}${doneHtml}<div class="mc-camera"><video id="mc-video" playsinline muted autoplay></video><canvas id="mc-canvas"></canvas><div class="mc-frame" aria-hidden="true"></div></div><p class="mc-kicker">THÀNH VIÊN · ${team.checkedIn}/${team.eligible}</p><ul class="mc-members">${memberRows(team)}</ul></section></main>`;
+    root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing"><button type="button" class="mc-back" id="mc-back-teams">← Chọn team</button></header><section class="mc-card"><p class="mc-kicker">CHECK-IN — TEAM ${team.teamNumber}</p><h1>${esc(team.teamName)}</h1><p class="mc-meta">TRẠM ${checkpoint.id} · ${esc(checkpoint.name)}</p>${windowHtml}<div class="mc-progress"><strong>${team.checkedIn} / ${team.eligible}</strong><div class="mc-bar" aria-hidden="true"><b style="width:${ratio}%"></b></div></div>${flashHtml}${doneHtml}<div class="mc-camera"><video id="mc-video" playsinline muted autoplay></video><canvas id="mc-canvas"></canvas><div class="mc-frame" aria-hidden="true"></div></div><p class="mc-kicker">THÀNH VIÊN · ${team.checkedIn}/${team.eligible}</p><ul class="mc-members">${memberRows(team)}</ul></section></main>`;
     root.querySelector("#mc-back-teams")?.addEventListener("click", () => { view = "teams"; flash = null; render(); });
   }
 

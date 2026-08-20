@@ -570,6 +570,9 @@ final class MAC_Voting_Admin {
     }
 
     private static function overview(): array {
+        // Tự đóng lượt vote / trạm check-in đã hết hạn để admin và máy quét luôn đồng bộ.
+        MAC_Voting_DB::expire_open_round();
+        MAC_Checkin::expire_active_checkpoint();
         global $wpdb;
         $teams = MAC_Voting_DB::table('teams'); $voters = MAC_Voting_DB::table('voters');
         $performances = MAC_Voting_DB::table('performances'); $rounds = MAC_Voting_DB::table('rounds');
@@ -840,10 +843,10 @@ final class MAC_Voting_Admin {
 
     private static function create_dashboard_account(string $name, string $email, string $password, string $kind) {
         if ($email !== '' && get_user_by('email', $email)) {
-            return new WP_Error('email_used', 'Email này đã là tài khoản WordPress sẵn. Hãy gán team cho họ ở khối Tài khoản máy quét trong tab Check-in.');
+            return new WP_Error('email_used', 'Email này đã là tài khoản WordPress sẵn. Hãy gán team cho họ ở khối Tài khoản Quét QR check-in trong tab Check-in.');
         }
         $display = MAC_Voting_DB::title_case($name);
-        $pass = $password !== '' ? $password : wp_generate_password(12, false);
+        $pass = $password !== '' ? $password : MAC_Voting_DB::DEFAULT_STAFF_PASSWORD;
         if ($email !== '') {
             $base = (string) strstr($email, '@', true);
         } else {
@@ -905,7 +908,7 @@ final class MAC_Voting_Admin {
         $kind_label = $role === 'super' ? 'Super admin' : 'BTC';
         $user = get_user_by('email', $email);
         if ($user) {
-            $pass = $password !== '' ? $password : wp_generate_password(12, false);
+            $pass = $password !== '' ? $password : MAC_Voting_DB::DEFAULT_STAFF_PASSWORD;
             wp_set_password($pass, (int) $user->ID);
             self::apply_dashboard_role((int) $user->ID, $role);
             $account = array(

@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.8.7
+Stable tag: 1.8.8
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,14 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.8.8 =
+- Trạm check-in hết hạn tự đóng hiển thị đồng bộ trong cả dashboard admin lẫn trang Quét QR check-in.
+- Đổi tên toàn bộ "mốc" thành "Trạm" và "Máy quét BTC" thành "Quét QR check-in".
+- Bảng điểm: TB phiếu văn nghệ (x/150) xuống dòng riêng dưới điểm cột Văn nghệ.
+- Khối Tài khoản Quét QR check-in: desktop 3 cột, mobile 2 cột, bỏ sticky cột BTC; bảng tiến độ hiện "Trạm N" kèm tên trạm làm mô tả nhỏ.
+- Mật khẩu mặc định mọi tài khoản BTC/Super admin là Mac-123; nâng cấp lên 1.8.8 tự đồng bộ tài khoản cũ.
+- Nút "Gửi QR cho danh sách đang lọc" đồng bộ style nút chính.
 
 = 1.8.7 =
 - Nút "+ Thêm người" mở popup thêm nhân sự: họ tên, email ảo tự sinh @macusaone.com (sửa được), team, vai trò, mật khẩu; mặc định chỉ thêm vào danh sách nhân sự, không tạo tài khoản WordPress.

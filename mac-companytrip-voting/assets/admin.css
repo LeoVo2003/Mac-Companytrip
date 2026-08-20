@@ -2237,8 +2237,8 @@
 }
 
 .ma-staff-teams {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -3550,5 +3550,39 @@ body.mac-admin-public-page .ma-side {
 @media (max-width: 560px) {
   .ma-person-form {
     grid-template-columns: 1fr;
+  }
+}
+
+/* v1.8.8 — TB điểm văn nghệ xuống dòng, header trạm 2 dòng, bảng BTC bỏ sticky, team grid 3/2 cột */
+.ma-cell-sub {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ma-board-table thead th small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: normal;
+}
+
+.ma-board-table.ma-no-sticky th:first-child,
+.ma-board-table.ma-no-sticky td:first-child {
+  position: static;
+  width: auto;
+  min-width: 0;
+  box-shadow: none;
+}
+
+@media (max-width: 700px) {
+  .ma-staff-teams {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

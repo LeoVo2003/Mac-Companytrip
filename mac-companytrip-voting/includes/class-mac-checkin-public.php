@@ -77,7 +77,7 @@ final class MAC_Checkin_Public {
              data-dashboard="<?php echo $dashboard; ?>">
             <div class="mc-loading">
                 <img src="<?php echo $logo; ?>" alt="MAC Marketing">
-                <span>Đang mở máy quét check-in...</span>
+                <span>Đang mở trang Quét QR check-in...</span>
             </div>
             <noscript>Bạn cần bật JavaScript và camera để check-in.</noscript>
         </div>
