@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.12** (đã release & verify ngày 2026-08-20, release id 373631036, commit bb5ac56). Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa — v1.8.12 là bản mới nhất (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
+> Phiên bản hiện tại: **v1.8.13** (đã release & verify ngày 2026-08-20, release id 373653911, commit e07f4da) — redesign màn công bố kết quả theo bộ nhận diện "One Compass" (la bàn đồng cổ + biển đêm). Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
 
 ---
 
@@ -138,7 +138,15 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.12 (2026-08-20, commit bb5ac56, release id 373631036) — mới nhất
+### v1.8.13 (2026-08-20, commit e07f4da, release id 373653911) — mới nhất
+
+- **Redesign toàn bộ `results.css`** theo mood "la bàn đồng cổ trên biển đêm sâu" (spec `prompt-qwen-redesign-ket-qua-van-nghe.md`): palette mới `--abyss/--deep-sea/--sea-teal/--sea-glint` + brass `--brass-dark/--brass/--brass-light/--brass-highlight/--copper` + sunset `--sunset-red/--sunset-orange/--sunset-gold` + silver `--silver-*`; bỏ hẳn bộ `--sky/--foam/--sea/--deep/--gold` cũ. Nền gradient biển đêm + glow hoàng hôn mỏng mép trên; h1 + `.mr-event strong` dùng serif display **Cormorant Garamond** (Google Fonts `@import` đầu file) kiểu khắc bảng đồng; cột điểm mặc định gradient brass.
+- **La bàn SVG watermark** thêm vào `shell()` trong `results.js` (khối `.mr-compass` ngay sau `.mr-aurora`, aria-hidden, line-art `currentColor`): vòng chia độ, tick dasharray, chữ N/E/S/W, hoa 8 cánh, kim riêng `.mr-needle` quay **thuần CSS** theo `data-stage`: idle đung đưa → rolling spin 0.9s → decoy lưỡng lự alternate → third/second settle forwards → final lock 345° (vượt đích + rung nhẹ) kèm glow vàng đồng trên la bàn. Reduced-motion block cũ tự tắt hết.
+- Thứ hạng: hạng ba = đồng tối `--copper`, hạng nhì = bạc pewter `--silver-*` (không còn chrome), quán quân = vàng đồng hoàng hôn `--sunset-gold → --brass-light → --brass`. Pháo hoa đổi palette kim tuyến vàng đồng `["#ffe9ad", "#e8c17a", "#b8823f", "#ffcf7d", "#fff6e0"]`.
+- **Yêu cầu thêm của user**: `.mr-footer` ẩn hẳn (`display: none`, DOM giữ nguyên cho JS set text); logo header thu nhỏ `clamp(58px, 5.6vw, 104px)` (mobile 52px); nới khoảng cách `.mr-heading` ↔ `.mr-chart` lên `clamp(42px, 7vh, 84px)` (mobile 28–48px); bonus fix badge `.mr-rank` gọn hơn ở ≤600px (font 7px, padding 3px 6px) để 6 cột không tràn nhau.
+- `results.js` chỉ đụng đúng 2 chỗ cho phép (khối compass + dòng colors), logic/state machine/polling giữ 100%.
+
+### v1.8.12 (2026-08-20, commit bb5ac56, release id 373631036)
 
 - **Nút "Áp dữ liệu demo"** đặt kín cuối `.ma-side-links` sidebar, chỉ hiện khi `canWrite()` (super admin), style trầm opacity 0.5. Backend `ajax_seed_demo()` + `seed_demo_data()` trong `class-mac-voting-admin.php` (guard super, transaction, rollback khi lỗi): dọn bộ demo cũ theo email `demo.*@macusaone.com` (kèm ballots/grants/checkins/exemptions), ghi 48 nhân sự ảo (8/team), 240 phiếu hợp lệ (mỗi người chấm 5 đội khác, tổng điểm bám mục tiêu TB 132/121/141/108/127/114 thang 150 nhờ mảng nhiễu tổng 0 chu kỳ 40), điểm CHECKIN 4 trạm theo ma trận, GAME theo hạng 3 game (source `GAME_{id}`), THIDUA 2 vòng mặc định; audit `DEMO_DATA_SEEDED`. Bấm lại chỉ ghi đè, không nhân bản; "Đặt lại sự kiện" xóa phiếu/điểm nhưng giữ nhân sự demo.
 - Kịch bản điểm demo: chung cuộc T5 Sao Bắc Cực (969) > T1 La Bàn (906) > T2 Hải Đồ (896) > T3 Đèn Hiệu (888) > T6 Hải Đăng (707) > T4 Viking (659).
@@ -182,7 +190,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.8.12 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: `ma-seed-demo`, `seed_demo_data`, `ONE COMPASS`, gradient `b7dcf8`, Version 1.8.12 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.12 là release mới nhất, updater sẽ không kéo ngược bản cũ.
+Mọi yêu cầu tới 1.8.13 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: `mr-compass` + `#ffe9ad` trong results.js, `--brass-dark`/`Cormorant`/`mr-needle-lock` trong results.css, Version 1.8.13 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.13 là release mới nhất, updater sẽ không kéo ngược bản cũ.
 
 ---
 
