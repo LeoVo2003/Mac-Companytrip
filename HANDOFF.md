@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.11** (đã release & verify ngày 2026-08-20, release id 373515064).
+> Phiên bản hiện tại: **v1.8.12** (đã release & verify ngày 2026-08-20, release id 373631036, commit bb5ac56). Lưu ý: prototype v1.9.0 "Race to the Crown" đã bị gỡ khỏi source theo yêu cầu nhưng release/tag v1.9.0 vẫn còn trên GitHub — nếu updater lấy release mới nhất theo số version thì cần xóa release v1.9.0 hoặc cân nhắc trước khi bump tiếp.
 
 ---
 
@@ -138,7 +138,14 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.11 (2026-08-20, commit 1fff36a, release id 373515064) — mới nhất
+### v1.8.12 (2026-08-20, commit bb5ac56, release id 373631036) — mới nhất
+
+- **Nút "Áp dữ liệu demo"** đặt kín cuối `.ma-side-links` sidebar, chỉ hiện khi `canWrite()` (super admin), style trầm opacity 0.5. Backend `ajax_seed_demo()` + `seed_demo_data()` trong `class-mac-voting-admin.php` (guard super, transaction, rollback khi lỗi): dọn bộ demo cũ theo email `demo.*@macusaone.com` (kèm ballots/grants/checkins/exemptions), ghi 48 nhân sự ảo (8/team), 240 phiếu hợp lệ (mỗi người chấm 5 đội khác, tổng điểm bám mục tiêu TB 132/121/141/108/127/114 thang 150 nhờ mảng nhiễu tổng 0 chu kỳ 40), điểm CHECKIN 4 trạm theo ma trận, GAME theo hạng 3 game (source `GAME_{id}`), THIDUA 2 vòng mặc định; audit `DEMO_DATA_SEEDED`. Bấm lại chỉ ghi đè, không nhân bản; "Đặt lại sự kiện" xóa phiếu/điểm nhưng giữ nhân sự demo.
+- Kịch bản điểm demo: chung cuộc T5 Sao Bắc Cực (969) > T1 La Bàn (906) > T2 Hải Đồ (896) > T3 Đèn Hiệu (888) > T6 Hải Đăng (707) > T4 Viking (659).
+- **Màn công bố kết quả đổi chủ đề hải trình** (results.css/js): nền sky `#b7dcf8` → deep sea `#061f4e` kèm god rays trắng; h1 chrome bạc bằng `background-clip: text`; kicker vàng nhạt kẹp ✦ hai bên; cột điểm gradient xanh đại dương `#a8d4f7 → #4a8fdc → #123f8f`; featured = trắng-băng pulse; á quân/hạng ba = chrome bạc; quán quân = vàng kim duy nhất; pháo hoa đổi palette trắng/vàng/biển; copy "COMPANY TRIP · ONE COMPASS", "6 đội · 1 hải trình".
+- Gỡ prototype final-reveal v1.9.0 khỏi source (final.css/js, class-mac-final-reveal.php, template-final-page.php, ensure_final_page/shortcode) theo working tree của user.
+
+### v1.8.11 (2026-08-20, commit 1fff36a, release id 373515064)
 
 - Sửa loader bánh xe: spoke giờ là `inset: 0` xoay nguyên bánh, bi nằm trên vành khuyên (`top: 0; left: 50%`), keyframes chỉ pulse scale/opacity tuần tự; PHP `loading_markup()` đổi `--rot` từ `i*20` sang `i*40` để 9 bi phủ đủ vòng tròn (bản 1.8.10 bi bay từ tâm ra nên tụm một chỗ).
 - Sửa hardening mục 21 `admin.css`: nhóm nút trung tính `!important` của 1.8.10 đè mất active của tab sidebar/subnav, thêm border trắng lên tab desktop và biến nút "Đặt lại sự kiện" thành nút trung tính. Giờ nhóm trung tính loại `.ma-side nav button`/`.ma-subnav button`/`.ma-reset-trigger`; thêm guard riêng: tab trong suốt không border, active `#fff4f0` + ring `#fed7cc` + chữ `#e31e24`, reset trigger danger `#b42318`/`#fecdca` — tất cả `!important` để theme không đè.
@@ -175,7 +182,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.8.11 đã xong, build pass, release đã verify (tải zip từ GitHub về grep marker: active guard, reset-trigger guard, `$i * 40` đều có trong asset).
+Mọi yêu cầu tới 1.8.12 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: `ma-seed-demo`, `seed_demo_data`, `ONE COMPASS`, gradient `b7dcf8`, Version 1.8.12 đều có). Việc cần quyết định: release/tag v1.9.0 (prototype đã gỡ) vẫn tồn tại trên GitHub — cân nhắc xóa để updater không kéo ngược bản cũ, hoặc để nguyên nếu muốn khôi phục sau.
 
 ---
 
