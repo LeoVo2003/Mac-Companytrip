@@ -8,6 +8,7 @@ final class MAC_Admin_Public {
     public static function init(): void {
         add_shortcode('mac_companytrip_admin', array(__CLASS__, 'shortcode'));
         add_action('wp_enqueue_scripts', array(__CLASS__, 'register_assets'));
+        add_filter('template_include', array(__CLASS__, 'standalone_template'), 99);
         add_filter('body_class', array(__CLASS__, 'body_class'));
         add_filter('show_admin_bar', array(__CLASS__, 'hide_admin_bar'));
         add_action('admin_init', array(__CLASS__, 'redirect_staff_from_wp_admin'));
@@ -48,6 +49,17 @@ final class MAC_Admin_Public {
         }
         wp_safe_redirect(MAC_Voting_DB::admin_page_url());
         exit;
+    }
+
+    /**
+     * /company-trip-admin/ tự render toàn trang bằng template riêng của plugin,
+     * bỏ qua header/footer/CSS của theme để giao diện khớp 100% với dashboard.
+     */
+    public static function standalone_template($template) {
+        if (self::is_admin_page()) {
+            return MAC_VOTING_DIR . 'includes/template-admin-page.php';
+        }
+        return $template;
     }
 
     public static function body_class(array $classes): array {
@@ -102,6 +114,13 @@ final class MAC_Admin_Public {
         wp_enqueue_style('mac-voting-admin');
         wp_enqueue_style('mac-voting-ui-refinements');
         wp_enqueue_script('mac-voting-admin-login');
+        return self::login_form_markup($logo);
+    }
+
+    /**
+     * Form đăng nhập dashboard (markup thuần, không enqueue) — dùng chung cho shortcode và trang standalone.
+     */
+    public static function login_form_markup(string $logo): string {
         $rest = esc_url(rest_url('mac-voting/v1/admin/login'));
         $redirect = isset($_GET['redirect']) ? esc_url_raw(wp_unslash((string) $_GET['redirect'])) : MAC_Voting_DB::admin_page_url();
         $checkin = MAC_Voting_DB::checkin_page_url();

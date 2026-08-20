@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.8";
+const tag = "v1.8.9";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,12 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Trạm check-in hết hạn tự đóng hiển thị đồng bộ trong cả dashboard admin lẫn trang Quét QR check-in.",
-  "- Đổi tên toàn bộ 'mốc' thành 'Trạm' và 'Máy quét BTC' thành 'Quét QR check-in'.",
-  "- Bảng điểm: TB phiếu văn nghệ (x/150) xuống dòng riêng dưới điểm cột Văn nghệ.",
-  "- Khối Tài khoản Quét QR check-in: desktop 3 cột, mobile 2 cột, bỏ sticky cột BTC; bảng tiến độ hiện 'Trạm N' kèm tên trạm làm mô tả nhỏ.",
-  "- Mật khẩu mặc định mọi tài khoản BTC/Super admin là Mac-123; nâng cấp lên 1.8.8 tự đồng bộ tài khoản cũ.",
-  "- Nút 'Gửi QR cho danh sách đang lọc' đồng bộ style nút chính.",
+  "- /company-trip-admin/ render toàn trang bằng template riêng của plugin (không wp_head/footer), bỏ hoàn toàn header/footer/CSS của theme nên giao diện khớp 100% với dashboard.",
 ].join("\n");
 
 let release;

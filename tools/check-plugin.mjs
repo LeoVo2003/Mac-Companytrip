@@ -82,6 +82,7 @@ const required = [
   "includes/class-mac-admin-public.php",
   "includes/class-mac-admin-rest.php",
   "includes/class-mac-voting-updater.php",
+  "includes/template-admin-page.php",
   "assets/admin-login.js",
 ];
 for (const item of required) {
@@ -181,7 +182,7 @@ for (const invariant of ["token_for_voter", "company-trip/q/"]) {
 if (!publicJs.includes("lockedView") || !publicJs.includes("enabled === false") || !publicJs.includes('get("from") === "qr"')) {
   throw new Error("Missing locked voting gate or QR confirm login UI.");
 }
-if (!adminJs.includes("mac_vote_gate") || !adminJs.includes("data-checkpoint") || !adminJs.includes("data-qr-view") || !adminJs.includes("mac_vote_points") || !adminJs.includes("data-tab=\"overview\"") || !adminJs.includes("data-tab=\"art\"") || !adminJs.includes("data-award-points") || !adminJs.includes("data-overview-tab") || !adminJs.includes("canWrite") || !adminJs.includes("Máy quét BTC")) {
+if (!adminJs.includes("mac_vote_gate") || !adminJs.includes("data-checkpoint") || !adminJs.includes("data-qr-view") || !adminJs.includes("mac_vote_points") || !adminJs.includes("data-tab=\"overview\"") || !adminJs.includes("data-tab=\"art\"") || !adminJs.includes("data-award-points") || !adminJs.includes("data-overview-tab") || !adminJs.includes("canWrite") || !adminJs.includes("Quét QR check-in")) {
   throw new Error("Missing admin controls for voting gate, checkpoints, personal QR, total points, or role-based dashboard.");
 }
 if (!pointsFile.includes("function history") || !pointsFile.includes("CHECKPOINT_POINTS_FINALIZED") || !pointsFile.includes("function reset_history") || !pointsFile.includes("SOURCE = 'THIDUA'") || !pointsFile.includes("table('thidua_rounds')")) {
@@ -191,7 +192,7 @@ if (!pointsFile.includes("function history") || !pointsFile.includes("CHECKPOINT
 const adminPublic = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-admin-public.php"), "utf8");
 const adminRest = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-admin-rest.php"), "utf8");
 const adminLoginJs = fs.readFileSync(path.join(pluginRoot, "assets/admin-login.js"), "utf8");
-for (const invariant of ["company-trip-admin", "mac_companytrip_admin", "redirect_staff_from_wp_admin"]) {
+for (const invariant of ["company-trip-admin", "mac_companytrip_admin", "redirect_staff_from_wp_admin", "standalone_template"]) {
   if (!databaseFile.includes(invariant) && !adminPublic.includes(invariant)) {
     throw new Error(`Missing public admin dashboard invariant: ${invariant}`);
   }
