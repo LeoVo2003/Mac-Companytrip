@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.17** (đã release & verify ngày 2026-08-21, release id 374139051, commit 28be285) — dọn seascape (bỏ mr-horizon/mr-chart-lines, mr-sun thành đĩa nắng hoàng hôn, màu biển đậm hơn), la bàn to hơn nhưng mờ hơn với mặt số xoay tròn mượt + kim đứng yên đầu đỏ chỉ 12h, logo ~100px bỏ huy hiệu la bàn. Trước đó v1.8.16 port màn công bố sang style "hải trình" + điểm số xuống đáy cột. Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
+> Phiên bản hiện tại: **v1.8.18** (đã release & verify ngày 2026-08-21, release id 374148401, commit 297a3d8) — trả seascape về đúng màu bản tham chiếu (khôi phục mr-horizon + mr-chart-lines, mr-sun mờ rộng), la bàn rotate(0) kim đỏ chỉ đúng 12h, vòng sóng ::after mờ dần tan biến 50→75%. Trước đó v1.8.16–1.8.17 port style hải trình + điểm xuống đáy cột. Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
 
 ---
 
@@ -138,7 +138,13 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.17 (2026-08-21, commit 28be285, release id 374139051) — mới nhất
+### v1.8.18 (2026-08-21, commit 297a3d8, release id 374148401) — mới nhất
+
+- User so sánh ảnh thực tế với ảnh bản tham chiếu và chốt **hình 2 (bản tham chiếu) là cái muốn**: trả palette biển về gốc (`--deep-sea #0a2338`, `--sea-teal #123a52`, `--sea-glint #2c5b74`, glow 0.28/0.12), `.mr-sun` về vệt mờ rộng 58vw×18vh blur 54px (bỏ đĩa nắng to), khôi phục `.mr-horizon` (đường chân trời 16%) và `.mr-chart-lines` (2 tuyến chéo + 3 chấm) trong cả JS lẫn CSS.
+- `.mr-compass` bỏ `rotate(-7deg)` → `translate(-50%, -50%) rotate(0deg)` để kim đỏ đứng yên chỉ đúng 12h.
+- `.mr-shell::after` (vòng sóng đáy): mở rộng `height 96% / bottom -52%`, bỏ lớp linear-gradient tối, thêm `mask-image: radial-gradient(ellipse at 50% 0%, #000 0 50%, transparent 75%)` — 50% đầu giữ nguyên, 51–75% mờ dần rồi tan biến.
+
+### v1.8.17 (2026-08-21, commit 28be285, release id 374139051)
 
 - Dọn seascape theo feedback user: bỏ `<i class="mr-horizon">` và cả khối `.mr-chart-lines` (JS + CSS) vì vô nghĩa; `.mr-sun` vẽ lại thành đĩa nắng hoàng hôn rõ hơn (radial-gradient vàng→cam→đỏ, blur 12px, opacity 0.8); token biển đậm hơn (`--deep-sea #0a2a45`, `--sea-teal #12466b`, `--sea-glint #2e6a8e`) + glow mép trên mạnh hơn.
 - La bàn: to hơn (`min(66vw, 820px)`, mobile 84vw/100vw) nhưng mờ hơn (opacity 0.12, mobile 0.1); **mặt số SVG xoay tròn mượt liên tục** (`mr-dial-spin 90s linear infinite` trên svg) như la bàn thật, **kim đứng yên** `rotate(0)` với đầu bắc đỏ `var(--sunset-red)` luôn chỉ 12h; gỡ toàn bộ animation kim theo stage + 6 keyframe mr-needle-*.
@@ -214,7 +220,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.8.17 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: `mr-dial-spin` + kim đỏ `--sunset-red` + `min(66vw, 820px)` + logo 100px có, `.mr-horizon`/`.mr-chart-lines`/`mr-compass-mark` đã biến mất, Version 1.8.17 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.17 là release mới nhất, updater sẽ không kéo ngược bản cũ.
+Mọi yêu cầu tới 1.8.18 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: palette gốc + `.mr-horizon` + `.mr-chart-lines` + `rotate(0deg)` + mask vòng sóng 50→75% trong results.css, horizon/chart-lines trong results.js, Version 1.8.18 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.18 là release mới nhất, updater sẽ không kéo ngược bản cũ.
 
 ---
 
