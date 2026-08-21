@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.3** (2026-08-21) — bàn điều khiển công bố thêm nút Ẩn/Hiện điểm trên màn chiếu; mở màn tung điểm dâng cao hơn; badge hạng trễ một nhịp; bước 03 hạng 3-6 đứng yên (render diff); quán quân 100% → ~82%; text mở màn "6 đội · 4 chặng đường · 1 ngôi vương duy nhất". Trước đó v1.9.2: sửa layout màn công bố (khối mr-chart-lines còn sót trong markup results.js chiếm ô grid sau khi CSS bị bỏ ở 1.9.1), bỏ tag #số đội trên màn trình chiếu, đổi nhãn "KỊCH BẢN MC" → "TÍN HIỆU TỔNG KẾT". Trước đó v1.9.1: sửa lỗi snapshot "Cần đủ 6 đội", bàn điều khiển thành tab "Công bố", bỏ vạch 10 ô + mr-chart-lines CSS. Trước đó v1.9.0: BIG UPDATE màn trình chiếu chuyển thành màn công bố ĐIỂM TỔNG Company Trip với kịch bản 6 step (MC bấm nút trên admin). Logic công bố văn nghệ cũ giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này. Trước đó nữa v1.8.20 nâng spacing đáy + điểm hạng 3 màu copper. Prototype "Race to the Crown" từng gắn tag v1.9.0 cũ đã gỡ khỏi source và xóa release/tag trên GitHub.
+> Phiên bản hiện tại: **v1.9.4** (2026-08-21) — gộp bước "Top 2 bước lên" + "Tạo cú twist" thành một nút (kịch bản còn 5 nút 00-04); lộ hạng 4 & 3 gắn đủ badge 3-4-5-6 cùng lúc. Trước đó v1.9.3: bàn điều khiển công bố thêm nút Ẩn/Hiện điểm trên màn chiếu; mở màn tung điểm dâng cao hơn; badge hạng trễ một nhịp; bước 03 hạng 3-6 đứng yên (render diff); quán quân 100% → ~82%; text mở màn "6 đội · 4 chặng đường · 1 ngôi vương duy nhất". Trước đó v1.9.2: sửa layout màn công bố (khối mr-chart-lines còn sót trong markup results.js chiếm ô grid sau khi CSS bị bỏ ở 1.9.1), bỏ tag #số đội trên màn trình chiếu, đổi nhãn "KỊCH BẢN MC" → "TÍN HIỆU TỔNG KẾT". Trước đó v1.9.1: sửa lỗi snapshot "Cần đủ 6 đội", bàn điều khiển thành tab "Công bố", bỏ vạch 10 ô + mr-chart-lines CSS. Trước đó v1.9.0: BIG UPDATE màn trình chiếu chuyển thành màn công bố ĐIỂM TỔNG Company Trip với kịch bản 6 step (MC bấm nút trên admin). Logic công bố văn nghệ cũ giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này. Trước đó nữa v1.8.20 nâng spacing đáy + điểm hạng 3 màu copper. Prototype "Race to the Crown" từng gắn tag v1.9.0 cũ đã gỡ khỏi source và xóa release/tag trên GitHub.
 
 ---
 
@@ -138,7 +138,13 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.3 (2026-08-21) — mới nhất · tinh chỉnh màn công bố + nút ẩn điểm
+### v1.9.4 (2026-08-21) — mới nhất · gộp bước twist + badge 3-4-5-6 lộ cùng lúc
+
+- **Gộp RANK12 + TWIST thành một nút "Tạo cú twist"** (kịch bản admin còn 5 nút 00-04): `ajax_reveal_total` đổi transition `'RANK43' => 'TWIST'`, giữ `'RANK12' => 'TWIST'` làm legacy (RANK12 vẫn nằm trong danh sách stage hợp lệ của DB/REST/admin để state cũ không vỡ). Màn chiếu: renderLadder TWIST cho top 2 leo mượt lên 6 ô, rồi `window.setTimeout(startTwist, 1100)` (ID lưu vào `animationTimer` nên `stopStageAnimation` dọn được).
+- **Badge**: `badgeFor` đổi sang mốc tuyệt đối `STAGE_ORDER` (RANK65:1, RANK43:2, RANK12/TWIST:3, FINAL:4) + `BADGE_FROM` {6,5,4,3: 2; 2,1: 4} — bước lộ hạng 4 & 3 gắn đủ badge 3-4-5-6; badge hạng 6-5 vẫn trễ một nhịp; hạng 1-2 chờ FINAL.
+- Copy admin: intro "Năm nhịp · Một cú twist", nút 02 ghi "gắn đủ badge 3-4-5-6", nút 03 "Tạo cú twist · Top 2 lên 6 ô · bám đuổi từng điểm"; message ajax TWIST đổi thành "Top 2 đã bước lên 6 ô và đang bám đuổi từng điểm.".
+
+### v1.9.3 (2026-08-21) — tinh chỉnh màn công bố + nút ẩn điểm
 
 - **Nút Ẩn/Hiện điểm trên màn chiếu** trong footer Bàn điều khiển công bố (`#ma-toggle-scores`, gọi `mac_vote_toggle_scores` — backend `ajax_toggle_scores` + option `mac_voting_total_scores_hidden` đã có sẵn từ trước, bản này mới nối UI). Màn trình chiếu đọc `scoresHidden` từ `/results-total`, che mọi số bằng `•••`; `applyStage` nay coi thay đổi `scoresHidden` là một lần đổi stage để re-render trong ~1s.
 - **Mở màn tung điểm cao hơn**: sóng ROLLING nâng từ ~11-28% lên ~19-41% (`base 26 + (i%3)*3`, `amplitude 6.5 + (i%2)*2.5`).

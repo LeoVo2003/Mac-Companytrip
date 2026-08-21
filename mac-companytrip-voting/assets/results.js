@@ -17,11 +17,11 @@
     TWIST: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 6 },
     FINAL: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 8.2 },
   };
-  // Badge hạng xuất hiện trễ một nhịp: hạng lộ ra ở bước này thì bước kế tiếp mới gắn badge,
-  // riêng FINAL gắn đủ badge để khép màn. Thứ tự bước và bước lộ từng cặp hạng:
-  const STAGE_ORDER = { RANK65: 1, RANK43: 2, RANK12: 3, TWIST: 4, FINAL: 5 };
-  const RANK_REVEALED_AT = { 6: 1, 5: 1, 4: 2, 3: 2, 2: 5, 1: 5 };
-  const badgeFor = (stage, rank) => stage === "FINAL" || (STAGE_ORDER[stage] ?? 0) > (RANK_REVEALED_AT[rank] ?? 9);
+  // Badge: hạng 6-5 lộ ở bước 1 nhưng bước 2 mới gắn badge; hạng 4-3 gắn badge ngay khi lộ
+  // (bước 2 gắn đủ 3-4-5-6); hạng 2-1 chỉ gắn badge ở FINAL để giữ cú twist.
+  const STAGE_ORDER = { RANK65: 1, RANK43: 2, RANK12: 3, TWIST: 3, FINAL: 4 };
+  const BADGE_FROM = { 6: 2, 5: 2, 4: 2, 3: 2, 2: 4, 1: 4 };
+  const badgeFor = (stage, rank) => (STAGE_ORDER[stage] ?? 0) >= (BADGE_FROM[rank] ?? 9);
 
   let state = null;
   let rosterSignature = "";
@@ -238,7 +238,8 @@
     }
     if (stage === "TWIST") {
       setHeading("KHOẢNH KHẮC QUYẾT ĐỊNH", "Ai sẽ chạm tay vào cúp?", "Hai đội dẫn đầu bám đuổi nhau từng điểm một", "Căng thẳng tột độ");
-      startTwist();
+      // Bước twist gộp: top 2 leo mượt lên 6 ô trước, ~1,1s sau mới bắt đầu dao động bám đuổi.
+      animationTimer = window.setTimeout(startTwist, 1100);
       return;
     }
     renderFinal();

@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.3
+Stable tag: 1.9.4
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,11 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.4 =
+- Gộp bước "Top 2 bước lên" và "Tạo cú twist" thành một nút "Tạo cú twist" duy nhất: top 2 leo mượt lên 6 ô rồi dao động bám đuổi ngay trong cùng một nhịp (kịch bản còn 5 nút 00-04).
+- Khi lộ diện hạng 4 & 3: gắn đủ badge hạng 3-4-5-6 cùng lúc; badge hạng 1-2 vẫn giữ đến bước công bố quán quân.
+- RANK12 giữ làm trạng thái legacy trong backend: dashboard cũ kẹt ở step này vẫn tiến lên TWIST bình thường.
 
 = 1.9.3 =
 - Bàn điều khiển công bố thêm nút Ẩn/Hiện điểm trên màn chiếu: admin che số bằng ••• bất cứ lúc nào, màn trình chiếu tự đồng bộ trong ~1 giây.

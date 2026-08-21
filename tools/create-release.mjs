@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.3";
+const tag = "v1.9.4";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,12 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Bàn điều khiển công bố thêm nút Ẩn/Hiện điểm trên màn chiếu (che số bằng •••, màn trình chiếu tự đồng bộ ~1 giây).",
-  "- Mở màn tung điểm dâng cao hơn (~19-41% cột thay vì ~11-28%).",
-  "- Badge hạng xuất hiện trễ một nhịp: hạng lộ ở bước này thì bước kế tiếp mới gắn badge; bước quán quân gắn đủ badge.",
-  "- Bước 03 top 2 bước lên: hạng 3-6 giữ nguyên badge, vị trí, màu sắc — không re-animation (render diff theo từng đội).",
-  "- Quán quân giảm từ 10 ô (100%) xuống ~82% cho vừa khung.",
-  "- Text mở màn mới: \"6 đội · 4 chặng đường · 1 ngôi vương duy nhất\".",
+  "- Gộp bước \"Top 2 bước lên\" và \"Tạo cú twist\" thành một nút \"Tạo cú twist\": top 2 leo lên 6 ô rồi dao động bám đuổi trong cùng một nhịp (kịch bản còn 5 nút 00-04).",
+  "- Khi lộ diện hạng 4 & 3: gắn đủ badge hạng 3-4-5-6 cùng lúc; badge hạng 1-2 vẫn chờ bước công bố quán quân.",
+  "- RANK12 giữ làm trạng thái legacy: dashboard cũ kẹt ở step này vẫn tiến lên TWIST bình thường.",
 ].join("\n");
 
 let release;

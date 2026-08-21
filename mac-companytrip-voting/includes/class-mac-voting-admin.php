@@ -513,7 +513,8 @@ final class MAC_Voting_Admin {
             'IDLE' => 'ROLLING',
             'ROLLING' => 'RANK65',
             'RANK65' => 'RANK43',
-            'RANK43' => 'RANK12',
+            'RANK43' => 'TWIST',
+            // RANK12 giữ làm trạng thái legacy (bản cũ): vẫn cho tiến lên TWIST nếu dashboard còn kẹt ở step này.
             'RANK12' => 'TWIST',
             'TWIST' => 'FINAL',
         );
@@ -538,7 +539,7 @@ final class MAC_Voting_Admin {
             'RANK65' => 'Đã lộ diện hạng 6 và hạng 5 (3 ô).',
             'RANK43' => 'Đã lộ diện hạng 4 và hạng 3 · hạng 4-5-6 cùng 4 ô.',
             'RANK12' => 'Hai đội dẫn đầu đã bước lên cùng mốc 6 ô.',
-            'TWIST' => 'Hai đội dẫn đầu đang bám đuổi từng điểm.',
+            'TWIST' => 'Top 2 đã bước lên 6 ô và đang bám đuổi từng điểm.',
             'FINAL' => 'Đã công bố quán quân Company Trip.',
         );
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'RESULTS_TOTAL_REVEAL_' . $next, 'reveal', (string) $state['revision'], array(
