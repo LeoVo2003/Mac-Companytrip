@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.0** (đã release & verify ngày 2026-08-21, release id 374166344, commit b0e5faf) — BIG UPDATE: màn trình chiếu chuyển thành màn công bố ĐIỂM TỔNG Company Trip với kịch bản 6 step (MC bấm nút trên admin). Logic công bố văn nghệ cũ giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này. Trước đó v1.8.20 nâng spacing đáy + điểm hạng 3 màu copper. Prototype "Race to the Crown" từng gắn tag v1.9.0 cũ đã gỡ khỏi source và xóa release/tag trên GitHub; tag v1.9.0 nay được tái sử dụng cho bản tổng kết này.
+> Phiên bản hiện tại: **v1.9.1** (đã release & verify ngày 2026-08-21, release id 374170342, commit 58876aa) — sửa lỗi snapshot "Cần đủ 6 đội", bàn điều khiển công bố chuyển thành tab "Công bố" trong Tổng quan, bỏ vạch chia 10 ô + mr-chart-lines. Trước đó v1.9.0: BIG UPDATE màn trình chiếu chuyển thành màn công bố ĐIỂM TỔNG Company Trip với kịch bản 6 step (MC bấm nút trên admin). Logic công bố văn nghệ cũ giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này. Trước đó nữa v1.8.20 nâng spacing đáy + điểm hạng 3 màu copper. Prototype "Race to the Crown" từng gắn tag v1.9.0 cũ đã gỡ khỏi source và xóa release/tag trên GitHub.
 
 ---
 
@@ -138,7 +138,14 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.0 (2026-08-21, commit b0e5faf, release id 374166344) — mới nhất · BIG UPDATE màn công bố ĐIỂM TỔNG
+### v1.9.1 (2026-08-21, commit 58876aa, release id 374170342) — mới nhất · sửa lỗi + dọn màn tổng kết
+
+- **Sửa lỗi "Cần đủ 6 đội"**: `MAC_Points::dashboard()` trả về `{categories, teams, history}`; snapshot ở `ajax_reveal_total` và fallback của `results_total` trước đó lặp nhầm cấp ngoài (3 khóa) nên `count < 6` luôn đúng. Nay cả hai đọc `dashboard()['teams']`.
+- **Bàn điều khiển công bố thành tab riêng**: subnav Tổng quan nay là `Tổng điểm | Công bố | Lịch sử`; panel không còn nằm trên cùng stack Tổng điểm. Header đổi `LIVE REVEAL / Tín hiệu MC` → `TỔNG KẾT COMPANY TRIP / Bàn điều khiển công bố` + khối nút `KỊCH BẢN MC / Các bước công bố tổng kết`; bỏ tiền tố `#số đội` trong bảng "Tổng điểm thật".
+- **Màn tổng kết gọn mắt**: bỏ vạch ngang chia 10 ô (`.mr-column::after`) và toàn bộ `.mr-chart-lines` (CSS chết từ v1.9.0) — thang ô chỉ còn trong logic `LADDER_LEVELS`.
+- `check-plugin.mjs`: invariant vạch 10 ô thay bằng ban-list (`mr-chart-lines`, `mr-horizon`, `.mr-column::after`, `repeating-linear-gradient(to top`) + invariant mới (tab `["reveal", "Công bố"]`, `dashboard()['teams']` ở cả admin lẫn rest).
+
+### v1.9.0 (2026-08-21, commit b0e5faf, release id 374166344) — BIG UPDATE màn công bố ĐIỂM TỔNG
 
 - **Màn trình chiếu (`/ket-qua-van-nghe/`) nay chiếu ĐIỂM TỔNG**: shortcode trỏ endpoint mới `mac-voting/v1/results-total`; giữ nguyên layout hải trình (seascape + la bàn + chart-lines, không có mr-horizon).
 - **State machine mới** `mac_voting_total_reveal_state` (option): IDLE → ROLLING → RANK65 → RANK43 → RANK12 → TWIST → FINAL, chuyển step nghiêm ngặt, lưu kèm snapshot tổng điểm (đóng băng lúc bấm Mở màn từ `MAC_Points::dashboard()`). API `MAC_Voting_DB::total_reveal_state()` / `set_total_reveal_state()` trong `class-mac-voting-db.php`; admin ajax `mac_vote_reveal_total` (`ajax_reveal_total` trong `class-mac-voting-admin.php`); REST `results_total()` trong `class-mac-voting-rest.php` (rank tính theo tổng điểm snapshot, lộ hạng: RANK65 mở hạng 5-6, RANK43 mở tới hạng 3, FINAL mở hết; RANK12/TWIST giấu hạng 1-2 + điểm để giữ twist; trả kèm `topTwo`).
