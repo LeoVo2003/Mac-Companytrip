@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.1** (đã release & verify ngày 2026-08-21, release id 374170342, commit 58876aa) — sửa lỗi snapshot "Cần đủ 6 đội", bàn điều khiển công bố chuyển thành tab "Công bố" trong Tổng quan, bỏ vạch chia 10 ô + mr-chart-lines. Trước đó v1.9.0: BIG UPDATE màn trình chiếu chuyển thành màn công bố ĐIỂM TỔNG Company Trip với kịch bản 6 step (MC bấm nút trên admin). Logic công bố văn nghệ cũ giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này. Trước đó nữa v1.8.20 nâng spacing đáy + điểm hạng 3 màu copper. Prototype "Race to the Crown" từng gắn tag v1.9.0 cũ đã gỡ khỏi source và xóa release/tag trên GitHub.
+> Phiên bản hiện tại: **v1.9.2** (đã release & verify ngày 2026-08-21, release id 374173359, commit 4146baa) — sửa layout màn công bố (khối mr-chart-lines còn sót trong markup results.js chiếm ô grid sau khi CSS bị bỏ ở 1.9.1), bỏ tag #số đội trên màn trình chiếu, đổi nhãn "KỊCH BẢN MC" → "TÍN HIỆU TỔNG KẾT". Trước đó v1.9.1: sửa lỗi snapshot "Cần đủ 6 đội", bàn điều khiển thành tab "Công bố", bỏ vạch 10 ô + mr-chart-lines CSS. Trước đó v1.9.0: BIG UPDATE màn trình chiếu chuyển thành màn công bố ĐIỂM TỔNG Company Trip với kịch bản 6 step (MC bấm nút trên admin). Logic công bố văn nghệ cũ giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này. Trước đó nữa v1.8.20 nâng spacing đáy + điểm hạng 3 màu copper. Prototype "Race to the Crown" từng gắn tag v1.9.0 cũ đã gỡ khỏi source và xóa release/tag trên GitHub.
 
 ---
 
@@ -138,7 +138,14 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.1 (2026-08-21, commit 58876aa, release id 374170342) — mới nhất · sửa lỗi + dọn màn tổng kết
+### v1.9.2 (2026-08-21, commit 4146baa, release id 374173359) — mới nhất · sửa layout + bỏ tag #N
+
+- **Layout màn công bố**: bản 1.9.1 bỏ CSS `.mr-chart-lines` nhưng markup `shell()` trong results.js vẫn render `<div class="mr-chart-lines">` → mất `position:absolute` nên nó thành grid item, chiếm hàng 64px và đẩy `.mr-header` vào hàng 1fr (header giãn nửa màn hình như screenshot user báo). Đã bỏ khối div này khỏi markup; grid chỉ còn header (64px) + main (1fr).
+- **Bỏ tag `#số đội`** (`<b>#${team.number}</b>`) trên tên đội ở màn trình chiếu; `.mr-team-name` chuyển `align-content: center` để tên cân giữa ô 64px; xóa CSS chết `.mr-team-name b` + padding-top mobile.
+- **Nhãn admin**: `KỊCH BẢN MC` → `TÍN HIỆU TỔNG KẾT`.
+- `check-plugin.mjs`: ban-list mở rộng sang results.js (`mr-chart-lines`, `<b>#${team.number}</b>`).
+
+### v1.9.1 (2026-08-21, commit 58876aa, release id 374170342) — sửa lỗi + dọn màn tổng kết
 
 - **Sửa lỗi "Cần đủ 6 đội"**: `MAC_Points::dashboard()` trả về `{categories, teams, history}`; snapshot ở `ajax_reveal_total` và fallback của `results_total` trước đó lặp nhầm cấp ngoài (3 khóa) nên `count < 6` luôn đúng. Nay cả hai đọc `dashboard()['teams']`.
 - **Bàn điều khiển công bố thành tab riêng**: subnav Tổng quan nay là `Tổng điểm | Công bố | Lịch sử`; panel không còn nằm trên cùng stack Tổng điểm. Header đổi `LIVE REVEAL / Tín hiệu MC` → `TỔNG KẾT COMPANY TRIP / Bàn điều khiển công bố` + khối nút `KỊCH BẢN MC / Các bước công bố tổng kết`; bỏ tiền tố `#số đội` trong bảng "Tổng điểm thật".
