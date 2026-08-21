@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.5
+Stable tag: 1.9.6
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,12 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.6 =
+- Quy tắc bảo vệ top đầu khi trùng điểm: đội hạng 1-2 không bao giờ lộ trước bước twist kể cả khi cụm trùng điểm chạm ngưỡng lộ (sửa TC03, 04, 07, 09, 12 bị hỏng cú twist ở bản 1.9.5).
+- Tiêu đề bước lộ hạng sinh động theo hạng thực lộ: "HẠNG 5 ×2", "HẠNG 4 ×3" thay vì cứng "HẠNG 6 & HẠNG 5"; mô tả twist tự ghi số cột khi có 3-4 đội dẫn đầu trùng điểm.
+- Bàn điều khiển công bố hiện hộp cảnh báo trùng điểm sau khi mở màn: số cột twist dự kiến và bước 02 có thể không lộ thêm đội.
+- Thêm bộ test 12 trường hợp trùng điểm (TC01-TC12) vào check-plugin.mjs: kiểm rank thể thức thi đấu, số đội lộ từng bước và quy tắc không lộ sớm hạng 1-2.
 
 = 1.9.5 =
 - Giải pháp trùng điểm: thang lộ hạng chuyển sang đếm số đội từ dưới lên (bước 01 lộ 2 đội cuối, bước 02 lộ 4 đội cuối, FINAL lộ hết) thay vì ngưỡng hạng cứng — trùng điểm không còn làm lép bước lộ hạng, nhóm trùng điểm luôn lộ cùng nhau và nhận đồng hạng.

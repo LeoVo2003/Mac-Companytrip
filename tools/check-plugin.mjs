@@ -248,5 +248,81 @@ if (checkinFile.includes("$user->set_role('administrator')")) {
 const unexpected = relativeFiles.filter((file) => /(^|\/)(node_modules|src|dist|\.git)(\/|$)/.test(file));
 if (unexpected.length) throw new Error(`Unexpected package content: ${unexpected.join(", ")}`);
 
+// --- Bộ test 12 trường hợp trùng điểm tổng (mirror thuật toán rank + lộ hạng của results_total) ---
+for (const invariant of ["(!$protect_top || (int) $row['rank'] >= 3)", "$protect_top = $state['stage'] !== 'FINAL'"]) {
+  if (!restFile.includes(invariant)) throw new Error(`Missing top-protection tie rule in results_total: ${invariant}`);
+}
+for (const [file, invariant] of [[adminFile, "total_tie_warnings"], [adminJs, "totalTieWarnings"], [resultsJs, "rankHeadline"]]) {
+  if (!file.includes(invariant)) throw new Error(`Missing tie-handling feature: ${invariant}`);
+}
+const tieRanks = (totals) => {
+  const sorted = [...totals].sort((a, b) => b - a);
+  const ranks = [];
+  let rank = 0;
+  let previous = null;
+  sorted.forEach((total, index) => {
+    if (previous === null || previous !== total) rank = index + 1;
+    ranks.push(rank);
+    previous = total;
+  });
+  return ranks;
+};
+const tieRevealed = (totals, stage) => {
+  const sorted = [...totals].sort((a, b) => b - a);
+  const ranks = tieRanks(totals);
+  const count = sorted.length;
+  const fromBottom = { RANK65: 2, RANK43: 4, RANK12: 4, TWIST: 4, FINAL: count }[stage] ?? 0;
+  if (!fromBottom) return [];
+  const threshold = sorted[Math.max(0, count - Math.min(fromBottom, count))];
+  const protectTop = stage !== "FINAL";
+  return sorted.flatMap((total, index) => (total <= threshold && (!protectTop || ranks[index] >= 3) ? [index] : []));
+};
+const TIE_CASES = [
+  { name: "TC01", totals: [980, 940, 900, 850, 800, 750], ranks: [1, 2, 3, 4, 5, 6] },
+  { name: "TC02", totals: [950, 950, 900, 850, 800, 750], ranks: [1, 1, 3, 4, 5, 6] },
+  { name: "TC03", totals: [950, 950, 950, 850, 800, 750], ranks: [1, 1, 1, 4, 5, 6] },
+  { name: "TC04", totals: [950, 950, 950, 950, 800, 750], ranks: [1, 1, 1, 1, 5, 6] },
+  { name: "TC05", totals: [950, 950, 950, 950, 950, 750], ranks: [1, 1, 1, 1, 1, 6] },
+  { name: "TC06", totals: [900, 900, 900, 900, 900, 900], ranks: [1, 1, 1, 1, 1, 1] },
+  { name: "TC07", totals: [1000, 900, 900, 850, 800, 750], ranks: [1, 2, 2, 4, 5, 6] },
+  { name: "TC08", totals: [1000, 950, 900, 850, 800, 800], ranks: [1, 2, 3, 4, 5, 5] },
+  { name: "TC09", totals: [1000, 900, 900, 900, 800, 700], ranks: [1, 2, 2, 2, 5, 6] },
+  { name: "TC10", totals: [1000, 1000, 900, 900, 800, 800], ranks: [1, 1, 3, 3, 5, 5] },
+  { name: "TC11", totals: [1000, 1000, 900, 800, 800, 800], ranks: [1, 1, 3, 4, 4, 4] },
+  { name: "TC12", totals: [1000, 900, 900, 800, 800, 800], ranks: [1, 2, 2, 4, 4, 4] },
+];
+const REVEAL_EXPECT = {
+  TC01: { RANK65: 2, RANK43: 4 },
+  TC02: { RANK65: 2, RANK43: 4 },
+  TC03: { RANK65: 2, RANK43: 3 },
+  TC04: { RANK65: 2, RANK43: 2 },
+  TC05: { RANK65: 1, RANK43: 1 },
+  TC06: { RANK65: 0, RANK43: 0 },
+  TC07: { RANK65: 2, RANK43: 3 },
+  TC08: { RANK65: 2, RANK43: 4 },
+  TC09: { RANK65: 2, RANK43: 2 },
+  TC10: { RANK65: 2, RANK43: 4 },
+  TC11: { RANK65: 3, RANK43: 4 },
+  TC12: { RANK65: 3, RANK43: 3 },
+};
+for (const tc of TIE_CASES) {
+  const ranks = tieRanks(tc.totals);
+  if (ranks.join(",") !== tc.ranks.join(",")) {
+    throw new Error(`${tc.name}: tính hạng sai — được ${ranks.join(",")}, mong đợi ${tc.ranks.join(",")}.`);
+  }
+  for (const stage of ["RANK65", "RANK43", "RANK12", "TWIST"]) {
+    for (const index of tieRevealed(tc.totals, stage)) {
+      if (ranks[index] <= 2) throw new Error(`${tc.name}/${stage}: đội hạng 1-2 bị lộ sớm trước FINAL.`);
+    }
+  }
+  if (tieRevealed(tc.totals, "FINAL").length !== tc.totals.length) {
+    throw new Error(`${tc.name}/FINAL: phải lộ đủ ${tc.totals.length} đội.`);
+  }
+  for (const [stage, expected] of Object.entries(REVEAL_EXPECT[tc.name])) {
+    const revealed = tieRevealed(tc.totals, stage).length;
+    if (revealed !== expected) throw new Error(`${tc.name}/${stage}: lộ ${revealed} đội, mong đợi ${expected}.`);
+  }
+}
+
 const totalBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);
-console.log(`Plugin source OK: ${phpFiles.length} PHP, ${jsFiles.length} JS, ${cssFiles.length} CSS, ${totalBytes} bytes.`);
+console.log(`Plugin source OK: ${phpFiles.length} PHP, ${jsFiles.length} JS, ${cssFiles.length} CSS, ${totalBytes} bytes. Tie tests: ${TIE_CASES.length} cases passed.`);

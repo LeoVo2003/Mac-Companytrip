@@ -160,6 +160,17 @@
     return teams.map((team) => team.name).join(" · ");
   }
 
+  // Tiêu đề động theo hạng thực lộ — trùng điểm có thể cho "HẠNG 5 ×2", "HẠNG 4 ×3" thay vì 6-5 cứng.
+  function rankHeadline(teams) {
+    const counts = {};
+    teams.forEach((team) => { counts[team.rank] = (counts[team.rank] || 0) + 1; });
+    return Object.entries(counts)
+      .map(([rank, count]) => ({ rank: Number(rank), count }))
+      .sort((a, b) => b.rank - a.rank)
+      .map((entry) => entry.count > 1 ? `HẠNG ${entry.rank} ×${entry.count}` : `HẠNG ${entry.rank}`)
+      .join(" & ");
+  }
+
   // Step 5: hai đội dẫn đầu lên xuống đối pha liên tục để giữ cú twist.
   function startTwist() {
     if (reducedMotion.matches) return;
@@ -236,11 +247,11 @@
     const celebrate = newlyRevealed.length ? `Xin chúc mừng ${teamNames(newlyRevealed)}` : "Kết quả đang được chốt";
 
     if (stage === "RANK65") {
-      setHeading("HẠNG 6 & HẠNG 5", "Những cái tên đầu tiên lộ diện", celebrate, "Tín hiệu 1 · Đã chốt");
+      setHeading(rankHeadline(newlyRevealed) || "KẾT QUẢ ĐANG CHỐT", "Những cái tên đầu tiên lộ diện", celebrate, "Tín hiệu 1 · Đã chốt");
       return;
     }
     if (stage === "RANK43") {
-      setHeading("HẠNG 4 & HẠNG 3", "Top giữa đã gọi tên ai?", celebrate, "Tín hiệu 2 · Đã chốt");
+      setHeading(rankHeadline(newlyRevealed) || "KẾT QUẢ ĐANG CHỐT", "Top giữa đã gọi tên ai?", celebrate, "Tín hiệu 2 · Đã chốt");
       return;
     }
     if (stage === "RANK12") {
@@ -248,7 +259,10 @@
       return;
     }
     if (stage === "TWIST") {
-      setHeading("KHOẢNH KHẮC QUYẾT ĐỊNH", "Ai sẽ chạm tay vào cúp?", "Hai đội dẫn đầu bám đuổi nhau từng điểm một", "Căng thẳng tột độ");
+      // Trùng điểm top đầu có thể cho 3-4 cột cùng bám đuổi; copy tự điều chỉnh theo số cột.
+      const leaderCount = (state.topTwo || []).length;
+      const twistCopy = leaderCount > 2 ? `${leaderCount} đội dẫn đầu đang bám đuổi nhau từng điểm một` : "Hai đội dẫn đầu bám đuổi nhau từng điểm một";
+      setHeading("KHOẢNH KHẮC QUYẾT ĐỊNH", "Ai sẽ chạm tay vào cúp?", twistCopy, "Căng thẳng tột độ");
       // Bước twist gộp: top 2 leo mượt lên 6 ô trước, ~1,1s sau mới bắt đầu dao động bám đuổi.
       animationTimer = window.setTimeout(startTwist, 1100);
       return;

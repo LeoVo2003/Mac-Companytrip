@@ -204,12 +204,17 @@ final class MAC_Voting_REST {
             $threshold_index = max(0, count($rows) - min($revealed_from_bottom, count($rows)));
             $threshold_total = (int) $rows[$threshold_index]['total'];
         }
+        // Quy tắc trùng điểm: trước FINAL, đội hạng ≤ 2 không bao giờ lộ sớm kể cả khi cụm trùng
+        // điểm của chúng chạm ngưỡng lộ — dành cho twist + chung kết (giữ bất ngờ top đầu).
+        $protect_top = $state['stage'] !== 'FINAL';
         $top_two = array();
-        $public_teams = array_map(static function(array $row) use ($threshold_total, &$top_two): array {
+        $public_teams = array_map(static function(array $row) use ($threshold_total, $protect_top, &$top_two): array {
             if ((int) $row['rank'] <= 2) {
                 $top_two[] = (int) $row['id'];
             }
-            $is_revealed = $threshold_total !== null && (int) $row['total'] <= $threshold_total;
+            $is_revealed = $threshold_total !== null
+                && (int) $row['total'] <= $threshold_total
+                && (!$protect_top || (int) $row['rank'] >= 3);
             return array(
                 'id' => (int) $row['id'],
                 'number' => (int) $row['team_no'],

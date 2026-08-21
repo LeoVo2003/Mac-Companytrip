@@ -539,7 +539,7 @@ final class MAC_Voting_Admin {
             'RANK65' => 'Đã lộ diện hạng 6 và hạng 5 (3 ô).',
             'RANK43' => 'Đã lộ diện hạng 4 và hạng 3 · hạng 4-5-6 cùng 4 ô.',
             'RANK12' => 'Hai đội dẫn đầu đã bước lên cùng mốc 6 ô.',
-            'TWIST' => 'Top 2 đã bước lên 6 ô và đang bám đuổi từng điểm.',
+            'TWIST' => 'Nhóm dẫn đầu đã bước lên 6 ô và đang bám đuổi từng điểm.',
             'FINAL' => 'Đã công bố quán quân Company Trip.',
         );
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'RESULTS_TOTAL_REVEAL_' . $next, 'reveal', (string) $state['revision'], array(
@@ -547,6 +547,49 @@ final class MAC_Voting_Admin {
             'stage' => $next,
         ));
         wp_send_json_success(array('message' => $messages[$next], 'overview' => self::overview()));
+    }
+
+    // Phân tích trùng điểm trên snapshot tổng kết để cảnh báo MC trước khi bấm kịch bản.
+    public static function total_tie_warnings(): array {
+        $state = MAC_Voting_DB::total_reveal_state();
+        if ($state['stage'] === 'IDLE' || !count($state['totals'])) {
+            return array();
+        }
+        $totals = $state['totals'];
+        arsort($totals);
+        $values = array_values($totals);
+        $count = count($values);
+        $ranks = array();
+        $rank = 0;
+        $previous = null;
+        foreach ($values as $index => $total) {
+            if ($previous === null || (int) $previous !== (int) $total) {
+                $rank = $index + 1;
+            }
+            $ranks[] = $rank;
+            $previous = $total;
+        }
+        $warnings = array();
+        $top_count = count(array_filter($ranks, static fn($r): bool => $r <= 2));
+        if ($top_count > 2) {
+            $warnings[] = 'Top đầu có ' . $top_count . ' đội cùng hạng 1-2 do trùng điểm — cú twist sẽ có ' . $top_count . ' cột leo lên cùng lúc.';
+        }
+        $threshold_step1 = (int) $values[max(0, $count - 2)];
+        $threshold_step2 = (int) $values[max(0, $count - 4)];
+        $revealed_step1 = 0;
+        $revealed_step2 = 0;
+        foreach ($values as $index => $total) {
+            if ((int) $total <= $threshold_step1 && $ranks[$index] >= 3) {
+                $revealed_step1 += 1;
+            }
+            if ((int) $total <= $threshold_step2 && $ranks[$index] >= 3) {
+                $revealed_step2 += 1;
+            }
+        }
+        if ($revealed_step2 <= $revealed_step1) {
+            $warnings[] = 'Do trùng điểm, bước 02 (hạng 4-3) có thể không lộ thêm đội nào — cứ bấm tiếp để vào cú twist.';
+        }
+        return $warnings;
     }
 
     public static function ajax_team(): void {
@@ -905,6 +948,7 @@ final class MAC_Voting_Admin {
             'reveal' => MAC_Voting_DB::reveal_state(),
             'totalReveal' => MAC_Voting_DB::total_reveal_state(),
             'totalScoresHidden' => MAC_Voting_DB::scores_hidden(),
+            'totalTieWarnings' => self::total_tie_warnings(),
             'votingEnabled' => MAC_Voting_DB::is_voting_enabled(),
             'checkpoints' => MAC_Checkin::checkpoints(),
             'checkinBoard' => self::checkin_overview_board(),

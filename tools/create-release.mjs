@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.5";
+const tag = "v1.9.6";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Giải pháp trùng điểm: lộ hạng đếm theo số đội từ dưới lên (bước 01: 2 đội cuối, bước 02: 4 đội cuối, FINAL: tất cả) thay vì ngưỡng hạng cứng — trùng điểm không làm lép bước nào, nhóm trùng điểm lộ cùng nhau và nhận đồng hạng.",
-  "- Cột chưa lộ hạng trả về vạch xuất phát 112px trong các bước lộ hạng.",
-  "- Đồng quán quân: FINAL xướng đủ tên mọi đội hạng 1.",
-  "- Dòng chúc mừng chỉ xướng nhóm mới lộ; bảng điểm admin gắn nhãn \"đồng hạng\".",
+  "- Quy tắc bảo vệ top đầu khi trùng điểm: đội hạng 1-2 không bao giờ lộ trước cú twist kể cả khi cụm trùng điểm chạm ngưỡng lộ (sửa TC03, 04, 07, 09, 12).",
+  "- Tiêu đề lộ hạng động: \"HẠNG 5 ×2\", \"HẠNG 4 ×3\" thay vì cứng \"HẠNG 6 & HẠNG 5\"; mô tả twist tự ghi số cột khi top trùng điểm.",
+  "- Bàn điều khiển công bố hiện cảnh báo trùng điểm sau khi mở màn (số cột twist, bước 02 có thể không lộ thêm).",
+  "- Bộ test 12 trường hợp trùng điểm TC01-TC12 gắn vào npm run check, chống regress.",
 ].join("\n");
 
 let release;
