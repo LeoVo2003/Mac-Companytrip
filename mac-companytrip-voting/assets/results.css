@@ -151,16 +151,6 @@ body.mac-results-page .elementor-shortcode {
   transform: translateX(-50%);
 }
 
-.mr-horizon {
-  position: absolute;
-  top: 16%;
-  right: 0;
-  left: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 207, 125, 0.22), rgba(255, 227, 173, 0.58), rgba(255, 207, 125, 0.22), transparent);
-  box-shadow: 0 0 28px rgba(255, 138, 76, 0.18);
-}
-
 .mr-wake {
   position: absolute;
   bottom: -22%;
@@ -451,7 +441,7 @@ body.mac-results-page .elementor-shortcode {
 .mr-chart::after {
   position: absolute;
   right: 0;
-  bottom: 88px;
+  bottom: 104px;
   left: 0;
   height: 1px;
   content: "";
@@ -466,7 +456,7 @@ body.mac-results-page .elementor-shortcode {
   display: grid;
   height: 100%;
   min-width: 0;
-  grid-template-rows: minmax(0, 1fr) 56px 32px;
+  grid-template-rows: minmax(0, 1fr) 64px 40px;
   transition: opacity 400ms ease, filter 400ms ease, transform 500ms ease;
 }
 
@@ -483,7 +473,7 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mr-score span {
-  font-size: clamp(15px, 1.35vw, 24px);
+  font-size: clamp(18px, 1.7vw, 30px);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -491,7 +481,7 @@ body.mac-results-page .elementor-shortcode {
 
 .mr-score small {
   color: var(--muted);
-  font-size: clamp(6px, 0.48vw, 8px);
+  font-size: clamp(7px, 0.6vw, 10px);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -615,7 +605,7 @@ body.mac-results-page .elementor-shortcode {
 
 .mr-team-name b {
   color: var(--brass-light);
-  font-size: clamp(9px, 0.66vw, 12px);
+  font-size: clamp(10px, 0.8vw, 14px);
   font-weight: 800;
   letter-spacing: 0.12em;
 }
@@ -625,7 +615,7 @@ body.mac-results-page .elementor-shortcode {
   margin-top: 2px;
   overflow-wrap: anywhere;
   color: var(--ink);
-  font-size: clamp(10px, 0.9vw, 16px);
+  font-size: clamp(12px, 1.1vw, 20px);
   font-weight: 700;
   line-height: 1.15;
 }
@@ -878,7 +868,7 @@ body.mac-results-page .elementor-shortcode {
   }
 
   .mr-team {
-    grid-template-rows: minmax(0, 1fr) 44px 24px;
+    grid-template-rows: minmax(0, 1fr) 52px 30px;
   }
 
   .mr-score {
@@ -888,7 +878,7 @@ body.mac-results-page .elementor-shortcode {
   }
 
   .mr-score span {
-    font-size: clamp(12px, 3.4vw, 16px);
+    font-size: clamp(14px, 4.2vw, 20px);
   }
 
   .mr-score small {
@@ -919,11 +909,11 @@ body.mac-results-page .elementor-shortcode {
   }
 
   .mr-team-name strong {
-    font-size: 9px;
+    font-size: 11px;
   }
 
   .mr-chart::after {
-    bottom: 68px;
+    bottom: 82px;
   }
 
   .mr-compass {

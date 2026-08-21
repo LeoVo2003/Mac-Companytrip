@@ -39,7 +39,7 @@ for (const file of cssFiles) {
 }
 
 const resultsCss = fs.readFileSync(path.join(pluginRoot, "assets/results.css"), "utf8");
-for (const invariant of ["grid-template-rows: minmax(0, 1fr) 56px 32px;", "flex: 0 0 auto;", "margin: 0 0 8px;"]) {
+for (const invariant of ["grid-template-rows: minmax(0, 1fr) 64px 40px;", "flex: 0 0 auto;", "margin: 0 0 8px;"]) {
   if (!resultsCss.includes(invariant)) throw new Error(`Podium label must remain in flow above the bar: ${invariant}`);
 }
 for (const invariant of ["grid-row: 3;", "grid-row: 2;", "grid-row: 1;"]) {
