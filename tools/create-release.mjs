@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.16";
+const tag = "v1.8.17";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Làm lại giao diện màn công bố theo style \"hải trình\" (seascape, la bàn lớn với kim quay theo stage, header brand lockup) — giữ nguyên font chữ và nội dung hiện tại.",
-  "- Điểm số chuyển xuống dưới cùng mỗi cột (dưới tên đội).",
+  "- Dọn seascape: bỏ mr-horizon và mr-chart-lines; mr-sun vẽ lại thành đĩa nắng hoàng hôn; màu biển đậm hơn.",
+  "- La bàn to hơn nhưng mờ hơn; mặt số xoay tròn mượt, kim đứng yên đầu đỏ (bắc) chỉ 12h; logo to hơn, bỏ huy hiệu la bàn cạnh logo.",
 ].join("\n");
 
 let release;

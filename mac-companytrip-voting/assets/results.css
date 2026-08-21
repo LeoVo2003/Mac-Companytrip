@@ -59,9 +59,9 @@ body.mac-results-page .elementor-shortcode {
 
 .mac-results-app {
   --abyss: #040d1c;
-  --deep-sea: #0a2338;
-  --sea-teal: #123a52;
-  --sea-glint: #2c5b74;
+  --deep-sea: #0a2a45;
+  --sea-teal: #12466b;
+  --sea-glint: #2e6a8e;
   --brass-dark: #5a3b1f;
   --brass: #b8823f;
   --brass-light: #e8c17a;
@@ -96,8 +96,8 @@ body.mac-results-page .elementor-shortcode {
   isolation: isolate;
   grid-template-rows: 64px minmax(0, 1fr);
   background:
-    radial-gradient(90% 7% at 50% 0%, rgba(255, 138, 76, 0.28), transparent 68%),
-    radial-gradient(70% 42% at 50% 2%, rgba(255, 207, 125, 0.12), transparent 70%),
+    radial-gradient(90% 8% at 50% 0%, rgba(255, 138, 76, 0.42), transparent 68%),
+    radial-gradient(70% 46% at 50% 2%, rgba(255, 207, 125, 0.2), transparent 70%),
     linear-gradient(180deg, var(--sea-glint) 0%, var(--sea-teal) 16%, var(--deep-sea) 48%, var(--abyss) 100%);
 }
 
@@ -129,8 +129,7 @@ body.mac-results-page .elementor-shortcode {
   transform: perspective(460px) rotateX(38deg);
 }
 
-.mr-seascape,
-.mr-chart-lines {
+.mr-seascape {
   position: absolute;
   z-index: -2;
   inset: 0;
@@ -140,24 +139,15 @@ body.mac-results-page .elementor-shortcode {
 
 .mr-sun {
   position: absolute;
-  top: -8%;
+  top: -6%;
   left: 50%;
-  width: 58vw;
-  height: 18vh;
+  width: min(30vw, 430px);
+  aspect-ratio: 1;
   border-radius: 50%;
-  background: rgba(255, 138, 76, 0.12);
-  filter: blur(54px);
+  background: radial-gradient(circle at 50% 45%, rgba(255, 227, 173, 0.85), rgba(255, 138, 76, 0.5) 36%, rgba(216, 67, 44, 0.24) 58%, transparent 74%);
+  filter: blur(12px);
   transform: translateX(-50%);
-}
-
-.mr-horizon {
-  position: absolute;
-  top: 16%;
-  right: 0;
-  left: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 207, 125, 0.22), rgba(255, 227, 173, 0.58), rgba(255, 207, 125, 0.22), transparent);
-  box-shadow: 0 0 28px rgba(255, 138, 76, 0.18);
+  opacity: 0.8;
 }
 
 .mr-wake {
@@ -172,35 +162,15 @@ body.mac-results-page .elementor-shortcode {
   transform: translateX(-50%) perspective(420px) rotateX(60deg);
 }
 
-.mr-chart-lines {
-  opacity: 0.34;
-  background:
-    linear-gradient(128deg, transparent 0 32%, rgba(184, 130, 63, 0.16) 32.1% 32.2%, transparent 32.3%),
-    linear-gradient(36deg, transparent 0 70%, rgba(44, 91, 116, 0.3) 70.1% 70.2%, transparent 70.3%);
-}
-
-.mr-chart-lines i {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--brass-light);
-  box-shadow: 0 0 0 4px rgba(184, 130, 63, 0.08), 0 0 18px rgba(232, 193, 122, 0.24);
-}
-
-.mr-chart-lines i:nth-child(1) { top: 24%; left: 8%; }
-.mr-chart-lines i:nth-child(2) { top: 42%; left: 22%; }
-.mr-chart-lines i:nth-child(3) { top: 31%; left: 37%; }
-
 .mr-compass {
   position: absolute;
   z-index: -1;
   top: 54%;
   left: 50%;
-  width: min(56vw, 680px);
+  width: min(66vw, 820px);
   aspect-ratio: 1;
   color: var(--brass-light);
-  opacity: 0.17;
+  opacity: 0.12;
   transform: translate(-50%, -50%) rotate(-7deg);
   filter: drop-shadow(0 0 28px rgba(184, 130, 63, 0.16));
   pointer-events: none;
@@ -215,6 +185,8 @@ body.mac-results-page .elementor-shortcode {
   fill: none;
   stroke: currentColor;
   stroke-width: 1.25;
+  transform-origin: 50% 50%;
+  animation: mr-dial-spin 90s linear infinite;
 }
 
 .mr-compass-cross {
@@ -247,8 +219,8 @@ body.mac-results-page .elementor-shortcode {
   width: 14px;
   height: 72%;
   transform-origin: 50% 50%;
-  transform: rotate(18deg);
-  filter: drop-shadow(0 0 9px rgba(255, 227, 173, 0.45));
+  transform: rotate(0deg);
+  filter: drop-shadow(0 0 9px rgba(216, 67, 44, 0.5));
 }
 
 .mr-needle::before,
@@ -264,7 +236,7 @@ body.mac-results-page .elementor-shortcode {
 .mr-needle::before {
   top: 0;
   border-right-width: 6px;
-  border-bottom: 144px solid var(--brass-highlight);
+  border-bottom: 144px solid var(--sunset-red);
   border-left-width: 6px;
 }
 
@@ -274,34 +246,10 @@ body.mac-results-page .elementor-shortcode {
   opacity: 0.76;
 }
 
-.mr-shell[data-stage="idle"] .mr-needle {
-  animation: mr-needle-drift 6s ease-in-out infinite alternate;
-}
-
-.mr-shell[data-stage="rolling"] .mr-needle {
-  animation: mr-needle-spin 0.72s linear infinite;
-}
-
-.mr-shell[data-stage="decoy"] .mr-needle {
-  animation: mr-needle-search 3.2s ease-in-out infinite;
-}
-
-.mr-shell[data-stage="third"] .mr-needle {
-  animation: mr-needle-third 3.8s ease-in-out infinite alternate;
-}
-
-.mr-shell[data-stage="second"] .mr-needle {
-  animation: mr-needle-second 4.4s ease-in-out infinite alternate;
-}
-
 .mr-shell[data-stage="final"] .mr-compass {
-  opacity: 0.36;
+  opacity: 0.3;
   filter: drop-shadow(0 0 54px rgba(255, 207, 125, 0.52));
   transform: translate(-50%, -50%) rotate(0deg) scale(1.05);
-}
-
-.mr-shell[data-stage="final"] .mr-needle {
-  animation: mr-needle-lock 1.25s cubic-bezier(0.18, 0.8, 0.26, 1) both;
 }
 
 .mr-header {
@@ -327,40 +275,11 @@ body.mac-results-page .elementor-shortcode {
 
 .mr-brand-lockup img {
   display: block;
-  width: clamp(46px, 4vw, 66px);
-  height: 28px;
+  width: clamp(72px, 6.5vw, 100px);
+  height: auto;
   object-fit: contain;
   filter: brightness(0) invert(1);
-  opacity: 0.88;
-}
-
-.mr-compass-mark {
-  position: relative;
-  display: grid;
-  width: 25px;
-  height: 25px;
-  place-items: center;
-  border: 1px solid rgba(232, 193, 122, 0.48);
-  border-radius: 50%;
-}
-
-.mr-compass-mark::before,
-.mr-compass-mark::after {
-  position: absolute;
-  content: "";
-  background: var(--brass-light);
-}
-
-.mr-compass-mark::before {
-  width: 1px;
-  height: 17px;
-  transform: rotate(38deg);
-}
-
-.mr-compass-mark::after {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
+  opacity: 0.92;
 }
 
 .mr-event {
@@ -846,38 +765,8 @@ body.mac-results-page .elementor-shortcode {
   to { filter: brightness(1.12); transform: scaleX(1.03); }
 }
 
-@keyframes mr-needle-drift {
-  from { transform: rotate(12deg); }
-  to { transform: rotate(24deg); }
-}
-
-@keyframes mr-needle-spin {
-  to { transform: rotate(378deg); }
-}
-
-@keyframes mr-needle-search {
-  0% { transform: rotate(76deg); }
-  38% { transform: rotate(142deg); }
-  68% { transform: rotate(108deg); }
-  100% { transform: rotate(132deg); }
-}
-
-@keyframes mr-needle-third {
-  from { transform: rotate(128deg); }
-  to { transform: rotate(106deg); }
-}
-
-@keyframes mr-needle-second {
-  from { transform: rotate(106deg); }
-  to { transform: rotate(82deg); }
-}
-
-@keyframes mr-needle-lock {
-  0% { transform: rotate(82deg); }
-  66% { transform: rotate(4deg); }
-  78% { transform: rotate(-3deg); }
-  90% { transform: rotate(2deg); }
-  100% { transform: rotate(0deg); }
+@keyframes mr-dial-spin {
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 900px) {
@@ -906,7 +795,7 @@ body.mac-results-page .elementor-shortcode {
   }
 
   .mr-compass {
-    width: min(72vw, 580px);
+    width: min(84vw, 680px);
   }
 
   .mr-team-name strong {
@@ -925,13 +814,7 @@ body.mac-results-page .elementor-shortcode {
   }
 
   .mr-brand-lockup img {
-    width: 42px;
-    height: 24px;
-  }
-
-  .mr-compass-mark {
-    width: 22px;
-    height: 22px;
+    width: 64px;
   }
 
   .mr-connection {
@@ -1013,8 +896,8 @@ body.mac-results-page .elementor-shortcode {
   }
 
   .mr-compass {
-    width: 94vw;
-    opacity: 0.12;
+    width: 100vw;
+    opacity: 0.1;
   }
 }
 
