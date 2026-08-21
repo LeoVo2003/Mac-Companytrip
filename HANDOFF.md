@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.15** (đã release & verify ngày 2026-08-20, release id 373664494, commit 85b0c92) — la bàn nét mảnh/mờ hơn, kim luôn đung đưa, bỏ dòng mô tả màn chờ, header "company trip - One Direction". Trước đó v1.8.13 redesign màn công bố theo bộ nhận diện "One Compass" (la bàn đồng cổ + biển đêm). Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
+> Phiên bản hiện tại: **v1.8.16** (đã release & verify ngày 2026-08-21, release id 374130888, commit c0465af) — port màn công bố sang style "hải trình" (seascape + la bàn lớn kim quay theo stage + brand lockup), điểm số dời xuống dưới cùng mỗi cột; giữ nguyên font và nội dung hiện tại. Trước đó v1.8.13–1.8.15 là các bản tinh chỉnh bộ nhận diện "One Compass". Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
 
 ---
 
@@ -138,7 +138,14 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.15 (2026-08-20, commit 85b0c92, release id 373664494) — mới nhất
+### v1.8.16 (2026-08-21, commit c0465af, release id 374130888) — mới nhất
+
+- User đưa 2 file tham chiếu từ thư mục "Chấm Điểm Văn Nghệ - Copy" và yêu cầu làm lại màn công bố theo style đó, **chỉ giữ font chữ/nội dung hiện tại**. Port toàn bộ phần nhìn: seascape (`.mr-sun/.mr-horizon/.mr-wake`), `.mr-chart-lines`, la bàn SVG lớn viewBox 400 (3 vòng + cross + rose + minor + labels N/E/S/W/NE/SE/SW/NW) với `.mr-needle` vẽ bằng CSS quay theo stage (`mr-needle-drift/spin/search/third/second/lock`), header `.mr-brand-lockup` (logo + `.mr-compass-mark`), bar kim loại nhiều lớp, stage final đổi nền + h1 vàng.
+- **Điểm số dời xuống dưới cùng** theo ảnh user gửi: DOM giữ nguyên `.mr-score → .mr-column → .mr-team-name` nhưng grid reorder `.mr-column { grid-row: 1 }`, `.mr-team-name { grid-row: 2 }`, `.mr-score { grid-row: 3 }`; `.mr-team { grid-template-rows: minmax(0,1fr) 56px 32px }` (mobile `44px 24px`); horizon `.mr-chart::after` dời về `bottom: 88px` (mobile 68px) cho khớp chân cột.
+- Giữ nguyên: Inter cho UI/điểm số, Cormorant Garamond cho h1, h1 `line-height: 1.2`, mọi chuỗi copy tiếng Việt hiện tại, header "COMPANY TRIP - One Direction" (theo note user sửa tay trong create-release.mjs), `.mr-heading > span:empty { display:none }`.
+- `tools/check-plugin.mjs`: invariant layout cập nhật sang row template mới + thêm check `grid-row: 1/2/3` giữ điểm ở đáy cột.
+
+### v1.8.15 (2026-08-20, commit 85b0c92, release id 373664494)
 
 - La bàn SVG vẽ lại line-art mảnh hơn (stroke 0.35–0.6, bỏ vòng r=70, chữ N/E/S/W nhỏ hơn) và mờ hơn (opacity 0.1, final 0.18); kim `.mr-needle` **luôn đung đưa nhẹ** (`mr-needle-idle` 7s infinite ở mọi stage) — gỡ các animation quay/khóa theo stage và 4 keyframe thừa.
 - Bỏ dòng mô tả màn chờ "6 đội · 1 hải trình · 1 ngôi vị cao nhất" (user dành câu đó cho mục đích khác): `shell()`/`renderIdle()` set description rỗng + CSS `.mr-heading > span:empty { display: none }` (các stage khác vẫn hiện mô tả riêng).
@@ -201,7 +208,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.8.15 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: "One Direction" trong results.js, `mr-needle-idle` + `span:empty` trong results.css, Version 1.8.15 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.15 là release mới nhất, updater sẽ không kéo ngược bản cũ.
+Mọi yêu cầu tới 1.8.16 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: `mr-seascape` + `mr-needle` + "COMPANY TRIP - One Direction" trong results.js, `mr-needle-lock` + `grid-row: 3` + row template mới trong results.css, Version 1.8.16 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.16 là release mới nhất, updater sẽ không kéo ngược bản cũ.
 
 ---
 
