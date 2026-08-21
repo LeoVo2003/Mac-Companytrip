@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.9";
+const tag = "v1.9.10";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Kịch bản twist đúng luồng MC: bước 03 cho 3 đội dẫn đầu cùng tung điểm (số chạy ngẫu nhiên, dao động 70-90%); bước 04 \"Hiện top 3\" lộ hạng ba về 50%, hạng 1-2 tiếp tục tung điểm; bước 05 công bố quán quân (nhất 85%, nhì 60%).",
-  "- Badge hạng ba gắn ở bước Hiện top 3; bước 02 chỉ gắn badge 4-5-6.",
-  "- Bàn điều khiển 6 nút 00-05; bộ test trùng điểm 12 TC mở rộng cho TWIST + REVEAL3.",
+  "- Bước 02 \"Hiện top 4\" chỉ lộ hạng 4-5-6 (cùng 50%); hạng 3 dành cho bước \"Hiện top 3\" sau cú twist.",
+  "- Badge HẠNG KHUYẾN KHÍCH gắn ngay khi lộ hạng 5-6 (bước 01) và hạng 4 (bước 02).",
+  "- Bộ test trùng điểm 12 TC cập nhật theo ngưỡng mới của bước 02.",
 ].join("\n");
 
 let release;

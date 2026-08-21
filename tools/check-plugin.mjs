@@ -173,7 +173,7 @@ for (const invariant of ["'DECOY' => 'THIRD'", "'THIRD' => 'SECOND'", "'SECOND' 
 if (!resultsJs.includes('["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST", "REVEAL3", "FINAL"].includes(state.stage)')) {
   throw new Error("Total reveal must render from seven explicit admin stages without an automatic timer.");
 }
-for (const invariant of ["RANK65: { 6: 8, 5: 8 }", "TEASE43: { 6: 8, 5: 8 }", "RANK43: { 6: 5, 5: 5, 4: 5, 3: 8 }", "REVEAL3: { 6: 3, 5: 3, 4: 3, 3: 5 }", "FINAL: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6, 1: 8.5 }"]) {
+for (const invariant of ["RANK65: { 6: 8, 5: 8 }", "TEASE43: { 6: 8, 5: 8 }", "RANK43: { 6: 5, 5: 5, 4: 5 }", "REVEAL3: { 6: 3, 5: 3, 4: 3, 3: 5 }", "FINAL: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6, 1: 8.5 }", "HẠNG KHUYẾN KHÍCH"]) {
   if (!resultsJs.includes(invariant)) throw new Error(`Missing total reveal ladder invariant: ${invariant}`);
 }
 for (const banned of ["mr-chart-lines", "mr-horizon", ".mr-column::after", "repeating-linear-gradient(to top"]) {
@@ -255,7 +255,7 @@ const unexpected = relativeFiles.filter((file) => /(^|\/)(node_modules|src|dist|
 if (unexpected.length) throw new Error(`Unexpected package content: ${unexpected.join(", ")}`);
 
 // --- Bộ test 12 trường hợp trùng điểm tổng (mirror thuật toán rank + lộ hạng của results_total) ---
-for (const invariant of ["&& (int) $row['rank'] >= $protect_rank;", "'TWIST' => 4,", "'REVEAL3' => 4,"]) {
+for (const invariant of ["&& (int) $row['rank'] >= $protect_rank;", "'RANK43' => 3,", "'RANK43' => 4,", "'TWIST' => 4,", "'REVEAL3' => 4,"]) {
   if (!restFile.includes(invariant)) throw new Error(`Missing twist-script tie rule in results_total: ${invariant}`);
 }
 for (const [file, invariant] of [[adminFile, "total_tie_warnings"], [adminJs, "totalTieWarnings"], [resultsJs, "rankHeadline"]]) {
@@ -277,10 +277,10 @@ const tieRevealed = (totals, stage) => {
   const sorted = [...totals].sort((a, b) => b - a);
   const ranks = tieRanks(totals);
   const count = sorted.length;
-  const fromBottom = { RANK65: 2, TEASE43: 2, RANK43: 4, RANK12: 4, TWIST: 3, REVEAL3: 4, FINAL: count }[stage] ?? 0;
+  const fromBottom = { RANK65: 2, TEASE43: 2, RANK43: 3, RANK12: 4, TWIST: 3, REVEAL3: 4, FINAL: count }[stage] ?? 0;
   if (!fromBottom) return [];
   const threshold = sorted[Math.max(0, count - Math.min(fromBottom, count))];
-  const protectRank = { RANK65: 3, TEASE43: 3, RANK43: 3, RANK12: 3, TWIST: 4, REVEAL3: 3, FINAL: 1 }[stage] ?? 99;
+  const protectRank = { RANK65: 3, TEASE43: 3, RANK43: 4, RANK12: 3, TWIST: 4, REVEAL3: 3, FINAL: 1 }[stage] ?? 99;
   return sorted.flatMap((total, index) => (total <= threshold && ranks[index] >= protectRank ? [index] : []));
 };
 const TIE_CASES = [
@@ -298,17 +298,17 @@ const TIE_CASES = [
   { name: "TC12", totals: [1000, 900, 900, 800, 800, 800], ranks: [1, 2, 2, 4, 4, 4] },
 ];
 const REVEAL_EXPECT = {
-  TC01: { RANK65: 2, RANK43: 4, TWIST: 3, REVEAL3: 4 },
-  TC02: { RANK65: 2, RANK43: 4, TWIST: 3, REVEAL3: 4 },
+  TC01: { RANK65: 2, RANK43: 3, TWIST: 3, REVEAL3: 4 },
+  TC02: { RANK65: 2, RANK43: 3, TWIST: 3, REVEAL3: 4 },
   TC03: { RANK65: 2, RANK43: 3, TWIST: 3, REVEAL3: 3 },
   TC04: { RANK65: 2, RANK43: 2, TWIST: 2, REVEAL3: 2 },
   TC05: { RANK65: 1, RANK43: 1, TWIST: 1, REVEAL3: 1 },
   TC06: { RANK65: 0, RANK43: 0, TWIST: 0, REVEAL3: 0 },
   TC07: { RANK65: 2, RANK43: 3, TWIST: 3, REVEAL3: 3 },
-  TC08: { RANK65: 2, RANK43: 4, TWIST: 3, REVEAL3: 4 },
+  TC08: { RANK65: 2, RANK43: 3, TWIST: 3, REVEAL3: 4 },
   TC09: { RANK65: 2, RANK43: 2, TWIST: 2, REVEAL3: 2 },
-  TC10: { RANK65: 2, RANK43: 4, TWIST: 2, REVEAL3: 4 },
-  TC11: { RANK65: 3, RANK43: 4, TWIST: 3, REVEAL3: 4 },
+  TC10: { RANK65: 2, RANK43: 2, TWIST: 2, REVEAL3: 4 },
+  TC11: { RANK65: 3, RANK43: 3, TWIST: 3, REVEAL3: 4 },
   TC12: { RANK65: 3, RANK43: 3, TWIST: 3, REVEAL3: 3 },
 };
 for (const tc of TIE_CASES) {
@@ -316,7 +316,7 @@ for (const tc of TIE_CASES) {
   if (ranks.join(",") !== tc.ranks.join(",")) {
     throw new Error(`${tc.name}: tính hạng sai — được ${ranks.join(",")}, mong đợi ${tc.ranks.join(",")}.`);
   }
-  const minRankByStage = { RANK65: 3, TEASE43: 3, RANK43: 3, RANK12: 3, TWIST: 4, REVEAL3: 3 };
+  const minRankByStage = { RANK65: 3, TEASE43: 3, RANK43: 4, RANK12: 3, TWIST: 4, REVEAL3: 3 };
   for (const [stage, minimumRank] of Object.entries(minRankByStage)) {
     for (const index of tieRevealed(tc.totals, stage)) {
       if (ranks[index] < minimumRank) throw new Error(`${tc.name}/${stage}: hạng ${ranks[index]} bị lộ sớm hơn bước cho phép (tối thiểu hạng ${minimumRank}).`);

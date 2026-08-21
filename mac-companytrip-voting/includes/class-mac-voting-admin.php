@@ -538,9 +538,9 @@ final class MAC_Voting_Admin {
         $messages = array(
             'IDLE' => 'Đã đưa màn hình tổng kết về trạng thái chờ.',
             'ROLLING' => 'Màn hình tổng kết đang tung điểm nhẹ nhàng cho 6 đội.',
-            'RANK65' => 'Đã lộ diện hạng 6 và hạng 5 (80%).',
+            'RANK65' => 'Đã lộ diện hạng 6 và hạng 5 (80%) · badge hạng khuyến khích.',
             'TEASE43' => 'Đang nhấp nháy nhá hàng top 4 — nhấn lần nữa để lộ diện.',
-            'RANK43' => 'Đã lộ diện hạng 4 và hạng 3 · hạng 4-5-6 cùng 50%, hạng 3 lên 80%.',
+            'RANK43' => 'Đã lộ diện hạng 4-5-6 cùng mốc 50% · badge hạng khuyến khích.',
             'RANK12' => 'Hai đội dẫn đầu đã bước lên cùng mốc 6 ô.',
             'TWIST' => 'Ba đội dẫn đầu đang cùng tung điểm bám đuổi.',
             'REVEAL3' => 'Đã lộ diện hạng ba · hai đội còn lại tiếp tục tung điểm.',
@@ -579,19 +579,19 @@ final class MAC_Voting_Admin {
             $warnings[] = 'Trùng điểm khiến nhóm tranh cúp có ' . $candidate_count . ' đội — cú twist sẽ có ' . $candidate_count . ' cột cùng tung điểm.';
         }
         $threshold_step1 = (int) $values[max(0, $count - 2)];
-        $threshold_step2 = (int) $values[max(0, $count - 4)];
+        $threshold_step2 = (int) $values[max(0, $count - 3)];
         $revealed_step1 = 0;
         $revealed_step2 = 0;
         foreach ($values as $index => $total) {
             if ((int) $total <= $threshold_step1 && $ranks[$index] >= 3) {
                 $revealed_step1 += 1;
             }
-            if ((int) $total <= $threshold_step2 && $ranks[$index] >= 3) {
+            if ((int) $total <= $threshold_step2 && $ranks[$index] >= 4) {
                 $revealed_step2 += 1;
             }
         }
         if ($revealed_step2 <= $revealed_step1) {
-            $warnings[] = 'Do trùng điểm, bước 02 (hạng 4-3) có thể không lộ thêm đội nào — cứ bấm tiếp để vào cú twist.';
+            $warnings[] = 'Do trùng điểm, bước 02 (hạng 4-5-6) có thể không lộ thêm đội nào — cứ bấm tiếp để vào cú twist.';
         }
         return $warnings;
     }

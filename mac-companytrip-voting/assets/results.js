@@ -8,23 +8,23 @@
   const esc = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
   const clamp = (minimum, value, maximum) => Math.min(maximum, Math.max(minimum, value));
   const formatTotal = (score) => Number(score).toLocaleString("vi-VN");
-  // Thang 10 ô: mỗi ô = 10% chiều cao cột. Độ cao theo kịch bản MC: lộ 6-5 = 80% → lộ top 4:
-  // 4-5-6 = 50% + hạng 3 = 80% → twist: 3 đội dẫn đầu cùng tung điểm dao động 70→90%, 4-5-6 về 30%
+  // Thang 10 ô: mỗi ô = 10% chiều cao cột. Độ cao theo kịch bản MC: lộ 6-5 = 80% → hiện top 4:
+  // hạng 4-5-6 cùng 50% (hạng 3 chưa lộ) → twist: top 3 cùng tung điểm dao động 70→90%, 4-5-6 về 30%
   // → hiện hạng 3 về 50%, hạng 1-2 tung tiếp → quán quân 85%, hạng nhì 60%.
   const CELL = 10;
   const LADDER_LEVELS = {
     RANK65: { 6: 8, 5: 8 },
     TEASE43: { 6: 8, 5: 8 },
-    RANK43: { 6: 5, 5: 5, 4: 5, 3: 8 },
+    RANK43: { 6: 5, 5: 5, 4: 5 },
     RANK12: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6, 1: 6 },
-    TWIST: { 6: 3, 5: 3, 4: 3, 3: 5 },
+    TWIST: { 6: 3, 5: 3, 4: 3 },
     REVEAL3: { 6: 3, 5: 3, 4: 3, 3: 5 },
     FINAL: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6, 1: 8.5 },
   };
-  // Badge: hạng 6-5 lộ ở bước 1 nhưng bước 2 mới gắn badge; hạng 4-5-6 gắn badge ngay bước 2;
+  // Badge gắn ngay khi lộ: hạng 5-6 nhận HẠNG KHUYẾN KHÍCH ở bước 1, hạng 4 ở bước 2;
   // hạng 3 chờ bước "Hiện top 3" (REVEAL3); hạng 2-1 chỉ gắn badge ở FINAL để giữ cú twist.
   const STAGE_ORDER = { RANK65: 1, TEASE43: 1, RANK43: 2, RANK12: 3, TWIST: 3, REVEAL3: 4, FINAL: 5 };
-  const BADGE_FROM = { 6: 2, 5: 2, 4: 2, 3: 4, 2: 5, 1: 5 };
+  const BADGE_FROM = { 6: 1, 5: 1, 4: 2, 3: 4, 2: 5, 1: 5 };
   const badgeFor = (stage, rank) => (STAGE_ORDER[stage] ?? 0) >= (BADGE_FROM[rank] ?? 9);
 
   let state = null;
@@ -163,7 +163,7 @@
     if (Number(rank) === 1) return "QUÁN QUÂN";
     if (Number(rank) === 2) return "HẠNG NHÌ";
     if (Number(rank) === 3) return "HẠNG BA";
-    return `HẠNG ${rank}`;
+    return "HẠNG KHUYẾN KHÍCH";
   }
 
   function podiumClass(rank) {
