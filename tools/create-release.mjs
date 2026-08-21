@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.1";
+const tag = "v1.9.2";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Sửa lỗi 'Cần đủ 6 đội' khi mở màn công bố tổng kết — snapshot giờ đọc đúng mảng teams của bảng tổng điểm.",
-  "- Bàn điều khiển công bố chuyển thành tab 'Công bố' trong Tổng quan (đứng sau Tổng điểm, trước Lịch sử); đổi nhãn LIVE REVEAL / Tín hiệu MC; bỏ tiền tố #số đội ở bảng điểm thật.",
-  "- Màn tổng kết gọn mắt hơn: bỏ vạch chia 10 ô trên cột và lớp mr-chart-lines — thang ô chỉ còn trong logic.",
+  "- Sửa lỗi lệch layout màn công bố tổng kết: bỏ khối mr-chart-lines còn sót trong markup results.js (mất position:absolute ở bản 1.9.1 nên chiếm ô grid, header giãn nửa màn hình).",
+  "- Bỏ tag #số đội trên tên đội ở màn trình chiếu; tên đội căn giữa ô cho cân.",
+  "- Đổi nhãn khối nút điều khiển trong admin: 'KỊCH BẢN MC' → 'TÍN HIỆU TỔNG KẾT'.",
 ].join("\n");
 
 let release;

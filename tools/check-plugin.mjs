@@ -179,6 +179,12 @@ for (const invariant of ["RANK65: { 6: 3, 5: 3 }", "FINAL: { 6: 4, 5: 4, 4: 4, 3
 for (const banned of ["mr-chart-lines", "mr-horizon", ".mr-column::after", "repeating-linear-gradient(to top"]) {
   if (resultsCss.includes(banned)) throw new Error(`Banned results-screen decoration must stay removed: ${banned}`);
 }
+if (resultsJs.includes("mr-chart-lines")) {
+  throw new Error("Banned results-screen decoration must stay removed: mr-chart-lines markup in results.js.");
+}
+if (resultsJs.includes("<b>#${team.number}</b>")) {
+  throw new Error("Team number tags must stay removed from the results screen.");
+}
 if (!adminJs.includes('["reveal", "Công bố"]') || !adminJs.includes("Bàn điều khiển công bố")) {
   throw new Error("Total reveal control must live in its own Công bố tab of the overview.");
 }

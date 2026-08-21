@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.1
+Stable tag: 1.9.2
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,11 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.2 =
+- Sửa lỗi lệch layout màn công bố: khối mr-chart-lines còn sót trong markup results.js mất position:absolute sau bản 1.9.1 nên chiếm ô grid, đẩy header giãn nửa màn hình.
+- Bỏ tag #số đội phía trên tên đội trên màn trình chiếu; tên đội căn giữa ô cho cân.
+- Đổi nhãn khối nút điều khiển: "KỊCH BẢN MC" → "TÍN HIỆU TỔNG KẾT".
 
 = 1.9.1 =
 - Sửa lỗi "Cần đủ 6 đội" khi mở màn công bố tổng kết (snapshot đọc đúng mảng teams của bảng tổng điểm).
