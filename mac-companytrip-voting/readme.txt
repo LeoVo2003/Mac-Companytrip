@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.4
+Stable tag: 1.9.5
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,12 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.5 =
+- Giải pháp trùng điểm: thang lộ hạng chuyển sang đếm số đội từ dưới lên (bước 01 lộ 2 đội cuối, bước 02 lộ 4 đội cuối, FINAL lộ hết) thay vì ngưỡng hạng cứng — trùng điểm không còn làm lép bước lộ hạng, nhóm trùng điểm luôn lộ cùng nhau và nhận đồng hạng.
+- Cột chưa lộ hạng trả về vạch xuất phát 112px (min-height) trong các bước lộ hạng để nhóm được lộ nổi bật hẳn.
+- Đồng quán quân: FINAL xướng đủ tên mọi đội hạng 1, cả hai cột cùng lên đỉnh 82% với badge QUÁN QUÂN.
+- Dòng "Xin chúc mừng" chỉ xướng nhóm mới lộ ở nhịp hiện tại (không xướng lại đội đã lộ); bảng điểm thật trong admin gắn nhãn "đồng hạng" cho các đội trùng điểm.
 
 = 1.9.4 =
 - Gộp bước "Top 2 bước lên" và "Tạo cú twist" thành một nút "Tạo cú twist" duy nhất: top 2 leo mượt lên 6 ô rồi dao động bám đuổi ngay trong cùng một nhịp (kịch bản còn 5 nút 00-04).

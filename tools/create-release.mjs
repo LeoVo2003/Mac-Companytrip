@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.4";
+const tag = "v1.9.5";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Gộp bước \"Top 2 bước lên\" và \"Tạo cú twist\" thành một nút \"Tạo cú twist\": top 2 leo lên 6 ô rồi dao động bám đuổi trong cùng một nhịp (kịch bản còn 5 nút 00-04).",
-  "- Khi lộ diện hạng 4 & 3: gắn đủ badge hạng 3-4-5-6 cùng lúc; badge hạng 1-2 vẫn chờ bước công bố quán quân.",
-  "- RANK12 giữ làm trạng thái legacy: dashboard cũ kẹt ở step này vẫn tiến lên TWIST bình thường.",
+  "- Giải pháp trùng điểm: lộ hạng đếm theo số đội từ dưới lên (bước 01: 2 đội cuối, bước 02: 4 đội cuối, FINAL: tất cả) thay vì ngưỡng hạng cứng — trùng điểm không làm lép bước nào, nhóm trùng điểm lộ cùng nhau và nhận đồng hạng.",
+  "- Cột chưa lộ hạng trả về vạch xuất phát 112px trong các bước lộ hạng.",
+  "- Đồng quán quân: FINAL xướng đủ tên mọi đội hạng 1.",
+  "- Dòng chúc mừng chỉ xướng nhóm mới lộ; bảng điểm admin gắn nhãn \"đồng hạng\".",
 ].join("\n");
 
 let release;

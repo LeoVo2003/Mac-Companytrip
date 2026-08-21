@@ -189,21 +189,27 @@ final class MAC_Voting_REST {
             $previous_total = $row['total'];
         }
         unset($row);
-        // Thang lộ hạng: RANK65 mở hạng 5-6, RANK43 mở tới hạng 3, FINAL mở hết.
-        // RANK12/TWIST giữ nguyên hạng 3-6 đã lộ, chỉ giấu hạng 1-2 để giữ cú twist.
-        $minimum_revealed_rank = array(
-            'RANK65' => 5,
-            'RANK43' => 3,
-            'RANK12' => 3,
-            'TWIST' => 3,
-            'FINAL' => 1,
-        )[$state['stage']] ?? null;
+        // Thang lộ hạng đếm theo SỐ ĐỘI TỪ DƯỚI LÊN thay vì ngưỡng hạng cứng, để trùng điểm
+        // không làm lép bước nào: RANK65 lộ 2 đội cuối, RANK43 lộ 4 đội cuối, FINAL lộ hết.
+        // Nhóm trùng điểm vắt ngang mép nhóm sẽ được lộ cùng cụm (vd hạng 4-4-4 lộ cùng bước hạng 5-6).
+        $revealed_from_bottom = array(
+            'RANK65' => 2,
+            'RANK43' => 4,
+            'RANK12' => 4,
+            'TWIST' => 4,
+            'FINAL' => count($rows),
+        )[$state['stage']] ?? 0;
+        $threshold_total = null;
+        if ($revealed_from_bottom > 0 && count($rows)) {
+            $threshold_index = max(0, count($rows) - min($revealed_from_bottom, count($rows)));
+            $threshold_total = (int) $rows[$threshold_index]['total'];
+        }
         $top_two = array();
-        $public_teams = array_map(static function(array $row) use ($state, $minimum_revealed_rank, &$top_two): array {
+        $public_teams = array_map(static function(array $row) use ($threshold_total, &$top_two): array {
             if ((int) $row['rank'] <= 2) {
                 $top_two[] = (int) $row['id'];
             }
-            $is_revealed = $minimum_revealed_rank !== null && (int) $row['rank'] >= $minimum_revealed_rank;
+            $is_revealed = $threshold_total !== null && (int) $row['total'] <= $threshold_total;
             return array(
                 'id' => (int) $row['id'],
                 'number' => (int) $row['team_no'],

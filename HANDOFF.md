@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.4** (2026-08-21) — gộp bước "Top 2 bước lên" + "Tạo cú twist" thành một nút (kịch bản còn 5 nút 00-04); lộ hạng 4 & 3 gắn đủ badge 3-4-5-6 cùng lúc. Trước đó v1.9.3: bàn điều khiển công bố thêm nút Ẩn/Hiện điểm trên màn chiếu; mở màn tung điểm dâng cao hơn; badge hạng trễ một nhịp; bước 03 hạng 3-6 đứng yên (render diff); quán quân 100% → ~82%; text mở màn "6 đội · 4 chặng đường · 1 ngôi vương duy nhất". Trước đó v1.9.2: sửa layout màn công bố (khối mr-chart-lines còn sót trong markup results.js chiếm ô grid sau khi CSS bị bỏ ở 1.9.1), bỏ tag #số đội trên màn trình chiếu, đổi nhãn "KỊCH BẢN MC" → "TÍN HIỆU TỔNG KẾT". Trước đó v1.9.1: sửa lỗi snapshot "Cần đủ 6 đội", bàn điều khiển thành tab "Công bố", bỏ vạch 10 ô + mr-chart-lines CSS. Trước đó v1.9.0: BIG UPDATE màn trình chiếu chuyển thành màn công bố ĐIỂM TỔNG Company Trip với kịch bản 6 step (MC bấm nút trên admin). Logic công bố văn nghệ cũ giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này. Trước đó nữa v1.8.20 nâng spacing đáy + điểm hạng 3 màu copper. Prototype "Race to the Crown" từng gắn tag v1.9.0 cũ đã gỡ khỏi source và xóa release/tag trên GitHub.
+> Phiên bản hiện tại: **v1.9.5** (2026-08-21) — giải pháp trùng điểm: lộ hạng đếm theo số đội từ dưới lên thay ngưỡng hạng cứng (trùng điểm không lép bước nào, lộ cùng nhóm, nhận đồng hạng); cột chưa lộ về vạch 112px; đồng quán quân xướng đủ tên. Trước đó v1.9.4: gộp bước "Top 2 bước lên" + "Tạo cú twist" thành một nút (kịch bản còn 5 nút 00-04); lộ hạng 4 & 3 gắn đủ badge 3-4-5-6 cùng lúc. Trước đó v1.9.3: bàn điều khiển công bố thêm nút Ẩn/Hiện điểm trên màn chiếu; mở màn tung điểm dâng cao hơn; badge hạng trễ một nhịp; bước 03 hạng 3-6 đứng yên (render diff); quán quân 100% → ~82%; text mở màn "6 đội · 4 chặng đường · 1 ngôi vương duy nhất". Trước đó v1.9.2: sửa layout màn công bố (khối mr-chart-lines còn sót trong markup results.js chiếm ô grid sau khi CSS bị bỏ ở 1.9.1), bỏ tag #số đội trên màn trình chiếu, đổi nhãn "KỊCH BẢN MC" → "TÍN HIỆU TỔNG KẾT". Trước đó v1.9.1: sửa lỗi snapshot "Cần đủ 6 đội", bàn điều khiển thành tab "Công bố", bỏ vạch 10 ô + mr-chart-lines CSS. Trước đó v1.9.0: BIG UPDATE màn trình chiếu chuyển thành màn công bố ĐIỂM TỔNG Company Trip với kịch bản 6 step (MC bấm nút trên admin). Logic công bố văn nghệ cũ giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này. Trước đó nữa v1.8.20 nâng spacing đáy + điểm hạng 3 màu copper. Prototype "Race to the Crown" từng gắn tag v1.9.0 cũ đã gỡ khỏi source và xóa release/tag trên GitHub.
 
 ---
 
@@ -138,7 +138,16 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.4 (2026-08-21) — mới nhất · gộp bước twist + badge 3-4-5-6 lộ cùng lúc
+### v1.9.5 (2026-08-21) — mới nhất · giải pháp trùng điểm + cột chưa lộ về vạch xuất phát
+
+- **Trùng điểm không làm lép bước lộ hạng**: `results_total()` bỏ ngưỡng hạng cứng (`RANK65 >= 5`, `RANK43 >= 3` — trùng điểm kiểu 1,2,2,4,4,4 khiến bước 01 không lộ được ai) chuyển sang đếm số đội từ dưới lên: RANK65 lộ 2 đội cuối, RANK43/RANK12/TWIST lộ 4 đội cuối, FINAL lộ hết. Ngưỡng quy về `total` của đội ở mép nhóm (`threshold_total`), đội trùng điểm với mép nhóm lộ cùng cụm → đồng hạng luôn lộ cùng nhau. Trường hợp 3 đội cùng hạng 1: `topTwo` chứa cả 3, twist dao động cả 3, FINAL cho đồng quán quân (chấp nhận được, cực hiếm).
+- **Đồng quán quân**: `renderFinal` xướng đủ mọi đội hạng 1 (`names.join(" · ")` cho cả h1 lẫn mô tả); mỗi đội hạng 1 đều nhận `is-champion` + badge QUÁN QUÂN + cột 82% (logic `podiumClass`/`LADDER_LEVELS` có sẵn đã đúng).
+- **Cột chưa lộ về vạch xuất phát**: muted branch trong `renderLadder` đổi `level = 14` → `"112px"` (đúng min-height của `.mr-bar`); `setBar` nay nhận level dạng chuỗi và set thẳng vào `--bar-level`.
+- **"Xin chúc mừng" chỉ xướng nhóm mới lộ**: module giữ `revealedIds` (Set, clear ở renderIdle/renderRolling/rebuild shell), `newlyRevealed` sort theo rank giảm dần (đội thấp điểm xướng trước); thay `revealedAtRank(5/6)` + `revealedAtRank(3/4)` cũ (trùng điểm sẽ sót tên).
+- Admin: bảng "Tổng điểm thật" gắn nhãn "đồng hạng" khi `rankCounts[rank] > 1`; intro bổ sung câu quy tắc trùng điểm.
+- Đã kiểm tra kỹ phần sắp xếp: hạng theo thể thức thi đấu (1,1,3...) ở cả `results_total` lẫn `MAC_Points::dashboard()` (cùng công thức), DOM màn chiếu luôn sort theo team number nên cột không nhảy vị trí, bậc thang ô cho hạng 3-6 giống hệt nhau giữa RANK43/RANK12/TWIST — phần này vốn đúng, lỗi nằm ở ngưỡng lộ.
+
+### v1.9.4 (2026-08-21) — gộp bước twist + badge 3-4-5-6 lộ cùng lúc
 
 - **Gộp RANK12 + TWIST thành một nút "Tạo cú twist"** (kịch bản admin còn 5 nút 00-04): `ajax_reveal_total` đổi transition `'RANK43' => 'TWIST'`, giữ `'RANK12' => 'TWIST'` làm legacy (RANK12 vẫn nằm trong danh sách stage hợp lệ của DB/REST/admin để state cũ không vỡ). Màn chiếu: renderLadder TWIST cho top 2 leo mượt lên 6 ô, rồi `window.setTimeout(startTwist, 1100)` (ID lưu vào `animationTimer` nên `stopStageAnimation` dọn được).
 - **Badge**: `badgeFor` đổi sang mốc tuyệt đối `STAGE_ORDER` (RANK65:1, RANK43:2, RANK12/TWIST:3, FINAL:4) + `BADGE_FROM` {6,5,4,3: 2; 2,1: 4} — bước lộ hạng 4 & 3 gắn đủ badge 3-4-5-6; badge hạng 6-5 vẫn trễ một nhịp; hạng 1-2 chờ FINAL.
