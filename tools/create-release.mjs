@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.7";
+const tag = "v1.9.8";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Điểm tăng trưởng: nhóm mới lộ phóng to chữ số điểm, nhóm lộ trước tự thu nhỏ khi nhóm sau xuất hiện; FINAL chỉ quán quân giữ chữ to.",
-  "- Pháo hoa FINAL chờ thêm 3 giây sau khi cột quán quân lên đỉnh rồi mới bắn.",
-  "- Nút ẩn điểm giấu hẳn khối số (display:none) thay vì che bằng •••.",
+  "- Thang độ cao mới: lộ 6-5 = 80% → top 4: hạng 4-5-6 cùng 50% + hạng 3 lên 80% → twist: hạng 3 về 50%, 4-5-6 về 30%, top 2 dao động 70-90% → quán quân 85%, hạng nhì 60%.",
+  "- Bước 02 thành 2 nhịp: nhấn lần 1 nhấp nháy nhá hàng top 4, nhấn lần 2 mới lộ diện (stage TEASE43).",
+  "- Mở màn tung điểm kéo mượt từ vạch 122px trong 1,4s đầu rồi mới lượn sóng — hết giật.",
+  "- Cú twist hết giật: top 2 leo mượt 900ms lên 80% rồi mới dao động nhanh; hạng 3-6 hạ độ cao mượt.",
 ].join("\n");
 
 let release;

@@ -504,7 +504,7 @@ final class MAC_Voting_Admin {
     public static function ajax_reveal_total(): void {
         self::guard();
         $next = strtoupper(sanitize_text_field(wp_unslash($_POST['stage'] ?? '')));
-        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'RANK43', 'RANK12', 'TWIST', 'FINAL');
+        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'TEASE43', 'RANK43', 'RANK12', 'TWIST', 'FINAL');
         if (!in_array($next, $allowed, true)) {
             wp_send_json_error(array('message' => 'Trạng thái công bố không hợp lệ.'), 400);
         }
@@ -512,7 +512,8 @@ final class MAC_Voting_Admin {
         $transitions = array(
             'IDLE' => 'ROLLING',
             'ROLLING' => 'RANK65',
-            'RANK65' => 'RANK43',
+            'RANK65' => 'TEASE43',
+            'TEASE43' => 'RANK43',
             'RANK43' => 'TWIST',
             // RANK12 giữ làm trạng thái legacy (bản cũ): vẫn cho tiến lên TWIST nếu dashboard còn kẹt ở step này.
             'RANK12' => 'TWIST',
@@ -536,10 +537,11 @@ final class MAC_Voting_Admin {
         $messages = array(
             'IDLE' => 'Đã đưa màn hình tổng kết về trạng thái chờ.',
             'ROLLING' => 'Màn hình tổng kết đang tung điểm nhẹ nhàng cho 6 đội.',
-            'RANK65' => 'Đã lộ diện hạng 6 và hạng 5 (3 ô).',
-            'RANK43' => 'Đã lộ diện hạng 4 và hạng 3 · hạng 4-5-6 cùng 4 ô.',
+            'RANK65' => 'Đã lộ diện hạng 6 và hạng 5 (80%).',
+            'TEASE43' => 'Đang nhấp nháy nhá hàng top 4 — nhấn lần nữa để lộ diện.',
+            'RANK43' => 'Đã lộ diện hạng 4 và hạng 3 · hạng 4-5-6 cùng 50%, hạng 3 lên 80%.',
             'RANK12' => 'Hai đội dẫn đầu đã bước lên cùng mốc 6 ô.',
-            'TWIST' => 'Nhóm dẫn đầu đã bước lên 6 ô và đang bám đuổi từng điểm.',
+            'TWIST' => 'Nhóm dẫn đầu đang dao động 70-90%, hạng 3 về 50%, hạng 4-5-6 về 30%.',
             'FINAL' => 'Đã công bố quán quân Company Trip.',
         );
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'RESULTS_TOTAL_REVEAL_' . $next, 'reveal', (string) $state['revision'], array(

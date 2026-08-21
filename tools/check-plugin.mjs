@@ -170,10 +170,10 @@ for (const invariant of ["$is_decoy_featured", "$minimum_revealed_rank", "$show_
 for (const invariant of ["'DECOY' => 'THIRD'", "'THIRD' => 'SECOND'", "'SECOND' => 'FINAL'"]) {
   if (!adminFile.includes(invariant)) throw new Error(`Missing manual podium transition: ${invariant}`);
 }
-if (!resultsJs.includes('["RANK65", "RANK43", "RANK12", "TWIST", "FINAL"].includes(state.stage)')) {
-  throw new Error("Total reveal must render from five explicit admin stages without an automatic timer.");
+if (!resultsJs.includes('["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST", "FINAL"].includes(state.stage)')) {
+  throw new Error("Total reveal must render from six explicit admin stages without an automatic timer.");
 }
-for (const invariant of ["RANK65: { 6: 3, 5: 3 }", "FINAL: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 8.2 }"]) {
+for (const invariant of ["RANK65: { 6: 8, 5: 8 }", "TEASE43: { 6: 8, 5: 8 }", "RANK43: { 6: 5, 5: 5, 4: 5, 3: 8 }", "FINAL: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6, 1: 8.5 }"]) {
   if (!resultsJs.includes(invariant)) throw new Error(`Missing total reveal ladder invariant: ${invariant}`);
 }
 for (const banned of ["mr-chart-lines", "mr-horizon", ".mr-column::after", "repeating-linear-gradient(to top"]) {
@@ -197,7 +197,7 @@ if (!adminJs.includes('["reveal", "Công bố"]') || !adminJs.includes("Bàn đi
 if (!adminFile.includes("dashboard()['teams']") || !restFile.includes("dashboard()['teams']")) {
   throw new Error("Total reveal snapshot must read the teams slice of the dashboard board.");
 }
-for (const invariant of ["'RANK65' => 'RANK43'", "'RANK12' => 'TWIST'", "'TWIST' => 'FINAL'", "RESULTS_TOTAL_REVEAL_"]) {
+for (const invariant of ["'RANK65' => 'TEASE43'", "'TEASE43' => 'RANK43'", "'RANK12' => 'TWIST'", "'TWIST' => 'FINAL'", "RESULTS_TOTAL_REVEAL_"]) {
   if (!adminFile.includes(invariant)) throw new Error(`Missing total reveal admin transition: ${invariant}`);
 }
 if (!restFile.includes("/results-total") || !restFile.includes("function results_total")) {
@@ -277,7 +277,7 @@ const tieRevealed = (totals, stage) => {
   const sorted = [...totals].sort((a, b) => b - a);
   const ranks = tieRanks(totals);
   const count = sorted.length;
-  const fromBottom = { RANK65: 2, RANK43: 4, RANK12: 4, TWIST: 4, FINAL: count }[stage] ?? 0;
+  const fromBottom = { RANK65: 2, TEASE43: 2, RANK43: 4, RANK12: 4, TWIST: 4, FINAL: count }[stage] ?? 0;
   if (!fromBottom) return [];
   const threshold = sorted[Math.max(0, count - Math.min(fromBottom, count))];
   const protectTop = stage !== "FINAL";
@@ -316,7 +316,7 @@ for (const tc of TIE_CASES) {
   if (ranks.join(",") !== tc.ranks.join(",")) {
     throw new Error(`${tc.name}: tính hạng sai — được ${ranks.join(",")}, mong đợi ${tc.ranks.join(",")}.`);
   }
-  for (const stage of ["RANK65", "RANK43", "RANK12", "TWIST"]) {
+  for (const stage of ["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST"]) {
     for (const index of tieRevealed(tc.totals, stage)) {
       if (ranks[index] <= 2) throw new Error(`${tc.name}/${stage}: đội hạng 1-2 bị lộ sớm trước FINAL.`);
     }

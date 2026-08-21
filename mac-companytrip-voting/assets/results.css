@@ -536,8 +536,9 @@ body.mac-results-page .elementor-shortcode {
   transition-duration: 105ms;
 }
 
-.mr-shell[data-stage="twist"] .mr-bar {
-  transition-duration: 120ms;
+/* Nhá hàng top 4: các cột chưa lộ nhấp nháy sáng tối để kích thích trước khi lộ diện. */
+.mr-shell[data-stage="tease43"] .mr-team.is-muted {
+  animation: mr-tease-blink 820ms ease-in-out infinite alternate;
 }
 
 .mr-shell[data-stage="final"] .mr-team.is-champion .mr-bar {
@@ -778,6 +779,11 @@ body.mac-results-page .elementor-shortcode {
 
 @keyframes mr-scan {
   to { left: 150%; }
+}
+
+@keyframes mr-tease-blink {
+  from { opacity: 0.16; filter: saturate(0.2) brightness(0.8); }
+  to { opacity: 0.55; filter: saturate(0.5) brightness(1.35); }
 }
 
 @keyframes mr-featured-pulse {

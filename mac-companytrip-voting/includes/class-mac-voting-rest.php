@@ -194,6 +194,7 @@ final class MAC_Voting_REST {
         // Nhóm trùng điểm vắt ngang mép nhóm sẽ được lộ cùng cụm (vd hạng 4-4-4 lộ cùng bước hạng 5-6).
         $revealed_from_bottom = array(
             'RANK65' => 2,
+            'TEASE43' => 2,
             'RANK43' => 4,
             'RANK12' => 4,
             'TWIST' => 4,
