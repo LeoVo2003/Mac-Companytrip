@@ -8,15 +8,20 @@
   const esc = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
   const clamp = (minimum, value, maximum) => Math.min(maximum, Math.max(minimum, value));
   const formatTotal = (score) => Number(score).toLocaleString("vi-VN");
-  // Thang 10 ô: mỗi ô = 10% chiều cao cột. Quán quân nhảy thẳng lên ô 10.
+  // Thang 10 ô: mỗi ô = 10% chiều cao cột. Quán quân chạm ~82% (8,2 ô) cho vừa khung.
   const CELL = 10;
   const LADDER_LEVELS = {
     RANK65: { 6: 3, 5: 3 },
     RANK43: { 6: 4, 5: 4, 4: 4, 3: 5 },
     RANK12: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 6 },
     TWIST: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 6 },
-    FINAL: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 10 },
+    FINAL: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 8.2 },
   };
+  // Badge hạng xuất hiện trễ một nhịp: hạng lộ ra ở bước này thì bước kế tiếp mới gắn badge,
+  // riêng FINAL gắn đủ badge để khép màn. Thứ tự bước và bước lộ từng cặp hạng:
+  const STAGE_ORDER = { RANK65: 1, RANK43: 2, RANK12: 3, TWIST: 4, FINAL: 5 };
+  const RANK_REVEALED_AT = { 6: 1, 5: 1, 4: 2, 3: 2, 2: 5, 1: 5 };
+  const badgeFor = (stage, rank) => stage === "FINAL" || (STAGE_ORDER[stage] ?? 0) > (RANK_REVEALED_AT[rank] ?? 9);
 
   let state = null;
   let rosterSignature = "";
@@ -63,6 +68,11 @@
     element.querySelector(".mr-score span").textContent = scoreText;
   }
 
+  // Admin có thể ẩn điểm trên màn chiếu: che số bằng ••• cho tới khi mở lại.
+  function displayScore(text) {
+    return state?.scoresHidden ? "•••" : text;
+  }
+
   function stopStageAnimation() {
     window.clearInterval(animationTimer);
     animationTimer = 0;
@@ -81,13 +91,13 @@
     });
   }
 
-  // Step 1: tung điểm nhưng lượn sóng nhẹ nhàng, không giật.
+  // Step 1: tung điểm nhưng lượn sóng nhẹ nhàng, không giật. Cột dâng cao dần để có đà trước khi lộ hạng.
   function renderRolling() {
-    setHeading("TỔNG ĐIỂM ĐANG CHUYỂN ĐỘNG", "Ai sẽ chạm đỉnh?", "Điểm từ bốn mặt trận đang dồn về một mối", "Đang tung điểm trực tiếp");
+    setHeading("TỔNG ĐIỂM ĐANG CHUYỂN ĐỘNG", "Ai sẽ chạm đỉnh?", "6 đội · 4 chặng đường · 1 ngôi vương duy nhất", "Đang tung điểm trực tiếp");
     const waves = state.teams.map((team, index) => ({
       id: team.id,
-      base: 16 + (index % 3) * 2.5,
-      amplitude: 5.5 + (index % 2) * 2,
+      base: 26 + (index % 3) * 3,
+      amplitude: 6.5 + (index % 2) * 2.5,
       period: 3200 + index * 380,
       phase: index * 0.9,
       value: 430 + index * 25,
@@ -101,7 +111,7 @@
     if (reducedMotion.matches) {
       const gentle = () => waves.forEach((wave) => {
         const element = teamElement(wave.id);
-        if (element) setBar(element, wave.base, drift(wave));
+        if (element) setBar(element, wave.base, displayScore(drift(wave)));
       });
       gentle();
       animationTimer = window.setInterval(gentle, 1000);
@@ -115,7 +125,7 @@
         if (!element) return;
         clearTeamState(element);
         const level = wave.base + Math.sin((elapsed / wave.period) * Math.PI * 2 + wave.phase) * wave.amplitude;
-        setBar(element, level, drift(wave));
+        setBar(element, level, displayScore(drift(wave)));
       });
       frameId = requestAnimationFrame(step);
     };
@@ -165,7 +175,8 @@
     const champions = revealedAtRank(1);
     const champion = champions[0];
     const name = champion ? champion.name : "Kết quả chung cuộc";
-    const description = champion ? `CHÚC MỪNG ${name.toUpperCase()} · ${formatTotal(champion.score)} điểm · Nhà vô địch Company Trip` : "Đã hoàn tất công bố";
+    const scoreLine = champion && !state.scoresHidden ? ` · ${formatTotal(champion.score)} điểm` : "";
+    const description = champion ? `CHÚC MỪNG ${name.toUpperCase()}${scoreLine} · Nhà vô địch Company Trip` : "Đã hoàn tất công bố";
     setHeading("QUÁN QUÂN COMPANY TRIP", name, description, "Kết quả chung cuộc");
     if (pyroRevision !== state.revision && !reducedMotion.matches) {
       pyroRevision = state.revision;
@@ -174,26 +185,41 @@
   }
 
   // Step 2-6: thang ô cố định theo thứ hạng; CSS tự lo hiệu ứng trồi lên mượt mà.
+  // Chỉ render lại đội nào đổi trạng thái để hạng đã lộ đứng yên (không nhấp nháy lại
+  // màu, không pop lại badge) khi hạng mới bước lên.
   function renderLadder(stage) {
     state.teams.forEach((team) => {
       const element = teamElement(team.id);
-      clearTeamState(element);
+      const classes = [];
+      let level;
+      let scoreText;
+      let badgeText = "";
       if (team.rank !== null) {
         const cells = LADDER_LEVELS[stage][team.rank] ?? 4;
-        element.classList.add("is-revealed");
+        classes.push("is-revealed");
         const podium = podiumClass(team.rank);
-        if (podium) element.classList.add("is-finalist", podium);
-        setBar(element, cells * CELL, formatTotal(team.score));
-        const rank = element.querySelector(".mr-rank");
-        rank.hidden = false;
-        rank.textContent = rankLabel(team.rank);
+        if (podium) classes.push("is-finalist", podium);
+        level = cells * CELL;
+        scoreText = displayScore(formatTotal(team.score));
+        if (badgeFor(stage, team.rank)) badgeText = rankLabel(team.rank);
       } else if (stage === "RANK12" || stage === "TWIST") {
         // Top 2 đã leo lên 6 ô nhưng giấu hạng + điểm thật để giữ cú twist.
-        setBar(element, 6 * CELL, "•••");
+        level = 6 * CELL;
+        scoreText = "•••";
       } else {
-        element.classList.add("is-muted");
-        setBar(element, 14, "•••");
+        classes.push("is-muted");
+        level = 14;
+        scoreText = "•••";
       }
+      const snapshot = `${classes.join(" ")}|${level}|${scoreText}|${badgeText}`;
+      if (element.dataset.snapshot === snapshot) return;
+      element.dataset.snapshot = snapshot;
+      clearTeamState(element);
+      classes.forEach((name) => element.classList.add(name));
+      setBar(element, level, scoreText);
+      const rank = element.querySelector(".mr-rank");
+      rank.hidden = !badgeText;
+      rank.textContent = badgeText;
     });
 
     if (stage === "RANK65") {
@@ -225,7 +251,7 @@
       shell(nextState.teams);
       force = true;
     }
-    const changed = force || !state || nextState.revision !== state.revision || nextState.stage !== state.stage;
+    const changed = force || !state || nextState.revision !== state.revision || nextState.stage !== state.stage || !!nextState.scoresHidden !== !!state.scoresHidden;
     state = nextState;
     setConnection(true);
     if (!changed) return;

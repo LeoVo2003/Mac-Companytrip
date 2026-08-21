@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.2** (đã release & verify ngày 2026-08-21, release id 374173359, commit 4146baa) — sửa layout màn công bố (khối mr-chart-lines còn sót trong markup results.js chiếm ô grid sau khi CSS bị bỏ ở 1.9.1), bỏ tag #số đội trên màn trình chiếu, đổi nhãn "KỊCH BẢN MC" → "TÍN HIỆU TỔNG KẾT". Trước đó v1.9.1: sửa lỗi snapshot "Cần đủ 6 đội", bàn điều khiển thành tab "Công bố", bỏ vạch 10 ô + mr-chart-lines CSS. Trước đó v1.9.0: BIG UPDATE màn trình chiếu chuyển thành màn công bố ĐIỂM TỔNG Company Trip với kịch bản 6 step (MC bấm nút trên admin). Logic công bố văn nghệ cũ giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này. Trước đó nữa v1.8.20 nâng spacing đáy + điểm hạng 3 màu copper. Prototype "Race to the Crown" từng gắn tag v1.9.0 cũ đã gỡ khỏi source và xóa release/tag trên GitHub.
+> Phiên bản hiện tại: **v1.9.3** (2026-08-21) — bàn điều khiển công bố thêm nút Ẩn/Hiện điểm trên màn chiếu; mở màn tung điểm dâng cao hơn; badge hạng trễ một nhịp; bước 03 hạng 3-6 đứng yên (render diff); quán quân 100% → ~82%; text mở màn "6 đội · 4 chặng đường · 1 ngôi vương duy nhất". Trước đó v1.9.2: sửa layout màn công bố (khối mr-chart-lines còn sót trong markup results.js chiếm ô grid sau khi CSS bị bỏ ở 1.9.1), bỏ tag #số đội trên màn trình chiếu, đổi nhãn "KỊCH BẢN MC" → "TÍN HIỆU TỔNG KẾT". Trước đó v1.9.1: sửa lỗi snapshot "Cần đủ 6 đội", bàn điều khiển thành tab "Công bố", bỏ vạch 10 ô + mr-chart-lines CSS. Trước đó v1.9.0: BIG UPDATE màn trình chiếu chuyển thành màn công bố ĐIỂM TỔNG Company Trip với kịch bản 6 step (MC bấm nút trên admin). Logic công bố văn nghệ cũ giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này. Trước đó nữa v1.8.20 nâng spacing đáy + điểm hạng 3 màu copper. Prototype "Race to the Crown" từng gắn tag v1.9.0 cũ đã gỡ khỏi source và xóa release/tag trên GitHub.
 
 ---
 
@@ -138,7 +138,16 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.2 (2026-08-21, commit 4146baa, release id 374173359) — mới nhất · sửa layout + bỏ tag #N
+### v1.9.3 (2026-08-21) — mới nhất · tinh chỉnh màn công bố + nút ẩn điểm
+
+- **Nút Ẩn/Hiện điểm trên màn chiếu** trong footer Bàn điều khiển công bố (`#ma-toggle-scores`, gọi `mac_vote_toggle_scores` — backend `ajax_toggle_scores` + option `mac_voting_total_scores_hidden` đã có sẵn từ trước, bản này mới nối UI). Màn trình chiếu đọc `scoresHidden` từ `/results-total`, che mọi số bằng `•••`; `applyStage` nay coi thay đổi `scoresHidden` là một lần đổi stage để re-render trong ~1s.
+- **Mở màn tung điểm cao hơn**: sóng ROLLING nâng từ ~11-28% lên ~19-41% (`base 26 + (i%3)*3`, `amplitude 6.5 + (i%2)*2.5`).
+- **Badge hạng trễ một nhịp**: `badgeFor(stage, rank)` dùng `STAGE_ORDER` + `RANK_REVEALED_AT` — hạng lộ ở bước này thì bước kế tiếp mới gắn badge; FINAL gắn đủ (gồm QUÁN QUÂN/HẠNG NHÌ).
+- **Render diff trong `renderLadder`**: mỗi đội ghi `dataset.snapshot` (classes|level|score|badge); đội không đổi thì không đụng DOM → bước 03 top 2 leo lên hạng 3-6 giữ nguyên badge/vị trí/màu, không re-animation.
+- **Quán quân 100% → 82%**: `LADDER_LEVELS.FINAL` đổi `1: 10` → `1: 8.2`; invariant trong `check-plugin.mjs` cập nhật theo.
+- **Text**: mô tả ROLLING "Điểm từ bốn mặt trận đang dồn về một mối" → "6 đội · 4 chặng đường · 1 ngôi vương duy nhất"; copy admin (intro + nút 05) đổi "10 ô" → "~82%".
+
+### v1.9.2 (2026-08-21, commit 4146baa, release id 374173359) — sửa layout + bỏ tag #N
 
 - **Layout màn công bố**: bản 1.9.1 bỏ CSS `.mr-chart-lines` nhưng markup `shell()` trong results.js vẫn render `<div class="mr-chart-lines">` → mất `position:absolute` nên nó thành grid item, chiếm hàng 64px và đẩy `.mr-header` vào hàng 1fr (header giãn nửa màn hình như screenshot user báo). Đã bỏ khối div này khỏi markup; grid chỉ còn header (64px) + main (1fr).
 - **Bỏ tag `#số đội`** (`<b>#${team.number}</b>`) trên tên đội ở màn trình chiếu; `.mr-team-name` chuyển `align-content: center` để tên cân giữa ô 64px; xóa CSS chết `.mr-team-name b` + padding-top mobile.

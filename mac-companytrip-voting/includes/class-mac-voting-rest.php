@@ -190,10 +190,12 @@ final class MAC_Voting_REST {
         }
         unset($row);
         // Thang lộ hạng: RANK65 mở hạng 5-6, RANK43 mở tới hạng 3, FINAL mở hết.
-        // RANK12/TWIST cố tình giấu hạng 1-2 để giữ cú twist.
+        // RANK12/TWIST giữ nguyên hạng 3-6 đã lộ, chỉ giấu hạng 1-2 để giữ cú twist.
         $minimum_revealed_rank = array(
             'RANK65' => 5,
             'RANK43' => 3,
+            'RANK12' => 3,
+            'TWIST' => 3,
             'FINAL' => 1,
         )[$state['stage']] ?? null;
         $top_two = array();
@@ -218,6 +220,7 @@ final class MAC_Voting_REST {
             'serverTime' => (int) round(microtime(true) * 1000),
             'teams' => $public_teams,
             'topTwo' => array_values($top_two),
+            'scoresHidden' => MAC_Voting_DB::scores_hidden(),
         ));
         $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
         return $response;

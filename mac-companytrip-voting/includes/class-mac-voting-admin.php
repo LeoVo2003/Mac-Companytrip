@@ -13,6 +13,7 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_round', array(__CLASS__, 'ajax_round'));
         add_action('wp_ajax_mac_vote_reveal', array(__CLASS__, 'ajax_reveal'));
         add_action('wp_ajax_mac_vote_reveal_total', array(__CLASS__, 'ajax_reveal_total'));
+        add_action('wp_ajax_mac_vote_toggle_scores', array(__CLASS__, 'ajax_toggle_scores'));
         add_action('wp_ajax_mac_vote_team', array(__CLASS__, 'ajax_team'));
         add_action('wp_ajax_mac_vote_swap', array(__CLASS__, 'ajax_swap'));
         add_action('wp_ajax_mac_vote_ballot', array(__CLASS__, 'ajax_ballot'));
@@ -489,6 +490,17 @@ final class MAC_Voting_Admin {
         wp_send_json_success(array('message' => $messages[$next], 'overview' => self::overview()));
     }
 
+    public static function ajax_toggle_scores(): void {
+        self::guard();
+        $hidden = !empty($_POST['hidden']);
+        MAC_Voting_DB::set_scores_hidden($hidden);
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'RESULTS_TOTAL_SCORES_' . ($hidden ? 'HIDDEN' : 'SHOWN'), 'reveal', null, array());
+        wp_send_json_success(array(
+            'message' => $hidden ? 'Đã ẩn điểm trên màn hình trình chiếu.' : 'Đã hiện điểm trên màn hình trình chiếu.',
+            'overview' => self::overview(),
+        ));
+    }
+
     public static function ajax_reveal_total(): void {
         self::guard();
         $next = strtoupper(sanitize_text_field(wp_unslash($_POST['stage'] ?? '')));
@@ -891,6 +903,7 @@ final class MAC_Voting_Admin {
             'rounds' => $round_rows, 'results' => $results, 'ballots' => $recent,
             'reveal' => MAC_Voting_DB::reveal_state(),
             'totalReveal' => MAC_Voting_DB::total_reveal_state(),
+            'totalScoresHidden' => MAC_Voting_DB::scores_hidden(),
             'votingEnabled' => MAC_Voting_DB::is_voting_enabled(),
             'checkpoints' => MAC_Checkin::checkpoints(),
             'checkinBoard' => self::checkin_overview_board(),

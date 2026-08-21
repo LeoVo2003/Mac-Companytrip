@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.2";
+const tag = "v1.9.3";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,12 @@ const headers = {
 };
 
 const notes = [
-  "- Sửa lỗi lệch layout màn công bố tổng kết: bỏ khối mr-chart-lines còn sót trong markup results.js (mất position:absolute ở bản 1.9.1 nên chiếm ô grid, header giãn nửa màn hình).",
-  "- Bỏ tag #số đội trên tên đội ở màn trình chiếu; tên đội căn giữa ô cho cân.",
-  "- Đổi nhãn khối nút điều khiển trong admin: 'KỊCH BẢN MC' → 'TÍN HIỆU TỔNG KẾT'.",
+  "- Bàn điều khiển công bố thêm nút Ẩn/Hiện điểm trên màn chiếu (che số bằng •••, màn trình chiếu tự đồng bộ ~1 giây).",
+  "- Mở màn tung điểm dâng cao hơn (~19-41% cột thay vì ~11-28%).",
+  "- Badge hạng xuất hiện trễ một nhịp: hạng lộ ở bước này thì bước kế tiếp mới gắn badge; bước quán quân gắn đủ badge.",
+  "- Bước 03 top 2 bước lên: hạng 3-6 giữ nguyên badge, vị trí, màu sắc — không re-animation (render diff theo từng đội).",
+  "- Quán quân giảm từ 10 ô (100%) xuống ~82% cho vừa khung.",
+  "- Text mở màn mới: \"6 đội · 4 chặng đường · 1 ngôi vương duy nhất\".",
 ].join("\n");
 
 let release;

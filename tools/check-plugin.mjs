@@ -173,7 +173,7 @@ for (const invariant of ["'DECOY' => 'THIRD'", "'THIRD' => 'SECOND'", "'SECOND' 
 if (!resultsJs.includes('["RANK65", "RANK43", "RANK12", "TWIST", "FINAL"].includes(state.stage)')) {
   throw new Error("Total reveal must render from five explicit admin stages without an automatic timer.");
 }
-for (const invariant of ["RANK65: { 6: 3, 5: 3 }", "FINAL: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 10 }"]) {
+for (const invariant of ["RANK65: { 6: 3, 5: 3 }", "FINAL: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 8.2 }"]) {
   if (!resultsJs.includes(invariant)) throw new Error(`Missing total reveal ladder invariant: ${invariant}`);
 }
 for (const banned of ["mr-chart-lines", "mr-horizon", ".mr-column::after", "repeating-linear-gradient(to top"]) {

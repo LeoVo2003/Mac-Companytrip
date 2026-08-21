@@ -716,4 +716,12 @@ final class MAC_Voting_DB {
         update_option('mac_voting_total_reveal_state', $state, false);
         return $state;
     }
+
+    public static function scores_hidden(): bool {
+        return (bool) get_option('mac_voting_total_scores_hidden', false);
+    }
+
+    public static function set_scores_hidden(bool $hidden): void {
+        update_option('mac_voting_total_scores_hidden', $hidden, false);
+    }
 }
