@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.18** (đã release & verify ngày 2026-08-21, release id 374148401, commit 297a3d8) — trả seascape về đúng màu bản tham chiếu (khôi phục mr-horizon + mr-chart-lines, mr-sun mờ rộng), la bàn rotate(0) kim đỏ chỉ đúng 12h, vòng sóng ::after mờ dần tan biến 50→75%. Trước đó v1.8.16–1.8.17 port style hải trình + điểm xuống đáy cột. Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
+> Phiên bản hiện tại: **v1.8.19** (đã release & verify ngày 2026-08-21, release id 374154410, commit ba686c7) — tên đội + điểm số dưới chân cột phóng to hơn, bỏ hẳn đường kẻ mr-horizon. Trước đó v1.8.18 trả seascape về đúng màu bản tham chiếu + la bàn rotate(0) + vòng sóng mờ 50→75%. Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
 
 ---
 
@@ -138,7 +138,12 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.18 (2026-08-21, commit 297a3d8, release id 374148401) — mới nhất
+### v1.8.19 (2026-08-21, commit ba686c7, release id 374154410) — mới nhất
+
+- Phóng to tên đội + điểm dưới chân cột: `.mr-score span` clamp(18px,1.7vw,30px), `.mr-score small` clamp(7px,0.6vw,10px), `.mr-team-name b` clamp(10px,0.8vw,14px), `.mr-team-name strong` clamp(12px,1.1vw,20px) (mobile: score clamp(14px,4.2vw,20px), strong 11px); nới hàng lưới `.mr-team` desktop `minmax(0,1fr) 64px 40px` / mobile `52px 30px`, horizon `.mr-chart::after` dời về `bottom: 104px` / mobile `82px`; cập nhật invariant trong `tools/check-plugin.mjs`.
+- Bỏ hẳn `.mr-horizon` (đường kẻ chân trời) khỏi JS + CSS theo ý user.
+
+### v1.8.18 (2026-08-21, commit 297a3d8, release id 374148401)
 
 - User so sánh ảnh thực tế với ảnh bản tham chiếu và chốt **hình 2 (bản tham chiếu) là cái muốn**: trả palette biển về gốc (`--deep-sea #0a2338`, `--sea-teal #123a52`, `--sea-glint #2c5b74`, glow 0.28/0.12), `.mr-sun` về vệt mờ rộng 58vw×18vh blur 54px (bỏ đĩa nắng to), khôi phục `.mr-horizon` (đường chân trời 16%) và `.mr-chart-lines` (2 tuyến chéo + 3 chấm) trong cả JS lẫn CSS.
 - `.mr-compass` bỏ `rotate(-7deg)` → `translate(-50%, -50%) rotate(0deg)` để kim đỏ đứng yên chỉ đúng 12h.
@@ -220,7 +225,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.8.18 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: palette gốc + `.mr-horizon` + `.mr-chart-lines` + `rotate(0deg)` + mask vòng sóng 50→75% trong results.css, horizon/chart-lines trong results.js, Version 1.8.18 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.18 là release mới nhất, updater sẽ không kéo ngược bản cũ.
+Mọi yêu cầu tới 1.8.19 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: score/name clamp mới + rows 64/40 + bottom 104px có, `.mr-horizon` biến mất khỏi cả JS lẫn CSS, Version 1.8.19 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.19 là release mới nhất, updater sẽ không kéo ngược bản cũ.
 
 ---
 
