@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.15";
+const tag = "v1.8.16";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- La bàn vẽ lại nét mảnh và mờ hơn (line-art clean), kim luôn đung đưa nhẹ ở mọi giai đoạn.",
-  "- Bỏ dòng mô tả màn chờ \"6 đội · 1 hải trình · 1 ngôi vị cao nhất\"; header đổi \"COMPANY TRIP · ONE COMPASS\" → \"company trip - One Direction\".",
+  "- Làm lại giao diện màn công bố theo style \"hải trình\" (seascape, la bàn lớn với kim quay theo stage, header brand lockup) — giữ nguyên font chữ và nội dung hiện tại.",
+  "- Điểm số chuyển xuống dưới cùng mỗi cột (dưới tên đội).",
 ].join("\n");
 
 let release;

@@ -39,8 +39,11 @@ for (const file of cssFiles) {
 }
 
 const resultsCss = fs.readFileSync(path.join(pluginRoot, "assets/results.css"), "utf8");
-for (const invariant of ["grid-template-rows: 52px minmax(0, 1fr) 58px;", "flex: 0 0 auto;", "margin: 0 0 8px;"]) {
+for (const invariant of ["grid-template-rows: minmax(0, 1fr) 56px 32px;", "flex: 0 0 auto;", "margin: 0 0 8px;"]) {
   if (!resultsCss.includes(invariant)) throw new Error(`Podium label must remain in flow above the bar: ${invariant}`);
+}
+for (const invariant of ["grid-row: 3;", "grid-row: 2;", "grid-row: 1;"]) {
+  if (!resultsCss.includes(invariant)) throw new Error(`Score row must stay pinned to the bottom of each column: ${invariant}`);
 }
 if (resultsCss.includes("top: max(18px, calc(100% - var(--bar-level) - 34px));")) {
   throw new Error("Podium label must not use the overlapping absolute position.");
