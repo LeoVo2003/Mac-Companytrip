@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.16** (đã release & verify ngày 2026-08-21, release id 374130888, commit c0465af) — port màn công bố sang style "hải trình" (seascape + la bàn lớn kim quay theo stage + brand lockup), điểm số dời xuống dưới cùng mỗi cột; giữ nguyên font và nội dung hiện tại. Trước đó v1.8.13–1.8.15 là các bản tinh chỉnh bộ nhận diện "One Compass". Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
+> Phiên bản hiện tại: **v1.8.17** (đã release & verify ngày 2026-08-21, release id 374139051, commit 28be285) — dọn seascape (bỏ mr-horizon/mr-chart-lines, mr-sun thành đĩa nắng hoàng hôn, màu biển đậm hơn), la bàn to hơn nhưng mờ hơn với mặt số xoay tròn mượt + kim đứng yên đầu đỏ chỉ 12h, logo ~100px bỏ huy hiệu la bàn. Trước đó v1.8.16 port màn công bố sang style "hải trình" + điểm số xuống đáy cột. Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
 
 ---
 
@@ -138,7 +138,13 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.16 (2026-08-21, commit c0465af, release id 374130888) — mới nhất
+### v1.8.17 (2026-08-21, commit 28be285, release id 374139051) — mới nhất
+
+- Dọn seascape theo feedback user: bỏ `<i class="mr-horizon">` và cả khối `.mr-chart-lines` (JS + CSS) vì vô nghĩa; `.mr-sun` vẽ lại thành đĩa nắng hoàng hôn rõ hơn (radial-gradient vàng→cam→đỏ, blur 12px, opacity 0.8); token biển đậm hơn (`--deep-sea #0a2a45`, `--sea-teal #12466b`, `--sea-glint #2e6a8e`) + glow mép trên mạnh hơn.
+- La bàn: to hơn (`min(66vw, 820px)`, mobile 84vw/100vw) nhưng mờ hơn (opacity 0.12, mobile 0.1); **mặt số SVG xoay tròn mượt liên tục** (`mr-dial-spin 90s linear infinite` trên svg) như la bàn thật, **kim đứng yên** `rotate(0)` với đầu bắc đỏ `var(--sunset-red)` luôn chỉ 12h; gỡ toàn bộ animation kim theo stage + 6 keyframe mr-needle-*.
+- Logo header to hơn `clamp(72px, 6.5vw, 100px)` (height auto, mobile 64px); bỏ `.mr-compass-mark` cạnh logo (JS + CSS).
+
+### v1.8.16 (2026-08-21, commit c0465af, release id 374130888)
 
 - User đưa 2 file tham chiếu từ thư mục "Chấm Điểm Văn Nghệ - Copy" và yêu cầu làm lại màn công bố theo style đó, **chỉ giữ font chữ/nội dung hiện tại**. Port toàn bộ phần nhìn: seascape (`.mr-sun/.mr-horizon/.mr-wake`), `.mr-chart-lines`, la bàn SVG lớn viewBox 400 (3 vòng + cross + rose + minor + labels N/E/S/W/NE/SE/SW/NW) với `.mr-needle` vẽ bằng CSS quay theo stage (`mr-needle-drift/spin/search/third/second/lock`), header `.mr-brand-lockup` (logo + `.mr-compass-mark`), bar kim loại nhiều lớp, stage final đổi nền + h1 vàng.
 - **Điểm số dời xuống dưới cùng** theo ảnh user gửi: DOM giữ nguyên `.mr-score → .mr-column → .mr-team-name` nhưng grid reorder `.mr-column { grid-row: 1 }`, `.mr-team-name { grid-row: 2 }`, `.mr-score { grid-row: 3 }`; `.mr-team { grid-template-rows: minmax(0,1fr) 56px 32px }` (mobile `44px 24px`); horizon `.mr-chart::after` dời về `bottom: 88px` (mobile 68px) cho khớp chân cột.
@@ -208,7 +214,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.8.16 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: `mr-seascape` + `mr-needle` + "COMPANY TRIP - One Direction" trong results.js, `mr-needle-lock` + `grid-row: 3` + row template mới trong results.css, Version 1.8.16 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.16 là release mới nhất, updater sẽ không kéo ngược bản cũ.
+Mọi yêu cầu tới 1.8.17 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: `mr-dial-spin` + kim đỏ `--sunset-red` + `min(66vw, 820px)` + logo 100px có, `.mr-horizon`/`.mr-chart-lines`/`mr-compass-mark` đã biến mất, Version 1.8.17 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.17 là release mới nhất, updater sẽ không kéo ngược bản cũ.
 
 ---
 
