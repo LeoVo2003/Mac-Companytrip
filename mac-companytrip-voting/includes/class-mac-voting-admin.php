@@ -511,7 +511,7 @@ final class MAC_Voting_Admin {
         $totals = null;
         if ($next === 'ROLLING') {
             $snapshot = array();
-            foreach (MAC_Points::dashboard() as $board_row) {
+            foreach ((MAC_Points::dashboard()['teams'] ?? array()) as $board_row) {
                 $snapshot[(int) $board_row['teamId']] = (int) $board_row['total'];
             }
             if (count($snapshot) < 6) {

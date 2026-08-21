@@ -170,7 +170,7 @@ final class MAC_Voting_REST {
         $totals = $state['totals'];
         if (!$totals) {
             // Chưa mở màn: dùng điểm live (màn IDLE chỉ hiện dấu gạch nên không lộ số).
-            foreach (MAC_Points::dashboard() as $board_row) {
+            foreach ((MAC_Points::dashboard()['teams'] ?? array()) as $board_row) {
                 $totals[(int) $board_row['teamId']] = (int) $board_row['total'];
             }
         }

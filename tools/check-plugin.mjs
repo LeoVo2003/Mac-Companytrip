@@ -176,8 +176,14 @@ if (!resultsJs.includes('["RANK65", "RANK43", "RANK12", "TWIST", "FINAL"].includ
 for (const invariant of ["RANK65: { 6: 3, 5: 3 }", "FINAL: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 10 }"]) {
   if (!resultsJs.includes(invariant)) throw new Error(`Missing total reveal ladder invariant: ${invariant}`);
 }
-if (!resultsCss.includes("repeating-linear-gradient(to top, transparent 0 calc(10% - 1px)")) {
-  throw new Error("Missing 10-cell ladder ticks on each column.");
+for (const banned of ["mr-chart-lines", "mr-horizon", ".mr-column::after", "repeating-linear-gradient(to top"]) {
+  if (resultsCss.includes(banned)) throw new Error(`Banned results-screen decoration must stay removed: ${banned}`);
+}
+if (!adminJs.includes('["reveal", "Công bố"]') || !adminJs.includes("Bàn điều khiển công bố")) {
+  throw new Error("Total reveal control must live in its own Công bố tab of the overview.");
+}
+if (!adminFile.includes("dashboard()['teams']") || !restFile.includes("dashboard()['teams']")) {
+  throw new Error("Total reveal snapshot must read the teams slice of the dashboard board.");
 }
 for (const invariant of ["'RANK65' => 'RANK43'", "'RANK12' => 'TWIST'", "'TWIST' => 'FINAL'", "RESULTS_TOTAL_REVEAL_"]) {
   if (!adminFile.includes(invariant)) throw new Error(`Missing total reveal admin transition: ${invariant}`);

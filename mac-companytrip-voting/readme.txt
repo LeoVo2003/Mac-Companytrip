@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.0
+Stable tag: 1.9.1
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,11 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.1 =
+- Sửa lỗi "Cần đủ 6 đội" khi mở màn công bố tổng kết (snapshot đọc đúng mảng teams của bảng tổng điểm).
+- Bàn điều khiển công bố chuyển thành tab "Công bố" trong Tổng quan, đứng giữa Tổng điểm và Lịch sử; đổi nhãn LIVE REVEAL / Tín hiệu MC; bỏ tiền tố #số đội ở bảng điểm thật.
+- Màn tổng kết gọn hơn: bỏ vạch ngang chia 10 ô trên cột và lớp mr-chart-lines — thang ô chỉ còn trong logic.
 
 = 1.9.0 =
 - Màn hình trình chiếu chuyển thành màn công bố ĐIỂM TỔNG Company Trip (giữ layout hải trình): endpoint mới /results-total, thang 10 ô với vạch chia, tổng điểm thật lấy từ sổ điểm.

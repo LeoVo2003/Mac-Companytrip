@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.0";
+const tag = "v1.9.1";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Màn trình chiếu nay là màn công bố ĐIỂM TỔNG Company Trip: endpoint /results-total, thang 10 ô có vạch chia, tổng điểm thật từ sổ điểm (check-in + games + văn nghệ + thi đua).",
-  "- Kịch bản 6 step do MC điều khiển từ admin: tung điểm lượn nhẹ → hạng 6-5 (3 ô) → hạng 4-3 (4-5-6 cùng 4 ô) → top 2 cùng 6 ô → twist bám đuổi → quán quân nhảy lên 10 ô + pháo hoa tưng bừng.",
-  "- Logic công bố văn nghệ cũ được giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này.",
+  "- Sửa lỗi 'Cần đủ 6 đội' khi mở màn công bố tổng kết — snapshot giờ đọc đúng mảng teams của bảng tổng điểm.",
+  "- Bàn điều khiển công bố chuyển thành tab 'Công bố' trong Tổng quan (đứng sau Tổng điểm, trước Lịch sử); đổi nhãn LIVE REVEAL / Tín hiệu MC; bỏ tiền tố #số đội ở bảng điểm thật.",
+  "- Màn tổng kết gọn mắt hơn: bỏ vạch chia 10 ô trên cột và lớp mr-chart-lines — thang ô chỉ còn trong logic.",
 ].join("\n");
 
 let release;
