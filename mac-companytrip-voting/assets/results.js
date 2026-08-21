@@ -9,21 +9,22 @@
   const clamp = (minimum, value, maximum) => Math.min(maximum, Math.max(minimum, value));
   const formatTotal = (score) => Number(score).toLocaleString("vi-VN");
   // Thang 10 ô: mỗi ô = 10% chiều cao cột. Độ cao theo kịch bản MC: lộ 6-5 = 80% → lộ top 4:
-  // 4-5-6 = 50% + hạng 3 = 80% → twist: hạng 3 về 50%, 4-5-6 về 30%, top 2 dao động 70→90%
-  // → quán quân 85%, hạng nhì 60%.
+  // 4-5-6 = 50% + hạng 3 = 80% → twist: 3 đội dẫn đầu cùng tung điểm dao động 70→90%, 4-5-6 về 30%
+  // → hiện hạng 3 về 50%, hạng 1-2 tung tiếp → quán quân 85%, hạng nhì 60%.
   const CELL = 10;
   const LADDER_LEVELS = {
     RANK65: { 6: 8, 5: 8 },
     TEASE43: { 6: 8, 5: 8 },
     RANK43: { 6: 5, 5: 5, 4: 5, 3: 8 },
     RANK12: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6, 1: 6 },
-    TWIST: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6, 1: 6 },
+    TWIST: { 6: 3, 5: 3, 4: 3, 3: 5 },
+    REVEAL3: { 6: 3, 5: 3, 4: 3, 3: 5 },
     FINAL: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6, 1: 8.5 },
   };
-  // Badge: hạng 6-5 lộ ở bước 1 nhưng bước 2 mới gắn badge; hạng 4-3 gắn badge ngay khi lộ
-  // (bước 2 gắn đủ 3-4-5-6); hạng 2-1 chỉ gắn badge ở FINAL để giữ cú twist.
-  const STAGE_ORDER = { RANK65: 1, TEASE43: 1, RANK43: 2, RANK12: 3, TWIST: 3, FINAL: 4 };
-  const BADGE_FROM = { 6: 2, 5: 2, 4: 2, 3: 2, 2: 4, 1: 4 };
+  // Badge: hạng 6-5 lộ ở bước 1 nhưng bước 2 mới gắn badge; hạng 4-5-6 gắn badge ngay bước 2;
+  // hạng 3 chờ bước "Hiện top 3" (REVEAL3); hạng 2-1 chỉ gắn badge ở FINAL để giữ cú twist.
+  const STAGE_ORDER = { RANK65: 1, TEASE43: 1, RANK43: 2, RANK12: 3, TWIST: 3, REVEAL3: 4, FINAL: 5 };
+  const BADGE_FROM = { 6: 2, 5: 2, 4: 2, 3: 4, 2: 5, 1: 5 };
   const badgeFor = (stage, rank) => (STAGE_ORDER[stage] ?? 0) >= (BADGE_FROM[rank] ?? 9);
 
   let state = null;
@@ -191,22 +192,27 @@
       .join(" & ");
   }
 
-  // Step twist: nhóm dẫn đầu dao động đối pha quanh 80% (70→90) để giữ cú twist.
+  // Step twist: nhóm ứng viên (3 đội ở TWIST, 2 đội ở REVEAL3) dao động đối pha 70→90%
+  // và TUNG ĐIỂM liên tục (số chạy ngẫu nhiên) để giữ hồi hộp; chỉ bám nhanh 120ms sau khi đã leo mượt.
   function startTwist() {
     if (reducedMotion.matches) return;
-    // Cột top 2 đã leo mượt 900ms lên 80% trước đó; khi dao động mới chuyển sang bám nhanh 120ms.
-    (state.topTwo || []).forEach((id) => {
+    const ids = state.topTwo || [];
+    const phaseStep = (Math.PI * 2) / Math.max(2, ids.length);
+    ids.forEach((id) => {
       const bar = teamElement(id)?.querySelector(".mr-bar");
       if (bar) bar.style.transitionDuration = "120ms";
     });
+    const waves = ids.map((id, index) => ({ id, phase: index * phaseStep, value: 520 + index * 45, target: 560 + index * 60 }));
     const start = performance.now();
     const step = (now) => {
       const seconds = (now - start) / 1000;
-      (state.topTwo || []).forEach((id, index) => {
-        const element = teamElement(id);
+      waves.forEach((wave) => {
+        const element = teamElement(wave.id);
         if (!element) return;
-        const level = 80 + Math.sin(seconds * 1.6 + index * Math.PI) * 10;
-        element.style.setProperty("--bar-level", `${level}%`);
+        element.style.setProperty("--bar-level", `${80 + Math.sin(seconds * 1.6 + wave.phase) * 10}%`);
+        wave.value += (wave.target - wave.value) * 0.02;
+        if (Math.abs(wave.target - wave.value) < 6) wave.target = 430 + Math.random() * 320;
+        if (!state.scoresHidden) element.querySelector(".mr-score span").textContent = String(Math.round(wave.value));
       });
       frameId = requestAnimationFrame(step);
     };
@@ -256,8 +262,9 @@
         level = cells * CELL;
         scoreText = displayScore(formatTotal(team.score));
         if (badgeFor(stage, team.rank)) badgeText = rankLabel(team.rank);
-      } else if (stage === "RANK12" || stage === "TWIST") {
-        // Top 2 đã leo lên mốc 80% nhưng giấu hạng + điểm thật để giữ cú twist.
+      } else if (stage === "RANK12" || stage === "TWIST" || stage === "REVEAL3") {
+        // Ứng viên (TWIST: hạng 1-3, REVEAL3: hạng 1-2) leo lên mốc 80% nhưng giấu hạng + điểm
+        // thật — số sẽ được vòng lặp twist tung liên tục.
         level = 8 * CELL;
         scoreText = "•••";
       } else {
@@ -297,12 +304,17 @@
       return;
     }
     if (stage === "TWIST") {
-      // Trùng điểm top đầu có thể cho 3-4 cột cùng bám đuổi; copy tự điều chỉnh theo số cột.
+      // Trùng điểm top đầu có thể cho nhiều hơn 3 cột cùng tung điểm; copy tự điều chỉnh theo số cột.
       const leaderCount = (state.topTwo || []).length;
-      const twistCopy = leaderCount > 2 ? `${leaderCount} đội dẫn đầu đang bám đuổi nhau từng điểm một` : "Hai đội dẫn đầu bám đuổi nhau từng điểm một";
-      setHeading("KHOẢNH KHẮC QUYẾT ĐỊNH", "Ai sẽ chạm tay vào cúp?", twistCopy, "Căng thẳng tột độ");
-      // Bước twist gộp: top 2 leo mượt lên 6 ô trước, ~1,1s sau mới bắt đầu dao động bám đuổi.
+      setHeading("KHOẢNH KHẮC QUYẾT ĐỊNH", "Ai sẽ chạm tay vào cúp?", `${leaderCount} đội dẫn đầu cùng tung điểm — ngôi vương chỉ có một`, "Căng thẳng tột độ");
+      // Ứng viên leo mượt lên 80% trước, ~1,1s sau mới bắt đầu dao động + tung điểm.
       animationTimer = window.setTimeout(startTwist, 1100);
+      return;
+    }
+    if (stage === "REVEAL3") {
+      setHeading(rankHeadline(newlyRevealed) || "HẠNG BA", "Gương mặt tiếp theo lộ diện", celebrate, "Tín hiệu 4 · Đã chốt");
+      // Hạng 3 về bến; hạng 1-2 tiếp tục tung điểm — khởi động lại vòng dao động với nhóm ứng viên mới.
+      animationTimer = window.setTimeout(startTwist, 350);
       return;
     }
     renderFinal();
@@ -326,7 +338,7 @@
     stopStageAnimation();
     root.querySelector(".mr-shell").dataset.stage = state.stage.toLowerCase();
     if (state.stage === "ROLLING") renderRolling();
-    else if (["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST", "FINAL"].includes(state.stage)) renderLadder(state.stage);
+    else if (["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST", "REVEAL3", "FINAL"].includes(state.stage)) renderLadder(state.stage);
     else renderIdle();
   }
 

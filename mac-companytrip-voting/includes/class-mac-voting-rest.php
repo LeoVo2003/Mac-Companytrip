@@ -197,7 +197,8 @@ final class MAC_Voting_REST {
             'TEASE43' => 2,
             'RANK43' => 4,
             'RANK12' => 4,
-            'TWIST' => 4,
+            'TWIST' => 3,
+            'REVEAL3' => 4,
             'FINAL' => count($rows),
         )[$state['stage']] ?? 0;
         $threshold_total = null;
@@ -205,17 +206,26 @@ final class MAC_Voting_REST {
             $threshold_index = max(0, count($rows) - min($revealed_from_bottom, count($rows)));
             $threshold_total = (int) $rows[$threshold_index]['total'];
         }
-        // Quy tắc trùng điểm: trước FINAL, đội hạng ≤ 2 không bao giờ lộ sớm kể cả khi cụm trùng
-        // điểm của chúng chạm ngưỡng lộ — dành cho twist + chung kết (giữ bất ngờ top đầu).
-        $protect_top = $state['stage'] !== 'FINAL';
+        // Quy tắc trùng điểm + kịch bản twist: hạng chỉ lộ từ bước chỉ định — TWIST giấu cả top 3
+        // (3 đội cùng tung điểm), REVEAL3 cho hạng 3 về bến, FINAL mới lộ hạng 1-2.
+        $protect_rank = array(
+            'RANK65' => 3,
+            'TEASE43' => 3,
+            'RANK43' => 3,
+            'RANK12' => 3,
+            'TWIST' => 4,
+            'REVEAL3' => 3,
+            'FINAL' => 1,
+        )[$state['stage']] ?? PHP_INT_MAX;
+        $candidate_max_rank = $state['stage'] === 'TWIST' ? 3 : 2;
         $top_two = array();
-        $public_teams = array_map(static function(array $row) use ($threshold_total, $protect_top, &$top_two): array {
-            if ((int) $row['rank'] <= 2) {
+        $public_teams = array_map(static function(array $row) use ($threshold_total, $protect_rank, $candidate_max_rank, &$top_two): array {
+            if ((int) $row['rank'] <= $candidate_max_rank) {
                 $top_two[] = (int) $row['id'];
             }
             $is_revealed = $threshold_total !== null
                 && (int) $row['total'] <= $threshold_total
-                && (!$protect_top || (int) $row['rank'] >= 3);
+                && (int) $row['rank'] >= $protect_rank;
             return array(
                 'id' => (int) $row['id'],
                 'number' => (int) $row['team_no'],

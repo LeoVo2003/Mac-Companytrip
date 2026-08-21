@@ -690,7 +690,7 @@ final class MAC_Voting_DB {
 
     public static function total_reveal_state(): array {
         $state = get_option('mac_voting_total_reveal_state', array());
-        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'TEASE43', 'RANK43', 'RANK12', 'TWIST', 'FINAL');
+        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'TEASE43', 'RANK43', 'RANK12', 'TWIST', 'REVEAL3', 'FINAL');
         $stage = is_array($state) ? strtoupper((string) ($state['stage'] ?? 'IDLE')) : 'IDLE';
         if (!in_array($stage, $allowed, true)) $stage = 'IDLE';
         $totals = is_array($state) && is_array($state['totals'] ?? null) ? $state['totals'] : array();
@@ -703,7 +703,7 @@ final class MAC_Voting_DB {
     }
 
     public static function set_total_reveal_state(string $stage, ?array $totals = null): array {
-        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'TEASE43', 'RANK43', 'RANK12', 'TWIST', 'FINAL');
+        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'TEASE43', 'RANK43', 'RANK12', 'TWIST', 'REVEAL3', 'FINAL');
         $stage = strtoupper($stage);
         if (!in_array($stage, $allowed, true)) $stage = 'IDLE';
         $current = self::total_reveal_state();

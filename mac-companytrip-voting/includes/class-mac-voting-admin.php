@@ -504,7 +504,7 @@ final class MAC_Voting_Admin {
     public static function ajax_reveal_total(): void {
         self::guard();
         $next = strtoupper(sanitize_text_field(wp_unslash($_POST['stage'] ?? '')));
-        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'TEASE43', 'RANK43', 'RANK12', 'TWIST', 'FINAL');
+        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'TEASE43', 'RANK43', 'RANK12', 'TWIST', 'REVEAL3', 'FINAL');
         if (!in_array($next, $allowed, true)) {
             wp_send_json_error(array('message' => 'Trạng thái công bố không hợp lệ.'), 400);
         }
@@ -515,9 +515,10 @@ final class MAC_Voting_Admin {
             'RANK65' => 'TEASE43',
             'TEASE43' => 'RANK43',
             'RANK43' => 'TWIST',
+            'TWIST' => 'REVEAL3',
+            'REVEAL3' => 'FINAL',
             // RANK12 giữ làm trạng thái legacy (bản cũ): vẫn cho tiến lên TWIST nếu dashboard còn kẹt ở step này.
             'RANK12' => 'TWIST',
-            'TWIST' => 'FINAL',
         );
         if ($next !== 'IDLE' && ($transitions[$current['stage']] ?? '') !== $next) {
             wp_send_json_error(array('message' => 'Tín hiệu không đúng thứ tự. Hãy tải lại dashboard và thử lại.'), 409);
@@ -541,7 +542,8 @@ final class MAC_Voting_Admin {
             'TEASE43' => 'Đang nhấp nháy nhá hàng top 4 — nhấn lần nữa để lộ diện.',
             'RANK43' => 'Đã lộ diện hạng 4 và hạng 3 · hạng 4-5-6 cùng 50%, hạng 3 lên 80%.',
             'RANK12' => 'Hai đội dẫn đầu đã bước lên cùng mốc 6 ô.',
-            'TWIST' => 'Nhóm dẫn đầu đang dao động 70-90%, hạng 3 về 50%, hạng 4-5-6 về 30%.',
+            'TWIST' => 'Ba đội dẫn đầu đang cùng tung điểm bám đuổi.',
+            'REVEAL3' => 'Đã lộ diện hạng ba · hai đội còn lại tiếp tục tung điểm.',
             'FINAL' => 'Đã công bố quán quân Company Trip.',
         );
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'RESULTS_TOTAL_REVEAL_' . $next, 'reveal', (string) $state['revision'], array(
@@ -572,9 +574,9 @@ final class MAC_Voting_Admin {
             $previous = $total;
         }
         $warnings = array();
-        $top_count = count(array_filter($ranks, static fn($r): bool => $r <= 2));
-        if ($top_count > 2) {
-            $warnings[] = 'Top đầu có ' . $top_count . ' đội cùng hạng 1-2 do trùng điểm — cú twist sẽ có ' . $top_count . ' cột leo lên cùng lúc.';
+        $candidate_count = count(array_filter($ranks, static fn($r): bool => $r <= 3));
+        if ($candidate_count > 3) {
+            $warnings[] = 'Trùng điểm khiến nhóm tranh cúp có ' . $candidate_count . ' đội — cú twist sẽ có ' . $candidate_count . ' cột cùng tung điểm.';
         }
         $threshold_step1 = (int) $values[max(0, $count - 2)];
         $threshold_step2 = (int) $values[max(0, $count - 4)];

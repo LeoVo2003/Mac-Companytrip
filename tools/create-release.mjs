@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.8";
+const tag = "v1.9.9";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Thang độ cao mới: lộ 6-5 = 80% → top 4: hạng 4-5-6 cùng 50% + hạng 3 lên 80% → twist: hạng 3 về 50%, 4-5-6 về 30%, top 2 dao động 70-90% → quán quân 85%, hạng nhì 60%.",
-  "- Bước 02 thành 2 nhịp: nhấn lần 1 nhấp nháy nhá hàng top 4, nhấn lần 2 mới lộ diện (stage TEASE43).",
-  "- Mở màn tung điểm kéo mượt từ vạch 122px trong 1,4s đầu rồi mới lượn sóng — hết giật.",
-  "- Cú twist hết giật: top 2 leo mượt 900ms lên 80% rồi mới dao động nhanh; hạng 3-6 hạ độ cao mượt.",
+  "- Kịch bản twist đúng luồng MC: bước 03 cho 3 đội dẫn đầu cùng tung điểm (số chạy ngẫu nhiên, dao động 70-90%); bước 04 \"Hiện top 3\" lộ hạng ba về 50%, hạng 1-2 tiếp tục tung điểm; bước 05 công bố quán quân (nhất 85%, nhì 60%).",
+  "- Badge hạng ba gắn ở bước Hiện top 3; bước 02 chỉ gắn badge 4-5-6.",
+  "- Bàn điều khiển 6 nút 00-05; bộ test trùng điểm 12 TC mở rộng cho TWIST + REVEAL3.",
 ].join("\n");
 
 let release;

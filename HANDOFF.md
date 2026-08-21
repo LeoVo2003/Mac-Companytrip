@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.8** (2026-08-21) — thang độ cao mới theo kịch bản MC (6-5 = 80% → top 4: 4-5-6 = 50% + hạng 3 = 80% → twist: 3 = 50%, 4-5-6 = 30%, top 2 dao động 70-90% → nhất 85%, nhì 60%); bước 02 thành 2 nhịp nhá hàng nhấp nháy (TEASE43); mở màn kéo mượt từ vạch 122px; twist hết giật. Trước đó v1.9.7: điểm tăng trưởng (nhóm mới lộ phóng to chữ số, nhóm cũ thu nhỏ, FINAL chỉ quán quân chữ to); pháo hoa FINAL trễ 3s; ẩn điểm = display:none khối mr-score. Trước đó v1.9.6: hoàn thiện xử lý trùng điểm theo 12 test case TC01-TC12: bảo vệ top đầu (hạng 1-2 không lộ trước twist), tiêu đề lộ hạng động (HẠNG 5 ×2...), cảnh báo trùng điểm trong bàn điều khiển, bộ test tự động trong check-plugin.mjs. Trước đó v1.9.5: giải pháp trùng điểm: lộ hạng đếm theo số đội từ dưới lên thay ngưỡng hạng cứng; cột chưa lộ về vạch xuất phát; đồng quán quân xướng đủ tên. Trước đó v1.9.4: gộp bước "Top 2 bước lên" + "Tạo cú twist" thành một nút; lộ hạng 4 & 3 gắn đủ badge 3-4-5-6 cùng lúc. Trước đó v1.9.3: nút Ẩn/Hiện điểm, tung điểm cao hơn, badge trễ nhịp, render diff, quán quân ~82%, text 6-4-1. Trước đó v1.9.2: sửa layout mr-chart-lines, bỏ tag #số đội, đổi nhãn TÍN HIỆU TỔNG KẾT. Trước đó v1.9.1: sửa snapshot "Cần đủ 6 đội", tab Công bố, bỏ vạch 10 ô. Trước đó v1.9.0: BIG UPDATE màn công bố ĐIỂM TỔNG Company Trip kịch bản 6 step. Logic công bố văn nghệ cũ giữ nguyên để tái sử dụng cho màn đua thuyền. Prototype "Race to the Crown" từng gắn tag v1.9.0 cũ đã gỡ.
+> Phiên bản hiện tại: **v1.9.9** (2026-08-21) — kịch bản twist đúng luồng MC: bước 03 cho 3 đội dẫn đầu (hạng 1-2-3) cùng tung điểm (stage TWIST giấu hạng 1-3), bước 04 "Hiện top 3" (REVEAL3) lộ hạng ba về 50% + hạng 1-2 tung tiếp, bước 05 công bố quán quân; badge hạng ba gắn ở REVEAL3. Trước đó v1.9.8: thang độ cao kịch bản MC (6-5 = 80% → top 4: 4-5-6 = 50% + hạng 3 = 80% → twist 70-90% → nhất 85%, nhì 60%); bước 02 hai nhịp nhá hàng nhấp nháy (TEASE43); mở màn kéo mượt từ vạch 122px; twist hết giật. Trước đó v1.9.7: điểm tăng trưởng; pháo hoa FINAL trễ 3s; ẩn điểm = display:none. Trước đó v1.9.6: xử lý trùng điểm theo 12 test case TC01-TC12, tiêu đề lộ hạng động, cảnh báo trùng điểm, bộ test tự động. Trước đó v1.9.5: lộ hạng đếm từ dưới lên, đồng quán quân xướng đủ tên. Trước đó v1.9.4: gộp nút twist, badge 4-5-6 lộ cùng bước 02. Trước đó v1.9.3: nút Ẩn/Hiện điểm, render diff, text 6-4-1. Trước đó v1.9.2/v1.9.1/v1.9.0 như cũ. Logic công bố văn nghệ cũ giữ nguyên để tái sử dụng cho màn đua thuyền.
 
 ---
 
@@ -138,7 +138,16 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.8 (2026-08-21) — mới nhất · thang độ cao kịch bản MC + nhá hàng top 4 + hết giật
+### v1.9.9 (2026-08-21) — mới nhất · twist 3 đội cùng tung điểm + bước Hiện top 3
+
+- **Stage machine mới**: IDLE→ROLLING→RANK65→TEASE43→RANK43→TWIST→REVEAL3→FINAL (thêm `REVEAL3` vào DB allowed, REST, admin `$allowed`/`$transitions`: 'TWIST' => 'REVEAL3', 'REVEAL3' => 'FINAL').
+- **TWIST giấu cả hạng 3**: REST thay `$protect_top` bằng `$protect_rank` theo stage (TWIST => 4, REVEAL3 => 3, FINAL => 1) + `$revealed_from_bottom` (TWIST => 3, REVEAL3 => 4). `topTwo` chứa hạng ≤ 3 ở TWIST, ≤ 2 ở các stage khác (`$candidate_max_rank`).
+- **Tung điểm trong twist** (results.js): `startTwist` chạy vòng lặp cho nhóm ứng viên — dao động `80 ± 10` lệch pha đều + số điểm chạy ngẫu nhiên (random walk như ROLLING); REVEAL3 restart vòng lặp với nhóm hạng 1-2 (delay 350ms), TWIST delay 1100ms sau khi leo mượt.
+- **Badge**: BADGE_FROM đổi {6,5,4: 2; 3: 4; 2,1: 5}, STAGE_ORDER thêm REVEAL3: 4, FINAL: 5 — badge hạng ba gắn ở bước Hiện top 3, bước 02 chỉ gắn 4-5-6.
+- **Admin**: 6 nút 00-05 (04 "Hiện top 3" gửi REVEAL3, 05 quán quân chỉ mở khi REVEAL3); label trạng thái + messages + cảnh báo trùng điểm đổi theo nhóm tranh cúp (hạng ≤ 3).
+- `check-plugin.mjs`: invariant stage list 7 stage, ladder REVEAL3, transitions mới, chuỗi `$protect_rank`; test 12 TC chạy TWIST (min rank 4) + REVEAL3 kèm REVEAL_EXPECT mới.
+
+### v1.9.8 (2026-08-21) — thang độ cao kịch bản MC + nhá hàng top 4 + hết giật
 
 - **Thang độ cao mới** (`LADDER_LEVELS`): RANK65/TEASE43 `{6:8, 5:8}` (80%); RANK43 `{6:5, 5:5, 4:5, 3:8}`; RANK12/TWIST `{6:3, 5:3, 4:3, 3:5}` + top 2 ẩn leo 80% rồi `startTwist` dao động `80 ± 10` (70→90) đối pha; FINAL `{6:3, 5:3, 4:3, 3:5, 2:6, 1:8.5}` (nhất 85%, nhì 60%).
 - **Bước 02 hai nhịp — stage `TEASE43` mới**: DB/REST/admin thêm stage (IDLE→ROLLING→RANK65→TEASE43→RANK43→TWIST→FINAL). Nhấn lần 1: các cột `is-muted` nhấp nháy (`mr-tease-blink` 820ms alternate, opacity 0.16↔0.55 + brightness), heading "TOP 4 ĐANG ĐẾN GẦN"; nhấn lần 2 mới lộ top 4. Nút 02 trong admin đổi stage động theo state (TEASE43→gửi RANK43 và ngược lại). TEASE43 lộ giống RANK65 (bottom 2, bảo vệ top), STAGE_ORDER = 1 nên chưa gắn badge.
