@@ -185,6 +185,12 @@ if (resultsJs.includes("mr-chart-lines")) {
 if (resultsJs.includes("<b>#${team.number}</b>")) {
   throw new Error("Team number tags must stay removed from the results screen.");
 }
+for (const invariant of ["is-score-hero", "is-scores-hidden", "setTimeout(() => { pyroStop = startPyro(); }, 3000)"]) {
+  if (!resultsJs.includes(invariant)) throw new Error(`Missing results-screen refinement: ${invariant}`);
+}
+if (!resultsCss.includes(".mac-results-app.is-scores-hidden .mr-score") || !resultsCss.includes(".mr-team.is-score-hero .mr-score span")) {
+  throw new Error("Missing growth-score or hidden-score styles in results.css.");
+}
 if (!adminJs.includes('["reveal", "Công bố"]') || !adminJs.includes("Bàn điều khiển công bố")) {
   throw new Error("Total reveal control must live in its own Công bố tab of the overview.");
 }

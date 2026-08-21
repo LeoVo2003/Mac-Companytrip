@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.6";
+const tag = "v1.9.7";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Quy tắc bảo vệ top đầu khi trùng điểm: đội hạng 1-2 không bao giờ lộ trước cú twist kể cả khi cụm trùng điểm chạm ngưỡng lộ (sửa TC03, 04, 07, 09, 12).",
-  "- Tiêu đề lộ hạng động: \"HẠNG 5 ×2\", \"HẠNG 4 ×3\" thay vì cứng \"HẠNG 6 & HẠNG 5\"; mô tả twist tự ghi số cột khi top trùng điểm.",
-  "- Bàn điều khiển công bố hiện cảnh báo trùng điểm sau khi mở màn (số cột twist, bước 02 có thể không lộ thêm).",
-  "- Bộ test 12 trường hợp trùng điểm TC01-TC12 gắn vào npm run check, chống regress.",
+  "- Điểm tăng trưởng: nhóm mới lộ phóng to chữ số điểm, nhóm lộ trước tự thu nhỏ khi nhóm sau xuất hiện; FINAL chỉ quán quân giữ chữ to.",
+  "- Pháo hoa FINAL chờ thêm 3 giây sau khi cột quán quân lên đỉnh rồi mới bắn.",
+  "- Nút ẩn điểm giấu hẳn khối số (display:none) thay vì che bằng •••.",
 ].join("\n");
 
 let release;

@@ -27,12 +27,15 @@
   let rosterSignature = "";
   // Tập các đội đã lộ hạng — dùng để tính nhóm MỚI lộ cho dòng "Xin chúc mừng".
   const revealedIds = new Set();
+  // Nhóm đang được phóng to chữ số điểm (điểm tăng trưởng): nhóm mới lộ to nhất, nhóm cũ nhỏ lại.
+  let heroIds = new Set();
   let animationTimer = 0;
   let frameId = 0;
   let pollTimer = 0;
   let failedPolls = 0;
   let pyroRevision = -1;
   let pyroStop = null;
+  let pyroTimer = 0;
 
   function shell(teams) {
     root.innerHTML = `<div class="mr-shell" data-stage="idle"><canvas class="mr-pyro" aria-hidden="true"></canvas><div class="mr-seascape" aria-hidden="true"><i class="mr-sun"></i><i class="mr-wake"></i></div><div class="mr-compass" aria-hidden="true"><svg viewBox="0 0 400 400" role="presentation"><circle cx="200" cy="200" r="176"/><circle cx="200" cy="200" r="154"/><circle cx="200" cy="200" r="118"/><path class="mr-compass-cross" d="M200 24v352M24 200h352M76 76l248 248M324 76 76 324"/><path class="mr-compass-rose" d="M200 48l22 130 130 22-130 22-22 130-22-130-130-22 130-22z"/><path class="mr-compass-minor" d="M200 84l12 104 104 12-104 12-12 104-12-104-104-12 104-12z"/><g class="mr-compass-labels"><text x="200" y="18">N</text><text x="386" y="206">E</text><text x="200" y="397">S</text><text x="14" y="206">W</text><text x="327" y="67">NE</text><text x="337" y="345">SE</text><text x="63" y="345">SW</text><text x="62" y="67">NW</text></g></svg><i class="mr-needle"></i></div><header class="mr-header"><div class="mr-brand-lockup"><img src="${esc(logo)}" alt="MAC Marketing"></div><div class="mr-event"><span>COMPANY TRIP - One Direction</span><strong>TỔNG KẾT COMPANY TRIP</strong></div><div class="mr-connection" role="status"><i></i><span>Đang đồng bộ</span></div></header><main><div class="mr-heading" aria-live="polite"><p>KẾT QUẢ CHUNG CUỘC</p><h1>Khoảnh khắc đang đến gần</h1><span></span></div><section class="mr-chart" aria-label="Biểu đồ tổng điểm của 6 đội">${teams.map((team) => `<article class="mr-team" data-team-id="${team.id}" role="group" aria-label="Team số ${team.number} ${esc(team.name)}"><div class="mr-score"><span>—</span><small>ĐIỂM</small></div><div class="mr-column"><div class="mr-rank" hidden></div><div class="mr-bar"><span></span><i></i></div><div class="mr-base"></div></div><div class="mr-team-name"><strong>${esc(team.name)}</strong></div></article>`).join("")}</section></main><footer class="mr-footer"><span class="mr-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE RESULT</span></div></footer></div>`;
@@ -59,7 +62,7 @@
   }
 
   function clearTeamState(element) {
-    element.classList.remove("is-featured", "is-muted", "is-revealed", "is-finalist", "is-champion", "is-runner-up", "is-third");
+    element.classList.remove("is-featured", "is-muted", "is-revealed", "is-finalist", "is-champion", "is-runner-up", "is-third", "is-score-hero");
     const rank = element.querySelector(".mr-rank");
     rank.hidden = true;
     rank.textContent = "";
@@ -80,6 +83,8 @@
   function stopStageAnimation() {
     window.clearInterval(animationTimer);
     animationTimer = 0;
+    window.clearTimeout(pyroTimer);
+    pyroTimer = 0;
     if (frameId) cancelAnimationFrame(frameId);
     frameId = 0;
     if (pyroStop) pyroStop();
@@ -88,6 +93,7 @@
 
   function renderIdle() {
     revealedIds.clear();
+    heroIds = new Set();
     setHeading("KẾT QUẢ CHUNG CUỘC", "Khoảnh khắc đang đến gần", "", "Sẵn sàng công bố");
     state.teams.forEach((team, index) => {
       const element = teamElement(team.id);
@@ -99,6 +105,7 @@
   // Step 1: tung điểm nhưng lượn sóng nhẹ nhàng, không giật. Cột dâng cao dần để có đà trước khi lộ hạng.
   function renderRolling() {
     revealedIds.clear();
+    heroIds = new Set();
     setHeading("TỔNG ĐIỂM ĐANG CHUYỂN ĐỘNG", "Ai sẽ chạm đỉnh?", "6 đội · 4 chặng đường · 1 ngôi vương duy nhất", "Đang tung điểm trực tiếp");
     const waves = state.teams.map((team, index) => ({
       id: team.id,
@@ -198,7 +205,8 @@
     setHeading("QUÁN QUÂN COMPANY TRIP", title, description, "Kết quả chung cuộc");
     if (pyroRevision !== state.revision && !reducedMotion.matches) {
       pyroRevision = state.revision;
-      pyroStop = startPyro();
+      // Pháo hoa chờ thêm 3s để cột quán quân leo trọn lên đỉnh và MC xướng tên xong mới bắn.
+      pyroTimer = window.setTimeout(() => { pyroStop = startPyro(); }, 3000);
     }
   }
 
@@ -206,6 +214,15 @@
   // Chỉ render lại đội nào đổi trạng thái để hạng đã lộ đứng yên (không nhấp nháy lại
   // màu, không pop lại badge) khi hạng mới bước lên.
   function renderLadder(stage) {
+    // Nhóm MỚI lộ ở nhịp này (đội lộ rồi không xướng lại); trùng điểm có thể lộ nhiều hơn 2 đội.
+    const newlyRevealed = state.teams.filter((team) => team.rank !== null && !revealedIds.has(team.id)).sort((a, b) => b.rank - a.rank);
+    // Điểm tăng trưởng: nhóm mới lộ nhận chữ số điểm to nhất, nhóm lộ trước tự nhỏ lại.
+    // FINAL: chỉ quán quân giữ chữ to, các hạng còn lại thu nhỏ về mức thường.
+    if (stage === "FINAL") {
+      heroIds = new Set(state.teams.filter((team) => Number(team.rank) === 1).map((team) => team.id));
+    } else if (newlyRevealed.length) {
+      heroIds = new Set(newlyRevealed.map((team) => team.id));
+    }
     state.teams.forEach((team) => {
       const element = teamElement(team.id);
       const classes = [];
@@ -217,6 +234,7 @@
         classes.push("is-revealed");
         const podium = podiumClass(team.rank);
         if (podium) classes.push("is-finalist", podium);
+        if (heroIds.has(team.id)) classes.push("is-score-hero");
         level = cells * CELL;
         scoreText = displayScore(formatTotal(team.score));
         if (badgeFor(stage, team.rank)) badgeText = rankLabel(team.rank);
@@ -241,8 +259,6 @@
       rank.textContent = badgeText;
     });
 
-    // Nhóm MỚI lộ ở nhịp này (đội lộ rồi không xướng lại); trùng điểm có thể lộ nhiều hơn 2 đội.
-    const newlyRevealed = state.teams.filter((team) => team.rank !== null && !revealedIds.has(team.id)).sort((a, b) => b.rank - a.rank);
     state.teams.forEach((team) => { if (team.rank !== null) revealedIds.add(team.id); });
     const celebrate = newlyRevealed.length ? `Xin chúc mừng ${teamNames(newlyRevealed)}` : "Kết quả đang được chốt";
 
@@ -275,11 +291,14 @@
     if (signature !== rosterSignature) {
       rosterSignature = signature;
       revealedIds.clear();
+      heroIds = new Set();
       shell(nextState.teams);
       force = true;
     }
     const changed = force || !state || nextState.revision !== state.revision || nextState.stage !== state.stage || !!nextState.scoresHidden !== !!state.scoresHidden;
     state = nextState;
+    // Ẩn điểm = giấu hẳn khối số (display:none) thay vì che bằng •••.
+    root.classList.toggle("is-scores-hidden", !!state.scoresHidden);
     setConnection(true);
     if (!changed) return;
     stopStageAnimation();

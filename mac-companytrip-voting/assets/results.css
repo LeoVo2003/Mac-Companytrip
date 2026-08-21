@@ -456,6 +456,18 @@ body.mac-results-page .elementor-shortcode {
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.02em;
+  transition: font-size 700ms cubic-bezier(0.2, 0.8, 0.2, 1), text-shadow 700ms ease;
+}
+
+/* Điểm tăng trưởng: nhóm mới lộ nhận chữ số to nhất; nhóm lộ trước tự thu nhỏ lại khi nhóm sau xuất hiện. */
+.mr-team.is-score-hero .mr-score span {
+  font-size: clamp(30px, 3vw, 52px);
+  text-shadow: 0 0 26px rgba(255, 227, 173, 0.38);
+}
+
+/* Admin ẩn điểm: giấu hẳn cả khối số thay vì che chữ. */
+.mac-results-app.is-scores-hidden .mr-score {
+  display: none;
 }
 
 .mr-score small {
@@ -868,6 +880,10 @@ body.mac-results-page .elementor-shortcode {
 
   .mr-score span {
     font-size: clamp(14px, 4.2vw, 20px);
+  }
+
+  .mr-team.is-score-hero .mr-score span {
+    font-size: clamp(20px, 6vw, 30px);
   }
 
   .mr-score small {
