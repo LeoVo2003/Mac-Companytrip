@@ -362,7 +362,7 @@ body.mac-results-page .elementor-shortcode {
   z-index: 2;
   display: grid;
   min-height: 0;
-  padding: clamp(24px, 3.5vh, 42px) clamp(28px, 4.4vw, 84px) 20px;
+  padding: clamp(24px, 3.5vh, 42px) clamp(28px, 4.4vw, 84px) clamp(48px, 9vh, 120px);
   grid-template-rows: auto minmax(0, 1fr);
 }
 
@@ -646,6 +646,10 @@ body.mac-results-page .elementor-shortcode {
   color: #f0bd91;
 }
 
+.mr-team.is-third .mr-score {
+  color: #f0bd91;
+}
+
 .mr-team.is-runner-up .mr-bar {
   border-color: rgba(228, 233, 238, 0.72);
   background:
@@ -848,7 +852,7 @@ body.mac-results-page .elementor-shortcode {
   }
 
   .mr-shell > main {
-    padding: 18px 10px 10px;
+    padding: 18px 10px clamp(36px, 8vh, 84px);
   }
 
   .mr-heading h1 {

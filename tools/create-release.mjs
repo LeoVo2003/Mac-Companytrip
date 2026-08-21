@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.19";
+const tag = "v1.8.20";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Tên đội và điểm số dưới chân cột phóng to hơn (desktop lẫn mobile), nới hàng lưới cho khớp.",
-  "- Bỏ hẳn đường kẻ mr-horizon.",
+  "- Nâng khoảng trống dưới màn hình (bottom padding lớn hơn) để hàng tên đội + điểm nằm cao, chiếu màn sân khấu lớn không bị che.",
+  "- Điểm số hạng 3 dùng màu copper (#f0bd91) tách khỏi hạng 4-5-6.",
 ].join("\n");
 
 let release;
