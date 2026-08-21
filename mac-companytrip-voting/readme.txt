@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.14
+Stable tag: 1.9.15
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,13 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.15 =
+- Làm lại logic Thi đua: Điểm Thi đua chính thức = ROUND(trung bình các hạng mục HOÀN TẤT), luôn 0-50; tổng toàn hệ thống tối đa 1.000đ (600 + 150 + 200 + 50). Hạng mục hoàn tất = đủ 6 team có record (kể cả 0đ) và thang 50..0 không trùng; hạng mục dở chỉ hiện điểm thô.
+- Phân biệt 3 trạng thái: chưa chấm (không record, hiện —) / Hạng 6 = 0đ (record 0, hiện 0đ) / xóa (operation clear riêng, bấm lại ô đang chọn).
+- Backfill legacy idempotent: hạng mục cũ có đúng 5 record {50,40,30,20,10} và thiếu 1 team tự insert row 0 cho team đó.
+- UI tab Thi đua + Tổng quan: khối "THI ĐUA · 5% · Tối đa 50 điểm" + công thức, badge trạng thái hạng mục (x/6, ✓ hoàn tất, trùng hạng), cột "Điểm Thi đua x/50", lịch sử phân biệt "Hạng 6 · 0đ" với "Xóa điểm".
+- Demo thi đua đủ 6 team kèm row 0 explicit.
 
 = 1.9.14 =
 - Migration hội tụ: site đã lỡ lên 1.9.12-1.9.13 (option mac_voting_total_page_id, shortcode *_total_results/*_art_results) tự chuẩn hóa về bộ tên mới, không tạo trang trùng; site ≤ 1.9.11 và site mới vẫn tách trang đúng.

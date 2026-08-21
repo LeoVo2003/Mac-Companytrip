@@ -126,18 +126,8 @@ final class MAC_Points {
             $team_id
         ), ARRAY_A);
         $now = MAC_Voting_DB::utc_now();
-        if ($points === 0) {
-            if ($existing) {
-                $wpdb->delete($ledger, array('id' => (int) $existing['id']), array('%d'));
-                MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'TEAM_POINTS_CLEARED', 'team', (string) $team_id, array(
-                    'categoryId' => $category_id,
-                    'category' => $category['name'],
-                    'teamName' => $team['name'],
-                    'previous' => (int) $existing['points'],
-                ));
-            }
-            return true;
-        }
+        // v1.9.15: Hạng 6 = 0đ là một kết quả được chấm (record points=0 tồn tại),
+        // KHÔNG còn delete record như bản cũ — xóa dùng clear_award() riêng.
         $payload = array(
             'team_id' => $team_id,
             'source_type' => self::SOURCE,
@@ -158,8 +148,45 @@ final class MAC_Points {
             'category' => $category['name'],
             'teamName' => $team['name'],
             'points' => $points,
-            'previous' => $existing ? (int) $existing['points'] : 0,
+            'rank' => MAC_Games::rank_from_points($points),
+            'previous' => $existing ? (int) $existing['points'] : null,
         ));
+        return true;
+    }
+
+    /**
+     * Xóa kết quả đã chấm (khác với chấm Hạng 6 = 0đ): delete record khỏi team_points.
+     */
+    public static function clear_award(int $category_id, int $team_id) {
+        global $wpdb;
+        $categories = MAC_Voting_DB::table('thidua_rounds');
+        $teams = MAC_Voting_DB::table('teams');
+        $category = $wpdb->get_row($wpdb->prepare("SELECT * FROM $categories WHERE id=%d", $category_id), ARRAY_A);
+        if (!$category) {
+            return new WP_Error('not_found', 'Lần thi đua không tồn tại.', array('status' => 404));
+        }
+        $team = $wpdb->get_row($wpdb->prepare("SELECT id,name,team_no FROM $teams WHERE id=%d", $team_id), ARRAY_A);
+        if (!$team) {
+            return new WP_Error('not_found', 'Team không tồn tại.', array('status' => 404));
+        }
+        $ledger = MAC_Voting_DB::table('team_points');
+        $existing = $wpdb->get_row($wpdb->prepare(
+            "SELECT id,points FROM $ledger WHERE source_type IN (%s,%s) AND source_id=%s AND team_id=%d",
+            self::SOURCE,
+            self::LEGACY_SOURCE,
+            (string) $category_id,
+            $team_id
+        ), ARRAY_A);
+        if ($existing) {
+            $wpdb->delete($ledger, array('id' => (int) $existing['id']), array('%d'));
+            MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'TEAM_POINTS_CLEARED', 'team', (string) $team_id, array(
+                'categoryId' => $category_id,
+                'category' => $category['name'],
+                'teamName' => $team['name'],
+                'previous' => (int) $existing['points'],
+                'rank' => MAC_Games::rank_from_points((int) $existing['points']),
+            ));
+        }
         return true;
     }
 
@@ -220,22 +247,55 @@ final class MAC_Points {
             $games_map[$game_row['teamId']] = $game_row;
         }
         $vote_map = self::vote_averages();
+        // v1.9.15: Điểm Thi đua chính thức = ROUND(trung bình các hạng mục HOÀN TẤT), luôn 0-50.
+        // Hạng mục hoàn tất = đủ mọi team thi đấu có record (kể cả 0đ) VÀ thang 50..0 không trùng hạng.
+        $team_count = count($teams);
+        $ladder = MAC_Voting_DB::RANK_LADDER;
+        $category_meta = array();
+        foreach ($rounds as $round) {
+            $values = array();
+            foreach ($teams as $team) {
+                $awards_of_team = $by_team[(int) $team['id']]['THIDUA'] ?? array();
+                if (array_key_exists((string) $round['id'], $awards_of_team)) {
+                    $values[] = (int) $awards_of_team[(string) $round['id']];
+                }
+            }
+            $sorted = $values;
+            rsort($sorted);
+            $category_meta[(int) $round['id']] = array(
+                'scoredTeams' => count($values),
+                'teamCount' => $team_count,
+                'isComplete' => $team_count > 0 && count($values) === $team_count && $sorted === $ladder,
+                'hasDuplicateRanks' => count($values) !== count(array_unique($values)),
+            );
+        }
+        $completed_count = 0;
+        foreach ($category_meta as $meta) {
+            if ($meta['isComplete']) {
+                $completed_count += 1;
+            }
+        }
         $board = array();
         foreach ($teams as $team) {
             $team_id = (int) $team['id'];
             $awards = $by_team[$team_id]['THIDUA'] ?? array();
             $checkin = (int) ($by_team[$team_id]['CHECKIN'] ?? 0);
-            $thidua_total = 0;
+            $thidua_raw = 0;
             $cells = array();
             foreach ($rounds as $round) {
-                $current = $awards[(string) $round['id']] ?? 0;
-                $thidua_total += $current;
+                $has_score = array_key_exists((string) $round['id'], $awards);
+                $current = $has_score ? (int) $awards[(string) $round['id']] : 0;
+                if ($has_score && $category_meta[(int) $round['id']]['isComplete']) {
+                    $thidua_raw += $current;
+                }
                 $cells[] = array(
                     'categoryId' => $round['id'],
                     'points' => $current,
-                    'state' => $current > 0 ? 'plus' : 'none',
+                    'hasScore' => $has_score,
+                    'state' => $has_score ? ($current > 0 ? 'plus' : 'zero') : 'none',
                 );
             }
+            $thidua = $completed_count > 0 ? max(0, min(50, (int) round($thidua_raw / $completed_count))) : 0;
             $games_total = (int) ($games_map[$team_id]['total'] ?? 0);
             $vote = $vote_map[$team_id] ?? array('average' => null, 'ballots' => 0, 'points' => 0);
             $board[] = array(
@@ -247,8 +307,11 @@ final class MAC_Points {
                 'vote' => (int) $vote['points'],
                 'voteAverage' => $vote['average'],
                 'voteBallots' => (int) $vote['ballots'],
-                'thidua' => $thidua_total,
-                'total' => $checkin + $games_total + (int) $vote['points'] + $thidua_total,
+                'thidua' => $thidua,
+                'thiduaRawTotal' => $thidua_raw,
+                'thiduaCompletedRounds' => $completed_count,
+                'thiduaTotalRounds' => count($rounds),
+                'total' => $checkin + $games_total + (int) $vote['points'] + $thidua,
                 'cells' => $cells,
             );
         }
@@ -268,6 +331,15 @@ final class MAC_Points {
             $previous = $row['total'];
         }
         unset($row);
+        foreach ($rounds as &$round_row) {
+            $round_row = array_merge($round_row, $category_meta[(int) $round_row['id']] ?? array(
+                'scoredTeams' => 0,
+                'teamCount' => $team_count,
+                'isComplete' => false,
+                'hasDuplicateRanks' => false,
+            ));
+        }
+        unset($round_row);
         return array(
             'categories' => $rounds,
             'teams' => $board,
@@ -360,6 +432,7 @@ final class MAC_Points {
                 'source' => 'Thi đua',
                 'note' => $details['category'] ?? '',
                 'points' => $kind === 'clear' ? 0 : (int) ($details['points'] ?? 0),
+                'rank' => $kind === 'award' ? (int) ($details['rank'] ?? 0) : 0,
                 'kind' => $kind,
             );
         }
@@ -395,6 +468,58 @@ final class MAC_Points {
             'CHECKPOINT_POINTS_FINALIZED',
             'GAME_RANK_SET'
         ));
+    }
+
+    /**
+     * v1.9.15: backfill Hạng 6 = 0đ cho dữ liệu cũ (bản cũ delete record khi 0đ).
+     * Chỉ suy luận khi chắc chắn: hạng mục có đúng 5 record với điểm đúng {50,40,30,20,10}
+     * và còn đúng 1 team thi đấu chưa có row → insert explicit 0 cho team đó. Idempotent.
+     */
+    public static function backfill_legacy_zeros(): void {
+        global $wpdb;
+        $teams_table = MAC_Voting_DB::table('teams');
+        $points_table = MAC_Voting_DB::table('team_points');
+        $teams = $wpdb->get_results($wpdb->prepare(
+            "SELECT id FROM $teams_table WHERE team_no<>%d ORDER BY team_no",
+            MAC_Voting_DB::STAFF_TEAM_NO
+        ), ARRAY_A) ?: array();
+        $team_ids = array_map(static fn($row): int => (int) $row['id'], $teams);
+        if (count($team_ids) < 2) {
+            return;
+        }
+        foreach (self::categories() as $round) {
+            $rows = $wpdb->get_results($wpdb->prepare(
+                "SELECT team_id,points FROM $points_table WHERE source_type IN (%s,%s) AND source_id=%s",
+                self::SOURCE,
+                self::LEGACY_SOURCE,
+                (string) $round['id']
+            ), ARRAY_A) ?: array();
+            if (count($rows) !== count($team_ids) - 1) {
+                continue;
+            }
+            $recorded = array_map(static fn($row): int => (int) $row['team_id'], $rows);
+            $missing = array_diff($team_ids, $recorded);
+            if (count($missing) !== 1) {
+                continue;
+            }
+            $values = array_map(static fn($row): int => (int) $row['points'], $rows);
+            rsort($values);
+            if ($values !== array(50, 40, 30, 20, 10)) {
+                continue;
+            }
+            $missing_id = (int) array_values($missing)[0];
+            $now = MAC_Voting_DB::utc_now();
+            $wpdb->insert($points_table, array(
+                'team_id' => $missing_id,
+                'source_type' => self::SOURCE,
+                'source_id' => (string) $round['id'],
+                'points' => 0,
+                'note' => $round['name'],
+                'created_by' => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ));
+        }
     }
 
     public static function seed_categories(): void {

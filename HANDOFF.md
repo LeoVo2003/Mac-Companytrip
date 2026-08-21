@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.14** (2026-08-21) — tách trang trình chiếu /ket-qua-tong (màn cột tổng kết) vs /ket-qua-van-nghe (màn ĐUA THUYỀN văn nghệ: art-race.js/css, shortcode [mac_companytrip_art_race], poll REST /results, cú lừa DECOY 3 thuyền thấp điểm, về bến 3→2→quán quân + pháo hoa); migration `migrate_split_pages()` hội tụ cả site đã lỡ lên 1.9.12-1.9.13 (option mac_voting_total_page_id + shortcode *_total_results/*_art_results) lẫn site ≤ 1.9.11; alias shortcode giữ tương thích; ẩn điểm hạ đáy 50px. Lưu ý: repo từng có commit song song 9fcd57c (v1.9.12) + 3f7772a (v1.9.13, art.js/art.css) từ phiên khác — bản này thay thế và xóa art.js/art.css. Trước đó v1.9.11: badge KHUYẾN KHÍCH, thang cao mới. Trước đó v1.9.9/v1.9.10: twist 3 đội + REVEAL3, bước 02 chỉ lộ 4-5-6.
+> Phiên bản hiện tại: **v1.9.15** (2026-08-21) — làm lại logic Thi đua: điểm chính thức = ROUND(trung bình các hạng mục HOÀN TẤT) luôn 0-50 (tổng hệ thống tối đa 1.000đ); hạng mục hoàn tất = đủ 6 team có record (kể cả 0đ) + thang không trùng; 3 trạng thái chưa chấm/0đ/xóa (operation clear riêng); backfill legacy idempotent; UI 2 tab đồng bộ. Trước đó v1.9.14: migration hội tụ tách trang + alias shortcode. Trước đó v1.9.12-13 (phiên song song): tách trang + đua thuyền. Trước đó v1.9.11 trở về trước như cũ.
 
 ---
 
@@ -138,7 +138,17 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.14 (2026-08-21) — mới nhất · đua thuyền văn nghệ + migration hội tụ
+### v1.9.15 (2026-08-21) — mới nhất · Thi đua = trung bình hạng mục hoàn tất
+
+- **Công thức mới** nằm ở `MAC_Points::dashboard()` (class-mac-points.php): `$category_meta` tính scoredTeams/teamCount/isComplete/hasDuplicateRanks cho từng hạng mục (isComplete = đủ 6 team có record VÀ rsort(values) === RANK_LADDER); `thidua = max(0, min(50, round(raw/completed)))`; response thêm thiduaRawTotal/thiduaCompletedRounds/thiduaTotalRounds + cells.hasScore; categories merge meta.
+- **award()** không còn delete khi points=0 (record 0 tồn tại = Hạng 6 đã chấm, audit TEAM_POINTS_AWARDED kèm rank); **clear_award()** mới xóa record (audit TEAM_POINTS_CLEARED); ajax_points thêm operation `clear`.
+- **Backfill** `MAC_Points::backfill_legacy_zeros()` gọi trong maybe_upgrade nhánh plugin_version: chỉ insert row 0 khi hạng mục có đúng 5 record {50,40,30,20,10} + thiếu đúng 1 team (idempotent).
+- **admin.js**: helper `refreshCategoryMeta` + `recomputeThidua` mirror backend cho optimistic update; `thiduaMatrix` cột "Điểm Thi đua x/50" + header hạng mục x/6 (✓/trùng hạng); `thiduaView` khối info THI ĐUA · 5% + chip trạng thái + nút team hiện "Chưa chấm"/"Hạng n · pđ" + presets "Hạng n · pđ" + bấm lại ô đang chọn = saveClear; scoreboard Tổng quan bỏ "thi đua không giới hạn", cột Thi đua x/50 + sub; history phân biệt "Hạng 6 · 0đ" vs "Xóa điểm".
+- **admin.css**: .ma-thidua-summary/-status/-cat-chip/-unscored/-score-meta trong block Tab Thi đua.
+- **seed_demo_data**: $thidua_ranks đủ 6 team (thêm 4 => 6 / 6 => 6), bỏ continue khi 0đ.
+- **check-plugin.mjs**: invariant clear_award/thiduaCompletedRounds/hasDuplicateRanks/backfill_legacy_zeros/recomputeThidua + cấm chuỗi "thi đua không giới hạn".
+
+### v1.9.14 (2026-08-21) — đua thuyền văn nghệ + migration hội tụ
 
 - **Bối cảnh repo**: giữa các turn có phiên khác commit 9fcd57c (v1.9.12, placeholder) + 3f7772a (v1.9.13, art.js/art.css, option `mac_voting_total_page_id`, shortcode `mac_companytrip_total_results`/`mac_companytrip_art_results`) và đã push tag. Bản này (de57801 trở đi) thay thế toàn bộ bằng art-race.js/css + bộ tên riêng, nên cần migration hội tụ.
 - **`migrate_split_pages()`** (db.php, chạy trong activate + maybe_upgrade): trang tổng = ưu tiên option `mac_voting_total_page_id` → slug ket-qua-tong → trang cũ chứa `[mac_companytrip_results]`; chuẩn hóa slug/title/content về `[mac_companytrip_results]`, ghi `mac_voting_results_page_id`, xóa `mac_voting_total_page_id`. Trang nghệ = option `mac_voting_art_results_page_id` → slug ket-qua-van-nghe (loại trừ trùng ID trang tổng); chuẩn hóa về `[mac_companytrip_art_race]` hoặc tạo mới.

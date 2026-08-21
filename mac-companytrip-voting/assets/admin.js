@@ -23,7 +23,45 @@
   const fmt = (value) => Number(value) > 0 ? `+${value}` : String(value);
   const trim1 = (value) => { const n = Math.round(Number(value) * 10) / 10; return Number.isInteger(n) ? String(n) : n.toFixed(1); };
   const gamesMatrix = (games, gameBoard, teams) => `<div class="ma-board-table"><table><thead><tr><th>Team</th>${games.map((game) => `<th>${esc(game.name)}</th>`).join("")}<th>Tổng</th></tr></thead><tbody>${teams.map((team) => { const gameRow = gameBoard.find((row) => String(row.teamId) === String(team.teamId)); return `<tr><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td>${games.map((game) => { const cell = (gameRow?.cells || []).find((entry) => entry.gameId === game.id) || { rank: 0, points: 0 }; return `<td>${cell.rank >= 1 ? `<span class="ma-rank-chip rank-${cell.rank}">Hạng ${cell.rank}</span> <strong>${cell.points}đ</strong>` : "—"}</td>`; }).join("")}<td><strong>${gameRow?.total || 0}đ</strong></td></tr>`; }).join("") || `<tr><td colspan="${games.length + 2}">Chưa xếp hạng game.</td></tr>`}</tbody></table></div>`;
-  const thiduaMatrix = (categories, teams) => `<div class="ma-board-table"><table><thead><tr><th>Team</th>${categories.map((category) => `<th>${esc(category.name)}</th>`).join("")}<th>Tổng</th></tr></thead><tbody>${teams.map((team) => `<tr><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td>${(team.cells || []).map((cell) => `<td>${fmt(cell.points)}</td>`).join("")}<td><strong>${fmt(team.thidua)}</strong></td></tr>`).join("") || `<tr><td colspan="${Math.max(categories.length + 2, 2)}">Chưa có điểm thi đua.</td></tr>`}</tbody></table></div>`;
+  const rankOfPoints = (points) => { const index = ladder.indexOf(Number(points)); return index >= 0 ? index + 1 : 0; };
+  const categoryStatus = (category) => category?.hasDuplicateRanks
+    ? { label: `${category.scoredTeams}/${category.teamCount} · trùng hạng`, cls: "is-duplicate" }
+    : category?.isComplete
+      ? { label: `✓ ${category.scoredTeams}/${category.teamCount}`, cls: "is-complete" }
+      : { label: `${category?.scoredTeams ?? 0}/${category?.teamCount ?? 6}`, cls: "is-progress" };
+  const thiduaMatrix = (categories, teams) => `<div class="ma-board-table"><table><thead><tr><th>Team</th>${categories.map((category) => { const status = categoryStatus(category); return `<th>${esc(category.name)}<small class="ma-thidua-status ${status.cls}">${status.label}</small></th>`; }).join("")}<th>Điểm Thi đua</th></tr></thead><tbody>${teams.map((team) => `<tr><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td>${(team.cells || []).map((cell) => `<td class="${cell.hasScore ? "" : "ma-thidua-unscored"}">${cell.hasScore ? fmt(cell.points) : "—"}</td>`).join("")}<td><strong>${fmt(team.thidua)}/50</strong><small class="ma-thidua-score-meta">${team.thiduaCompletedRounds || 0} hạng mục hoàn tất</small></td></tr>`).join("") || `<tr><td colspan="${Math.max(categories.length + 2, 2)}">Chưa có điểm thi đua.</td></tr>`}</tbody></table></div>`;
+  // Optimistic update dùng CÙNG logic backend: chỉ trung bình các hạng mục hoàn tất, ROUND, kẹp 0-50.
+  const refreshCategoryMeta = (categoryId, teams) => {
+    const category = (data.totalBoard?.categories || []).find((entry) => String(entry.id) === String(categoryId));
+    if (!category) return;
+    const values = [];
+    teams.forEach((team) => {
+      const cell = (team.cells || []).find((entry) => String(entry.categoryId) === String(categoryId));
+      if (cell?.hasScore) values.push(Number(cell.points) || 0);
+    });
+    category.scoredTeams = values.length;
+    category.teamCount = teams.length;
+    category.hasDuplicateRanks = values.length !== new Set(values).size;
+    category.isComplete = values.length === teams.length && values.slice().sort((a, b) => b - a).join(",") === ladder.join(",");
+  };
+  const recomputeThidua = (teams) => {
+    const all = data.totalBoard?.categories || [];
+    const completed = all.filter((category) => category.isComplete);
+    teams.forEach((team) => {
+      const raw = completed.reduce((sum, category) => {
+        const cell = (team.cells || []).find((entry) => String(entry.categoryId) === String(category.id));
+        return sum + (Number(cell?.points) || 0);
+      }, 0);
+      team.thiduaRawTotal = raw;
+      team.thiduaCompletedRounds = completed.length;
+      team.thiduaTotalRounds = all.length;
+      team.thidua = completed.length ? Math.max(0, Math.min(50, Math.round(raw / completed.length))) : 0;
+      team.total = (Number(team.checkin) || 0) + (Number(team.games) || 0) + (Number(team.vote) || 0) + team.thidua;
+    });
+    const sorted = teams.slice().sort((a, b) => (b.total - a.total) || (a.teamNumber - b.teamNumber));
+    let rank = 0; let previous = null;
+    sorted.forEach((team, index) => { if (previous === null || previous !== team.total) rank = index + 1; team.rank = rank; previous = team.total; });
+  };
   const ajax = async (action, values = {}, file = null) => {
     const body = new FormData(); body.append("action", action); body.append("nonce", window.MACVotingAdmin.nonce);
     Object.entries(values).forEach(([key, value]) => body.append(key, value)); if (file) body.append("file", file);
@@ -367,14 +405,14 @@
     ];
     const nav = `<nav class="ma-subnav" aria-label="Tổng quan">${tabs.map(([id, label]) => `<button type="button" data-overview-tab="${id}" class="${overviewTab === id ? "active" : ""}">${label}</button>`).join("")}</nav>`;
     const chartPanel = `<section class="ma-panel ma-chart-panel"><header><div><small>TỔNG ĐIỂM</small><h2>6 đội · 4 mặt trận bứt phá</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Cột gồm check-in đã chốt, xếp hạng trò chơi, văn nghệ quy đổi và thi đua.</p></div></header><div class="ma-chart" style="--ma-chart-max:${maxAbs}">${ranked.map((team) => { const total = Number(team.total) || 0; const height = Math.max(6, Math.round((Math.abs(total) / maxAbs) * 100)); return `<figure class="ma-chart-col ${total < 0 ? "is-neg" : ""}" aria-label="#${team.teamNumber} ${esc(team.teamName)}"><strong>${fmt(total)}</strong><div class="ma-chart-track" aria-hidden="true"><span style="height:${height}%"></span></div><figcaption><b>#${team.teamNumber} ${esc(team.teamName)}</b></figcaption></figure>`; }).join("")}</div></section>`;
-    const scoreboard = `<section class="ma-panel"><header><div><small>BẢNG ĐIỂM</small><h2>4 mặt trận · Check-in + Trò chơi + Văn nghệ + Thi đua</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Văn nghệ quy đổi ROUND(TB phiếu ÷ 150 × 200). Check-in tối đa 600đ, trò chơi tối đa 150đ, thi đua không giới hạn.</p></div></header><div class="ma-board-table ma-pin-2"><table><thead><tr><th>Hạng</th><th>Team</th><th>Check-in</th><th>Trò chơi</th><th>Văn nghệ</th><th>Thi đua</th><th>Tổng</th></tr></thead><tbody>${ranked.map((team) => `<tr><td><strong>${team.rank}</strong></td><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td><td>${fmt(team.checkin)}</td><td>${fmt(team.games)}</td><td>${fmt(team.vote)}${team.voteAverage !== null ? `<small class="ma-cell-sub">TB ${trim1(team.voteAverage)}/150</small>` : ""}</td><td>${fmt(team.thidua)}</td><td><strong>${fmt(team.total)}</strong></td></tr>`).join("")}</tbody></table></div></section>`;
+    const scoreboard = `<section class="ma-panel"><header><div><small>BẢNG ĐIỂM</small><h2>4 mặt trận · Check-in + Trò chơi + Văn nghệ + Thi đua</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Check-in tối đa 600đ, trò chơi tối đa 150đ, văn nghệ tối đa 200đ, thi đua tối đa 50đ · 600 + 150 + 200 + 50 = 1.000đ.</p></div></header><div class="ma-board-table ma-pin-2"><table><thead><tr><th>Hạng</th><th>Team</th><th>Check-in</th><th>Trò chơi</th><th>Văn nghệ</th><th>Thi đua</th><th>Tổng</th></tr></thead><tbody>${ranked.map((team) => `<tr><td><strong>${team.rank}</strong></td><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td><td>${fmt(team.checkin)}</td><td>${fmt(team.games)}</td><td>${fmt(team.vote)}${team.voteAverage !== null ? `<small class="ma-cell-sub">TB ${trim1(team.voteAverage)}/150</small>` : ""}</td><td>${fmt(team.thidua)}/50<small class="ma-cell-sub">${team.thiduaCompletedRounds ?? 0} hạng mục hoàn tất</small></td><td><strong>${fmt(team.total)}</strong></td></tr>`).join("")}</tbody></table></div></section>`;
     const checkinPanel = `<section class="ma-panel"><header><div><small>CHECK-IN</small><h2>Sổ điểm 4 trạm</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Điểm đã chốt khi đóng trạm, tối đa 150đ/trạm.</p></div></header><div class="ma-board-table"><table><thead><tr><th>Team</th>${checkpointCols.map((item) => `<th>Trạm ${item.id}<small>${esc(item.name)}</small></th>`).join("")}<th>Tổng check-in</th></tr></thead><tbody>${checkinLedger.map((row) => `<tr><td><strong>#${row.teamNumber} ${esc(row.teamName)}</strong></td>${row.checkpoints.map((value) => `<td>${fmt(value)}</td>`).join("")}<td><strong>${fmt(row.total)}</strong></td></tr>`).join("") || `<tr><td colspan="${checkpointCols.length + 2}">Chưa có điểm check-in đã chốt.</td></tr>`}</tbody></table></div></section>`;
     const gamesSummary = `<section class="ma-panel"><header><div><small>TRÒ CHƠI LỚN</small><h2>Điểm 3 game</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Thang hạng 1 – 6: 50 · 40 · 30 · 20 · 10 · 0đ. Xếp hạng trong tab Trò chơi lớn.</p></div></header>${gamesMatrix(games, gameBoard, teams)}</section>`;
     const votePanel = `<section class="ma-panel"><header><div><small>VĂN NGHỆ</small><h2>Kết quả bình chọn</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Điểm = ROUND(TB phiếu ÷ 150 × 200), tối đa 200đ, cập nhật trực tiếp khi có phiếu.</p></div></header><div class="ma-board-table"><table><thead><tr><th>Team</th><th>TB phiếu</th><th>Số phiếu hợp lệ</th><th>Điểm văn nghệ</th></tr></thead><tbody>${ranked.map((team) => `<tr><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td><td>${team.voteAverage === null ? "Chưa vote" : `${trim1(team.voteAverage)}/150`}</td><td>${team.voteBallots || 0}</td><td><strong>${fmt(team.vote)}</strong></td></tr>`).join("")}</tbody></table></div></section>`;
-    const thiduaPanel = `<section class="ma-panel"><header><div><small>THI ĐUA</small><h2>Điểm từng đội</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Chấm nhanh trong tab Thi đua với thang 50 · 40 · 30 · 20 · 10 · 0.</p></div></header>${thiduaMatrix(categories, teams)}</section>`;
+    const thiduaPanel = `<section class="ma-panel"><header><div><small>THI ĐUA</small><h2>Điểm thi đua · tối đa 50đ</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Điểm chính thức là trung bình các hạng mục đã hoàn tất. Chấm trong tab Thi đua.</p></div></header>${thiduaMatrix(categories, teams)}</section>`;
     const chart = `<div class="ma-overview-stack">${chartPanel}${scoreboard}${checkinPanel}${gamesSummary}${votePanel}${thiduaPanel}</div>`;
     const historyRows = history.length
-      ? history.map((item) => `<tr class="is-${item.kind}"><td>${esc(item.at)}</td><td>${esc(item.actor)}</td><td>${item.teamNumber ? `#${item.teamNumber} ` : ""}${esc(item.teamName)}</td><td>${esc(item.source)}${item.note ? ` · ${esc(item.note)}` : ""}</td><td><strong>${item.kind === "clear" ? "Xóa điểm" : fmt(item.points)}</strong></td></tr>`).join("")
+      ? history.map((item) => `<tr class="is-${item.kind}"><td>${esc(item.at)}</td><td>${esc(item.actor)}</td><td>${item.teamNumber ? `#${item.teamNumber} ` : ""}${esc(item.teamName)}</td><td>${esc(item.source)}${item.note ? ` · ${esc(item.note)}` : ""}</td><td><strong>${item.kind === "clear" ? "Xóa điểm" : item.source === "Thi đua" && item.rank ? `Hạng ${item.rank} · ${item.points}đ` : fmt(item.points)}</strong></td></tr>`).join("")
       : `<tr><td colspan="5">Chưa có lịch sử cộng điểm.</td></tr>`;
     const historyPanel = `<section class="ma-panel"><header><div><small>AUDIT</small><h2>Ai cộng điểm · lúc nào</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Gồm thi đua, xếp hạng trò chơi và điểm check-in khi đóng trạm.</p></div></header><div class="ma-table ma-history-table"><table><thead><tr><th>Thời gian</th><th>Người cộng</th><th>Team</th><th>Nguồn</th><th>Điểm</th></tr></thead><tbody>${historyRows}</tbody></table></div></section>`;
     const body = overviewTab === "history" ? historyPanel : overviewTab === "reveal" ? totalRevealView() : chart;
@@ -400,14 +438,15 @@
     if (!teams.some((team) => String(team.teamId) === String(awardTeamId))) {
       awardTeamId = "";
     }
+    const selectedCategory = categories.find((category) => String(category.id) === String(awardCategoryId));
+    const catStatus = categoryStatus(selectedCategory);
     const selectedTeam = teams.find((team) => String(team.teamId) === String(awardTeamId));
-    const currentPoints = selectedTeam
-      ? Number((selectedTeam.cells || []).find((entry) => String(entry.categoryId) === String(awardCategoryId))?.points || 0)
-      : 0;
+    const selectedCell = selectedTeam ? (selectedTeam.cells || []).find((entry) => String(entry.categoryId) === String(awardCategoryId)) : null;
+    const currentPoints = selectedCell?.hasScore ? Number(selectedCell.points) : null;
     const canScore = Boolean(awardCategoryId && awardTeamId);
-    const teamScore = (team) => Number((team.cells || []).find((entry) => String(entry.categoryId) === String(awardCategoryId))?.points || 0);
-    const award = `<section class="ma-panel ma-award"><div class="ma-award-step"><div class="ma-award-step-head"><h2>1. Hạng mục thi đua</h2><div class="ma-award-cat-actions"><button type="button" id="ma-cat-add" aria-label="Thêm hạng mục thi đua">+</button><button type="button" id="ma-cat-edit" aria-label="Sửa hạng mục thi đua" ${awardCategoryId ? "" : "disabled"}>✎</button><button type="button" id="ma-cat-delete" class="is-danger" aria-label="Xóa hạng mục thi đua" ${awardCategoryId ? "" : "disabled"}>×</button></div></div>${categories.length ? `<select id="ma-award-category">${categories.map((category) => `<option value="${category.id}" ${String(category.id) === String(awardCategoryId) ? "selected" : ""}>${esc(category.name)}</option>`).join("")}</select>` : `<p class="ma-cat-empty">Chưa có hạng mục thi đua. Bấm + để thêm.</p>`}</div><div class="ma-award-step"><h2>2. Team</h2><div class="ma-award-teams">${teams.map((team) => { const score = teamScore(team); const selected = String(team.teamId) === String(awardTeamId); return `<button type="button" data-award-team="${team.teamId}" class="${selected ? "is-selected" : ""}" ${awardCategoryId ? "" : "disabled"} aria-pressed="${selected}"><strong>${esc(team.teamName)}</strong>${score ? `<small>${fmt(score)}</small>` : ""}</button>`; }).join("")}</div></div><div class="ma-award-step"><h2>3. Điểm theo hạng</h2><p style="margin:0 0 8px;color:#667085;font-size:13px">Thang 50 · 40 · 30 · 20 · 10 · 0 (0 = không tham gia). Bấm lại ô đang chọn để xóa.</p><div class="ma-award-presets">${ladder.map((value) => `<button type="button" data-award-points="${value}" class="${canScore && currentPoints === value ? "is-selected" : ""} ${value === 0 ? "is-zero" : ""}" ${canScore ? "" : "disabled"} aria-pressed="${canScore && currentPoints === value}">${value}</button>`).join("")}</div></div></section>`;
-    const read = `<section class="ma-panel"><header><div><small>THI ĐUA</small><h2>Điểm từng đội</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Thang 50 · 40 · 30 · 20 · 10 · 0 cho mỗi hạng mục thi đua. Chỉ super admin mới chấm được.</p></div></header>${thiduaMatrix(categories, teams)}</section>`;
+    const info = `<section class="ma-panel ma-thidua-summary"><header><div><small>THI ĐUA · 5%</small><h2>Tối đa 50 điểm</h2></div><span class="ma-thidua-formula">Điểm chính thức = ROUND(tổng hạng mục hoàn tất ÷ số hạng mục hoàn tất)</span></header><p>Mỗi hạng mục xếp hạng 50 · 40 · 30 · 20 · 10 · 0. Chỉ hạng mục hoàn tất (đủ 6 team, thang không trùng) mới tính vào điểm Thi đua; hạng mục chấm dở chỉ hiện điểm thô.</p></section>`;
+    const award = `${info}<section class="ma-panel ma-award"><div class="ma-award-step"><div class="ma-award-step-head"><h2>1. Hạng mục thi đua</h2><div class="ma-award-cat-actions"><button type="button" id="ma-cat-add" aria-label="Thêm hạng mục thi đua">+</button><button type="button" id="ma-cat-edit" aria-label="Sửa hạng mục thi đua" ${awardCategoryId ? "" : "disabled"}>✎</button><button type="button" id="ma-cat-delete" class="is-danger" aria-label="Xóa hạng mục thi đua" ${awardCategoryId ? "" : "disabled"}>×</button></div></div>${categories.length ? `<div class="ma-award-cat-row"><select id="ma-award-category">${categories.map((category) => `<option value="${category.id}" ${String(category.id) === String(awardCategoryId) ? "selected" : ""}>${esc(category.name)}</option>`).join("")}</select>${selectedCategory ? `<span class="ma-thidua-status ${catStatus.cls} ma-thidua-cat-chip">${catStatus.label} team đã chấm${selectedCategory.isComplete ? " · ✓ Hoàn tất · Được tính vào điểm Thi đua" : selectedCategory.hasDuplicateRanks ? " · Có hạng bị trùng · Chưa thể hoàn tất" : " · Chưa hoàn tất · Chưa tính vào tổng"}</span>` : ""}</div>` : `<p class="ma-cat-empty">Chưa có hạng mục thi đua. Bấm + để thêm.</p>`}</div><div class="ma-award-step"><h2>2. Team</h2><div class="ma-award-teams">${teams.map((team) => { const cell = (team.cells || []).find((entry) => String(entry.categoryId) === String(awardCategoryId)); const selected = String(team.teamId) === String(awardTeamId); return `<button type="button" data-award-team="${team.teamId}" class="${selected ? "is-selected" : ""}" ${awardCategoryId ? "" : "disabled"} aria-pressed="${selected}"><strong>${esc(team.teamName)}</strong><small class="${cell?.hasScore ? "" : "ma-thidua-unscored"}">${cell?.hasScore ? `Hạng ${rankOfPoints(cell.points)} · ${cell.points}đ` : "Chưa chấm"}</small></button>`; }).join("")}</div></div><div class="ma-award-step"><h2>3. Điểm theo hạng</h2><p style="margin:0 0 8px;color:#667085;font-size:13px">Chọn hạng cho team; bấm lại ô đang chọn để xóa điểm đã chấm.</p><div class="ma-award-presets">${ladder.map((value, index) => `<button type="button" data-award-points="${value}" class="${canScore && currentPoints === value ? "is-selected" : ""} ${value === 0 ? "is-zero" : ""}" ${canScore ? "" : "disabled"} aria-pressed="${canScore && currentPoints === value}">Hạng ${index + 1} · ${value}đ</button>`).join("")}</div></div></section>`;
+    const read = `${info}<section class="ma-panel"><header><div><small>THI ĐUA</small><h2>Điểm từng đội</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Điểm chính thức là trung bình các hạng mục đã hoàn tất, tối đa 50đ. Chỉ super admin mới chấm được.</p></div></header>${thiduaMatrix(categories, teams)}</section>`;
     return `<header class="ma-top"><div><small>THI ĐUA</small><h1>Chấm điểm thi đua</h1></div>${topActions()}</header>${canWrite() ? award : read}`;
   }
   function live() {
@@ -864,9 +903,21 @@
       const team = (data.totalBoard?.teams || []).find((row) => String(row.teamId) === String(awardTeamId));
       const cell = (team?.cells || []).find((entry) => String(entry.categoryId) === String(awardCategoryId));
       if (!team || !cell) return;
+      cell.hasScore = true;
       cell.points = points;
-      team.thidua = (team.cells || []).reduce((sum, entry) => sum + (Number(entry.points) || 0), 0);
-      team.total = (Number(team.checkin) || 0) + (Number(team.games) || 0) + (Number(team.vote) || 0) + (Number(team.thidua) || 0);
+      cell.state = points > 0 ? "plus" : "zero";
+      refreshCategoryMeta(awardCategoryId, data.totalBoard.teams);
+      recomputeThidua(data.totalBoard.teams);
+    };
+    const applyLocalClear = () => {
+      const team = (data.totalBoard?.teams || []).find((row) => String(row.teamId) === String(awardTeamId));
+      const cell = (team?.cells || []).find((entry) => String(entry.categoryId) === String(awardCategoryId));
+      if (!team || !cell) return;
+      cell.hasScore = false;
+      cell.points = 0;
+      cell.state = "none";
+      refreshCategoryMeta(awardCategoryId, data.totalBoard.teams);
+      recomputeThidua(data.totalBoard.teams);
     };
     const saveAward = async (points) => {
       if (!awardCategoryId || !awardTeamId) return;
@@ -887,12 +938,32 @@
         load();
       }
     };
+    const saveClear = async () => {
+      if (!awardCategoryId || !awardTeamId) return;
+      applyLocalClear();
+      render();
+      try {
+        const result = await ajax("mac_vote_points", {
+          operation: "clear",
+          categoryId: awardCategoryId,
+          teamId: awardTeamId,
+        });
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) {
+        notify(err.message, true);
+        load();
+      }
+    };
     root.querySelectorAll("[data-award-points]").forEach((button) => button.addEventListener("click", async () => {
       const value = Number(button.dataset.awardPoints);
       const selectedTeam = (data.totalBoard?.teams || []).find((team) => String(team.teamId) === String(awardTeamId));
-      const current = Number((selectedTeam?.cells || []).find((entry) => String(entry.categoryId) === String(awardCategoryId))?.points || 0);
+      const cell = (selectedTeam?.cells || []).find((entry) => String(entry.categoryId) === String(awardCategoryId));
       button.disabled = true;
-      await saveAward(current === value ? 0 : value);
+      // Bấm lại ô đang chọn = xóa kết quả đã chấm (operation clear riêng, không nhầm với set 0).
+      if (cell?.hasScore && Number(cell.points) === value) await saveClear();
+      else await saveAward(value);
     }));
     root.querySelector("#ma-cat-add")?.addEventListener("click", async () => {
       const name = await promptDialog({ title: "Thêm hạng mục thi đua", label: "Tên hạng mục thi đua", confirmLabel: "Thêm hạng mục", placeholder: "Ví dụ: Trang phục đẹp" });

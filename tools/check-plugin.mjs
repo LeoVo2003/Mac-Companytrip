@@ -331,6 +331,69 @@ for (const tc of TIE_CASES) {
   }
 }
 
+// --- v1.9.15: Thi đua = trung bình các hạng mục hoàn tất (0-50), không còn SUM ---
+for (const invariant of ["clear_award", "thiduaCompletedRounds", "hasDuplicateRanks", "backfill_legacy_zeros", "isComplete"]) {
+  if (!pointsFile.includes(invariant)) throw new Error(`Missing thidua average logic in MAC_Points: ${invariant}`);
+}
+if (!adminFile.includes("MAC_Points::clear_award") || !adminFile.includes("'operation' => 'clear'") && !adminFile.includes("$operation === 'clear'")) {
+  throw new Error("Admin ajax must expose a dedicated clear operation for thidua scores.");
+}
+for (const invariant of ["recomputeThidua", "refreshCategoryMeta", "Điểm Thi đua", "operation: \"clear\""]) {
+  if (!adminJs.includes(invariant)) throw new Error(`Admin UI must mirror the thidua average logic: ${invariant}`);
+}
+if (adminJs.includes("thi đua không giới hạn")) {
+  throw new Error("Old unlimited thidua copy must be removed from the overview scoreboard.");
+}
+
+// --- v1.9.15: test case logic Thi đua (mirror MAC_Points::dashboard) ---
+const thiduaOfficial = (categories, teamIds) => {
+  const ladder = [50, 40, 30, 20, 10, 0];
+  const completed = categories.filter((cat) => {
+    const values = teamIds.map((id) => cat[id]).filter((v) => v !== undefined);
+    if (values.length !== teamIds.length) return false;
+    return values.slice().sort((a, b) => b - a).join(",") === ladder.join(",");
+  });
+  const result = {};
+  teamIds.forEach((id) => {
+    const raw = completed.reduce((sum, cat) => sum + (cat[id] ?? 0), 0);
+    result[id] = completed.length ? Math.max(0, Math.min(50, Math.round(raw / completed.length))) : 0;
+  });
+  return { result, completedCount: completed.length };
+};
+const T = [1, 2, 3, 4, 5, 6];
+const LADDER_CAT = (m) => ({ 1: m[0], 2: m[1], 3: m[2], 4: m[3], 5: m[4], 6: m[5] });
+// Case 1: chưa có hạng mục hoàn tất -> 0/50, không chia cho 0.
+if (thiduaOfficial([], T).result[1] !== 0) throw new Error("Thidua case 1 failed.");
+// Case 2: 1 hạng mục hoàn tất -> đúng điểm từng team.
+{
+  const r = thiduaOfficial([LADDER_CAT([50, 40, 30, 20, 10, 0])], T).result;
+  if (r[1] !== 50 || r[6] !== 0) throw new Error("Thidua case 2 failed.");
+}
+// Case 3: 2 hạng mục hoàn tất -> trung bình.
+{
+  const r = thiduaOfficial([LADDER_CAT([50, 40, 30, 20, 10, 0]), LADDER_CAT([40, 20, 50, 30, 0, 10])], T).result;
+  if (r[1] !== 45 || r[2] !== 30) throw new Error("Thidua case 3 failed.");
+}
+// Case 4 + 5: 10 hạng mục nhưng chỉ 2 hoàn tất -> mẫu số 2; hạng mục trống không kéo điểm.
+{
+  const cats = [LADDER_CAT([50, 40, 30, 20, 10, 0]), LADDER_CAT([40, 20, 50, 30, 0, 10])];
+  for (let i = 0; i < 8; i += 1) cats.push({});
+  const out = thiduaOfficial(cats, T);
+  if (out.completedCount !== 2 || out.result[1] !== 45) throw new Error("Thidua case 4/5 failed.");
+}
+// Case 6: 0đ explicit vẫn tính là đã chấm -> hạng mục hoàn tất.
+if (thiduaOfficial([LADDER_CAT([50, 40, 30, 20, 10, 0])], T).completedCount !== 1) throw new Error("Thidua case 6 failed.");
+// Case 7 + 8: thiếu 1 record (clear hoặc chấm dở) -> hạng mục loại khỏi trung bình.
+{
+  const partial = { 1: 50, 2: 40, 3: 30, 4: 20, 5: 10 };
+  const half = { 1: 50, 2: 40, 3: 30 };
+  if (thiduaOfficial([partial], T).completedCount !== 0 || thiduaOfficial([half], T).completedCount !== 0) throw new Error("Thidua case 7/8 failed.");
+}
+// Case 9: trùng hạng (2 team cùng 50) -> chưa hoàn tất.
+if (thiduaOfficial([{ 1: 50, 2: 50, 3: 40, 4: 30, 5: 20, 6: 0 }], T).completedCount !== 0) throw new Error("Thidua case 9 failed.");
+// Case 11: kẹp 0-50 kể cả khi dữ liệu lạ.
+if (thiduaOfficial([LADDER_CAT([50, 50, 50, 50, 50, 50])], T).result[1] !== 0) throw new Error("Thidua case 11 clamp failed.");
+
 // --- Màn đua thuyền văn nghệ: tách trang /ket-qua-tong (tổng) và /ket-qua-van-nghe (đua thuyền) ---
 const publicFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-public.php"), "utf8");
 const artRaceJs = fs.readFileSync(path.join(pluginRoot, "assets/art-race.js"), "utf8");

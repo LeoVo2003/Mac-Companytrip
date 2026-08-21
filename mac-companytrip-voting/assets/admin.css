@@ -3014,6 +3014,75 @@
   background: var(--ink-mid);
 }
 
+/* v1.9.15: trạng thái hạng mục thi đua (hoàn tất / đang chấm / trùng hạng) + cột Điểm Thi đua. */
+.ma-thidua-summary .ma-thidua-formula {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--ink-mid);
+  background: var(--soft);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ma-thidua-summary p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.ma-thidua-status {
+  display: inline-block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ma-thidua-status.is-complete {
+  color: var(--success);
+}
+
+.ma-thidua-status.is-duplicate {
+  color: #b54708;
+}
+
+.ma-thidua-cat-chip {
+  margin-left: 10px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--soft);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.ma-award-cat-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.ma-award-cat-row select {
+  flex: 1 1 220px;
+}
+
+.ma-thidua-unscored {
+  color: #98a2b3;
+  font-weight: 600;
+}
+
+.ma-thidua-score-meta {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+}
+
 .ma-award-teams button:disabled,
 .ma-award-presets button:disabled,
 .ma-award-custom button:disabled,

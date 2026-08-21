@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.14";
+const tag = "v1.9.15";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Tách trang trình chiếu: /ket-qua-tong/ = kết quả tổng kết (màn cột), /ket-qua-van-nghe/ = màn ĐUA THUYỀN văn nghệ (6 làn thuyền, cú lừa 3 thuyền thấp điểm, về bến 3 → 2 → quán quân + pháo hoa).",
-  "- Migration hội tụ: site đã lên 1.9.12-1.9.13 tự chuẩn hóa option/shortcode về bộ tên mới, không tạo trang trùng; kèm alias shortcode cho trang cũ.",
-  "- Bàn điều khiển văn nghệ ngôn ngữ đua thuyền, link đúng màn mới; ẩn điểm hạ đáy màn tổng kết còn 50px.",
+  "- Thi đua làm lại: Điểm chính thức = ROUND(trung bình các hạng mục hoàn tất), luôn 0-50; tổng hệ thống tối đa 1.000đ.",
+  "- Hạng mục hoàn tất = đủ 6 team có record (kể cả 0đ) + thang 50..0 không trùng; hạng mục dở chỉ hiện điểm thô.",
+  "- 3 trạng thái rõ ràng: chưa chấm (—) / Hạng 6 = 0đ (record 0) / xóa (operation clear riêng).",
+  "- Backfill legacy idempotent cho dữ liệu cũ thiếu row 0; UI 2 tab đồng bộ công thức mới; demo đủ 6 team.",
 ].join("\n");
 
 let release;

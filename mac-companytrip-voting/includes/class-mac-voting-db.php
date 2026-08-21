@@ -55,6 +55,7 @@ final class MAC_Voting_DB {
             if (version_compare((string) get_option('mac_voting_plugin_version', '0'), '1.8.8', '<')) {
                 self::reset_dashboard_passwords();
             }
+            MAC_Points::backfill_legacy_zeros();
             self::register_rewrites();
             update_option('mac_voting_plugin_version', MAC_VOTING_VERSION, false);
         }

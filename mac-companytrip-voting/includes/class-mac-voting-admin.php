@@ -234,10 +234,10 @@ final class MAC_Voting_Admin {
             2 => array(2 => 1, 5 => 2, 3 => 3, 1 => 4, 4 => 5, 6 => 6),
             3 => array(1 => 1, 3 => 2, 5 => 3, 6 => 4, 2 => 5, 4 => 6),
         );
-        // Hạng 2 vòng thi đua mặc định.
+        // Hạng 2 vòng thi đua mặc định (đủ cả 6 team, hạng 6 = 0đ explicit để hạng mục hoàn tất).
         $thidua_ranks = array(
-            array(3 => 1, 5 => 2, 1 => 3, 2 => 4, 6 => 5),
-            array(5 => 1, 1 => 2, 2 => 3, 3 => 4, 4 => 5),
+            array(3 => 1, 5 => 2, 1 => 3, 2 => 4, 6 => 5, 4 => 6),
+            array(5 => 1, 1 => 2, 2 => 3, 3 => 4, 4 => 5, 6 => 6),
         );
         $family_names = array('Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Phan', 'Vũ', 'Đặng', 'Bùi', 'Đỗ');
         $middle_names = array('Văn', 'Thị', 'Minh', 'Thanh', 'Ngọc', 'Xuân', 'Hữu', 'Đức', 'Quang', 'Hải');
@@ -355,9 +355,6 @@ final class MAC_Voting_Admin {
             $ranks = $thidua_ranks[$position] ?? array();
             foreach ($ranks as $team_no => $rank) {
                 $round_points = $rank >= 1 ? (int) MAC_Voting_DB::RANK_LADDER[$rank - 1] : 0;
-                if ($round_points <= 0) {
-                    continue;
-                }
                 $point_rows[] = array($team_id_by_no[$team_no], MAC_Points::SOURCE, (string) (int) $round['id'], $round_points, $round['name']);
             }
         }
@@ -1320,6 +1317,11 @@ final class MAC_Voting_Admin {
                 absint($_POST['teamId'] ?? 0),
                 intval($_POST['points'] ?? 0)
             );
+        } elseif ($operation === 'clear') {
+            $result = MAC_Points::clear_award(
+                absint($_POST['categoryId'] ?? 0),
+                absint($_POST['teamId'] ?? 0)
+            );
         } else {
             wp_send_json_error(array('message' => 'Thao tác không hợp lệ.'), 400);
             return;
@@ -1333,6 +1335,7 @@ final class MAC_Voting_Admin {
             'rename' => 'Đã đổi tên lần thi đua.',
             'delete' => 'Đã xóa lần thi đua.',
             'award' => 'Đã cập nhật điểm team.',
+            'clear' => 'Đã xóa điểm team khỏi hạng mục.',
         );
         wp_send_json_success(array(
             'message' => $messages[$operation] ?? 'Đã cập nhật.',
