@@ -90,7 +90,7 @@ final class MAC_Voting_Admin {
             'role'     => $is_super ? 'super' : 'admin',
             'voteUrl'  => MAC_Voting_DB::vote_page_url(),
             'resultsUrl' => MAC_Voting_DB::results_page_url(),
-            'totalUrl'   => MAC_Voting_DB::total_page_url(),
+            'artResultsUrl' => MAC_Voting_DB::art_results_page_url(),
             'checkinUrl' => MAC_Voting_DB::checkin_page_url(),
             'adminUrl' => MAC_Voting_DB::admin_page_url(),
             'logoutUrl'=> wp_logout_url(MAC_Voting_DB::admin_page_url()),
@@ -434,7 +434,7 @@ final class MAC_Voting_Admin {
     public static function ajax_reveal(): void {
         self::guard();
         $next = strtoupper(sanitize_text_field(wp_unslash($_POST['stage'] ?? '')));
-        $allowed = array('IDLE', 'ROLLING', 'DECOY', 'RANK65', 'RANK43', 'TWIST', 'THIRD', 'SECOND', 'FINAL');
+        $allowed = array('IDLE', 'ROLLING', 'DECOY', 'THIRD', 'SECOND', 'FINAL');
         if (!in_array($next, $allowed, true)) {
             wp_send_json_error(array('message' => 'Trạng thái công bố không hợp lệ.'), 400);
         }
@@ -442,13 +442,9 @@ final class MAC_Voting_Admin {
         $transitions = array(
             'IDLE' => 'ROLLING',
             'ROLLING' => 'DECOY',
-            'DECOY' => 'RANK65',
-            'RANK65' => 'RANK43',
-            'RANK43' => 'TWIST',
-            'TWIST' => 'FINAL',
-            // Legacy (bản cột cũ): dashboard kẹt stage cũ vẫn thoát hiểm được về luồng đua thuyền.
-            'THIRD' => 'RANK43',
-            'SECOND' => 'TWIST',
+            'DECOY' => 'THIRD',
+            'THIRD' => 'SECOND',
+            'SECOND' => 'FINAL',
         );
         if ($next !== 'IDLE' && ($transitions[$current['stage']] ?? '') !== $next) {
             wp_send_json_error(array('message' => 'Tín hiệu không đúng thứ tự. Hãy tải lại dashboard và thử lại.'), 409);
@@ -481,15 +477,12 @@ final class MAC_Voting_Admin {
         }
         $state = MAC_Voting_DB::set_reveal_state($next);
         $messages = array(
-            'IDLE' => 'Đã đưa màn đua thuyền về vạch xuất phát.',
-            'ROLLING' => 'Sáu thuyền đang nhấp nhô xuất phát.',
-            'DECOY' => 'Cú lừa: ba thuyền cuối bảng đang giả dẫn đầu.',
-            'RANK65' => 'Hạ màn lừa · lộ hạng 6-5 với badge KHUYẾN KHÍCH.',
-            'RANK43' => 'Đã lộ diện hạng 4 và hạng 3.',
-            'TWIST' => 'Hai thuyền dẫn đầu đang bám đuổi từng điểm.',
-            'FINAL' => 'Quán quân văn nghệ đã băng vạch đích.',
+            'IDLE' => 'Đã đưa màn hình công bố về trạng thái chờ.',
+            'ROLLING' => 'Màn hình đang tung điểm ngẫu nhiên cho 6 đội.',
+            'DECOY' => 'Đã chốt cú lừa bằng điểm thật của ba đội cuối.',
             'THIRD' => 'Đã công bố đội xếp hạng ba.',
             'SECOND' => 'Đã công bố đội xếp hạng nhì.',
+            'FINAL' => 'Đã công bố quán quân.',
         );
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'RESULTS_REVEAL_' . $next, 'reveal', (string) $state['revision'], array(
             'previousStage' => $current['stage'],

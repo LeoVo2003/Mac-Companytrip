@@ -1,0 +1,612 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700;800&display=swap");
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter-vietnamese.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 100 900;
+}
+
+html:has(body.mac-art-race-page) {
+  margin-top: 0 !important;
+  background: #040d1c;
+}
+
+body.mac-art-race-page {
+  min-width: 320px;
+  margin: 0 !important;
+  overflow: hidden;
+  background: #040d1c !important;
+}
+
+body.mac-art-race-page #wpadminbar,
+body.mac-art-race-page .site-header,
+body.mac-art-race-page .site-footer,
+body.mac-art-race-page .entry-header,
+body.mac-art-race-page header.wp-block-template-part,
+body.mac-art-race-page footer.wp-block-template-part {
+  display: none !important;
+}
+
+body.mac-art-race-page #page,
+body.mac-art-race-page #content,
+body.mac-art-race-page .site,
+body.mac-art-race-page .site-content,
+body.mac-art-race-page .content-area,
+body.mac-art-race-page .site-main,
+body.mac-art-race-page article,
+body.mac-art-race-page .entry-content,
+body.mac-art-race-page .elementor,
+body.mac-art-race-page .elementor-section,
+body.mac-art-race-page .elementor-container,
+body.mac-art-race-page .elementor-column,
+body.mac-art-race-page .elementor-widget-wrap,
+body.mac-art-race-page .elementor-widget,
+body.mac-art-race-page .elementor-widget-container,
+body.mac-art-race-page .elementor-shortcode {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.mac-art-race-app,
+.mac-art-race-app * {
+  box-sizing: border-box;
+}
+
+.mac-art-race-app {
+  --abyss: #040d1c;
+  --deep-sea: #0a2338;
+  --sea-teal: #123a52;
+  --sea-glint: #2c5b74;
+  --brass-dark: #5a3b1f;
+  --brass: #b8823f;
+  --brass-light: #e8c17a;
+  --brass-highlight: #ffe3ad;
+  --copper: #c9703f;
+  --sunset-red: #d8432c;
+  --sunset-orange: #ff8a4c;
+  --sunset-gold: #ffcf7d;
+  --silver-light: #e4e9ee;
+  --ink: #f7ecd9;
+  --muted: #9fb3c4;
+  position: fixed;
+  z-index: 99999;
+  inset: 0;
+  color: var(--ink);
+  background: var(--abyss);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ar-shell {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 560px;
+  overflow: hidden;
+  isolation: isolate;
+  grid-template-rows: 64px minmax(0, 1fr);
+  background:
+    radial-gradient(90% 7% at 50% 0%, rgba(255, 138, 76, 0.28), transparent 68%),
+    radial-gradient(70% 42% at 50% 2%, rgba(255, 207, 125, 0.12), transparent 70%),
+    linear-gradient(180deg, var(--sea-glint) 0%, var(--sea-teal) 16%, var(--deep-sea) 48%, var(--abyss) 100%);
+}
+
+.ar-shell::before {
+  position: absolute;
+  z-index: -3;
+  inset: 0;
+  content: "";
+  opacity: 0.4;
+  background-image:
+    linear-gradient(rgba(232, 193, 122, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232, 193, 122, 0.04) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, transparent 2%, #000 35%, #000);
+}
+
+.ar-sea {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ar-moon {
+  position: absolute;
+  top: -6%;
+  left: 50%;
+  width: 52vw;
+  height: 16vh;
+  border-radius: 50%;
+  background: rgba(255, 138, 76, 0.12);
+  filter: blur(54px);
+  transform: translateX(-50%);
+}
+
+.ar-header {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 8px clamp(20px, 3.4vw, 64px);
+  border-top: 2px solid rgba(255, 138, 76, 0.28);
+  border-bottom: 1px solid rgba(232, 193, 122, 0.18);
+  background: rgba(4, 13, 28, 0.64);
+  backdrop-filter: blur(18px);
+}
+
+.ar-brand img {
+  display: block;
+  width: clamp(72px, 6.5vw, 100px);
+  height: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.92;
+}
+
+.ar-event {
+  display: grid;
+  margin-right: auto;
+  padding-left: 18px;
+  border-left: 1px solid rgba(232, 193, 122, 0.22);
+}
+
+.ar-event span {
+  color: var(--brass-light);
+  font-size: clamp(7px, 0.58vw, 10px);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.ar-event strong {
+  color: var(--ink);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(11px, 0.9vw, 16px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.ar-connection {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  border: 1px solid rgba(159, 179, 196, 0.2);
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(10, 35, 56, 0.58);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ar-connection i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #56c39a;
+  box-shadow: 0 0 0 4px rgba(86, 195, 154, 0.08), 0 0 14px rgba(86, 195, 154, 0.45);
+}
+
+.ar-connection.is-offline {
+  color: var(--sunset-gold);
+}
+
+.ar-connection.is-offline i {
+  background: var(--sunset-orange);
+}
+
+.ar-shell > main {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  min-height: 0;
+  padding: clamp(20px, 3vh, 36px) clamp(28px, 4.4vw, 84px) clamp(28px, 5vh, 56px);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.ar-heading {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.ar-heading::after {
+  width: clamp(110px, 12vw, 190px);
+  height: 1px;
+  margin-top: 12px;
+  content: "";
+  background: linear-gradient(90deg, transparent, var(--brass), transparent);
+}
+
+.ar-heading p {
+  margin: 0 0 6px;
+  color: var(--brass-light);
+  font-size: clamp(9px, 0.66vw, 12px);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+}
+
+.ar-heading p::before {
+  content: "✦  ";
+  color: rgba(255, 227, 173, 0.72);
+}
+
+.ar-heading p::after {
+  content: "  ✦";
+  color: rgba(255, 227, 173, 0.72);
+}
+
+.ar-heading h1 {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 3.6vw, 62px);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  text-shadow: 0 4px 26px rgba(0, 0, 0, 0.42);
+  text-wrap: balance;
+}
+
+.ar-heading > span {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: clamp(10px, 0.82vw, 14px);
+  letter-spacing: 0.03em;
+}
+
+.ar-heading > span:empty {
+  display: none;
+}
+
+/* Đường đua: 6 làn ngang, vạch đích bên phải. */
+.ar-track {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  min-height: 0;
+  align-content: space-evenly;
+  gap: clamp(6px, 1.2vh, 14px);
+  margin-top: clamp(18px, 3vh, 36px);
+  padding: 0 clamp(4px, 1.2vw, 24px);
+}
+
+.ar-finish {
+  position: absolute;
+  top: -6px;
+  right: clamp(4px, 1.2vw, 24px);
+  bottom: -6px;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  width: 34px;
+  pointer-events: none;
+}
+
+.ar-finish i {
+  width: 2px;
+  height: 100%;
+  background: repeating-linear-gradient(180deg, rgba(255, 227, 173, 0.75) 0 10px, transparent 10px 20px);
+  box-shadow: 0 0 18px rgba(232, 193, 122, 0.35);
+}
+
+.ar-finish b {
+  position: absolute;
+  top: -18px;
+  color: var(--brass-light);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.ar-lane {
+  --pos: 4%;
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(120px, 220px) minmax(0, 1fr) minmax(70px, 110px);
+  align-items: center;
+  gap: clamp(10px, 1.4vw, 24px);
+}
+
+.ar-lane-head {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.ar-lane-head strong {
+  max-width: 20ch;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: clamp(12px, 1.1vw, 20px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.ar-rank {
+  min-width: max-content;
+  padding: 5px 9px;
+  border: 1px solid rgba(232, 193, 122, 0.45);
+  border-radius: 999px;
+  color: var(--brass-highlight);
+  background: rgba(4, 13, 28, 0.88);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+  font-size: clamp(8px, 0.6vw, 11px);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  opacity: 0;
+  transform: translateY(6px) scale(0.85);
+  transition: opacity 450ms ease 420ms, transform 450ms ease 420ms;
+}
+
+.ar-rank:not([hidden]) {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.ar-water {
+  position: relative;
+  height: clamp(44px, 7vh, 64px);
+  border-bottom: 1px solid rgba(232, 193, 122, 0.28);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 46px, rgba(159, 179, 196, 0.09) 46px 48px),
+    linear-gradient(180deg, transparent 0%, rgba(18, 58, 82, 0.5) 78%, rgba(44, 91, 116, 0.35) 100%);
+}
+
+.ar-boat {
+  position: absolute;
+  bottom: 2px;
+  left: var(--pos);
+  width: clamp(44px, 4.6vw, 72px);
+  color: var(--brass-light);
+  transition: left 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
+}
+
+.ar-boat svg {
+  display: block;
+  width: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.ar-wake {
+  position: absolute;
+  right: 78%;
+  bottom: -3px;
+  width: 46%;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(228, 233, 238, 0.5));
+  filter: blur(1px);
+}
+
+/* Thuyền lừa (DECOY): ánh bạc lạnh để trông "nhanh" nhưng không phải vàng thật. */
+.ar-lane.is-decoy .ar-boat {
+  color: var(--silver-light);
+  filter: drop-shadow(0 0 16px rgba(228, 233, 238, 0.35));
+}
+
+.ar-lane.is-champion .ar-boat {
+  color: var(--sunset-gold);
+  filter: drop-shadow(0 0 22px rgba(255, 207, 125, 0.55));
+}
+
+.ar-lane.is-champion .ar-rank {
+  border-color: rgba(255, 227, 173, 0.76);
+  color: #24180d;
+  background: linear-gradient(135deg, var(--brass-highlight), var(--sunset-gold));
+  box-shadow: 0 0 34px rgba(255, 207, 125, 0.44);
+}
+
+.ar-lane.is-champion .ar-lane-head strong {
+  color: var(--brass-highlight);
+  text-shadow: 0 0 22px rgba(255, 207, 125, 0.38);
+}
+
+.ar-score {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  color: var(--brass-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.ar-score span {
+  font-size: clamp(16px, 1.5vw, 26px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.ar-score small {
+  color: var(--muted);
+  font-size: clamp(7px, 0.6vw, 10px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ar-shell[data-stage="final"] .ar-heading h1 {
+  color: var(--brass-highlight);
+  text-shadow: 0 0 36px rgba(255, 207, 125, 0.34), 0 5px 28px rgba(0, 0, 0, 0.5);
+}
+
+.ar-pyro {
+  position: fixed;
+  z-index: 8;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ar-footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px clamp(20px, 3.4vw, 64px);
+  border-top: 1px solid rgba(232, 193, 122, 0.16);
+  background: rgba(4, 13, 28, 0.72);
+  backdrop-filter: blur(14px);
+}
+
+.ar-footer > div {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.ar-footer > div i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sunset-orange);
+  box-shadow: 0 0 12px rgba(255, 138, 76, 0.5);
+}
+
+.ar-stage-copy {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.ar-loading,
+.ar-error {
+  display: grid;
+  height: 100%;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 32px;
+  color: var(--ink);
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 26%, rgba(184, 130, 63, 0.19), transparent 44%),
+    linear-gradient(180deg, var(--deep-sea), var(--abyss));
+}
+
+.ar-loading img,
+.ar-error img {
+  width: min(84px, 26vw);
+  max-height: 42px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+.ar-error strong {
+  margin-top: 12px;
+  color: var(--ink);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 28px;
+}
+
+.ar-error p {
+  max-width: 520px;
+  margin: 0;
+  color: var(--muted);
+}
+
+.ar-error button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 227, 173, 0.54);
+  border-radius: 12px;
+  color: #21160c;
+  background: linear-gradient(120deg, var(--brass-light), var(--sunset-gold));
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ar-error button:focus-visible {
+  outline: 3px solid var(--brass-highlight);
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .ar-shell {
+    min-height: 520px;
+    grid-template-rows: 58px minmax(0, 1fr);
+  }
+
+  .ar-header {
+    min-height: 58px;
+    padding-block: 6px;
+  }
+
+  .ar-event {
+    display: none;
+  }
+
+  .ar-shell > main {
+    padding: 16px 18px 12px;
+  }
+
+  .ar-lane {
+    grid-template-columns: minmax(84px, 130px) minmax(0, 1fr) 56px;
+    gap: 8px;
+  }
+
+  .ar-lane-head strong {
+    max-width: 12ch;
+    font-size: 11px;
+  }
+
+  .ar-rank {
+    padding: 4px 6px;
+    font-size: 7px;
+    letter-spacing: 0.04em;
+  }
+
+  .ar-score span {
+    font-size: 14px;
+  }
+
+  .ar-score small {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mac-art-race-app *,
+  .mac-art-race-app *::before,
+  .mac-art-race-app *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

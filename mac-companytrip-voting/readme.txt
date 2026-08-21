@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.13
+Stable tag: 1.9.12
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -68,14 +68,11 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 
 == Changelog ==
 
-= 1.9.13 =
-- Màn văn nghệ /ket-qua-van-nghe làm lại thành ĐUA THUYỀN: 6 làn thuyền SVG trên biển đêm hoàng hôn, điều khiển 6 nhịp từ dashboard (00 Xuất phát → 01 Cú lừa 3 thuyền cuối bảng giả dẫn đầu → 02 Hạ màn lừa lộ 6-5 → 03 Lộ 4-3 → 04 Cú twist 2 thuyền bám đuổi → 05 Về đích + pháo hoa trễ 3s).
-- REST /results thêm topTwo và mở rộng ngưỡng lộ cho các stage đua thuyền; máy trạng thái thêm RANK65/RANK43/TWIST (giữ THIRD/SECOND legacy thoát hiểm).
-
 = 1.9.12 =
-- Tách 2 màn trình chiếu: /ket-qua-tong = màn tổng kết Company Trip (shortcode [mac_companytrip_total_results]), /ket-qua-van-nghe = màn văn nghệ (shortcode [mac_companytrip_art_results], sẽ là đua thuyền). Plugin tự tạo trang mới và tự đổi shortcode trang cũ khi nâng cấp.
-- Bàn điều khiển công bố tổng kết mở đúng link /ket-qua-tong.
-- Ẩn điểm: padding đáy màn chiếu rút còn 50px cho gọn; hiện điểm giữ padding như cũ.
+- Tách hai màn trình chiếu: /ket-qua-tong/ = màn cột kết quả tổng kết (dời từ /ket-qua-van-nghe/ sang, tự migration trang cũ); /ket-qua-van-nghe/ = màn ĐUA THUYỀN văn nghệ mới.
+- Màn đua thuyền: 6 làn thuyền SVG trên biển đêm, kịch bản tái dùng state machine văn nghệ cũ (ROLLING → DECOY cú lừa 3 thuyền thấp điểm bứt lên → THIRD → SECOND → FINAL), thuyền về bến theo hạng, pháo hoa khi quán quân chạm bến.
+- Bàn điều khiển văn nghệ đổi ngôn ngữ đua thuyền và link đúng màn /ket-qua-van-nghe/; bàn tổng kết link /ket-qua-tong/.
+- Ẩn điểm: đáy màn tổng kết hạ padding còn 50px khi ẩn.
 
 = 1.9.11 =
 - Badge rút gọn còn chữ "KHUYẾN KHÍCH" (bỏ chữ HẠNG).

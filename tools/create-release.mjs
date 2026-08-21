@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.13";
+const tag = "v1.9.12";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Màn văn nghệ làm lại thành ĐUA THUYỀN 6 làn: xuất phát → cú lừa 3 thuyền cuối bảng giả dẫn đầu → hạ màn lừa lộ 6-5 → lộ 4-3 → twist 2 thuyền bám đuổi → quán quân băng đích + pháo hoa.",
-  "- Điều khiển 6 nhịp bằng nút trong dashboard tab VĂN NGHỆ; REST /results thêm topTwo + stage đua thuyền.",
+  "- Tách trang trình chiếu: /ket-qua-tong/ = kết quả tổng kết (màn cột), /ket-qua-van-nghe/ = màn ĐUA THUYỀN văn nghệ mới (tự migration trang cũ).",
+  "- Đua thuyền văn nghệ tái dùng state machine cũ: ROLLING → DECOY (cú lừa 3 thuyền thấp điểm bứt lên) → THIRD → SECOND → FINAL, thuyền về bến theo hạng + pháo hoa.",
+  "- Bàn điều khiển văn nghệ đổi ngôn ngữ đua thuyền, link đúng màn mới; ẩn điểm hạ đáy màn tổng kết còn 50px.",
 ].join("\n");
 
 let release;

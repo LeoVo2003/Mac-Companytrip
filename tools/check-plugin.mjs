@@ -122,7 +122,6 @@ const restFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-votin
 const checkinRest = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-checkin-rest.php"), "utf8");
 const qrFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-qr.php"), "utf8");
 const adminFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-admin.php"), "utf8");
-const publicFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-public.php"), "utf8");
 const publicJs = fs.readFileSync(path.join(pluginRoot, "assets/public.js"), "utf8");
 const adminJs = fs.readFileSync(path.join(pluginRoot, "assets/admin.js"), "utf8");
 const resultsJs = fs.readFileSync(path.join(pluginRoot, "assets/results.js"), "utf8");
@@ -168,8 +167,8 @@ for (const invariant of ["Bạn không thể chấm tiết mục của team mìn
 for (const invariant of ["$is_decoy_featured", "$minimum_revealed_rank", "$show_score = $is_decoy_featured || $is_rank_revealed"]) {
   if (!restFile.includes(invariant)) throw new Error(`Missing reveal score rule: ${invariant}`);
 }
-for (const invariant of ["'DECOY' => 'RANK65'", "'RANK65' => 'RANK43'", "'RANK43' => 'TWIST'"]) {
-  if (!adminFile.includes(invariant)) throw new Error(`Missing manual race transition: ${invariant}`);
+for (const invariant of ["'DECOY' => 'THIRD'", "'THIRD' => 'SECOND'", "'SECOND' => 'FINAL'"]) {
+  if (!adminFile.includes(invariant)) throw new Error(`Missing manual podium transition: ${invariant}`);
 }
 if (!resultsJs.includes('["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST", "REVEAL3", "FINAL"].includes(state.stage)')) {
   throw new Error("Total reveal must render from seven explicit admin stages without an automatic timer.");
@@ -204,33 +203,8 @@ for (const invariant of ["'RANK65' => 'TEASE43'", "'TEASE43' => 'RANK43'", "'RAN
 if (!restFile.includes("/results-total") || !restFile.includes("function results_total")) {
   throw new Error("Missing public total-results endpoint.");
 }
-if (!adminJs.includes('data-total-reveal-stage') || !adminJs.includes("mac_vote_reveal_total")) {
+if (!adminJs.includes("data-total-reveal-stage") || !adminJs.includes("mac_vote_reveal_total")) {
   throw new Error("Missing total reveal MC controls on the dashboard.");
-}
-// v1.9.12: /ket-qua-tong = màn tổng kết, /ket-qua-van-nghe = màn văn nghệ (đua thuyền).
-for (const invariant of ["mac_companytrip_total_results", "mac_companytrip_art_results", "ket-qua-tong", "total_page_url"]) {
-  if (!publicFile.includes(invariant) && !databaseFile.includes(invariant)) {
-    throw new Error(`Missing split results-page invariant: ${invariant}`);
-  }
-}
-// v1.9.13: màn đua thuyền văn nghệ.
-const artJs = fs.readFileSync(path.join(pluginRoot, "assets/art.js"), "utf8");
-const artCss = fs.readFileSync(path.join(pluginRoot, "assets/art.css"), "utf8");
-for (const invariant of ["mac-art-app", "ar-lane", "startPyro", "DECOY", "topTwo"]) {
-  if (!artJs.includes(invariant)) throw new Error(`Missing boat-race invariant in art.js: ${invariant}`);
-}
-if (!artCss.includes(".ar-boat") || !artCss.includes(".ar-finish") || !artCss.includes("ar-sail-gold")) {
-  throw new Error("Missing boat-race styles in art.css.");
-}
-if (!publicFile.includes("mac-voting-art")) throw new Error("Art race assets must be registered in public class.");
-if (!restFile.includes("'RANK65' => 5") || !restFile.includes("'TWIST' => 3")) {
-  throw new Error("Art reveal endpoint must cover race stages RANK65/RANK43/TWIST.");
-}
-if (!adminFile.includes("'DECOY' => 'RANK65'") || !adminFile.includes("'TWIST' => 'FINAL'")) {
-  throw new Error("Art race admin transitions missing.");
-}
-if (!adminJs.includes("Màn đua thuyền") || !adminJs.includes("data-reveal-stage=\"RANK65\"")) {
-  throw new Error("Admin boat-race control panel missing.");
 }
 for (const invariant of ["is_voting_enabled", "voting_disabled"]) {
   if (!databaseFile.includes(invariant) && !restFile.includes(invariant)) throw new Error(`Missing voting gate: ${invariant}`);
@@ -355,6 +329,26 @@ for (const tc of TIE_CASES) {
     const revealed = tieRevealed(tc.totals, stage).length;
     if (revealed !== expected) throw new Error(`${tc.name}/${stage}: lộ ${revealed} đội, mong đợi ${expected}.`);
   }
+}
+
+// --- Màn đua thuyền văn nghệ: tách trang /ket-qua-tong (tổng) và /ket-qua-van-nghe (đua thuyền) ---
+const publicFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-public.php"), "utf8");
+const artRaceJs = fs.readFileSync(path.join(pluginRoot, "assets/art-race.js"), "utf8");
+const artRaceCss = fs.readFileSync(path.join(pluginRoot, "assets/art-race.css"), "utf8");
+for (const invariant of ["mac_companytrip_art_race", "ket-qua-tong", "ket-qua-van-nghe"]) {
+  if (!publicFile.includes(invariant)) throw new Error(`Missing art-race page wiring in public class: ${invariant}`);
+}
+for (const invariant of ["mac_voting_art_results_page_id", "ket-qua-tong", "art_results_page_url"]) {
+  if (!databaseFile.includes(invariant)) throw new Error(`Missing art-race page storage in DB class: ${invariant}`);
+}
+if (!adminFile.includes("artResultsUrl") || !adminJs.includes("artResultsUrl")) {
+  throw new Error("Art reveal panel must link to the /ket-qua-van-nghe race screen.");
+}
+if (!artRaceJs.includes("mac-art-race-app") || !artRaceJs.includes("DECOY")) {
+  throw new Error("Art race screen must poll the art reveal endpoint and render the decoy stage.");
+}
+if (!artRaceCss.includes(".ar-boat") || !artRaceCss.includes("mac-art-race-page")) {
+  throw new Error("Missing art race boat styles or theme-proof body class.");
 }
 
 const totalBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);
