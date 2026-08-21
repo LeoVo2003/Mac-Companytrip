@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.20** (đã release & verify ngày 2026-08-21, release id 374162282, commit 7f25efb) — nâng khoảng trống dưới màn hình cho chiếu sân khấu lớn + điểm hạng 3 màu copper. Trước đó v1.8.19 phóng to tên đội/điểm + bỏ mr-horizon; v1.8.18 trả seascape về bản tham chiếu + la bàn rotate(0). Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
+> Phiên bản hiện tại: **v1.9.0** (đã release & verify ngày 2026-08-21, release id 374166344, commit b0e5faf) — BIG UPDATE: màn trình chiếu chuyển thành màn công bố ĐIỂM TỔNG Company Trip với kịch bản 6 step (MC bấm nút trên admin). Logic công bố văn nghệ cũ giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này. Trước đó v1.8.20 nâng spacing đáy + điểm hạng 3 màu copper. Prototype "Race to the Crown" từng gắn tag v1.9.0 cũ đã gỡ khỏi source và xóa release/tag trên GitHub; tag v1.9.0 nay được tái sử dụng cho bản tổng kết này.
 
 ---
 
@@ -138,7 +138,17 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.20 (2026-08-21, commit 7f25efb, release id 374162282) — mới nhất
+### v1.9.0 (2026-08-21, commit b0e5faf, release id 374166344) — mới nhất · BIG UPDATE màn công bố ĐIỂM TỔNG
+
+- **Màn trình chiếu (`/ket-qua-van-nghe/`) nay chiếu ĐIỂM TỔNG**: shortcode trỏ endpoint mới `mac-voting/v1/results-total`; giữ nguyên layout hải trình (seascape + la bàn + chart-lines, không có mr-horizon).
+- **State machine mới** `mac_voting_total_reveal_state` (option): IDLE → ROLLING → RANK65 → RANK43 → RANK12 → TWIST → FINAL, chuyển step nghiêm ngặt, lưu kèm snapshot tổng điểm (đóng băng lúc bấm Mở màn từ `MAC_Points::dashboard()`). API `MAC_Voting_DB::total_reveal_state()` / `set_total_reveal_state()` trong `class-mac-voting-db.php`; admin ajax `mac_vote_reveal_total` (`ajax_reveal_total` trong `class-mac-voting-admin.php`); REST `results_total()` trong `class-mac-voting-rest.php` (rank tính theo tổng điểm snapshot, lộ hạng: RANK65 mở hạng 5-6, RANK43 mở tới hạng 3, FINAL mở hết; RANK12/TWIST giấu hạng 1-2 + điểm để giữ twist; trả kèm `topTwo`).
+- **Thang 10 ô** trong `results.js`: `LADDER_LEVELS` — RANK65 hạng 6-5 = 3 ô; RANK43 hạng 4-5-6 = 4 ô, hạng 3 = 5 ô; RANK12/TWIST top 2 = 6 ô; FINAL quán quân = 10 ô. Vạch chia 10 ô vẽ bằng `.mr-column::after` (repeating-linear-gradient mỗi 10%). Roll step 1 lượn sine nhẹ (rAF) + số đi bộ ngẫu nhiên, không giật; TWIST cho top 2 dao động đối pha quanh 60%; FINAL: quán quân nhảy 100% + pop + glow.
+- **Text mới**: header "TỔNG KẾT COMPANY TRIP", kicker idle "KẾT QUẢ CHUNG CUỘC"; các step: "HẠNG 6 & HẠNG 5", "HẠNG 4 & HẠNG 3", "HẠNG 2 & HẠNG 1", "KHOẢNH KHẮC QUYẾT ĐỊNH", final "QUÁN QUÂN COMPANY TRIP" + mô tả "CHÚC MỪNG ... · N điểm · Nhà vô địch Company Trip".
+- **Pháo hoa tưng bừng hơn**: 5 cột fountain 26 hạt/80ms trong 8,2s, burst 132 hạt/460ms trong 9,4s, thêm màu cam/đỏ, kết thúc sau 12,5s.
+- **Admin UI**: panel "Công bố điểm tổng Company Trip" đặt đầu tab Tổng quan (6 nút đánh số 00-05 + Đặt lại, dùng class `ma-reveal-*` có sẵn), kèm bảng tổng điểm thật chỉ admin thấy. Logic + panel công bố văn nghệ cũ giữ nguyên (tab VĂN NGHỆ) để lát nữa tái sử dụng cho đua thuyền.
+- `tools/check-plugin.mjs`: invariant cũ `["THIRD", "SECOND", "FINAL"]` của results.js thay bằng bộ invariant tổng kết (stage RANK65→FINAL, ladder, vạch 10 ô, transitions, endpoint, nút admin).
+
+### v1.8.20 (2026-08-21, commit 7f25efb, release id 374162282)
 
 - Nâng bottom padding `.mr-shell > main` lên `clamp(48px, 9vh, 120px)` (mobile `clamp(36px, 8vh, 84px)`) để hàng tên đội + điểm nằm cao, chiếu màn sân khấu lớn không bị người che sát mặt đất.
 - `.mr-team.is-third .mr-score { color: #f0bd91; }` — điểm hạng 3 màu copper, tách khỏi màu mặc định của hạng 4-5-6.
@@ -230,7 +240,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.8.20 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: bottom padding clamp(48px,9vh,120px) + `.mr-team.is-third .mr-score` + Version 1.8.20 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.20 là release mới nhất, updater sẽ không kéo ngược bản cũ. Đang chờ thống nhất logic với user để làm big update: màn hình công bố ĐIỂM TỔNG (6 step: roll nhẹ → hạng 6-5 lên 3 ô → hạng 4-3 lên 4/5 ô (4-5-6 đều 4 ô) → hạng 1-2 lên đều 6 ô → twist 1-2 lên xuống → quán quân nhảy lên ô 10).
+Mọi yêu cầu tới 1.9.0 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: route /results-total, total_reveal_state, ajax_reveal_total, data-total-reveal-stage, endpoint mới trong shortcode, RANK65 + ladder 1:10 trong results.js, vạch 10 ô + mr-champion-pop trong results.css, Version 1.9.0 đều có). Việc tiếp theo do user hẹn: làm lại màn công bố văn nghệ theo chủ đề ĐUA THUYỀN, tái sử dụng logic reveal văn nghệ cũ (REST `/results` + `reveal_state()` + panel tab VĂN NGHỆ vẫn còn nguyên trong code).
 
 ---
 
