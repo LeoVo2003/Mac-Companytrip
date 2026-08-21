@@ -9,6 +9,9 @@ final class MAC_Voting_Public {
         add_shortcode('mac_companytrip_vote', array(__CLASS__, 'shortcode'));
         add_shortcode('mac_companytrip_results', array(__CLASS__, 'results_shortcode'));
         add_shortcode('mac_companytrip_art_race', array(__CLASS__, 'art_race_shortcode'));
+        // Alias giữ tương thích với bản 1.9.12-1.9.13 từng dùng tên shortcode khác.
+        add_shortcode('mac_companytrip_total_results', array(__CLASS__, 'results_shortcode'));
+        add_shortcode('mac_companytrip_art_results', array(__CLASS__, 'art_race_shortcode'));
         add_action('init', array(__CLASS__, 'register_rewrite'));
         add_filter('query_vars', array(__CLASS__, 'query_vars'));
         add_action('template_redirect', array('MAC_Voting_QR', 'handle_public_request'));

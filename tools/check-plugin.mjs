@@ -335,10 +335,10 @@ for (const tc of TIE_CASES) {
 const publicFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-public.php"), "utf8");
 const artRaceJs = fs.readFileSync(path.join(pluginRoot, "assets/art-race.js"), "utf8");
 const artRaceCss = fs.readFileSync(path.join(pluginRoot, "assets/art-race.css"), "utf8");
-for (const invariant of ["mac_companytrip_art_race", "ket-qua-tong", "ket-qua-van-nghe"]) {
+for (const invariant of ["mac_companytrip_art_race", "ket-qua-tong", "ket-qua-van-nghe", "mac_companytrip_total_results", "mac_companytrip_art_results"]) {
   if (!publicFile.includes(invariant)) throw new Error(`Missing art-race page wiring in public class: ${invariant}`);
 }
-for (const invariant of ["mac_voting_art_results_page_id", "ket-qua-tong", "art_results_page_url"]) {
+for (const invariant of ["mac_voting_art_results_page_id", "ket-qua-tong", "art_results_page_url", "migrate_split_pages"]) {
   if (!databaseFile.includes(invariant)) throw new Error(`Missing art-race page storage in DB class: ${invariant}`);
 }
 if (!adminFile.includes("artResultsUrl") || !adminJs.includes("artResultsUrl")) {

@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.12";
+const tag = "v1.9.14";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Tách trang trình chiếu: /ket-qua-tong/ = kết quả tổng kết (màn cột), /ket-qua-van-nghe/ = màn ĐUA THUYỀN văn nghệ mới (tự migration trang cũ).",
-  "- Đua thuyền văn nghệ tái dùng state machine cũ: ROLLING → DECOY (cú lừa 3 thuyền thấp điểm bứt lên) → THIRD → SECOND → FINAL, thuyền về bến theo hạng + pháo hoa.",
-  "- Bàn điều khiển văn nghệ đổi ngôn ngữ đua thuyền, link đúng màn mới; ẩn điểm hạ đáy màn tổng kết còn 50px.",
+  "- Tách trang trình chiếu: /ket-qua-tong/ = kết quả tổng kết (màn cột), /ket-qua-van-nghe/ = màn ĐUA THUYỀN văn nghệ (6 làn thuyền, cú lừa 3 thuyền thấp điểm, về bến 3 → 2 → quán quân + pháo hoa).",
+  "- Migration hội tụ: site đã lên 1.9.12-1.9.13 tự chuẩn hóa option/shortcode về bộ tên mới, không tạo trang trùng; kèm alias shortcode cho trang cũ.",
+  "- Bàn điều khiển văn nghệ ngôn ngữ đua thuyền, link đúng màn mới; ẩn điểm hạ đáy màn tổng kết còn 50px.",
 ].join("\n");
 
 let release;

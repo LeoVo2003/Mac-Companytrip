@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.12** (2026-08-21) — tách trang trình chiếu: /ket-qua-tong/ = màn cột tổng kết (migration tự đổi slug trang cũ), /ket-qua-van-nghe/ = màn ĐUA THUYỀN văn nghệ mới (art-race.js/css, shortcode [mac_companytrip_art_race], poll REST /results, tái dùng state machine IDLE→ROLLING→DECOY→THIRD→SECOND→FINAL kèm cú lừa); ẩn điểm hạ đáy màn tổng kết còn 50px. Trước đó v1.9.11: badge "KHUYẾN KHÍCH", ẩn điểm tên đội thế chỗ khối điểm, thang cao mới (80/80/45-60+50/30+50+50-90/85-65). Trước đó v1.9.10: bước 02 chỉ lộ 4-5-6, badge khuyến khích gắn ngay. Trước đó v1.9.9: twist 3 đội tung điểm + REVEAL3. Trước đó v1.9.8 trở về trước như cũ.
+> Phiên bản hiện tại: **v1.9.14** (2026-08-21) — tách trang trình chiếu /ket-qua-tong (màn cột tổng kết) vs /ket-qua-van-nghe (màn ĐUA THUYỀN văn nghệ: art-race.js/css, shortcode [mac_companytrip_art_race], poll REST /results, cú lừa DECOY 3 thuyền thấp điểm, về bến 3→2→quán quân + pháo hoa); migration `migrate_split_pages()` hội tụ cả site đã lỡ lên 1.9.12-1.9.13 (option mac_voting_total_page_id + shortcode *_total_results/*_art_results) lẫn site ≤ 1.9.11; alias shortcode giữ tương thích; ẩn điểm hạ đáy 50px. Lưu ý: repo từng có commit song song 9fcd57c (v1.9.12) + 3f7772a (v1.9.13, art.js/art.css) từ phiên khác — bản này thay thế và xóa art.js/art.css. Trước đó v1.9.11: badge KHUYẾN KHÍCH, thang cao mới. Trước đó v1.9.9/v1.9.10: twist 3 đội + REVEAL3, bước 02 chỉ lộ 4-5-6.
 
 ---
 
@@ -138,7 +138,15 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.12 (2026-08-21) — mới nhất · tách trang + đua thuyền văn nghệ
+### v1.9.14 (2026-08-21) — mới nhất · đua thuyền văn nghệ + migration hội tụ
+
+- **Bối cảnh repo**: giữa các turn có phiên khác commit 9fcd57c (v1.9.12, placeholder) + 3f7772a (v1.9.13, art.js/art.css, option `mac_voting_total_page_id`, shortcode `mac_companytrip_total_results`/`mac_companytrip_art_results`) và đã push tag. Bản này (de57801 trở đi) thay thế toàn bộ bằng art-race.js/css + bộ tên riêng, nên cần migration hội tụ.
+- **`migrate_split_pages()`** (db.php, chạy trong activate + maybe_upgrade): trang tổng = ưu tiên option `mac_voting_total_page_id` → slug ket-qua-tong → trang cũ chứa `[mac_companytrip_results]`; chuẩn hóa slug/title/content về `[mac_companytrip_results]`, ghi `mac_voting_results_page_id`, xóa `mac_voting_total_page_id`. Trang nghệ = option `mac_voting_art_results_page_id` → slug ket-qua-van-nghe (loại trừ trùng ID trang tổng); chuẩn hóa về `[mac_companytrip_art_race]` hoặc tạo mới.
+- **Alias shortcode** (public.php): `mac_companytrip_total_results` → results_shortcode, `mac_companytrip_art_results` → art_race_shortcode.
+- **art-race.js/css** như mô tả ở mục v1.9.12 bên dưới (RACE_POSITIONS, badgeFor, DECOY featured 82/76/70, pháo hoa trễ 1,5s).
+- Release nhảy lên **v1.9.14** để đứng trên tag v1.9.13 của phiên trước (updater lấy bản mới nhất).
+
+### v1.9.12 (2026-08-21) — tách trang + đua thuyền văn nghệ
 
 - **Pages**: `migrate_results_page_slug()` đổi slug trang tổng kết `ket-qua-van-nghe` → `ket-qua-tong` (title "Kết Quả Tổng Kết"); `ensure_art_results_page()` tạo trang `ket-qua-van-nghe` mới với `[mac_companytrip_art_race]`, option `mac_voting_art_results_page_id`. Cả hai chạy trong `activate()` + `maybe_upgrade()`. Rewrite rules: `^ket-qua-tong/?$` → trang tổng, `^ket-qua-van-nghe/?$` → trang đua thuyền (register_rewrites ở db.php + register_rewrite ở public.php). `results_page_url()` → /ket-qua-tong/; `art_results_page_url()` mới.
 - **Shortcode mới** `mac_companytrip_art_race` (class-mac-voting-public.php): `#mac-art-race-app` data-endpoint = REST `/results`; enqueue art-race.css/js; body class `mac-art-race-page`.

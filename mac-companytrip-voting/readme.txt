@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.12
+Stable tag: 1.9.14
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -68,9 +68,12 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 
 == Changelog ==
 
+= 1.9.14 =
+- Migration hội tụ: site đã lỡ lên 1.9.12-1.9.13 (option mac_voting_total_page_id, shortcode *_total_results/*_art_results) tự chuẩn hóa về bộ tên mới, không tạo trang trùng; site ≤ 1.9.11 và site mới vẫn tách trang đúng.
+- Thêm alias shortcode mac_companytrip_total_results / mac_companytrip_art_results để trang cũ nhúng vẫn chạy.
+
 = 1.9.12 =
-- Tách hai màn trình chiếu: /ket-qua-tong/ = màn cột kết quả tổng kết (dời từ /ket-qua-van-nghe/ sang, tự migration trang cũ); /ket-qua-van-nghe/ = màn ĐUA THUYỀN văn nghệ mới.
-- Màn đua thuyền: 6 làn thuyền SVG trên biển đêm, kịch bản tái dùng state machine văn nghệ cũ (ROLLING → DECOY cú lừa 3 thuyền thấp điểm bứt lên → THIRD → SECOND → FINAL), thuyền về bến theo hạng, pháo hoa khi quán quân chạm bến.
+- Tách hai màn trình chiếu: /ket-qua-tong/ = màn cột kết quả tổng kết; /ket-qua-van-nghe/ = màn ĐUA THUYỀN văn nghệ mới (6 làn thuyền SVG, cú lừa 3 thuyền thấp điểm bứt lên, thuyền về bến theo hạng 3 → 2 → quán quân + pháo hoa).
 - Bàn điều khiển văn nghệ đổi ngôn ngữ đua thuyền và link đúng màn /ket-qua-van-nghe/; bàn tổng kết link /ket-qua-tong/.
 - Ẩn điểm: đáy màn tổng kết hạ padding còn 50px khi ẩn.
 

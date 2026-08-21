@@ -30,9 +30,7 @@ final class MAC_Voting_DB {
         self::ensure_games();
         MAC_Points::seed_categories();
         self::ensure_vote_page();
-        self::ensure_results_page();
-        self::migrate_results_page_slug();
-        self::ensure_art_results_page();
+        self::migrate_split_pages();
         self::ensure_checkin_page();
         self::ensure_admin_page();
         if (get_option('mac_voting_public_enabled', null) === false) {
@@ -51,8 +49,7 @@ final class MAC_Voting_DB {
             self::ensure_admin_page();
             self::ensure_staff_team();
             self::ensure_games();
-            self::migrate_results_page_slug();
-            self::ensure_art_results_page();
+            self::migrate_split_pages();
         }
         if (get_option('mac_voting_plugin_version') !== MAC_VOTING_VERSION) {
             if (version_compare((string) get_option('mac_voting_plugin_version', '0'), '1.8.8', '<')) {
@@ -429,63 +426,86 @@ final class MAC_Voting_DB {
         }
     }
 
-    private static function ensure_results_page(): void {
-        $page_id = (int) get_option('mac_voting_results_page_id');
-        if ($page_id && get_post($page_id)) {
-            return;
-        }
-        $existing = get_page_by_path('ket-qua-tong');
-        if ($existing instanceof WP_Post) {
-            update_option('mac_voting_results_page_id', $existing->ID, false);
-            return;
-        }
-        $page_id = wp_insert_post(array(
-            'post_title'   => 'Kết Quả Tổng Kết',
-            'post_name'    => 'ket-qua-tong',
-            'post_content' => '[mac_companytrip_results]',
-            'post_status'  => 'publish',
-            'post_type'    => 'page',
-        ));
-        if (!is_wp_error($page_id)) {
-            update_option('mac_voting_results_page_id', (int) $page_id, false);
-        }
-    }
-
     /**
-     * v1.9.12: trang tổng kết dời từ /ket-qua-van-nghe/ sang /ket-qua-tong/,
-     * nhường slug /ket-qua-van-nghe/ cho màn đua thuyền văn nghệ.
+     * v1.9.12+: tách hai trang trình chiếu và hội tụ mọi trạng thái nâng cấp:
+     * - site ≤ 1.9.11: trang [mac_companytrip_results] slug ket-qua-van-nghe → đổi thành /ket-qua-tong/, tạo trang đua thuyền mới.
+     * - site 1.9.12-1.9.13 (option mac_voting_total_page_id + shortcode *_total_results/*_art_results): chuẩn hóa lại
+     *   nội dung về [mac_companytrip_results] và [mac_companytrip_art_race], xóa option cũ.
+     * Kết quả: mac_voting_results_page_id = /ket-qua-tong/, mac_voting_art_results_page_id = /ket-qua-van-nghe/.
      */
-    private static function migrate_results_page_slug(): void {
-        $page_id = (int) get_option('mac_voting_results_page_id');
-        $page = $page_id ? get_post($page_id) : null;
-        if ($page instanceof WP_Post && $page->post_name !== 'ket-qua-tong') {
+    private static function migrate_split_pages(): void {
+        // --- Trang tổng kết ---
+        $total = null;
+        $legacy_total_id = (int) get_option('mac_voting_total_page_id');
+        if ($legacy_total_id) {
+            $total = get_post($legacy_total_id);
+        }
+        if (!$total instanceof WP_Post) {
+            $total = get_page_by_path('ket-qua-tong');
+        }
+        if (!$total instanceof WP_Post) {
+            $old_id = (int) get_option('mac_voting_results_page_id');
+            $old = $old_id ? get_post($old_id) : null;
+            if ($old instanceof WP_Post && strpos((string) $old->post_content, '[mac_companytrip_results]') !== false) {
+                $total = $old;
+            }
+        }
+        if ($total instanceof WP_Post) {
             wp_update_post(array(
-                'ID'         => $page->ID,
-                'post_name'  => 'ket-qua-tong',
-                'post_title' => 'Kết Quả Tổng Kết',
+                'ID'           => (int) $total->ID,
+                'post_name'    => 'ket-qua-tong',
+                'post_title'   => 'Kết Quả Tổng Kết',
+                'post_content' => '[mac_companytrip_results]',
             ));
+        } else {
+            $total_id = wp_insert_post(array(
+                'post_title'   => 'Kết Quả Tổng Kết',
+                'post_name'    => 'ket-qua-tong',
+                'post_content' => '[mac_companytrip_results]',
+                'post_status'  => 'publish',
+                'post_type'    => 'page',
+            ));
+            $total = is_wp_error($total_id) ? null : get_post((int) $total_id);
         }
-    }
+        if ($total instanceof WP_Post) {
+            update_option('mac_voting_results_page_id', (int) $total->ID, false);
+        }
+        delete_option('mac_voting_total_page_id');
 
-    private static function ensure_art_results_page(): void {
-        $page_id = (int) get_option('mac_voting_art_results_page_id');
-        if ($page_id && get_post($page_id)) {
-            return;
+        // --- Trang đua thuyền văn nghệ ---
+        $art = null;
+        $art_id = (int) get_option('mac_voting_art_results_page_id');
+        if ($art_id) {
+            $candidate = get_post($art_id);
+            if ($candidate instanceof WP_Post && (!$total instanceof WP_Post || (int) $candidate->ID !== (int) $total->ID)) {
+                $art = $candidate;
+            }
         }
-        $existing = get_page_by_path('ket-qua-van-nghe');
-        if ($existing instanceof WP_Post) {
-            update_option('mac_voting_art_results_page_id', $existing->ID, false);
-            return;
+        if (!$art instanceof WP_Post) {
+            $candidate = get_page_by_path('ket-qua-van-nghe');
+            if ($candidate instanceof WP_Post && (!$total instanceof WP_Post || (int) $candidate->ID !== (int) $total->ID)) {
+                $art = $candidate;
+            }
         }
-        $page_id = wp_insert_post(array(
-            'post_title'   => 'Kết Quả Văn Nghệ',
-            'post_name'    => 'ket-qua-van-nghe',
-            'post_content' => '[mac_companytrip_art_race]',
-            'post_status'  => 'publish',
-            'post_type'    => 'page',
-        ));
-        if (!is_wp_error($page_id)) {
-            update_option('mac_voting_art_results_page_id', (int) $page_id, false);
+        if ($art instanceof WP_Post) {
+            wp_update_post(array(
+                'ID'           => (int) $art->ID,
+                'post_name'    => 'ket-qua-van-nghe',
+                'post_title'   => 'Kết Quả Văn Nghệ',
+                'post_content' => '[mac_companytrip_art_race]',
+            ));
+        } else {
+            $art_id = wp_insert_post(array(
+                'post_title'   => 'Kết Quả Văn Nghệ',
+                'post_name'    => 'ket-qua-van-nghe',
+                'post_content' => '[mac_companytrip_art_race]',
+                'post_status'  => 'publish',
+                'post_type'    => 'page',
+            ));
+            $art = is_wp_error($art_id) ? null : get_post((int) $art_id);
+        }
+        if ($art instanceof WP_Post) {
+            update_option('mac_voting_art_results_page_id', (int) $art->ID, false);
         }
     }
 
