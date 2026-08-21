@@ -9,17 +9,17 @@
   const clamp = (minimum, value, maximum) => Math.min(maximum, Math.max(minimum, value));
   const formatTotal = (score) => Number(score).toLocaleString("vi-VN");
   // Thang 10 ô: mỗi ô = 10% chiều cao cột. Độ cao theo kịch bản MC: lộ 6-5 = 80% → hiện top 4:
-  // hạng 4-5-6 cùng 50% (hạng 3 chưa lộ) → twist: top 3 cùng tung điểm dao động 70→90%, 4-5-6 về 30%
-  // → hiện hạng 3 về 50%, hạng 1-2 tung tiếp → quán quân 85%, hạng nhì 60%.
+  // hạng 4-5-6 cùng 80% → twist: top 3 dao động 45→60%, 4-5-6 giữ 50% → hiện top 3: 4-5-6 về 30%,
+  // hạng 3 = 50%, 1-2 dao động 50→90% → quán quân 85%, nhì 65%.
   const CELL = 10;
   const LADDER_LEVELS = {
     RANK65: { 6: 8, 5: 8 },
     TEASE43: { 6: 8, 5: 8 },
-    RANK43: { 6: 5, 5: 5, 4: 5 },
+    RANK43: { 6: 8, 5: 8, 4: 8 },
     RANK12: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6, 1: 6 },
-    TWIST: { 6: 3, 5: 3, 4: 3 },
+    TWIST: { 6: 5, 5: 5, 4: 5 },
     REVEAL3: { 6: 3, 5: 3, 4: 3, 3: 5 },
-    FINAL: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6, 1: 8.5 },
+    FINAL: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6.5, 1: 8.5 },
   };
   // Badge gắn ngay khi lộ: hạng 5-6 nhận HẠNG KHUYẾN KHÍCH ở bước 1, hạng 4 ở bước 2;
   // hạng 3 chờ bước "Hiện top 3" (REVEAL3); hạng 2-1 chỉ gắn badge ở FINAL để giữ cú twist.
@@ -163,7 +163,7 @@
     if (Number(rank) === 1) return "QUÁN QUÂN";
     if (Number(rank) === 2) return "HẠNG NHÌ";
     if (Number(rank) === 3) return "HẠNG BA";
-    return "HẠNG KHUYẾN KHÍCH";
+    return "KHUYẾN KHÍCH";
   }
 
   function podiumClass(rank) {
@@ -198,6 +198,8 @@
     if (reducedMotion.matches) return;
     const ids = state.topTwo || [];
     const phaseStep = (Math.PI * 2) / Math.max(2, ids.length);
+    // TWIST: ứng viên dao động 45→60%; REVEAL3: hai đội còn lại dao động mạnh hơn 50→90%.
+    const osc = state.stage === "REVEAL3" ? { base: 70, amp: 20 } : { base: 52.5, amp: 7.5 };
     ids.forEach((id) => {
       const bar = teamElement(id)?.querySelector(".mr-bar");
       if (bar) bar.style.transitionDuration = "120ms";
@@ -209,7 +211,7 @@
       waves.forEach((wave) => {
         const element = teamElement(wave.id);
         if (!element) return;
-        element.style.setProperty("--bar-level", `${80 + Math.sin(seconds * 1.6 + wave.phase) * 10}%`);
+        element.style.setProperty("--bar-level", `${osc.base + Math.sin(seconds * 1.6 + wave.phase) * osc.amp}%`);
         wave.value += (wave.target - wave.value) * 0.02;
         if (Math.abs(wave.target - wave.value) < 6) wave.target = 430 + Math.random() * 320;
         if (!state.scoresHidden) element.querySelector(".mr-score span").textContent = String(Math.round(wave.value));
@@ -263,9 +265,9 @@
         scoreText = displayScore(formatTotal(team.score));
         if (badgeFor(stage, team.rank)) badgeText = rankLabel(team.rank);
       } else if (stage === "RANK12" || stage === "TWIST" || stage === "REVEAL3") {
-        // Ứng viên (TWIST: hạng 1-3, REVEAL3: hạng 1-2) leo lên mốc 80% nhưng giấu hạng + điểm
-        // thật — số sẽ được vòng lặp twist tung liên tục.
-        level = 8 * CELL;
+        // Ứng viên (TWIST: hạng 1-3, REVEAL3: hạng 1-2) leo lên mốc dao động nhưng giấu hạng +
+        // điểm thật — số sẽ được vòng lặp twist tung liên tục.
+        level = stage === "REVEAL3" ? 70 : stage === "RANK12" ? 60 : 52.5;
         scoreText = "•••";
       } else {
         // Chưa lộ: cột về vạch xuất phát 122px để nhóm được lộ nổi bật hẳn.

@@ -538,9 +538,9 @@ final class MAC_Voting_Admin {
         $messages = array(
             'IDLE' => 'Đã đưa màn hình tổng kết về trạng thái chờ.',
             'ROLLING' => 'Màn hình tổng kết đang tung điểm nhẹ nhàng cho 6 đội.',
-            'RANK65' => 'Đã lộ diện hạng 6 và hạng 5 (80%) · badge hạng khuyến khích.',
+            'RANK65' => 'Đã lộ diện hạng 6 và hạng 5 (80%) · badge khuyến khích.',
             'TEASE43' => 'Đang nhấp nháy nhá hàng top 4 — nhấn lần nữa để lộ diện.',
-            'RANK43' => 'Đã lộ diện hạng 4-5-6 cùng mốc 50% · badge hạng khuyến khích.',
+            'RANK43' => 'Đã lộ diện hạng 4-5-6 cùng mốc 80% · badge khuyến khích.',
             'RANK12' => 'Hai đội dẫn đầu đã bước lên cùng mốc 6 ô.',
             'TWIST' => 'Ba đội dẫn đầu đang cùng tung điểm bám đuổi.',
             'REVEAL3' => 'Đã lộ diện hạng ba · hai đội còn lại tiếp tục tung điểm.',

@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.10";
+const tag = "v1.9.11";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Bước 02 \"Hiện top 4\" chỉ lộ hạng 4-5-6 (cùng 50%); hạng 3 dành cho bước \"Hiện top 3\" sau cú twist.",
-  "- Badge HẠNG KHUYẾN KHÍCH gắn ngay khi lộ hạng 5-6 (bước 01) và hạng 4 (bước 02).",
-  "- Bộ test trùng điểm 12 TC cập nhật theo ngưỡng mới của bước 02.",
+  "- Badge rút gọn còn \"KHUYẾN KHÍCH\".",
+  "- Ẩn điểm: tên đội giãn xuống thế chỗ khối điểm, hết khoảng trống dưới đáy.",
+  "- Thang độ cao mới: bước 02 hạng 4-5-6 cùng 80%; twist 1-2-3 dao động 45-60% còn 4-5-6 giữ 50%; hiện top 3: 4-5-6 về 30%, hạng 3 = 50%, 1-2 dao động 50-90%; quán quân 85% · nhì 65%.",
 ].join("\n");
 
 let release;

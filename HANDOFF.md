@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.10** (2026-08-21) — bước 02 chỉ lộ hạng 4-5-6 (hạng 3 dành cho bước sau cú twist); badge HẠNG KHUYẾN KHÍCH gắn ngay khi lộ hạng 5-6 (bước 01) và hạng 4 (bước 02). Trước đó v1.9.9: kịch bản twist đúng luồng MC: bước 03 cho 3 đội dẫn đầu (hạng 1-2-3) cùng tung điểm (stage TWIST giấu hạng 1-3), bước 04 "Hiện top 3" (REVEAL3) lộ hạng ba về 50% + hạng 1-2 tung tiếp, bước 05 công bố quán quân; badge hạng ba gắn ở REVEAL3. Trước đó v1.9.8: thang độ cao kịch bản MC (6-5 = 80% → top 4: 4-5-6 = 50% → twist 70-90% → nhất 85%, nhì 60%); bước 02 hai nhịp nhá hàng nhấp nháy (TEASE43); mở màn kéo mượt từ vạch 122px; twist hết giật. Trước đó v1.9.7: điểm tăng trưởng; pháo hoa FINAL trễ 3s; ẩn điểm = display:none. Trước đó v1.9.6: xử lý trùng điểm theo 12 test case TC01-TC12, tiêu đề lộ hạng động, cảnh báo trùng điểm, bộ test tự động. Trước đó v1.9.5: lộ hạng đếm từ dưới lên, đồng quán quân xướng đủ tên. Trước đó v1.9.4 trở về trước như cũ. Logic công bố văn nghệ cũ giữ nguyên để tái sử dụng cho màn đua thuyền.
+> Phiên bản hiện tại: **v1.9.11** (2026-08-21) — badge rút còn "KHUYẾN KHÍCH"; ẩn điểm thì hàng tên đội giãn xuống thế chỗ khối điểm (hết khoảng thừa); thang độ cao mới: bước 02 hạng 4-5-6 cùng 80%, twist 1-2-3 dao động 45-60% còn 4-5-6 giữ 50%, hiện top 3: 4-5-6 về 30% + hạng 3 = 50% + 1-2 dao động 50-90%, quán quân 85% · nhì 65%. Trước đó v1.9.10: bước 02 chỉ lộ hạng 4-5-6 (hạng 3 dành cho bước sau cú twist); badge khuyến khích gắn ngay khi lộ. Trước đó v1.9.9: twist 3 đội cùng tung điểm + bước Hiện top 3 (REVEAL3). Trước đó v1.9.8: thang độ cao kịch bản MC, bước 02 hai nhịp nhá hàng (TEASE43), mở màn kéo mượt 122px, twist hết giật. Trước đó v1.9.7: điểm tăng trưởng, pháo hoa trễ 3s, ẩn điểm display:none. Trước đó v1.9.6: trùng điểm 12 TC + cảnh báo. Trước đó v1.9.5 trở về trước như cũ. Logic công bố văn nghệ cũ giữ nguyên cho màn đua thuyền.
 
 ---
 
@@ -138,7 +138,14 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.10 (2026-08-21) — mới nhất · top 4 chỉ lộ 4-5-6 + badge HẠNG KHUYẾN KHÍCH
+### v1.9.11 (2026-08-21) — mới nhất · badge KHUYẾN KHÍCH + layout ẩn điểm + thang cao mới
+
+- **Badge**: `rankLabel` hạng ≥ 4 trả "KHUYẾN KHÍCH" (bỏ chữ HẠNG theo ý user).
+- **Ẩn điểm hết khoảng thừa**: `.mac-results-app.is-scores-hidden .mr-team { grid-template-rows: minmax(0,1fr) 104px 0 }` (mobile 82px) — hàng tên đội giãn xuống thế chỗ khối điểm; hiện điểm thì về 64px/40px cũ.
+- **Thang độ cao mới** (`LADDER_LEVELS`): RANK43 `{6:8,5:8,4:8}`; TWIST `{6:5,5:5,4:5}`; REVEAL3 `{6:3,5:3,4:3,3:5}`; FINAL `{6:3,5:3,4:3,3:5,2:6.5,1:8.5}`. Dao động: `startTwist` đọc `state.stage` — TWIST `52.5 ± 7.5` (45→60%), REVEAL3 `70 ± 20` (50→90%); mức leo ban đầu của ứng viên trong renderLadder cũng theo stage (52.5 / 70).
+- `check-plugin.mjs`: invariant ladder mới + "KHUYẾN KHÍCH".
+
+### v1.9.10 (2026-08-21) — top 4 chỉ lộ 4-5-6 + badge HẠNG KHUYẾN KHÍCH
 
 - **Bước 02 chỉ lộ hạng 4-5-6** (user confirm lại): REST đổi `revealed_from_bottom['RANK43']` 4 → 3 và `protect_rank['RANK43']` 3 → 4 — hạng 3 không lộ ở bước 02, dành cho REVEAL3 sau cú twist. `LADDER_LEVELS.RANK43` bỏ hạng 3 (hạng 3 nằm vạch 122px chờ).
 - **Badge HẠNG KHUYẾN KHÍCH**: `rankLabel` trả "HẠNG KHUYẾN KHÍCH" cho hạng ≥ 4 (thay `HẠNG ${rank}`); `BADGE_FROM[6] = BADGE_FROM[5] = 1` → badge gắn ngay bước 01, hạng 4 gắn bước 02.

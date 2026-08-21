@@ -470,6 +470,12 @@ body.mac-results-page .elementor-shortcode {
   display: none;
 }
 
+/* Khi ẩn điểm: hàng tên đội giãn xuống thế chỗ khối điểm để không thừa khoảng trống dưới đáy;
+   hiện điểm lại thì tên đội đôn lên vị trí cũ. */
+.mac-results-app.is-scores-hidden .mr-team {
+  grid-template-rows: minmax(0, 1fr) 104px 0;
+}
+
 .mr-score small {
   color: var(--muted);
   font-size: clamp(7px, 0.6vw, 10px);
@@ -876,6 +882,10 @@ body.mac-results-page .elementor-shortcode {
 
   .mr-team {
     grid-template-rows: minmax(0, 1fr) 52px 30px;
+  }
+
+  .mac-results-app.is-scores-hidden .mr-team {
+    grid-template-rows: minmax(0, 1fr) 82px 0;
   }
 
   .mr-score {

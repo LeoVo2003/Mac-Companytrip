@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.10
+Stable tag: 1.9.11
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,11 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.11 =
+- Badge rút gọn còn chữ "KHUYẾN KHÍCH" (bỏ chữ HẠNG).
+- Ẩn điểm: hàng tên đội giãn xuống thế chỗ khối điểm, hết khoảng trống thừa dưới đáy; hiện điểm thì đôn lên như cũ.
+- Thang độ cao mới: bước 02 hạng 4-5-6 cùng 80%; twist hạng 1-2-3 dao động 45-60% còn 4-5-6 giữ 50%; hiện top 3 thì 4-5-6 về 30%, hạng 3 = 50%, hạng 1-2 dao động 50-90%; quán quân 85% · nhì 65%.
 
 = 1.9.10 =
 - Bước 02 "Hiện top 4" chỉ lộ hạng 4-5-6 (cùng mốc 50%); hạng 3 không lộ ở bước này mà dành cho bước "Hiện top 3" sau cú twist.
