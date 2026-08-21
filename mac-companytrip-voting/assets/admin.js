@@ -322,6 +322,7 @@
   }
   const statusLabel = (status) => status === "OPEN" ? "Đang mở vote" : status === "CLOSED" ? "Đã đóng" : "Chưa bắt đầu";
   const revealStageLabel = (stage) => ({ IDLE: "Đang chờ", ROLLING: "Đang tung điểm", DECOY: "Đã chốt cú lừa", THIRD: "Đã công bố hạng ba", SECOND: "Đã công bố hạng nhì", FINAL: "Đã công bố quán quân" }[stage] || "Đang chờ");
+    const totalRevealStageLabel = (stage) => ({ IDLE: "Đang chờ", ROLLING: "Đang tung điểm", RANK65: "Đã lộ diện hạng 6-5", RANK43: "Đã lộ diện hạng 4-3", RANK12: "Top 2 đã bước lên", TWIST: "Đang tạo cú twist", FINAL: "Đã công bố quán quân" }[stage] || "Đang chờ");
   function sidebar() { return `<aside class="ma-side"><div class="ma-brand"><img src="${esc(window.MACVotingAdmin.logo)}"><div><strong>Company Trip</strong>${canWrite() ? "" : `<small>Admin · chỉ xem</small>`}</div></div><nav><button data-tab="overview" class="${tab === "overview" ? "active" : ""}">◉ Tổng quan</button><button data-tab="checkin" class="${tab === "checkin" ? "active" : ""}">▣ Check-in</button><button data-tab="games" class="${tab === "games" ? "active" : ""}">◈ Trò chơi lớn</button><button data-tab="art" class="${tab === "art" ? "active" : ""}">♪ Văn nghệ</button><button data-tab="thidua" class="${tab === "thidua" ? "active" : ""}">★ Thi đua</button><button data-tab="data" class="${tab === "data" ? "active" : ""}">▦ Nhân sự & QR</button></nav><div class="ma-side-links"><a href="${esc(window.MACVotingAdmin.checkinUrl)}">↗ Quét QR check-in</a>${canWrite() ? `<a href="${esc(window.MACVotingAdmin.resultsUrl)}" target="_blank" rel="noopener">↗ Màn hình kết quả</a><a href="${esc(window.MACVotingAdmin.voteUrl)}" target="_blank" rel="noopener">↗ Mở trang vote</a><button type="button" id="ma-seed-demo" class="ma-side-secret" title="Chỉ super admin · diễn tập màn hình công bố">⚓ Áp dữ liệu demo</button>` : ""}</div><a class="ma-side-logout" href="${esc(window.MACVotingAdmin.logoutUrl)}">Đăng xuất</a></aside>`; }
   function votingGate() {
     const on = !!data.votingEnabled;
@@ -370,7 +371,7 @@
     const gamesSummary = `<section class="ma-panel"><header><div><small>TRÒ CHƠI LỚN</small><h2>Điểm 3 game</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Thang hạng 1 – 6: 50 · 40 · 30 · 20 · 10 · 0đ. Xếp hạng trong tab Trò chơi lớn.</p></div></header>${gamesMatrix(games, gameBoard, teams)}</section>`;
     const votePanel = `<section class="ma-panel"><header><div><small>VĂN NGHỆ</small><h2>Kết quả bình chọn</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Điểm = ROUND(TB phiếu ÷ 150 × 200), tối đa 200đ, cập nhật trực tiếp khi có phiếu.</p></div></header><div class="ma-board-table"><table><thead><tr><th>Team</th><th>TB phiếu</th><th>Số phiếu hợp lệ</th><th>Điểm văn nghệ</th></tr></thead><tbody>${ranked.map((team) => `<tr><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td><td>${team.voteAverage === null ? "Chưa vote" : `${trim1(team.voteAverage)}/150`}</td><td>${team.voteBallots || 0}</td><td><strong>${fmt(team.vote)}</strong></td></tr>`).join("")}</tbody></table></div></section>`;
     const thiduaPanel = `<section class="ma-panel"><header><div><small>THI ĐUA</small><h2>Điểm từng đội</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Chấm nhanh trong tab Thi đua với thang 50 · 40 · 30 · 20 · 10 · 0.</p></div></header>${thiduaMatrix(categories, teams)}</section>`;
-    const chart = `<div class="ma-overview-stack">${chartPanel}${scoreboard}${checkinPanel}${gamesSummary}${votePanel}${thiduaPanel}</div>`;
+    const chart = `<div class="ma-overview-stack">${totalRevealView()}${chartPanel}${scoreboard}${checkinPanel}${gamesSummary}${votePanel}${thiduaPanel}</div>`;
     const historyRows = history.length
       ? history.map((item) => `<tr class="is-${item.kind}"><td>${esc(item.at)}</td><td>${esc(item.actor)}</td><td>${item.teamNumber ? `#${item.teamNumber} ` : ""}${esc(item.teamName)}</td><td>${esc(item.source)}${item.note ? ` · ${esc(item.note)}` : ""}</td><td><strong>${item.kind === "clear" ? "Xóa điểm" : fmt(item.points)}</strong></td></tr>`).join("")
       : `<tr><td colspan="5">Chưa có lịch sử cộng điểm.</td></tr>`;
@@ -424,6 +425,12 @@
   }
   function artView() {
     return `<header class="ma-top"><div><small>VĂN NGHỆ</small><h1>Chấm điểm tiết mục</h1></div>${topActions()}</header><div class="ma-art-stack">${live()}${revealView()}${ballots()}</div>`;
+  }
+  function totalRevealView() {
+    const stage = data.totalReveal?.stage || "IDLE";
+    const ranked = data.totalBoard?.teams || [];
+    const rows = ranked.map((team) => `<div class="ma-reveal-result"><i>${team.rank}</i><span><strong>#${team.teamNumber} ${esc(team.teamName)}</strong><small>Check-in ${fmt(team.checkin)} · Game ${fmt(team.games)} · Văn nghệ ${fmt(team.vote)} · Thi đua ${fmt(team.thidua)}</small></span><b>${fmt(team.total)}</b></div>`).join("") || `<div class="ma-reveal-result"><span><strong>Chưa có dữ liệu tổng điểm.</strong></span></div>`;
+    return `<section class="ma-art-block"><header class="ma-art-block-head"><div><small>TỔNG KẾT</small><h2>Công bố điểm tổng Company Trip</h2></div><a class="ma-screen-link" href="${esc(window.MACVotingAdmin.resultsUrl)}" target="_blank" rel="noopener">↗ Màn hình trình chiếu</a></header><div class="ma-reveal-grid"><section class="ma-panel ma-reveal-control"><header><div><small>LIVE REVEAL</small><h2>Tín hiệu MC</h2></div><span class="ma-reveal-status ${stage.toLowerCase()}"><i></i>${totalRevealStageLabel(stage)}</span></header><div class="ma-reveal-intro"><strong>Sáu nhịp · Một cú twist</strong><p>Tung điểm lượn nhẹ → lộ hạng 6-5 (3 ô) → lộ hạng 4-3 (4-5-6 cùng 4 ô, hạng 3 lên 5 ô) → top 2 cùng 6 ô → twist bám đuổi → quán quân nhảy lên 10 ô.</p></div><div class="ma-reveal-actions"><button type="button" class="ma-reveal-start" data-total-reveal-stage="ROLLING" ${stage === "IDLE" ? "" : "disabled"}><span>00</span><strong>Mở màn · Tung điểm</strong><small>6 cột lượn điểm nhẹ</small></button><button type="button" data-total-reveal-stage="RANK65" ${stage === "ROLLING" ? "" : "disabled"}><span>01</span><strong>Lộ diện hạng 6 & 5</strong><small>Hai đội đầu tiên · 3 ô</small></button><button type="button" data-total-reveal-stage="RANK43" ${stage === "RANK65" ? "" : "disabled"}><span>02</span><strong>Lộ diện hạng 4 & 3</strong><small>4-5-6 cùng 4 ô · hạng 3 lên 5 ô</small></button><button type="button" data-total-reveal-stage="RANK12" ${stage === "RANK43" ? "" : "disabled"}><span>03</span><strong>Top 2 bước lên</strong><small>Hai đội dẫn đầu cùng 6 ô</small></button><button type="button" data-total-reveal-stage="TWIST" ${stage === "RANK12" ? "" : "disabled"}><span>04</span><strong>Tạo cú twist</strong><small>Top 2 lên xuống bám đuổi</small></button><button type="button" class="ma-reveal-final" data-total-reveal-stage="FINAL" ${stage === "TWIST" ? "" : "disabled"}><span>05</span><strong>Công bố quán quân</strong><small>Nhảy lên 10 ô + pháo hoa</small></button></div><div class="ma-reveal-footer"><p><i></i>Màn hình trình chiếu tự đồng bộ trong khoảng 1 giây.</p><button type="button" data-total-reveal-stage="IDLE" ${stage === "IDLE" ? "disabled" : ""}>↻ Đặt lại</button></div></section><aside class="ma-panel ma-reveal-scoreboard"><header><div><small>CHỈ ADMIN</small><h2>Tổng điểm thật</h2></div></header><div>${rows}</div></aside></div></section>`;
   }
   function ballots() { return `<section class="ma-art-block ma-art-ballots"><header class="ma-art-block-head"><div><small>PHIẾU</small><h2>${canWrite() ? "Quản lý phiếu" : "Phiếu đã chấm"}</h2></div></header><div class="ma-table"><table><thead><tr><th>Người chấm</th><th>Team chấm</th><th>Tiết mục</th><th>Điểm</th><th>Trạng thái</th>${canWrite() ? "<th>Thao tác</th>" : ""}</tr></thead><tbody>${data.ballots.map((ballot) => `<tr class="${ballot.status === "REVOKED" ? "revoked" : ""}"><td><strong>${esc(ballot.full_name)}</strong><small>${esc(ballot.created_at)}</small></td><td>${esc(ballot.voter_team)}</td><td>${esc(ballot.performance_team)}</td><td><details class="ma-ballot-detail"><summary><strong>${ballot.total_score}</strong><span>Xem chi tiết</span></summary><div><p><span>Phong cách & thần thái</span><b>${ballot.style_score}</b></p><p><span>Dàn dựng & sáng tạo</span><b>${ballot.staging_score}</b></p><p><span>Đồng đội & bản sắc</span><b>${ballot.teamwork_score}</b></p></div></details></td><td><span class="badge ${ballot.status.toLowerCase()}">${ballot.status === "VALID" ? "Hợp lệ" : "Đã hủy"}</span></td>${canWrite() ? `<td>${ballot.status === "VALID" ? `<button data-ballot="${ballot.id}" data-op="revoke">Hủy phiếu</button>` : !Number(ballot.has_revote_grant) ? `<button data-ballot="${ballot.id}" data-op="revote">Cho vote lại</button>` : "Đã cấp vote lại"}</td>` : ""}</tr>`).join("")}</tbody></table></div></section>`; }
   function personnelQr() {
@@ -486,6 +493,24 @@
       if (stage !== "IDLE") button.innerHTML = `<strong>Đang gửi tín hiệu…</strong><small>Giữ nguyên màn hình trình chiếu</small>`;
       try {
         const result = await ajax("mac_vote_reveal", { stage });
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) {
+        button.disabled = false;
+        button.classList.remove("is-loading");
+        button.innerHTML = originalLabel;
+        notify(err.message, true);
+      }
+    }));
+    root.querySelectorAll("[data-total-reveal-stage]").forEach((button) => button.addEventListener("click", async () => {
+      const stage = button.dataset.totalRevealStage;
+      const originalLabel = button.innerHTML;
+      button.disabled = true;
+      button.classList.add("is-loading");
+      if (stage !== "IDLE") button.innerHTML = `<strong>Đang gửi tín hiệu…</strong><small>Giữ nguyên màn hình trình chiếu</small>`;
+      try {
+        const result = await ajax("mac_vote_reveal_total", { stage });
         data = result.overview;
         render();
         notify(result.message);

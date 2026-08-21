@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.20";
+const tag = "v1.9.0";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Nâng khoảng trống dưới màn hình (bottom padding lớn hơn) để hàng tên đội + điểm nằm cao, chiếu màn sân khấu lớn không bị che.",
-  "- Điểm số hạng 3 dùng màu copper (#f0bd91) tách khỏi hạng 4-5-6.",
+  "- Màn trình chiếu nay là màn công bố ĐIỂM TỔNG Company Trip: endpoint /results-total, thang 10 ô có vạch chia, tổng điểm thật từ sổ điểm (check-in + games + văn nghệ + thi đua).",
+  "- Kịch bản 6 step do MC điều khiển từ admin: tung điểm lượn nhẹ → hạng 6-5 (3 ô) → hạng 4-3 (4-5-6 cùng 4 ô) → top 2 cùng 6 ô → twist bám đuổi → quán quân nhảy lên 10 ô + pháo hoa tưng bừng.",
+  "- Logic công bố văn nghệ cũ được giữ nguyên trong code để tái sử dụng cho màn đua thuyền sau này.",
 ].join("\n");
 
 let release;

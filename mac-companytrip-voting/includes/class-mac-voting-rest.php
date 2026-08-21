@@ -27,6 +27,9 @@ final class MAC_Voting_REST {
         register_rest_route(self::NS, '/results', array(
             'methods' => 'GET', 'callback' => array(__CLASS__, 'results'), 'permission_callback' => '__return_true',
         ));
+        register_rest_route(self::NS, '/results-total', array(
+            'methods' => 'GET', 'callback' => array(__CLASS__, 'results_total'), 'permission_callback' => '__return_true',
+        ));
     }
 
     public static function has_voter_session() {
@@ -151,6 +154,70 @@ final class MAC_Voting_REST {
             'changedAt' => $state['changedAt'],
             'serverTime' => (int) round(microtime(true) * 1000),
             'teams' => $public_teams,
+        ));
+        $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        return $response;
+    }
+
+    public static function results_total(): WP_REST_Response {
+        global $wpdb;
+        $teams_table = MAC_Voting_DB::table('teams');
+        $state = MAC_Voting_DB::total_reveal_state();
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT id,team_no,name FROM $teams_table WHERE team_no<>%d ORDER BY team_no",
+            MAC_Voting_DB::STAFF_TEAM_NO
+        ), ARRAY_A) ?: array();
+        $totals = $state['totals'];
+        if (!$totals) {
+            // Chưa mở màn: dùng điểm live (màn IDLE chỉ hiện dấu gạch nên không lộ số).
+            foreach (MAC_Points::dashboard() as $board_row) {
+                $totals[(int) $board_row['teamId']] = (int) $board_row['total'];
+            }
+        }
+        $rows = array_map(static function(array $row) use ($totals): array {
+            $row['total'] = isset($totals[(int) $row['id']]) ? (int) $totals[(int) $row['id']] : 0;
+            return $row;
+        }, $rows);
+        usort($rows, static fn(array $a, array $b): int => ($b['total'] <=> $a['total']) ?: ((int) $a['team_no'] <=> (int) $b['team_no']));
+        $rank = 0;
+        $previous_total = null;
+        foreach ($rows as $index => &$row) {
+            if ($previous_total === null || (int) $previous_total !== (int) $row['total']) {
+                $rank = $index + 1;
+            }
+            $row['rank'] = $rank;
+            $previous_total = $row['total'];
+        }
+        unset($row);
+        // Thang lộ hạng: RANK65 mở hạng 5-6, RANK43 mở tới hạng 3, FINAL mở hết.
+        // RANK12/TWIST cố tình giấu hạng 1-2 để giữ cú twist.
+        $minimum_revealed_rank = array(
+            'RANK65' => 5,
+            'RANK43' => 3,
+            'FINAL' => 1,
+        )[$state['stage']] ?? null;
+        $top_two = array();
+        $public_teams = array_map(static function(array $row) use ($state, $minimum_revealed_rank, &$top_two): array {
+            if ((int) $row['rank'] <= 2) {
+                $top_two[] = (int) $row['id'];
+            }
+            $is_revealed = $minimum_revealed_rank !== null && (int) $row['rank'] >= $minimum_revealed_rank;
+            return array(
+                'id' => (int) $row['id'],
+                'number' => (int) $row['team_no'],
+                'name' => $row['name'],
+                'score' => $is_revealed ? (int) $row['total'] : null,
+                'rank' => $is_revealed ? (int) $row['rank'] : null,
+            );
+        }, $rows);
+        usort($public_teams, static fn(array $a, array $b): int => $a['number'] <=> $b['number']);
+        $response = rest_ensure_response(array(
+            'stage' => $state['stage'],
+            'revision' => $state['revision'],
+            'changedAt' => $state['changedAt'],
+            'serverTime' => (int) round(microtime(true) * 1000),
+            'teams' => $public_teams,
+            'topTwo' => array_values($top_two),
         ));
         $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
         return $response;

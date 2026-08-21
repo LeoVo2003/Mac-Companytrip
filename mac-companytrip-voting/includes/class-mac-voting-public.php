@@ -102,7 +102,7 @@ final class MAC_Voting_Public {
     public static function results_shortcode(): string {
         wp_enqueue_style('mac-voting-results');
         wp_enqueue_script('mac-voting-results');
-        $endpoint = esc_url(rest_url('mac-voting/v1/results'));
+        $endpoint = esc_url(rest_url('mac-voting/v1/results-total'));
         $logo = esc_url(MAC_VOTING_URL . 'assets/mac-marketing-logo.png');
         ob_start();
         ?>

@@ -7,19 +7,28 @@
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const esc = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
   const clamp = (minimum, value, maximum) => Math.min(maximum, Math.max(minimum, value));
-  const scoreLevel = (score) => clamp(12, 12 + ((Number(score) - 30) / 120) * 86, 98);
-  const formatScore = (score) => Number(score).toLocaleString("vi-VN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formatTotal = (score) => Number(score).toLocaleString("vi-VN");
+  // Thang 10 ô: mỗi ô = 10% chiều cao cột. Quán quân nhảy thẳng lên ô 10.
+  const CELL = 10;
+  const LADDER_LEVELS = {
+    RANK65: { 6: 3, 5: 3 },
+    RANK43: { 6: 4, 5: 4, 4: 4, 3: 5 },
+    RANK12: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 6 },
+    TWIST: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 6 },
+    FINAL: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 10 },
+  };
 
   let state = null;
   let rosterSignature = "";
   let animationTimer = 0;
+  let frameId = 0;
   let pollTimer = 0;
   let failedPolls = 0;
   let pyroRevision = -1;
   let pyroStop = null;
 
   function shell(teams) {
-    root.innerHTML = `<div class="mr-shell" data-stage="idle"><canvas class="mr-pyro" aria-hidden="true"></canvas><div class="mr-seascape" aria-hidden="true"><i class="mr-sun"></i><i class="mr-wake"></i></div><div class="mr-chart-lines" aria-hidden="true"><i></i><i></i><i></i></div><div class="mr-compass" aria-hidden="true"><svg viewBox="0 0 400 400" role="presentation"><circle cx="200" cy="200" r="176"/><circle cx="200" cy="200" r="154"/><circle cx="200" cy="200" r="118"/><path class="mr-compass-cross" d="M200 24v352M24 200h352M76 76l248 248M324 76 76 324"/><path class="mr-compass-rose" d="M200 48l22 130 130 22-130 22-22 130-22-130-130-22 130-22z"/><path class="mr-compass-minor" d="M200 84l12 104 104 12-104 12-12 104-12-104-104-12 104-12z"/><g class="mr-compass-labels"><text x="200" y="18">N</text><text x="386" y="206">E</text><text x="200" y="397">S</text><text x="14" y="206">W</text><text x="327" y="67">NE</text><text x="337" y="345">SE</text><text x="63" y="345">SW</text><text x="62" y="67">NW</text></g></svg><i class="mr-needle"></i></div><header class="mr-header"><div class="mr-brand-lockup"><img src="${esc(logo)}" alt="MAC Marketing"></div><div class="mr-event"><span>COMPANY TRIP - One Direction</span><strong>KẾT QUẢ VĂN NGHỆ</strong></div><div class="mr-connection" role="status"><i></i><span>Đang đồng bộ</span></div></header><main><div class="mr-heading" aria-live="polite"><p>KẾT QUẢ VĂN NGHỆ</p><h1>Khoảnh khắc đang đến gần</h1><span></span></div><section class="mr-chart" aria-label="Biểu đồ điểm của 6 đội">${teams.map((team) => `<article class="mr-team" data-team-id="${team.id}" role="group" aria-label="Team số ${team.number} ${esc(team.name)}"><div class="mr-score"><span>—</span><small>ĐIỂM</small></div><div class="mr-column"><div class="mr-rank" hidden></div><div class="mr-bar"><span></span><i></i></div><div class="mr-base"></div></div><div class="mr-team-name"><b>#${team.number}</b><strong>${esc(team.name)}</strong></div></article>`).join("")}</section></main><footer class="mr-footer"><span class="mr-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE RESULT</span></div></footer></div>`;
+    root.innerHTML = `<div class="mr-shell" data-stage="idle"><canvas class="mr-pyro" aria-hidden="true"></canvas><div class="mr-seascape" aria-hidden="true"><i class="mr-sun"></i><i class="mr-wake"></i></div><div class="mr-chart-lines" aria-hidden="true"><i></i><i></i><i></i></div><div class="mr-compass" aria-hidden="true"><svg viewBox="0 0 400 400" role="presentation"><circle cx="200" cy="200" r="176"/><circle cx="200" cy="200" r="154"/><circle cx="200" cy="200" r="118"/><path class="mr-compass-cross" d="M200 24v352M24 200h352M76 76l248 248M324 76 76 324"/><path class="mr-compass-rose" d="M200 48l22 130 130 22-130 22-22 130-22-130-130-22 130-22z"/><path class="mr-compass-minor" d="M200 84l12 104 104 12-104 12-12 104-12-104-104-12 104-12z"/><g class="mr-compass-labels"><text x="200" y="18">N</text><text x="386" y="206">E</text><text x="200" y="397">S</text><text x="14" y="206">W</text><text x="327" y="67">NE</text><text x="337" y="345">SE</text><text x="63" y="345">SW</text><text x="62" y="67">NW</text></g></svg><i class="mr-needle"></i></div><header class="mr-header"><div class="mr-brand-lockup"><img src="${esc(logo)}" alt="MAC Marketing"></div><div class="mr-event"><span>COMPANY TRIP - One Direction</span><strong>TỔNG KẾT COMPANY TRIP</strong></div><div class="mr-connection" role="status"><i></i><span>Đang đồng bộ</span></div></header><main><div class="mr-heading" aria-live="polite"><p>KẾT QUẢ CHUNG CUỘC</p><h1>Khoảnh khắc đang đến gần</h1><span></span></div><section class="mr-chart" aria-label="Biểu đồ tổng điểm của 6 đội">${teams.map((team) => `<article class="mr-team" data-team-id="${team.id}" role="group" aria-label="Team số ${team.number} ${esc(team.name)}"><div class="mr-score"><span>—</span><small>ĐIỂM</small></div><div class="mr-column"><div class="mr-rank" hidden></div><div class="mr-bar"><span></span><i></i></div><div class="mr-base"></div></div><div class="mr-team-name"><b>#${team.number}</b><strong>${esc(team.name)}</strong></div></article>`).join("")}</section></main><footer class="mr-footer"><span class="mr-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE RESULT</span></div></footer></div>`;
   }
 
   function setConnection(connected) {
@@ -57,12 +66,14 @@
   function stopStageAnimation() {
     window.clearInterval(animationTimer);
     animationTimer = 0;
+    if (frameId) cancelAnimationFrame(frameId);
+    frameId = 0;
     if (pyroStop) pyroStop();
     pyroStop = null;
   }
 
   function renderIdle() {
-    setHeading("KẾT QUẢ VĂN NGHỆ", "Khoảnh khắc đang đến gần", "", "Sẵn sàng công bố");
+    setHeading("KẾT QUẢ CHUNG CUỘC", "Khoảnh khắc đang đến gần", "", "Sẵn sàng công bố");
     state.teams.forEach((team, index) => {
       const element = teamElement(team.id);
       clearTeamState(element);
@@ -70,35 +81,45 @@
     });
   }
 
-  function rollingFrame() {
-    state.teams.forEach((team, index) => {
-      const element = teamElement(team.id);
-      clearTeamState(element);
-      const score = 54 + Math.random() * 95;
-      setBar(element, scoreLevel(score), index % 2 ? score.toFixed(1) : String(Math.round(score)));
-    });
-  }
-
+  // Step 1: tung điểm nhưng lượn sóng nhẹ nhàng, không giật.
   function renderRolling() {
-    setHeading("ĐIỂM SỐ ĐANG CHUYỂN ĐỘNG", "Ai sẽ chạm đỉnh?", "Mọi vị trí vẫn đang thay đổi", "Đang tung điểm trực tiếp");
-    rollingFrame();
-    animationTimer = window.setInterval(rollingFrame, reducedMotion.matches ? 700 : 110);
-  }
-
-  function renderDecoy() {
-    setHeading("NHỮNG CÁI TÊN ĐANG BỨT PHÁ", "Top đầu đã lộ diện?", "Ba vị trí đang vươn lên mạnh mẽ", "Tín hiệu 1 · Đã chốt");
-    state.teams.forEach((team, index) => {
-      const element = teamElement(team.id);
-      clearTeamState(element);
-      if (team.featured) {
-        const hasScore = team.score !== null && Number.isFinite(Number(team.score));
-        element.classList.add("is-featured");
-        setBar(element, hasScore ? scoreLevel(team.score) : 12, hasScore ? formatScore(team.score) : "—");
-      } else {
-        element.classList.add("is-muted");
-        setBar(element, 28 + index * 2, "•••");
-      }
-    });
+    setHeading("TỔNG ĐIỂM ĐANG CHUYỂN ĐỘNG", "Ai sẽ chạm đỉnh?", "Điểm từ bốn mặt trận đang dồn về một mối", "Đang tung điểm trực tiếp");
+    const waves = state.teams.map((team, index) => ({
+      id: team.id,
+      base: 16 + (index % 3) * 2.5,
+      amplitude: 5.5 + (index % 2) * 2,
+      period: 3200 + index * 380,
+      phase: index * 0.9,
+      value: 430 + index * 25,
+      target: 520 + index * 30,
+    }));
+    const drift = (wave) => {
+      wave.value += (wave.target - wave.value) * 0.012;
+      if (Math.abs(wave.target - wave.value) < 4) wave.target = 430 + Math.random() * 320;
+      return String(Math.round(wave.value));
+    };
+    if (reducedMotion.matches) {
+      const gentle = () => waves.forEach((wave) => {
+        const element = teamElement(wave.id);
+        if (element) setBar(element, wave.base, drift(wave));
+      });
+      gentle();
+      animationTimer = window.setInterval(gentle, 1000);
+      return;
+    }
+    const start = performance.now();
+    const step = (now) => {
+      const elapsed = now - start;
+      waves.forEach((wave) => {
+        const element = teamElement(wave.id);
+        if (!element) return;
+        clearTeamState(element);
+        const level = wave.base + Math.sin((elapsed / wave.period) * Math.PI * 2 + wave.phase) * wave.amplitude;
+        setBar(element, level, drift(wave));
+      });
+      frameId = requestAnimationFrame(step);
+    };
+    frameId = requestAnimationFrame(step);
   }
 
   function rankLabel(rank) {
@@ -106,17 +127,6 @@
     if (Number(rank) === 2) return "HẠNG NHÌ";
     if (Number(rank) === 3) return "HẠNG BA";
     return `HẠNG ${rank}`;
-  }
-
-  function revealTeam(team, podiumClass = "") {
-    const element = teamElement(team.id);
-    element.classList.remove("is-muted");
-    element.classList.add("is-revealed");
-    if (podiumClass) element.classList.add("is-finalist", podiumClass);
-    setBar(element, scoreLevel(team.score), formatScore(team.score));
-    const rank = element.querySelector(".mr-rank");
-    rank.hidden = false;
-    rank.textContent = rankLabel(team.rank);
   }
 
   function podiumClass(rank) {
@@ -134,33 +144,78 @@
     return teams.map((team) => team.name).join(" · ");
   }
 
-  function renderPodium(stage) {
-    state.teams.forEach((team) => {
-      const element = teamElement(team.id);
-      clearTeamState(element);
-      element.classList.add("is-muted");
-      setBar(element, 15, "•••");
-    });
-    state.teams.filter((team) => team.score !== null && team.rank !== null).forEach((team) => revealTeam(team, podiumClass(team.rank)));
+  // Step 5: hai đội dẫn đầu lên xuống đối pha liên tục để giữ cú twist.
+  function startTwist() {
+    if (reducedMotion.matches) return;
+    const start = performance.now();
+    const step = (now) => {
+      const seconds = (now - start) / 1000;
+      (state.topTwo || []).forEach((id, index) => {
+        const element = teamElement(id);
+        if (!element) return;
+        const level = 60 + Math.sin(seconds * 1.6 + index * Math.PI) * 11;
+        element.style.setProperty("--bar-level", `${level}%`);
+      });
+      frameId = requestAnimationFrame(step);
+    };
+    frameId = requestAnimationFrame(step);
+  }
 
-    if (stage === "THIRD") {
-      const teams = revealedAtRank(3);
-      setHeading("TOP 3", teams.length ? "Vị trí thứ ba" : "Không có hạng ba riêng", teams.length ? `Xin chúc mừng ${teamNames(teams)}` : "Kết quả đồng hạng làm thay đổi thứ tự", "Hạng ba đã được công bố");
-      return;
-    }
-    if (stage === "SECOND") {
-      const teams = revealedAtRank(2);
-      setHeading("TOP 2", teams.length ? "Vị trí thứ hai" : "Không có hạng nhì riêng", teams.length ? `Xin chúc mừng ${teamNames(teams)}` : "Kết quả đồng hạng làm thay đổi thứ tự", "Chỉ còn ngôi vị cao nhất");
-      return;
-    }
-
+  function renderFinal() {
     const champions = revealedAtRank(1);
-    const championScore = champions[0]?.score;
-    setHeading("QUÁN QUÂN ĐÊM VĂN NGHỆ", champions.length ? teamNames(champions) : "Kết quả chung cuộc", championScore === undefined ? "Đã hoàn tất công bố" : `${formatScore(championScore)} điểm · Một màn trình diễn bùng nổ`, "Kết quả chung cuộc");
+    const champion = champions[0];
+    const name = champion ? champion.name : "Kết quả chung cuộc";
+    const description = champion ? `CHÚC MỪNG ${name.toUpperCase()} · ${formatTotal(champion.score)} điểm · Nhà vô địch Company Trip` : "Đã hoàn tất công bố";
+    setHeading("QUÁN QUÂN COMPANY TRIP", name, description, "Kết quả chung cuộc");
     if (pyroRevision !== state.revision && !reducedMotion.matches) {
       pyroRevision = state.revision;
       pyroStop = startPyro();
     }
+  }
+
+  // Step 2-6: thang ô cố định theo thứ hạng; CSS tự lo hiệu ứng trồi lên mượt mà.
+  function renderLadder(stage) {
+    state.teams.forEach((team) => {
+      const element = teamElement(team.id);
+      clearTeamState(element);
+      if (team.rank !== null) {
+        const cells = LADDER_LEVELS[stage][team.rank] ?? 4;
+        element.classList.add("is-revealed");
+        const podium = podiumClass(team.rank);
+        if (podium) element.classList.add("is-finalist", podium);
+        setBar(element, cells * CELL, formatTotal(team.score));
+        const rank = element.querySelector(".mr-rank");
+        rank.hidden = false;
+        rank.textContent = rankLabel(team.rank);
+      } else if (stage === "RANK12" || stage === "TWIST") {
+        // Top 2 đã leo lên 6 ô nhưng giấu hạng + điểm thật để giữ cú twist.
+        setBar(element, 6 * CELL, "•••");
+      } else {
+        element.classList.add("is-muted");
+        setBar(element, 14, "•••");
+      }
+    });
+
+    if (stage === "RANK65") {
+      const teams = revealedAtRank(5).concat(revealedAtRank(6));
+      setHeading("HẠNG 6 & HẠNG 5", "Những cái tên đầu tiên lộ diện", teams.length ? `Xin chúc mừng ${teamNames(teams)}` : "Kết quả đang được chốt", "Tín hiệu 1 · Đã chốt");
+      return;
+    }
+    if (stage === "RANK43") {
+      const teams = revealedAtRank(3).concat(revealedAtRank(4));
+      setHeading("HẠNG 4 & HẠNG 3", "Top giữa đã gọi tên ai?", teams.length ? `Xin chúc mừng ${teamNames(teams)}` : "Kết quả đang được chốt", "Tín hiệu 2 · Đã chốt");
+      return;
+    }
+    if (stage === "RANK12") {
+      setHeading("HẠNG 2 & HẠNG 1", "Hai cái tên cuối cùng bước lên", "Cả hai cùng chạm mốc 6 ô · Ngôi vương chỉ có một", "Tín hiệu 3 · Đã chốt");
+      return;
+    }
+    if (stage === "TWIST") {
+      setHeading("KHOẢNH KHẮC QUYẾT ĐỊNH", "Ai sẽ chạm tay vào cúp?", "Hai đội dẫn đầu bám đuổi nhau từng điểm một", "Căng thẳng tột độ");
+      startTwist();
+      return;
+    }
+    renderFinal();
   }
 
   function applyStage(nextState, force = false) {
@@ -177,8 +232,7 @@
     stopStageAnimation();
     root.querySelector(".mr-shell").dataset.stage = state.stage.toLowerCase();
     if (state.stage === "ROLLING") renderRolling();
-    else if (state.stage === "DECOY") renderDecoy();
-    else if (["THIRD", "SECOND", "FINAL"].includes(state.stage)) renderPodium(state.stage);
+    else if (["RANK65", "RANK43", "RANK12", "TWIST", "FINAL"].includes(state.stage)) renderLadder(state.stage);
     else renderIdle();
   }
 
@@ -187,7 +241,7 @@
       const response = await fetch(`${endpoint}${endpoint.includes("?") ? "&" : "?"}_=${Date.now()}`, { credentials: "same-origin", cache: "no-store" });
       if (!response.ok) throw new Error("Không tải được trạng thái công bố.");
       const nextState = await response.json();
-      if (!Array.isArray(nextState.teams) || !nextState.teams.length) throw new Error("Chưa có đội thi trong lịch biểu diễn.");
+      if (!Array.isArray(nextState.teams) || !nextState.teams.length) throw new Error("Chưa có đội trong bảng tổng điểm.");
       failedPolls = 0;
       applyStage(nextState);
     } catch (error) {
@@ -202,10 +256,10 @@
     const canvas = root.querySelector(".mr-pyro");
     const context = canvas.getContext("2d");
     const particles = [];
-    const colors = ["#ffe9ad", "#e8c17a", "#b8823f", "#ffcf7d", "#fff6e0"];
+    const colors = ["#ffe9ad", "#e8c17a", "#b8823f", "#ffcf7d", "#fff6e0", "#ff8a4c", "#ff5d3a"];
     let frame = 0;
     let running = true;
-    let started = performance.now();
+    const started = performance.now();
     let lastFountain = 0;
     let lastBurst = 0;
 
@@ -219,24 +273,24 @@
     };
     const particle = (x, y, velocityX, velocityY, color, size, life, gravity = 0.09) => particles.push({ x, y, velocityX, velocityY, color, size, life, maxLife: life, gravity, rotation: Math.random() * Math.PI });
     const fountain = (x) => {
-      for (let index = 0; index < 15; index += 1) particle(x + (Math.random() - 0.5) * 18, innerHeight - 22, (Math.random() - 0.5) * 3.2, -7 - Math.random() * 7, colors[index % colors.length], 2 + Math.random() * 3, 65 + Math.random() * 35, 0.13);
+      for (let index = 0; index < 26; index += 1) particle(x + (Math.random() - 0.5) * 22, innerHeight - 18, (Math.random() - 0.5) * 4.4, -8 - Math.random() * 8.5, colors[index % colors.length], 2 + Math.random() * 3.4, 75 + Math.random() * 45, 0.13);
     };
     const burst = (x, y) => {
-      for (let index = 0; index < 78; index += 1) {
-        const angle = (Math.PI * 2 * index) / 78 + Math.random() * 0.08;
-        const speed = 2.6 + Math.random() * 7.2;
-        particle(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, colors[index % colors.length], 1.5 + Math.random() * 2.5, 70 + Math.random() * 45, 0.045);
+      for (let index = 0; index < 132; index += 1) {
+        const angle = (Math.PI * 2 * index) / 132 + Math.random() * 0.08;
+        const speed = 3 + Math.random() * 8.4;
+        particle(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, colors[index % colors.length], 1.6 + Math.random() * 2.8, 80 + Math.random() * 55, 0.045);
       }
     };
     const draw = (now) => {
       if (!running) return;
       context.clearRect(0, 0, innerWidth, innerHeight);
-      if (now - lastFountain > 95 && now - started < 5200) {
-        [0.22, 0.5, 0.78].forEach((position) => fountain(innerWidth * position));
+      if (now - lastFountain > 80 && now - started < 8200) {
+        [0.1, 0.3, 0.5, 0.7, 0.9].forEach((position) => fountain(innerWidth * position));
         lastFountain = now;
       }
-      if (now - lastBurst > 720 && now - started < 6200) {
-        burst(innerWidth * (0.18 + Math.random() * 0.64), innerHeight * (0.17 + Math.random() * 0.34));
+      if (now - lastBurst > 460 && now - started < 9400) {
+        burst(innerWidth * (0.14 + Math.random() * 0.72), innerHeight * (0.14 + Math.random() * 0.38));
         lastBurst = now;
       }
       for (let index = particles.length - 1; index >= 0; index -= 1) {
@@ -248,7 +302,7 @@
         item.life -= 1;
         item.rotation += 0.08;
         if (item.life <= 0) { particles.splice(index, 1); continue; }
-        context.globalAlpha = clamp(0, item.life / Math.min(28, item.maxLife), 1);
+        context.globalAlpha = clamp(0, item.life / Math.min(30, item.maxLife), 1);
         context.fillStyle = item.color;
         context.save();
         context.translate(item.x, item.y);
@@ -257,7 +311,7 @@
         context.restore();
       }
       context.globalAlpha = 1;
-      if (now - started > 7600 && !particles.length) { running = false; context.clearRect(0, 0, innerWidth, innerHeight); return; }
+      if (now - started > 12500 && !particles.length) { running = false; context.clearRect(0, 0, innerWidth, innerHeight); return; }
       frame = requestAnimationFrame(draw);
     };
     resize();

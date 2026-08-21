@@ -12,6 +12,7 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_reset_event', array(__CLASS__, 'ajax_reset_event'));
         add_action('wp_ajax_mac_vote_round', array(__CLASS__, 'ajax_round'));
         add_action('wp_ajax_mac_vote_reveal', array(__CLASS__, 'ajax_reveal'));
+        add_action('wp_ajax_mac_vote_reveal_total', array(__CLASS__, 'ajax_reveal_total'));
         add_action('wp_ajax_mac_vote_team', array(__CLASS__, 'ajax_team'));
         add_action('wp_ajax_mac_vote_swap', array(__CLASS__, 'ajax_swap'));
         add_action('wp_ajax_mac_vote_ballot', array(__CLASS__, 'ajax_ballot'));
@@ -488,6 +489,53 @@ final class MAC_Voting_Admin {
         wp_send_json_success(array('message' => $messages[$next], 'overview' => self::overview()));
     }
 
+    public static function ajax_reveal_total(): void {
+        self::guard();
+        $next = strtoupper(sanitize_text_field(wp_unslash($_POST['stage'] ?? '')));
+        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'RANK43', 'RANK12', 'TWIST', 'FINAL');
+        if (!in_array($next, $allowed, true)) {
+            wp_send_json_error(array('message' => 'Trạng thái công bố không hợp lệ.'), 400);
+        }
+        $current = MAC_Voting_DB::total_reveal_state();
+        $transitions = array(
+            'IDLE' => 'ROLLING',
+            'ROLLING' => 'RANK65',
+            'RANK65' => 'RANK43',
+            'RANK43' => 'RANK12',
+            'RANK12' => 'TWIST',
+            'TWIST' => 'FINAL',
+        );
+        if ($next !== 'IDLE' && ($transitions[$current['stage']] ?? '') !== $next) {
+            wp_send_json_error(array('message' => 'Tín hiệu không đúng thứ tự. Hãy tải lại dashboard và thử lại.'), 409);
+        }
+        $totals = null;
+        if ($next === 'ROLLING') {
+            $snapshot = array();
+            foreach (MAC_Points::dashboard() as $board_row) {
+                $snapshot[(int) $board_row['teamId']] = (int) $board_row['total'];
+            }
+            if (count($snapshot) < 6) {
+                wp_send_json_error(array('message' => 'Cần đủ 6 đội trong bảng tổng điểm trước khi công bố.'), 409);
+            }
+            $totals = $snapshot;
+        }
+        $state = MAC_Voting_DB::set_total_reveal_state($next, $totals);
+        $messages = array(
+            'IDLE' => 'Đã đưa màn hình tổng kết về trạng thái chờ.',
+            'ROLLING' => 'Màn hình tổng kết đang tung điểm nhẹ nhàng cho 6 đội.',
+            'RANK65' => 'Đã lộ diện hạng 6 và hạng 5 (3 ô).',
+            'RANK43' => 'Đã lộ diện hạng 4 và hạng 3 · hạng 4-5-6 cùng 4 ô.',
+            'RANK12' => 'Hai đội dẫn đầu đã bước lên cùng mốc 6 ô.',
+            'TWIST' => 'Hai đội dẫn đầu đang bám đuổi từng điểm.',
+            'FINAL' => 'Đã công bố quán quân Company Trip.',
+        );
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'RESULTS_TOTAL_REVEAL_' . $next, 'reveal', (string) $state['revision'], array(
+            'previousStage' => $current['stage'],
+            'stage' => $next,
+        ));
+        wp_send_json_success(array('message' => $messages[$next], 'overview' => self::overview()));
+    }
+
     public static function ajax_team(): void {
         self::guard();
         global $wpdb;
@@ -842,6 +890,7 @@ final class MAC_Voting_Admin {
         return array(
             'rounds' => $round_rows, 'results' => $results, 'ballots' => $recent,
             'reveal' => MAC_Voting_DB::reveal_state(),
+            'totalReveal' => MAC_Voting_DB::total_reveal_state(),
             'votingEnabled' => MAC_Voting_DB::is_voting_enabled(),
             'checkpoints' => MAC_Checkin::checkpoints(),
             'checkinBoard' => self::checkin_overview_board(),

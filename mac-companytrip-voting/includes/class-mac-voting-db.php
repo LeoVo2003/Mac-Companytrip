@@ -687,4 +687,33 @@ final class MAC_Voting_DB {
         update_option('mac_voting_reveal_state', $state, false);
         return $state;
     }
+
+    public static function total_reveal_state(): array {
+        $state = get_option('mac_voting_total_reveal_state', array());
+        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'RANK43', 'RANK12', 'TWIST', 'FINAL');
+        $stage = is_array($state) ? strtoupper((string) ($state['stage'] ?? 'IDLE')) : 'IDLE';
+        if (!in_array($stage, $allowed, true)) $stage = 'IDLE';
+        $totals = is_array($state) && is_array($state['totals'] ?? null) ? $state['totals'] : array();
+        return array(
+            'stage' => $stage,
+            'revision' => max(0, (int) (is_array($state) ? ($state['revision'] ?? 0) : 0)),
+            'changedAt' => max(0, (int) (is_array($state) ? ($state['changedAt'] ?? 0) : 0)),
+            'totals' => $totals,
+        );
+    }
+
+    public static function set_total_reveal_state(string $stage, ?array $totals = null): array {
+        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'RANK43', 'RANK12', 'TWIST', 'FINAL');
+        $stage = strtoupper($stage);
+        if (!in_array($stage, $allowed, true)) $stage = 'IDLE';
+        $current = self::total_reveal_state();
+        $state = array(
+            'stage' => $stage,
+            'revision' => (int) $current['revision'] + 1,
+            'changedAt' => (int) round(microtime(true) * 1000),
+            'totals' => $totals !== null ? $totals : ($stage === 'IDLE' ? array() : $current['totals']),
+        );
+        update_option('mac_voting_total_reveal_state', $state, false);
+        return $state;
+    }
 }

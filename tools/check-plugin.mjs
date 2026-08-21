@@ -170,8 +170,23 @@ for (const invariant of ["$is_decoy_featured", "$minimum_revealed_rank", "$show_
 for (const invariant of ["'DECOY' => 'THIRD'", "'THIRD' => 'SECOND'", "'SECOND' => 'FINAL'"]) {
   if (!adminFile.includes(invariant)) throw new Error(`Missing manual podium transition: ${invariant}`);
 }
-if (!resultsJs.includes('["THIRD", "SECOND", "FINAL"].includes(state.stage)') || resultsJs.includes("finalFrame")) {
-  throw new Error("Podium ranks must render from three explicit admin stages without an automatic timer.");
+if (!resultsJs.includes('["RANK65", "RANK43", "RANK12", "TWIST", "FINAL"].includes(state.stage)')) {
+  throw new Error("Total reveal must render from five explicit admin stages without an automatic timer.");
+}
+for (const invariant of ["RANK65: { 6: 3, 5: 3 }", "FINAL: { 6: 4, 5: 4, 4: 4, 3: 5, 2: 6, 1: 10 }"]) {
+  if (!resultsJs.includes(invariant)) throw new Error(`Missing total reveal ladder invariant: ${invariant}`);
+}
+if (!resultsCss.includes("repeating-linear-gradient(to top, transparent 0 calc(10% - 1px)")) {
+  throw new Error("Missing 10-cell ladder ticks on each column.");
+}
+for (const invariant of ["'RANK65' => 'RANK43'", "'RANK12' => 'TWIST'", "'TWIST' => 'FINAL'", "RESULTS_TOTAL_REVEAL_"]) {
+  if (!adminFile.includes(invariant)) throw new Error(`Missing total reveal admin transition: ${invariant}`);
+}
+if (!restFile.includes("/results-total") || !restFile.includes("function results_total")) {
+  throw new Error("Missing public total-results endpoint.");
+}
+if (!adminJs.includes("data-total-reveal-stage") || !adminJs.includes("mac_vote_reveal_total")) {
+  throw new Error("Missing total reveal MC controls on the dashboard.");
 }
 for (const invariant of ["is_voting_enabled", "voting_disabled"]) {
   if (!databaseFile.includes(invariant) && !restFile.includes(invariant)) throw new Error(`Missing voting gate: ${invariant}`);

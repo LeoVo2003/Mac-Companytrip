@@ -498,6 +498,20 @@ body.mac-results-page .elementor-shortcode {
   padding-inline: clamp(5px, 0.7vw, 12px);
 }
 
+/* Thang 10 ô: vạch ngang mờ chia mỗi cột thành 10 ô (mỗi ô 10%). */
+.mr-column::after {
+  position: absolute;
+  z-index: 4;
+  right: 8%;
+  bottom: 0;
+  left: 8%;
+  height: 100%;
+  content: "";
+  pointer-events: none;
+  opacity: 0.55;
+  background: repeating-linear-gradient(to top, transparent 0 calc(10% - 1px), rgba(159, 179, 196, 0.14) calc(10% - 1px) 10%);
+}
+
 .mr-bar {
   position: relative;
   width: min(100%, 112px);
@@ -543,6 +557,22 @@ body.mac-results-page .elementor-shortcode {
 
 .mr-shell[data-stage="rolling"] .mr-bar {
   transition-duration: 105ms;
+}
+
+.mr-shell[data-stage="twist"] .mr-bar {
+  transition-duration: 120ms;
+}
+
+.mr-shell[data-stage="final"] .mr-team.is-champion .mr-bar {
+  transition-duration: 1200ms;
+  box-shadow: inset 0 1px 0 rgba(255, 227, 173, 0.5), 0 18px 48px rgba(0, 0, 0, 0.38), 0 0 54px rgba(255, 207, 125, 0.42);
+  animation: mr-champion-pop 900ms cubic-bezier(0.18, 1.35, 0.4, 1) 260ms 1 both;
+}
+
+@keyframes mr-champion-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.06, 1.03); }
+  100% { transform: scale(1); }
 }
 
 .mr-bar > i {
