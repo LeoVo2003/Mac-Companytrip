@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.8.19** (đã release & verify ngày 2026-08-21, release id 374154410, commit ba686c7) — tên đội + điểm số dưới chân cột phóng to hơn, bỏ hẳn đường kẻ mr-horizon. Trước đó v1.8.18 trả seascape về đúng màu bản tham chiếu + la bàn rotate(0) + vòng sóng mờ 50→75%. Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
+> Phiên bản hiện tại: **v1.8.20** (đã release & verify ngày 2026-08-21, release id 374162282, commit 7f25efb) — nâng khoảng trống dưới màn hình cho chiếu sân khấu lớn + điểm hạng 3 màu copper. Trước đó v1.8.19 phóng to tên đội/điểm + bỏ mr-horizon; v1.8.18 trả seascape về bản tham chiếu + la bàn rotate(0). Prototype v1.9.0 "Race to the Crown" đã gỡ khỏi source và release/tag v1.9.0 trên GitHub cũng đã bị xóa (code prototype vẫn còn trong lịch sử git tại commit 4adaa3a nếu muốn khôi phục).
 
 ---
 
@@ -138,7 +138,12 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.8.19 (2026-08-21, commit ba686c7, release id 374154410) — mới nhất
+### v1.8.20 (2026-08-21, commit 7f25efb, release id 374162282) — mới nhất
+
+- Nâng bottom padding `.mr-shell > main` lên `clamp(48px, 9vh, 120px)` (mobile `clamp(36px, 8vh, 84px)`) để hàng tên đội + điểm nằm cao, chiếu màn sân khấu lớn không bị người che sát mặt đất.
+- `.mr-team.is-third .mr-score { color: #f0bd91; }` — điểm hạng 3 màu copper, tách khỏi màu mặc định của hạng 4-5-6.
+
+### v1.8.19 (2026-08-21, commit ba686c7, release id 374154410)
 
 - Phóng to tên đội + điểm dưới chân cột: `.mr-score span` clamp(18px,1.7vw,30px), `.mr-score small` clamp(7px,0.6vw,10px), `.mr-team-name b` clamp(10px,0.8vw,14px), `.mr-team-name strong` clamp(12px,1.1vw,20px) (mobile: score clamp(14px,4.2vw,20px), strong 11px); nới hàng lưới `.mr-team` desktop `minmax(0,1fr) 64px 40px` / mobile `52px 30px`, horizon `.mr-chart::after` dời về `bottom: 104px` / mobile `82px`; cập nhật invariant trong `tools/check-plugin.mjs`.
 - Bỏ hẳn `.mr-horizon` (đường kẻ chân trời) khỏi JS + CSS theo ý user.
@@ -225,7 +230,7 @@ Chi tiết:
 
 ### Không còn việc tồn đọng
 
-Mọi yêu cầu tới 1.8.19 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: score/name clamp mới + rows 64/40 + bottom 104px có, `.mr-horizon` biến mất khỏi cả JS lẫn CSS, Version 1.8.19 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.19 là release mới nhất, updater sẽ không kéo ngược bản cũ.
+Mọi yêu cầu tới 1.8.20 đã xong, build pass (17 PHP / 7 JS / 6 CSS), release đã verify (tải zip từ GitHub về grep marker: bottom padding clamp(48px,9vh,120px) + `.mr-team.is-third .mr-score` + Version 1.8.20 đều có). Release/tag v1.9.0 (prototype đã gỡ) đã bị xóa khỏi GitHub — v1.8.20 là release mới nhất, updater sẽ không kéo ngược bản cũ. Đang chờ thống nhất logic với user để làm big update: màn hình công bố ĐIỂM TỔNG (6 step: roll nhẹ → hạng 6-5 lên 3 ô → hạng 4-3 lên 4/5 ô (4-5-6 đều 4 ô) → hạng 1-2 lên đều 6 ô → twist 1-2 lên xuống → quán quân nhảy lên ô 10).
 
 ---
 
