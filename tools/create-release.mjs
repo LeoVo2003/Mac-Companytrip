@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.11";
+const tag = "v1.9.12";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Badge rút gọn còn \"KHUYẾN KHÍCH\".",
-  "- Ẩn điểm: tên đội giãn xuống thế chỗ khối điểm, hết khoảng trống dưới đáy.",
-  "- Thang độ cao mới: bước 02 hạng 4-5-6 cùng 80%; twist 1-2-3 dao động 45-60% còn 4-5-6 giữ 50%; hiện top 3: 4-5-6 về 30%, hạng 3 = 50%, 1-2 dao động 50-90%; quán quân 85% · nhì 65%.",
+  "- Tách 2 màn trình chiếu: /ket-qua-tong (tổng kết) và /ket-qua-van-nghe (văn nghệ — đua thuyền sắp ra mắt); plugin tự tạo trang + tự đổi shortcode khi nâng cấp.",
+  "- Bàn điều khiển công bố tổng kết mở đúng link /ket-qua-tong.",
+  "- Ẩn điểm: padding đáy màn chiếu rút còn 50px.",
 ].join("\n");
 
 let release;

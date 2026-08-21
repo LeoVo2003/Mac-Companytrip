@@ -122,6 +122,7 @@ const restFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-votin
 const checkinRest = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-checkin-rest.php"), "utf8");
 const qrFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-qr.php"), "utf8");
 const adminFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-admin.php"), "utf8");
+const publicFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-public.php"), "utf8");
 const publicJs = fs.readFileSync(path.join(pluginRoot, "assets/public.js"), "utf8");
 const adminJs = fs.readFileSync(path.join(pluginRoot, "assets/admin.js"), "utf8");
 const resultsJs = fs.readFileSync(path.join(pluginRoot, "assets/results.js"), "utf8");
@@ -203,8 +204,14 @@ for (const invariant of ["'RANK65' => 'TEASE43'", "'TEASE43' => 'RANK43'", "'RAN
 if (!restFile.includes("/results-total") || !restFile.includes("function results_total")) {
   throw new Error("Missing public total-results endpoint.");
 }
-if (!adminJs.includes("data-total-reveal-stage") || !adminJs.includes("mac_vote_reveal_total")) {
+if (!adminJs.includes('data-total-reveal-stage') || !adminJs.includes("mac_vote_reveal_total")) {
   throw new Error("Missing total reveal MC controls on the dashboard.");
+}
+// v1.9.12: /ket-qua-tong = màn tổng kết, /ket-qua-van-nghe = màn văn nghệ (đua thuyền).
+for (const invariant of ["mac_companytrip_total_results", "mac_companytrip_art_results", "ket-qua-tong", "total_page_url"]) {
+  if (!publicFile.includes(invariant) && !databaseFile.includes(invariant)) {
+    throw new Error(`Missing split results-page invariant: ${invariant}`);
+  }
 }
 for (const invariant of ["is_voting_enabled", "voting_disabled"]) {
   if (!databaseFile.includes(invariant) && !restFile.includes(invariant)) throw new Error(`Missing voting gate: ${invariant}`);

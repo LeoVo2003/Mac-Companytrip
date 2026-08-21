@@ -476,6 +476,11 @@ body.mac-results-page .elementor-shortcode {
   grid-template-rows: minmax(0, 1fr) 104px 0;
 }
 
+/* Ẩn điểm: rút padding đáy xuống 50px cho gọn; hiện điểm giữ padding như cũ. */
+.mac-results-app.is-scores-hidden .mr-shell > main {
+  padding-bottom: 50px;
+}
+
 .mr-score small {
   color: var(--muted);
   font-size: clamp(7px, 0.6vw, 10px);

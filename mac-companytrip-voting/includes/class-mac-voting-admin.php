@@ -90,6 +90,7 @@ final class MAC_Voting_Admin {
             'role'     => $is_super ? 'super' : 'admin',
             'voteUrl'  => MAC_Voting_DB::vote_page_url(),
             'resultsUrl' => MAC_Voting_DB::results_page_url(),
+            'totalUrl'   => MAC_Voting_DB::total_page_url(),
             'checkinUrl' => MAC_Voting_DB::checkin_page_url(),
             'adminUrl' => MAC_Voting_DB::admin_page_url(),
             'logoutUrl'=> wp_logout_url(MAC_Voting_DB::admin_page_url()),

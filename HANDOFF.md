@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.11** (2026-08-21) — badge rút còn "KHUYẾN KHÍCH"; ẩn điểm thì hàng tên đội giãn xuống thế chỗ khối điểm (hết khoảng thừa); thang độ cao mới: bước 02 hạng 4-5-6 cùng 80%, twist 1-2-3 dao động 45-60% còn 4-5-6 giữ 50%, hiện top 3: 4-5-6 về 30% + hạng 3 = 50% + 1-2 dao động 50-90%, quán quân 85% · nhì 65%. Trước đó v1.9.10: bước 02 chỉ lộ hạng 4-5-6 (hạng 3 dành cho bước sau cú twist); badge khuyến khích gắn ngay khi lộ. Trước đó v1.9.9: twist 3 đội cùng tung điểm + bước Hiện top 3 (REVEAL3). Trước đó v1.9.8: thang độ cao kịch bản MC, bước 02 hai nhịp nhá hàng (TEASE43), mở màn kéo mượt 122px, twist hết giật. Trước đó v1.9.7: điểm tăng trưởng, pháo hoa trễ 3s, ẩn điểm display:none. Trước đó v1.9.6: trùng điểm 12 TC + cảnh báo. Trước đó v1.9.5 trở về trước như cũ. Logic công bố văn nghệ cũ giữ nguyên cho màn đua thuyền.
+> Phiên bản hiện tại: **v1.9.12** (2026-08-21) — tách 2 màn trình chiếu: /ket-qua-tong (tổng kết, [mac_companytrip_total_results]) và /ket-qua-van-nghe (văn nghệ, [mac_companytrip_art_results] — sẽ là đua thuyền); plugin tự tạo trang + tự migrate shortcode; bàn điều khiển tổng kết mở /ket-qua-tong; ẩn điểm padding đáy 50px. Trước đó v1.9.11: badge "KHUYẾN KHÍCH", ẩn điểm tên đội giãn xuống, thang cao mới (80/80/45-60+50/30+50+50-90/85-65). Trước đó v1.9.10: bước 02 chỉ lộ 4-5-6, badge khuyến khích gắn ngay. Trước đó v1.9.9: twist 3 đội tung điểm + REVEAL3. Trước đó v1.9.8: thang cao MC + TEASE43 + hết giật. Trước đó v1.9.7/v1.9.6/v1.9.5 trở về trước như cũ. Logic công bố văn nghệ cũ (REST /results + reveal_state + panel VĂN NGHỆ) vẫn còn trong code — nền cho màn đua thuyền sắp làm.
 
 ---
 
@@ -138,7 +138,16 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.11 (2026-08-21) — mới nhất · badge KHUYẾN KHÍCH + layout ẩn điểm + thang cao mới
+### v1.9.12 (2026-08-21) — mới nhất · tách trang tổng kết / văn nghệ
+
+- **Trang mới `/ket-qua-tong`**: `ensure_total_page()` (option `mac_voting_total_page_id`, title "Kết Quả Tổng Kết", content `[mac_companytrip_total_results]`), rewrite rule ở cả `MAC_Voting_Public::register_rewrite` lẫn `MAC_Voting_DB::register_rewrites`, helper `total_page_url()`; gọi trong `activate()` + nhánh else của `maybe_upgrade()`.
+- **Trang văn nghệ `/ket-qua-van-nghe`**: `ensure_results_page()` nay migrate content `[mac_companytrip_results]` → `[mac_companytrip_art_results]` (shortcode mới `art_shortcode` render placeholder `#mac-art-app` chờ JS đua thuyền); body class `mac-art-page`.
+- Shortcode tổng kết đổi tên `mac_companytrip_results` → `mac_companytrip_total_results`; `is_total_page()`/`is_art_page()` thay `is_results_page()`; assets results.js chỉ enqueue ở trang tổng kết.
+- Admin: thêm `totalUrl` vào localized data; link "Màn hình trình chiếu" ở Bàn điều khiển công bố dùng `totalUrl`.
+- CSS: `.mac-results-app.is-scores-hidden .mr-shell > main { padding-bottom: 50px }`.
+- `check-plugin.mjs`: đọc thêm publicFile + invariant tách trang.
+
+### v1.9.11 (2026-08-21) — badge KHUYẾN KHÍCH + layout ẩn điểm + thang cao mới
 
 - **Badge**: `rankLabel` hạng ≥ 4 trả "KHUYẾN KHÍCH" (bỏ chữ HẠNG theo ý user).
 - **Ẩn điểm hết khoảng thừa**: `.mac-results-app.is-scores-hidden .mr-team { grid-template-rows: minmax(0,1fr) 104px 0 }` (mobile 82px) — hàng tên đội giãn xuống thế chỗ khối điểm; hiện điểm thì về 64px/40px cũ.

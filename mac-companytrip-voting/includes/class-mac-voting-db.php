@@ -31,6 +31,7 @@ final class MAC_Voting_DB {
         MAC_Points::seed_categories();
         self::ensure_vote_page();
         self::ensure_results_page();
+        self::ensure_total_page();
         self::ensure_checkin_page();
         self::ensure_admin_page();
         if (get_option('mac_voting_public_enabled', null) === false) {
@@ -49,6 +50,8 @@ final class MAC_Voting_DB {
             self::ensure_admin_page();
             self::ensure_staff_team();
             self::ensure_games();
+            self::ensure_results_page();
+            self::ensure_total_page();
         }
         if (get_option('mac_voting_plugin_version') !== MAC_VOTING_VERSION) {
             if (version_compare((string) get_option('mac_voting_plugin_version', '0'), '1.8.8', '<')) {
@@ -80,6 +83,8 @@ final class MAC_Voting_DB {
         if ($page_id) add_rewrite_rule('^cham-diem-van-nghe/?$', 'index.php?page_id=' . $page_id, 'top');
         $results_page_id = (int) get_option('mac_voting_results_page_id');
         if ($results_page_id) add_rewrite_rule('^ket-qua-van-nghe/?$', 'index.php?page_id=' . $results_page_id, 'top');
+        $total_page_id = (int) get_option('mac_voting_total_page_id');
+        if ($total_page_id) add_rewrite_rule('^ket-qua-tong/?$', 'index.php?page_id=' . $total_page_id, 'top');
         $checkin_page_id = (int) get_option('mac_voting_checkin_page_id');
         if ($checkin_page_id) add_rewrite_rule('^company-trip-checkin/?$', 'index.php?page_id=' . $checkin_page_id, 'top');
         $admin_page_id = (int) get_option('mac_voting_admin_page_id');
@@ -425,23 +430,55 @@ final class MAC_Voting_DB {
 
     private static function ensure_results_page(): void {
         $page_id = (int) get_option('mac_voting_results_page_id');
-        if ($page_id && get_post($page_id)) {
-            return;
+        $page = $page_id ? get_post($page_id) : null;
+        if (!$page) {
+            $existing = get_page_by_path('ket-qua-van-nghe');
+            if ($existing instanceof WP_Post) {
+                $page = $existing;
+                update_option('mac_voting_results_page_id', $existing->ID, false);
+            }
         }
-        $existing = get_page_by_path('ket-qua-van-nghe');
-        if ($existing instanceof WP_Post) {
-            update_option('mac_voting_results_page_id', $existing->ID, false);
+        if ($page instanceof WP_Post) {
+            // v1.9.12: trang văn nghệ chuyển sang shortcode đua thuyền; tổng kết dời sang /ket-qua-tong.
+            if (strpos((string) $page->post_content, '[mac_companytrip_art_results]') === false) {
+                wp_update_post(array(
+                    'ID' => (int) $page->ID,
+                    'post_content' => str_replace('[mac_companytrip_results]', '', (string) $page->post_content) . "\n[mac_companytrip_art_results]",
+                ));
+            }
             return;
         }
         $page_id = wp_insert_post(array(
             'post_title'   => 'Kết Quả Văn Nghệ',
             'post_name'    => 'ket-qua-van-nghe',
-            'post_content' => '[mac_companytrip_results]',
+            'post_content' => '[mac_companytrip_art_results]',
             'post_status'  => 'publish',
             'post_type'    => 'page',
         ));
         if (!is_wp_error($page_id)) {
             update_option('mac_voting_results_page_id', (int) $page_id, false);
+        }
+    }
+
+    private static function ensure_total_page(): void {
+        $page_id = (int) get_option('mac_voting_total_page_id');
+        if ($page_id && get_post($page_id)) {
+            return;
+        }
+        $existing = get_page_by_path('ket-qua-tong');
+        if ($existing instanceof WP_Post) {
+            update_option('mac_voting_total_page_id', $existing->ID, false);
+            return;
+        }
+        $page_id = wp_insert_post(array(
+            'post_title'   => 'Kết Quả Tổng Kết',
+            'post_name'    => 'ket-qua-tong',
+            'post_content' => '[mac_companytrip_total_results]',
+            'post_status'  => 'publish',
+            'post_type'    => 'page',
+        ));
+        if (!is_wp_error($page_id)) {
+            update_option('mac_voting_total_page_id', (int) $page_id, false);
         }
     }
 
@@ -650,6 +687,11 @@ final class MAC_Voting_DB {
     public static function results_page_url(): string {
         $page_id = (int) get_option('mac_voting_results_page_id');
         return $page_id ? (string) get_permalink($page_id) : home_url('/ket-qua-van-nghe/');
+    }
+
+    public static function total_page_url(): string {
+        $page_id = (int) get_option('mac_voting_total_page_id');
+        return $page_id ? (string) get_permalink($page_id) : home_url('/ket-qua-tong/');
     }
 
     public static function checkin_page_url(): string {
