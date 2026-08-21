@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.8.17";
+const tag = "v1.8.18";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Dọn seascape: bỏ mr-horizon và mr-chart-lines; mr-sun vẽ lại thành đĩa nắng hoàng hôn; màu biển đậm hơn.",
-  "- La bàn to hơn nhưng mờ hơn; mặt số xoay tròn mượt, kim đứng yên đầu đỏ (bắc) chỉ 12h; logo to hơn, bỏ huy hiệu la bàn cạnh logo.",
+  "- Trả seascape về đúng màu bản tham chiếu: mr-sun mờ rộng nhẹ, khôi phục mr-horizon + mr-chart-lines, palette biển gốc.",
+  "- La bàn bỏ rotate(-7deg) để kim đỏ chỉ đúng 12h; vòng sóng .mr-shell::after mở rộng tới 70-75% rồi mờ dần tan biến.",
 ].join("\n");
 
 let release;
