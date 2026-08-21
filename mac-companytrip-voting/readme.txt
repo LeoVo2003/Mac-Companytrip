@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.12
+Stable tag: 1.9.13
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.13 =
+- Màn văn nghệ /ket-qua-van-nghe làm lại thành ĐUA THUYỀN: 6 làn thuyền SVG trên biển đêm hoàng hôn, điều khiển 6 nhịp từ dashboard (00 Xuất phát → 01 Cú lừa 3 thuyền cuối bảng giả dẫn đầu → 02 Hạ màn lừa lộ 6-5 → 03 Lộ 4-3 → 04 Cú twist 2 thuyền bám đuổi → 05 Về đích + pháo hoa trễ 3s).
+- REST /results thêm topTwo và mở rộng ngưỡng lộ cho các stage đua thuyền; máy trạng thái thêm RANK65/RANK43/TWIST (giữ THIRD/SECOND legacy thoát hiểm).
 
 = 1.9.12 =
 - Tách 2 màn trình chiếu: /ket-qua-tong = màn tổng kết Company Trip (shortcode [mac_companytrip_total_results]), /ket-qua-van-nghe = màn văn nghệ (shortcode [mac_companytrip_art_results], sẽ là đua thuyền). Plugin tự tạo trang mới và tự đổi shortcode trang cũ khi nâng cấp.

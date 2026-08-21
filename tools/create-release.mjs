@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.12";
+const tag = "v1.9.13";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Tách 2 màn trình chiếu: /ket-qua-tong (tổng kết) và /ket-qua-van-nghe (văn nghệ — đua thuyền sắp ra mắt); plugin tự tạo trang + tự đổi shortcode khi nâng cấp.",
-  "- Bàn điều khiển công bố tổng kết mở đúng link /ket-qua-tong.",
-  "- Ẩn điểm: padding đáy màn chiếu rút còn 50px.",
+  "- Màn văn nghệ làm lại thành ĐUA THUYỀN 6 làn: xuất phát → cú lừa 3 thuyền cuối bảng giả dẫn đầu → hạ màn lừa lộ 6-5 → lộ 4-3 → twist 2 thuyền bám đuổi → quán quân băng đích + pháo hoa.",
+  "- Điều khiển 6 nhịp bằng nút trong dashboard tab VĂN NGHỆ; REST /results thêm topTwo + stage đua thuyền.",
 ].join("\n");
 
 let release;

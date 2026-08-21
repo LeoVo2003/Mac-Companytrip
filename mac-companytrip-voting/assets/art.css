@@ -1,0 +1,578 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700;800&display=swap");
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter-vietnamese.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 100 900;
+}
+
+html:has(body.mac-art-page) {
+  margin-top: 0 !important;
+  background: #040d1c;
+}
+
+body.mac-art-page {
+  min-width: 320px;
+  margin: 0 !important;
+  overflow: hidden;
+  background: #040d1c !important;
+}
+
+body.mac-art-page #wpadminbar,
+body.mac-art-page .site-header,
+body.mac-art-page .site-footer,
+body.mac-art-page .entry-header,
+body.mac-art-page header.wp-block-template-part,
+body.mac-art-page footer.wp-block-template-part {
+  display: none !important;
+}
+
+body.mac-art-page #page,
+body.mac-art-page #content,
+body.mac-art-page .site,
+body.mac-art-page .site-content,
+body.mac-art-page .content-area,
+body.mac-art-page .site-main,
+body.mac-art-page article,
+body.mac-art-page .entry-content,
+body.mac-art-page .elementor,
+body.mac-art-page .elementor-section,
+body.mac-art-page .elementor-container,
+body.mac-art-page .elementor-column,
+body.mac-art-page .elementor-widget-wrap,
+body.mac-art-page .elementor-widget,
+body.mac-art-page .elementor-widget-container,
+body.mac-art-page .elementor-shortcode {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.mac-art-app,
+.mac-art-app * {
+  box-sizing: border-box;
+}
+
+.mac-art-app {
+  --abyss: #040d1c;
+  --deep-sea: #0a2338;
+  --sea-teal: #123a52;
+  --sea-glint: #2c5b74;
+  --brass-dark: #5a3b1f;
+  --brass: #b8823f;
+  --brass-light: #e8c17a;
+  --brass-highlight: #ffe3ad;
+  --copper: #c9703f;
+  --sunset-red: #d8432c;
+  --sunset-orange: #ff8a4c;
+  --sunset-gold: #ffcf7d;
+  --silver-dark: #5c6672;
+  --silver: #9aa6b2;
+  --silver-light: #e4e9ee;
+  --ink: #f7ecd9;
+  --muted: #9fb3c4;
+  position: fixed;
+  z-index: 99999;
+  inset: 0;
+  color: var(--ink);
+  background: var(--abyss);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ar-shell {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 560px;
+  overflow: hidden;
+  isolation: isolate;
+  grid-template-rows: 64px minmax(0, 1fr);
+  background:
+    radial-gradient(90% 7% at 50% 0%, rgba(255, 138, 76, 0.28), transparent 68%),
+    radial-gradient(70% 42% at 50% 2%, rgba(255, 207, 125, 0.12), transparent 70%),
+    linear-gradient(180deg, var(--sea-glint) 0%, var(--sea-teal) 16%, var(--deep-sea) 48%, var(--abyss) 100%);
+}
+
+.ar-shell::before {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  content: "";
+  opacity: 0.35;
+  background-image:
+    linear-gradient(rgba(232, 193, 122, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232, 193, 122, 0.04) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, transparent 2%, #000 35%, #000);
+}
+
+/* Sóng nước lăn tăn chạy ngang mặt biển. */
+.ar-shell::after {
+  position: absolute;
+  z-index: -1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 78%;
+  content: "";
+  opacity: 0.5;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 46px, rgba(159, 179, 196, 0.09) 47px 49px),
+    repeating-linear-gradient(90deg, transparent 0 120px, rgba(232, 193, 122, 0.05) 121px 123px);
+  animation: ar-waves 9s linear infinite;
+}
+
+@keyframes ar-waves {
+  to { background-position: 0 0, 240px 0; }
+}
+
+.ar-pyro {
+  position: fixed;
+  z-index: 8;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ar-header {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 8px clamp(20px, 3.4vw, 64px);
+  border-top: 2px solid rgba(255, 138, 76, 0.28);
+  border-bottom: 1px solid rgba(232, 193, 122, 0.18);
+  background: rgba(4, 13, 28, 0.64);
+  backdrop-filter: blur(18px);
+}
+
+.ar-brand img {
+  display: block;
+  width: clamp(72px, 6.5vw, 100px);
+  height: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.92;
+}
+
+.ar-event {
+  display: grid;
+  margin-right: auto;
+  padding-left: 18px;
+  border-left: 1px solid rgba(232, 193, 122, 0.22);
+}
+
+.ar-event span {
+  color: var(--brass-light);
+  font-size: clamp(7px, 0.58vw, 10px);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.ar-event strong {
+  color: var(--ink);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(11px, 0.9vw, 16px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.ar-connection {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  border: 1px solid rgba(159, 179, 196, 0.2);
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(10, 35, 56, 0.58);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ar-connection i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #56c39a;
+  box-shadow: 0 0 0 4px rgba(86, 195, 154, 0.08), 0 0 14px rgba(86, 195, 154, 0.45);
+}
+
+.ar-connection.is-offline {
+  color: var(--sunset-gold);
+}
+
+.ar-connection.is-offline i {
+  background: var(--sunset-orange);
+}
+
+.ar-shell > main {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  min-height: 0;
+  padding: clamp(18px, 3vh, 34px) clamp(24px, 4vw, 72px) clamp(20px, 4vh, 44px);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.ar-heading {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.ar-heading p {
+  margin: 0 0 6px;
+  color: var(--brass-light);
+  font-size: clamp(9px, 0.66vw, 12px);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+}
+
+.ar-heading p::before {
+  content: "✦  ";
+  color: rgba(255, 227, 173, 0.72);
+}
+
+.ar-heading p::after {
+  content: "  ✦";
+  color: rgba(255, 227, 173, 0.72);
+}
+
+.ar-heading h1 {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 3.4vw, 58px);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  text-shadow: 0 4px 26px rgba(0, 0, 0, 0.42);
+  text-wrap: balance;
+}
+
+.ar-heading > span {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: clamp(10px, 0.82vw, 14px);
+  letter-spacing: 0.03em;
+}
+
+.ar-heading > span:empty {
+  display: none;
+}
+
+.ar-shell[data-stage="final"] .ar-heading h1 {
+  color: var(--brass-highlight);
+  text-shadow: 0 0 36px rgba(255, 207, 125, 0.34), 0 5px 28px rgba(0, 0, 0, 0.5);
+}
+
+/* Mặt biển: 6 làn đua xếp chồng. */
+.ar-sea {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  margin-top: clamp(14px, 2.4vh, 26px);
+  grid-template-rows: repeat(6, minmax(0, 1fr));
+}
+
+/* Vạch đích bên phải. */
+.ar-finish {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: clamp(40px, 6vw, 110px);
+  bottom: 0;
+  width: 4px;
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(180deg, var(--brass-highlight) 0 10px, rgba(4, 13, 28, 0.9) 10px 20px);
+  box-shadow: 0 0 22px rgba(255, 227, 173, 0.4);
+}
+
+.ar-finish::after {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--brass-highlight);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  content: "ĐÍCH";
+}
+
+.ar-lane {
+  position: relative;
+  min-height: 0;
+}
+
+.ar-lane + .ar-lane::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(159, 179, 196, 0.16) 12%, rgba(159, 179, 196, 0.16) 88%, transparent);
+}
+
+.ar-team-name {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: clamp(4px, 0.8vw, 14px);
+  transform: translateY(-50%);
+  max-width: 16ch;
+  color: var(--muted);
+  font-size: clamp(10px, 0.9vw, 15px);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ar-lane.is-revealed .ar-team-name,
+.ar-lane.is-featured .ar-team-name {
+  color: var(--ink);
+}
+
+/* Thuyền: vị trí theo --boat-x, đổi stage trượt mượt 1,2s. */
+.ar-boat {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: var(--boat-x, 2%);
+  width: clamp(64px, 7vw, 116px);
+  transform: translateY(-50%);
+  transition: left 1200ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 400ms ease, filter 400ms ease;
+}
+
+.ar-lane.is-muted .ar-boat {
+  opacity: 0.32;
+  filter: saturate(0.3);
+}
+
+.ar-boat svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.ar-hull {
+  fill: url(#ar-hull-grad);
+  stroke: rgba(255, 227, 173, 0.55);
+  stroke-width: 1;
+}
+
+.ar-sail {
+  fill: url(#ar-sail-grad);
+  stroke: rgba(255, 227, 173, 0.4);
+  stroke-width: 1;
+}
+
+.ar-num {
+  fill: #24180d;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+.ar-lane.is-runner-up .ar-sail {
+  fill: url(#ar-sail-silver);
+}
+
+.ar-lane.is-third .ar-sail {
+  fill: url(#ar-sail-copper);
+}
+
+.ar-lane.is-champion .ar-sail {
+  fill: url(#ar-sail-gold);
+  filter: drop-shadow(0 0 14px rgba(255, 207, 125, 0.55));
+}
+
+.ar-lane.is-champion .ar-boat {
+  filter: drop-shadow(0 6px 18px rgba(90, 59, 31, 0.5));
+}
+
+/* Sóng nước sau đuôi thuyền. */
+.ar-wake {
+  position: absolute;
+  top: 62%;
+  right: 96%;
+  width: clamp(30px, 4vw, 70px);
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(228, 233, 238, 0.5));
+  filter: blur(1px);
+  opacity: 0.5;
+}
+
+.ar-shell[data-stage="rolling"] .ar-boat,
+.ar-shell[data-stage="twist"] .ar-boat,
+.ar-shell[data-stage="decoy"] .ar-boat {
+  animation: ar-bob 2.6s ease-in-out infinite alternate;
+}
+
+@keyframes ar-bob {
+  from { transform: translateY(calc(-50% - 3px)) rotate(-1.2deg); }
+  to { transform: translateY(calc(-50% + 3px)) rotate(1.2deg); }
+}
+
+.ar-shell[data-stage="decoy"] .ar-lane.is-featured .ar-boat {
+  filter: drop-shadow(0 0 16px rgba(255, 138, 76, 0.5));
+}
+
+/* Chip điểm + badge hạng bám theo mũi thuyền. */
+.ar-score {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--brass-highlight);
+  background: rgba(4, 13, 28, 0.85);
+  border: 1px solid rgba(232, 193, 122, 0.4);
+  font-size: clamp(9px, 0.8vw, 13px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ar-rank {
+  position: absolute;
+  bottom: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: var(--brass-highlight);
+  background: rgba(4, 13, 28, 0.9);
+  border: 1px solid rgba(232, 193, 122, 0.45);
+  font-size: clamp(8px, 0.66vw, 11px);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 450ms ease 520ms;
+}
+
+.ar-rank:not([hidden]) {
+  opacity: 1;
+}
+
+.ar-lane.is-champion .ar-rank {
+  color: #24180d;
+  background: linear-gradient(135deg, var(--brass-highlight), var(--sunset-gold));
+  border-color: rgba(255, 227, 173, 0.76);
+  box-shadow: 0 0 26px rgba(255, 207, 125, 0.44);
+}
+
+.ar-lane.is-runner-up .ar-rank {
+  color: var(--silver-light);
+  border-color: rgba(228, 233, 238, 0.54);
+}
+
+.ar-lane.is-third .ar-rank {
+  color: #f0bd91;
+  border-color: rgba(201, 112, 63, 0.66);
+}
+
+.ar-error {
+  display: grid;
+  height: 100%;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 32px;
+  color: var(--ink);
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 26%, rgba(184, 130, 63, 0.19), transparent 44%),
+    linear-gradient(180deg, var(--deep-sea), var(--abyss));
+}
+
+.ar-error img {
+  width: min(84px, 26vw);
+  max-height: 42px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+.ar-error strong {
+  margin-top: 12px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 28px;
+}
+
+.ar-error p {
+  max-width: 520px;
+  margin: 0;
+  color: var(--muted);
+}
+
+.ar-error button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 227, 173, 0.54);
+  border-radius: 12px;
+  color: #21160c;
+  background: linear-gradient(120deg, var(--brass-light), var(--sunset-gold));
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .ar-event {
+    display: none;
+  }
+
+  .ar-team-name {
+    max-width: 9ch;
+    font-size: 9px;
+  }
+
+  .ar-finish {
+    right: 26px;
+  }
+
+  .ar-score {
+    top: -24px;
+    font-size: 9px;
+  }
+
+  .ar-rank {
+    bottom: -22px;
+    font-size: 7px;
+    letter-spacing: 0.04em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mac-art-app *,
+  .mac-art-app *::before,
+  .mac-art-app *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

@@ -41,6 +41,8 @@ final class MAC_Voting_Public {
         wp_register_script('mac-voting-public', MAC_VOTING_URL . 'assets/public.js', array(), MAC_VOTING_VERSION, true);
         wp_register_style('mac-voting-results', MAC_VOTING_URL . 'assets/results.css', array(), MAC_VOTING_VERSION);
         wp_register_script('mac-voting-results', MAC_VOTING_URL . 'assets/results.js', array(), MAC_VOTING_VERSION, true);
+        wp_register_style('mac-voting-art', MAC_VOTING_URL . 'assets/art.css', array(), MAC_VOTING_VERSION);
+        wp_register_script('mac-voting-art', MAC_VOTING_URL . 'assets/art.js', array(), MAC_VOTING_VERSION, true);
 
         // Enqueue before wp_head so themes do not miss the stylesheet. The
         // shortcode also enqueues as a fallback for page-builder previews.
@@ -52,6 +54,10 @@ final class MAC_Voting_Public {
         if (self::is_total_page()) {
             wp_enqueue_style('mac-voting-results');
             wp_enqueue_script('mac-voting-results');
+        }
+        if (self::is_art_page()) {
+            wp_enqueue_style('mac-voting-art');
+            wp_enqueue_script('mac-voting-art');
         }
     }
 
@@ -130,17 +136,20 @@ final class MAC_Voting_Public {
         return (string) ob_get_clean();
     }
 
-    // Màn trình chiếu văn nghệ (đua thuyền) — JS sẽ gắn vào #mac-art-app ở bản đua thuyền.
+    // Màn trình chiếu văn nghệ: đua thuyền 6 làn, điều khiển bằng nút trong dashboard.
     public static function art_shortcode(): string {
+        wp_enqueue_style('mac-voting-art');
+        wp_enqueue_script('mac-voting-art');
+        $endpoint = esc_url(rest_url('mac-voting/v1/results'));
         $logo = esc_url(MAC_VOTING_URL . 'assets/mac-marketing-logo.png');
         ob_start();
         ?>
-        <div id="mac-art-app" class="mac-art-app" data-logo="<?php echo $logo; ?>">
-            <div class="ma-art-placeholder" style="position:fixed;inset:0;display:grid;place-content:center;justify-items:center;gap:14px;background:#040d1c;color:#f7ecd9;font-family:Inter,-apple-system,'Segoe UI',sans-serif;text-align:center;padding:24px;">
-                <img src="<?php echo $logo; ?>" alt="MAC Marketing" style="width:120px;height:auto;filter:brightness(0) invert(1);opacity:.92;">
-                <strong style="font-size:22px;">Màn đua thuyền văn nghệ đang được lắp đặt</strong>
-                <span style="color:#9fb3c4;font-size:13px;">Kết quả văn nghệ sẽ trình chiếu tại đây.</span>
+        <div id="mac-art-app" class="mac-art-app" data-endpoint="<?php echo $endpoint; ?>" data-logo="<?php echo $logo; ?>">
+            <div class="ar-error" role="status">
+                <img src="<?php echo $logo; ?>" alt="MAC Marketing">
+                <span>Đang kết nối màn đua thuyền…</span>
             </div>
+            <noscript>Bạn cần bật JavaScript để xem kết quả.</noscript>
         </div>
         <?php
         return (string) ob_get_clean();

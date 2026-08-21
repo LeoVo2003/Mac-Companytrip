@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.12** (2026-08-21) — tách 2 màn trình chiếu: /ket-qua-tong (tổng kết, [mac_companytrip_total_results]) và /ket-qua-van-nghe (văn nghệ, [mac_companytrip_art_results] — sẽ là đua thuyền); plugin tự tạo trang + tự migrate shortcode; bàn điều khiển tổng kết mở /ket-qua-tong; ẩn điểm padding đáy 50px. Trước đó v1.9.11: badge "KHUYẾN KHÍCH", ẩn điểm tên đội giãn xuống, thang cao mới (80/80/45-60+50/30+50+50-90/85-65). Trước đó v1.9.10: bước 02 chỉ lộ 4-5-6, badge khuyến khích gắn ngay. Trước đó v1.9.9: twist 3 đội tung điểm + REVEAL3. Trước đó v1.9.8: thang cao MC + TEASE43 + hết giật. Trước đó v1.9.7/v1.9.6/v1.9.5 trở về trước như cũ. Logic công bố văn nghệ cũ (REST /results + reveal_state + panel VĂN NGHỆ) vẫn còn trong code — nền cho màn đua thuyền sắp làm.
+> Phiên bản hiện tại: **v1.9.13** (2026-08-21) — màn văn nghệ /ket-qua-van-nghe làm lại thành ĐUA THUYỀN 6 làn (art.js/art.css mới): xuất phát → cú lừa 3 thuyền cuối bảng giả dẫn đầu → hạ màn lừa lộ 6-5 → lộ 4-3 → twist 2 thuyền bám đuổi → về đích + pháo hoa trễ 3s; điều khiển 6 nút trong tab VĂN NGHỆ; REST /results thêm topTwo + stage RANK65/RANK43/TWIST (giữ THIRD/SECOND legacy thoát hiểm). Trước đó v1.9.12: tách /ket-qua-tong (tổng kết) vs /ket-qua-van-nghe (văn nghệ), tự migrate shortcode, ẩn điểm padding 50px. Trước đó v1.9.11/v1.9.10/v1.9.9/v1.9.8 như cũ.
 
 ---
 
@@ -138,7 +138,15 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.12 (2026-08-21) — mới nhất · tách trang tổng kết / văn nghệ
+### v1.9.13 (2026-08-21) — mới nhất · màn văn nghệ ĐUA THUYỀN
+
+- **Assets mới** `assets/art.js` + `assets/art.css`: màn `#mac-art-app` poll `/results` 900ms; 6 `.ar-lane` với thuyền SVG (buồm brass/gold/silver/copper theo hạng), vạch đích `.ar-finish`, sóng `.ar-wake`; vị trí thuyền theo kịch bản `RACE_X` (30/38/50/62/90/100%), transition left 1200ms; DECOY 3 thuyền `featured` vươn 78-86% rồi rơi; TWIST top2 dao động 72-88% + tung điểm; FINAL pháo hoa trễ 3s (copy particle canvas từ results.js); reduced-motion chỉ đặt vị trí tĩnh.
+- **REST `/results`**: thêm `topTwo`; `$minimum_revealed_rank` thêm `'RANK65' => 5, 'RANK43' => 3, 'TWIST' => 3`.
+- **Máy trạng thái văn nghệ**: DB allowed thêm RANK65/RANK43/TWIST (giữ THIRD/SECOND); admin `ajax_reveal` transitions `IDLE→ROLLING→DECOY→RANK65→RANK43→TWIST→FINAL` + legacy `'THIRD' => 'RANK43'`, `'SECOND' => 'TWIST'`; messages theo kịch bản đua thuyền.
+- **Admin tab VĂN NGHỆ**: `revealView()` thay 5 nút cột cũ bằng 6 nút đua thuyền 00-05 + Đặt lại; link "↗ Màn đua thuyền".
+- `check-plugin.mjs`: invariant art.js/art.css/public/rest/admin cho đua thuyền.
+
+### v1.9.12 (2026-08-21) — tách trang tổng kết / văn nghệ
 
 - **Trang mới `/ket-qua-tong`**: `ensure_total_page()` (option `mac_voting_total_page_id`, title "Kết Quả Tổng Kết", content `[mac_companytrip_total_results]`), rewrite rule ở cả `MAC_Voting_Public::register_rewrite` lẫn `MAC_Voting_DB::register_rewrites`, helper `total_page_url()`; gọi trong `activate()` + nhánh else của `maybe_upgrade()`.
 - **Trang văn nghệ `/ket-qua-van-nghe`**: `ensure_results_page()` nay migrate content `[mac_companytrip_results]` → `[mac_companytrip_art_results]` (shortcode mới `art_shortcode` render placeholder `#mac-art-app` chờ JS đua thuyền); body class `mac-art-page`.

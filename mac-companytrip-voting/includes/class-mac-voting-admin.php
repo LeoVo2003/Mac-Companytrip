@@ -434,7 +434,7 @@ final class MAC_Voting_Admin {
     public static function ajax_reveal(): void {
         self::guard();
         $next = strtoupper(sanitize_text_field(wp_unslash($_POST['stage'] ?? '')));
-        $allowed = array('IDLE', 'ROLLING', 'DECOY', 'THIRD', 'SECOND', 'FINAL');
+        $allowed = array('IDLE', 'ROLLING', 'DECOY', 'RANK65', 'RANK43', 'TWIST', 'THIRD', 'SECOND', 'FINAL');
         if (!in_array($next, $allowed, true)) {
             wp_send_json_error(array('message' => 'Trạng thái công bố không hợp lệ.'), 400);
         }
@@ -442,9 +442,13 @@ final class MAC_Voting_Admin {
         $transitions = array(
             'IDLE' => 'ROLLING',
             'ROLLING' => 'DECOY',
-            'DECOY' => 'THIRD',
-            'THIRD' => 'SECOND',
-            'SECOND' => 'FINAL',
+            'DECOY' => 'RANK65',
+            'RANK65' => 'RANK43',
+            'RANK43' => 'TWIST',
+            'TWIST' => 'FINAL',
+            // Legacy (bản cột cũ): dashboard kẹt stage cũ vẫn thoát hiểm được về luồng đua thuyền.
+            'THIRD' => 'RANK43',
+            'SECOND' => 'TWIST',
         );
         if ($next !== 'IDLE' && ($transitions[$current['stage']] ?? '') !== $next) {
             wp_send_json_error(array('message' => 'Tín hiệu không đúng thứ tự. Hãy tải lại dashboard và thử lại.'), 409);
@@ -477,12 +481,15 @@ final class MAC_Voting_Admin {
         }
         $state = MAC_Voting_DB::set_reveal_state($next);
         $messages = array(
-            'IDLE' => 'Đã đưa màn hình công bố về trạng thái chờ.',
-            'ROLLING' => 'Màn hình đang tung điểm ngẫu nhiên cho 6 đội.',
-            'DECOY' => 'Đã chốt cú lừa bằng điểm thật của ba đội cuối.',
+            'IDLE' => 'Đã đưa màn đua thuyền về vạch xuất phát.',
+            'ROLLING' => 'Sáu thuyền đang nhấp nhô xuất phát.',
+            'DECOY' => 'Cú lừa: ba thuyền cuối bảng đang giả dẫn đầu.',
+            'RANK65' => 'Hạ màn lừa · lộ hạng 6-5 với badge KHUYẾN KHÍCH.',
+            'RANK43' => 'Đã lộ diện hạng 4 và hạng 3.',
+            'TWIST' => 'Hai thuyền dẫn đầu đang bám đuổi từng điểm.',
+            'FINAL' => 'Quán quân văn nghệ đã băng vạch đích.',
             'THIRD' => 'Đã công bố đội xếp hạng ba.',
             'SECOND' => 'Đã công bố đội xếp hạng nhì.',
-            'FINAL' => 'Đã công bố quán quân.',
         );
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'RESULTS_REVEAL_' . $next, 'reveal', (string) $state['revision'], array(
             'previousStage' => $current['stage'],

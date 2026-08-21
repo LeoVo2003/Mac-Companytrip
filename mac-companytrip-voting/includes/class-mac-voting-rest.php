@@ -126,9 +126,18 @@ final class MAC_Voting_REST {
         }
         unset($row);
         $featured_ids = array_map('intval', array_column(array_slice($rows, -3), 'team_id'));
+        $top_two = array();
+        foreach ($rows as $top_row) {
+            if ($top_row['rank'] !== null && (int) $top_row['rank'] <= 2) {
+                $top_two[] = (int) $top_row['team_id'];
+            }
+        }
         $public_teams = array_map(static function(array $row) use ($state, $featured_ids): array {
             $is_decoy_featured = $state['stage'] === 'DECOY' && in_array((int) $row['team_id'], $featured_ids, true);
             $minimum_revealed_rank = array(
+                'RANK65' => 5,
+                'RANK43' => 3,
+                'TWIST' => 3,
                 'THIRD' => 3,
                 'SECOND' => 2,
                 'FINAL' => 1,
@@ -154,6 +163,7 @@ final class MAC_Voting_REST {
             'changedAt' => $state['changedAt'],
             'serverTime' => (int) round(microtime(true) * 1000),
             'teams' => $public_teams,
+            'topTwo' => array_values($top_two),
         ));
         $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
         return $response;

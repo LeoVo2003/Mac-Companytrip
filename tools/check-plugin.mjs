@@ -168,8 +168,8 @@ for (const invariant of ["Bạn không thể chấm tiết mục của team mìn
 for (const invariant of ["$is_decoy_featured", "$minimum_revealed_rank", "$show_score = $is_decoy_featured || $is_rank_revealed"]) {
   if (!restFile.includes(invariant)) throw new Error(`Missing reveal score rule: ${invariant}`);
 }
-for (const invariant of ["'DECOY' => 'THIRD'", "'THIRD' => 'SECOND'", "'SECOND' => 'FINAL'"]) {
-  if (!adminFile.includes(invariant)) throw new Error(`Missing manual podium transition: ${invariant}`);
+for (const invariant of ["'DECOY' => 'RANK65'", "'RANK65' => 'RANK43'", "'RANK43' => 'TWIST'"]) {
+  if (!adminFile.includes(invariant)) throw new Error(`Missing manual race transition: ${invariant}`);
 }
 if (!resultsJs.includes('["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST", "REVEAL3", "FINAL"].includes(state.stage)')) {
   throw new Error("Total reveal must render from seven explicit admin stages without an automatic timer.");
@@ -212,6 +212,25 @@ for (const invariant of ["mac_companytrip_total_results", "mac_companytrip_art_r
   if (!publicFile.includes(invariant) && !databaseFile.includes(invariant)) {
     throw new Error(`Missing split results-page invariant: ${invariant}`);
   }
+}
+// v1.9.13: màn đua thuyền văn nghệ.
+const artJs = fs.readFileSync(path.join(pluginRoot, "assets/art.js"), "utf8");
+const artCss = fs.readFileSync(path.join(pluginRoot, "assets/art.css"), "utf8");
+for (const invariant of ["mac-art-app", "ar-lane", "startPyro", "DECOY", "topTwo"]) {
+  if (!artJs.includes(invariant)) throw new Error(`Missing boat-race invariant in art.js: ${invariant}`);
+}
+if (!artCss.includes(".ar-boat") || !artCss.includes(".ar-finish") || !artCss.includes("ar-sail-gold")) {
+  throw new Error("Missing boat-race styles in art.css.");
+}
+if (!publicFile.includes("mac-voting-art")) throw new Error("Art race assets must be registered in public class.");
+if (!restFile.includes("'RANK65' => 5") || !restFile.includes("'TWIST' => 3")) {
+  throw new Error("Art reveal endpoint must cover race stages RANK65/RANK43/TWIST.");
+}
+if (!adminFile.includes("'DECOY' => 'RANK65'") || !adminFile.includes("'TWIST' => 'FINAL'")) {
+  throw new Error("Art race admin transitions missing.");
+}
+if (!adminJs.includes("Màn đua thuyền") || !adminJs.includes("data-reveal-stage=\"RANK65\"")) {
+  throw new Error("Admin boat-race control panel missing.");
 }
 for (const invariant of ["is_voting_enabled", "voting_disabled"]) {
   if (!databaseFile.includes(invariant) && !restFile.includes(invariant)) throw new Error(`Missing voting gate: ${invariant}`);

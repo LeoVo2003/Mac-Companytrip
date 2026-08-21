@@ -706,7 +706,7 @@ final class MAC_Voting_DB {
 
     public static function reveal_state(): array {
         $state = get_option('mac_voting_reveal_state', array());
-        $allowed = array('IDLE', 'ROLLING', 'DECOY', 'THIRD', 'SECOND', 'FINAL');
+        $allowed = array('IDLE', 'ROLLING', 'DECOY', 'RANK65', 'RANK43', 'TWIST', 'THIRD', 'SECOND', 'FINAL');
         $stage = is_array($state) ? strtoupper((string) ($state['stage'] ?? 'IDLE')) : 'IDLE';
         if (!in_array($stage, $allowed, true)) $stage = 'IDLE';
         return array(
@@ -717,7 +717,7 @@ final class MAC_Voting_DB {
     }
 
     public static function set_reveal_state(string $stage): array {
-        $allowed = array('IDLE', 'ROLLING', 'DECOY', 'THIRD', 'SECOND', 'FINAL');
+        $allowed = array('IDLE', 'ROLLING', 'DECOY', 'RANK65', 'RANK43', 'TWIST', 'THIRD', 'SECOND', 'FINAL');
         $stage = strtoupper($stage);
         if (!in_array($stage, $allowed, true)) $stage = 'IDLE';
         $current = self::reveal_state();
