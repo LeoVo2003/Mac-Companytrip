@@ -247,8 +247,8 @@ final class MAC_Points {
             $games_map[$game_row['teamId']] = $game_row;
         }
         $vote_map = self::vote_averages();
-        // v1.9.15: Điểm Thi đua chính thức = ROUND(trung bình các hạng mục HOÀN TẤT), luôn 0-50.
-        // v1.9.16: hạng mục hoàn tất = đủ mọi team thi đấu có record (kể cả 0đ); trùng hạng vẫn được tính.
+        // Điểm Thi đua chính thức = ROUND(trung bình các hạng mục có ít nhất một team tham gia), luôn 0-50.
+        // Team không có record trong hạng mục đang được tính được xem là không tham gia và nhận 0đ.
         $team_count = count($teams);
         $category_meta = array();
         foreach ($rounds as $round) {
@@ -262,7 +262,8 @@ final class MAC_Points {
             $category_meta[(int) $round['id']] = array(
                 'scoredTeams' => count($values),
                 'teamCount' => $team_count,
-                'isComplete' => $team_count > 0 && count($values) === $team_count,
+                'nonParticipatingTeams' => max(0, $team_count - count($values)),
+                'isComplete' => count($values) > 0,
             );
         }
         $completed_count = 0;
@@ -281,7 +282,7 @@ final class MAC_Points {
             foreach ($rounds as $round) {
                 $has_score = array_key_exists((string) $round['id'], $awards);
                 $current = $has_score ? (int) $awards[(string) $round['id']] : 0;
-                if ($has_score && $category_meta[(int) $round['id']]['isComplete']) {
+                if ($category_meta[(int) $round['id']]['isComplete']) {
                     $thidua_raw += $current;
                 }
                 $cells[] = array(
@@ -331,6 +332,7 @@ final class MAC_Points {
             $round_row = array_merge($round_row, $category_meta[(int) $round_row['id']] ?? array(
                 'scoredTeams' => 0,
                 'teamCount' => $team_count,
+                'nonParticipatingTeams' => $team_count,
                 'isComplete' => false,
             ));
         }
