@@ -15,3 +15,7 @@
 - Support visible keyboard focus, semantic HTML, reduced motion, long labels, empty states, loading states, errors, and overflow.
 - Reserve success, warning, and danger colors for actual status communication.
 - Do not introduce a second design system unless the user explicitly asks to change direction.
+
+## Release workflow
+
+- After each completed code update passes its relevant checks, automatically bump the patch version, build the plugin ZIP, commit, push `main`, create and push the matching `v*` tag, and verify the GitHub Release asset. Do not wait for a separate push request.

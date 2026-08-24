@@ -431,16 +431,17 @@ final class MAC_Voting_Admin {
     public static function ajax_reveal(): void {
         self::guard();
         $next = strtoupper(sanitize_text_field(wp_unslash($_POST['stage'] ?? '')));
-        $allowed = array('IDLE', 'ROLLING', 'DECOY', 'THIRD', 'SECOND', 'FINAL');
+        $allowed = array('IDLE', 'ROLLING', 'SIXTH', 'FIFTH', 'FOURTH', 'THIRD', 'SECOND', 'FINAL');
         if (!in_array($next, $allowed, true)) {
             wp_send_json_error(array('message' => 'Trạng thái công bố không hợp lệ.'), 400);
         }
         $current = MAC_Voting_DB::reveal_state();
         $transitions = array(
             'IDLE' => 'ROLLING',
-            // v1.9.16: đua thuyền văn nghệ bỏ cú lừa — ROLLING tiến thẳng THIRD; DECOY giữ cho state cũ.
-            'ROLLING' => 'THIRD',
-            'DECOY' => 'THIRD',
+            'ROLLING' => 'SIXTH',
+            'SIXTH' => 'FIFTH',
+            'FIFTH' => 'FOURTH',
+            'FOURTH' => 'THIRD',
             'THIRD' => 'SECOND',
             'SECOND' => 'FINAL',
         );
@@ -476,8 +477,10 @@ final class MAC_Voting_Admin {
         $state = MAC_Voting_DB::set_reveal_state($next);
         $messages = array(
             'IDLE' => 'Đã đưa màn hình công bố về trạng thái chờ.',
-            'ROLLING' => 'Màn hình đang tung điểm ngẫu nhiên cho 6 đội.',
-            'DECOY' => 'Đã chốt cú lừa bằng điểm thật của ba đội cuối.',
+            'ROLLING' => 'Spotlight đang tìm kiếm giữa 6 đội.',
+            'SIXTH' => 'Đã công bố đội xếp hạng sáu.',
+            'FIFTH' => 'Đã công bố đội xếp hạng năm.',
+            'FOURTH' => 'Đã công bố đội xếp hạng tư.',
             'THIRD' => 'Đã công bố đội xếp hạng ba.',
             'SECOND' => 'Đã công bố đội xếp hạng nhì.',
             'FINAL' => 'Đã công bố quán quân.',

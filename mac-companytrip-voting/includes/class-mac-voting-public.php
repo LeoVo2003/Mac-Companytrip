@@ -149,7 +149,7 @@ final class MAC_Voting_Public {
         <div id="mac-art-race-app" class="mac-art-race-app" data-endpoint="<?php echo $endpoint; ?>" data-logo="<?php echo $logo; ?>">
             <div class="ar-loading" role="status">
                 <img src="<?php echo $logo; ?>" alt="MAC Marketing">
-                <span>Đang kết nối màn đua thuyền…</span>
+                <span>Đang kết nối The Spotlight…</span>
             </div>
             <noscript>Bạn cần bật JavaScript để xem kết quả.</noscript>
         </div>

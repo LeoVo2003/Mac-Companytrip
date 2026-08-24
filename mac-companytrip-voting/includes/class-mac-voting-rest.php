@@ -106,14 +106,15 @@ final class MAC_Voting_REST {
         $performances = MAC_Voting_DB::table('performances');
         $slots = MAC_Voting_DB::table('slots');
         $ballots = MAC_Voting_DB::table('ballots');
-        $rows = $wpdb->get_results("SELECT p.id AS performance_id,t.id AS team_id,t.team_no,t.name AS team_name,
+        $rows = $wpdb->get_results($wpdb->prepare("SELECT p.id AS performance_id,t.id AS team_id,t.team_no,t.name AS team_name,
                 COUNT(b.id) AS voter_count,AVG(b.total_score) AS average_score
             FROM $performances p
             JOIN $slots s ON s.performance_id=p.id
             JOIN $teams t ON t.id=p.team_id
             LEFT JOIN $ballots b ON b.performance_id=p.id AND b.status='VALID'
+            WHERE t.team_no<>%d
             GROUP BY p.id,t.id
-            ORDER BY average_score DESC,t.team_no", ARRAY_A) ?: array();
+            ORDER BY average_score DESC,t.team_no", MAC_Voting_DB::STAFF_TEAM_NO), ARRAY_A) ?: array();
         $state = MAC_Voting_DB::reveal_state();
         $rank = 0;
         $previous_score = null;
@@ -125,26 +126,31 @@ final class MAC_Voting_REST {
             $previous_score = $row['average_score'];
         }
         unset($row);
-        $featured_ids = array_map('intval', array_column(array_slice($rows, -3), 'team_id'));
-        $public_teams = array_map(static function(array $row) use ($state, $featured_ids): array {
-            $is_decoy_featured = $state['stage'] === 'DECOY' && in_array((int) $row['team_id'], $featured_ids, true);
-            $minimum_revealed_rank = array(
-                'THIRD' => 3,
-                'SECOND' => 2,
-                'FINAL' => 1,
-            )[$state['stage']] ?? null;
-            $is_rank_revealed = $minimum_revealed_rank !== null
-                && $row['rank'] !== null
-                && (int) $row['rank'] >= $minimum_revealed_rank;
-            $show_score = $is_decoy_featured || $is_rank_revealed;
+        // Mỗi tín hiệu chỉ công bố đúng một đội, đi từ cuối bảng lên quán quân.
+        // Dùng vị trí trong bảng đã sắp xếp thay vì ngưỡng rank để trường hợp đồng điểm
+        // cũng không làm lộ hai đội trong cùng một lần bấm.
+        $reveal_count = array(
+            'SIXTH' => 1,
+            'FIFTH' => 2,
+            'FOURTH' => 3,
+            'THIRD' => 4,
+            'SECOND' => 5,
+            'FINAL' => 6,
+        )[$state['stage']] ?? 0;
+        $revealed_rows = $reveal_count > 0 ? array_slice($rows, -min($reveal_count, count($rows))) : array();
+        $revealed_ids = array_map('intval', array_column($revealed_rows, 'team_id'));
+        $current_id = count($revealed_rows) ? (int) $revealed_rows[0]['team_id'] : 0;
+        $public_teams = array_map(static function(array $row) use ($revealed_ids, $current_id): array {
+            $is_revealed = in_array((int) $row['team_id'], $revealed_ids, true);
             return array(
                 'id' => (int) $row['team_id'],
                 'number' => (int) $row['team_no'],
                 'name' => $row['team_name'],
-                'score' => $show_score && $row['average_score'] !== null ? round((float) $row['average_score'], 2) : null,
-                'rank' => $is_rank_revealed ? $row['rank'] : null,
-                'voterCount' => $is_rank_revealed ? (int) $row['voter_count'] : null,
-                'featured' => $is_decoy_featured,
+                'score' => $is_revealed && $row['average_score'] !== null ? round((float) $row['average_score'], 2) : null,
+                'rank' => $is_revealed ? $row['rank'] : null,
+                'voterCount' => $is_revealed ? (int) $row['voter_count'] : null,
+                'revealed' => $is_revealed,
+                'current' => $is_revealed && (int) $row['team_id'] === $current_id,
             );
         }, $rows);
         usort($public_teams, static fn(array $a, array $b): int => $a['number'] <=> $b['number']);

@@ -178,12 +178,20 @@ for (const invariant of ['["Email", ["email", "mail", "email cong ty"]]', "email
 for (const invariant of ["Bạn không thể chấm tiết mục của team mình", "status='VALID'", "active_key", "round_status"]) {
   if (!restFile.includes(invariant)) throw new Error(`Missing vote protection: ${invariant}`);
 }
-for (const invariant of ["$is_decoy_featured", "$minimum_revealed_rank", "$show_score = $is_decoy_featured || $is_rank_revealed"]) {
-  if (!restFile.includes(invariant)) throw new Error(`Missing reveal score rule: ${invariant}`);
+for (const invariant of ["$reveal_count", "$revealed_ids", "$current_id", "'revealed' => $is_revealed", "'current' =>"]) {
+  if (!restFile.includes(invariant)) throw new Error(`Missing one-team spotlight reveal rule: ${invariant}`);
 }
-for (const invariant of ["'DECOY' => 'THIRD'", "'THIRD' => 'SECOND'", "'SECOND' => 'FINAL'"]) {
-  if (!adminFile.includes(invariant)) throw new Error(`Missing manual podium transition: ${invariant}`);
+if (!restFile.includes("WHERE t.team_no<>%d")) throw new Error("The Spotlight must exclude the Hoa tiêu staff team.");
+for (const invariant of ["'ROLLING' => 'SIXTH'", "'SIXTH' => 'FIFTH'", "'FIFTH' => 'FOURTH'", "'FOURTH' => 'THIRD'", "'THIRD' => 'SECOND'", "'SECOND' => 'FINAL'"]) {
+  if (!adminFile.includes(invariant)) throw new Error(`Missing sequential spotlight transition: ${invariant}`);
 }
+const spotlightStages = ["ROLLING", "SIXTH", "FIFTH", "FOURTH", "THIRD", "SECOND", "FINAL"];
+const spotlightCounts = { ROLLING: 0, SIXTH: 1, FIFTH: 2, FOURTH: 3, THIRD: 4, SECOND: 5, FINAL: 6 };
+spotlightStages.forEach((stage, index) => {
+  const current = spotlightCounts[stage];
+  const previous = index ? spotlightCounts[spotlightStages[index - 1]] : 0;
+  if (index && current - previous !== 1) throw new Error(`Spotlight stage ${stage} must reveal exactly one new team.`);
+});
 if (!resultsJs.includes('["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST", "REVEAL3", "FINAL"].includes(state.stage)')) {
   throw new Error("Total reveal must render from seven explicit admin stages without an automatic timer.");
 }
@@ -421,7 +429,7 @@ if (thiduaOfficial([{ 1: 50, 2: 50, 3: 40, 4: 30, 5: 20, 6: 0 }], T).completedCo
 // Case 11: điểm thi đua luôn kẹp 0-50 (6 record cùng 50 -> trung bình 50, không vượt trần).
 if (thiduaOfficial([LADDER_CAT([50, 50, 50, 50, 50, 50])], T).result[1] !== 50) throw new Error("Thidua case 11 clamp failed.");
 
-// --- Màn đua thuyền văn nghệ: tách trang /ket-qua-tong (tổng) và /ket-qua-van-nghe (đua thuyền) ---
+// --- Màn The Spotlight văn nghệ: tách trang /ket-qua-tong và /ket-qua-van-nghe ---
 const publicFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-public.php"), "utf8");
 const artRaceJs = fs.readFileSync(path.join(pluginRoot, "assets/art-race.js"), "utf8");
 const artRaceCss = fs.readFileSync(path.join(pluginRoot, "assets/art-race.css"), "utf8");
@@ -434,11 +442,11 @@ for (const invariant of ["mac_voting_art_results_page_id", "ket-qua-tong", "art_
 if (!adminFile.includes("artResultsUrl") || !adminJs.includes("artResultsUrl")) {
   throw new Error("Art reveal panel must link to the /ket-qua-van-nghe race screen.");
 }
-if (!artRaceJs.includes("mac-art-race-app") || !artRaceJs.includes("THIRD") || artRaceJs.includes("DECOY")) {
-  throw new Error("Art race screen must follow the simple duck-race script (no decoy).");
+for (const invariant of ["THE SPOTLIGHT", "startSpotlightSearch", "5000 - elapsed", "team.current", "team.revealed"]) {
+  if (!artRaceJs.includes(invariant)) throw new Error(`Missing sequential spotlight screen behavior: ${invariant}`);
 }
-if (!artRaceCss.includes(".ar-boat") || !artRaceCss.includes("mac-art-race-page")) {
-  throw new Error("Missing art race boat styles or theme-proof body class.");
+for (const invariant of [".ar-curtain", ".ar-beam", ".ar-team.is-searching", "mac-art-race-page"]) {
+  if (!artRaceCss.includes(invariant)) throw new Error(`Missing spotlight stage style: ${invariant}`);
 }
 
 const totalBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);

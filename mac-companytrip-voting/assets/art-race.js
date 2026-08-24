@@ -6,24 +6,52 @@
   const logo = root.dataset.logo;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const esc = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
-  const clamp = (minimum, value, maximum) => Math.min(maximum, Math.max(minimum, value));
   const fmtScore = (score) => Number(score).toLocaleString("vi-VN", { maximumFractionDigits: 1 });
-
-  // Đua vịt: thuyền về theo đúng thứ hạng, vị trí giãn dần sau vạch đích.
-  const FINAL_POSITIONS = { 1: 100, 2: 94, 3: 88, 4: 70, 5: 55, 6: 40 };
   const rankLabel = (rank) => ({ 1: "QUÁN QUÂN", 2: "HẠNG NHÌ", 3: "HẠNG BA" }[Number(rank)] || `HẠNG ${rank}`);
 
   let state = null;
   let rosterSignature = "";
-  let frameId = 0;
   let pollTimer = 0;
   let failedPolls = 0;
   let pyroRevision = -1;
   let pyroStop = null;
   let pyroTimer = 0;
+  let spotlightStartTimer = 0;
+  let spotlightTimer = 0;
+  let spotlightIndex = -1;
 
   function shell(teams) {
-    root.innerHTML = `<div class="ar-shell" data-stage="idle"><canvas class="ar-pyro" aria-hidden="true"></canvas><div class="ar-sea" aria-hidden="true"><i class="ar-moon"></i></div><header class="ar-header"><div class="ar-brand"><img src="${esc(logo)}" alt="MAC Marketing"></div><div class="ar-event"><span>COMPANY TRIP - One Direction</span><strong>ĐUA THUYỀN VĂN NGHỆ</strong></div><div class="ar-connection" role="status"><i></i><span>Đang đồng bộ</span></div></header><main><div class="ar-heading" aria-live="polite"><p>KẾT QUẢ VĂN NGHỆ</p><h1>Khoảnh khắc đang đến gần</h1><span></span></div><section class="ar-track" aria-label="Đường đua thuyền của 6 đội"><div class="ar-finish" aria-hidden="true"><i></i><b>VỀ BẾN</b></div>${teams.map((team) => `<article class="ar-lane" data-team-id="${team.id}" role="group" aria-label="Team số ${team.number} ${esc(team.name)}"><div class="ar-lane-head"><strong>#${team.number} ${esc(team.name)}</strong><div class="ar-rank" hidden></div></div><div class="ar-water"><div class="ar-boat"><svg viewBox="0 0 64 44" aria-hidden="true"><path d="M6 30h52l-9 10H15z"/><path d="M31 6v24"/><path d="M31 6c11 5 16 13 18 24H31z"/><path d="M31 12c-8 4-12 10-13 18h13z"/></svg><i class="ar-wake"></i></div></div><div class="ar-score"><span>—</span><small>ĐIỂM TB</small></div></article>`).join("")}</section></main><footer class="ar-footer"><span class="ar-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE RACE</span></div></footer></div>`;
+    root.innerHTML = `<div class="ar-shell" data-stage="idle">
+      <canvas class="ar-pyro" aria-hidden="true"></canvas>
+      <div class="ar-stage-world" aria-hidden="true"><i class="ar-haze"></i><i class="ar-runway"></i><i class="ar-edge ar-edge-left"></i><i class="ar-edge ar-edge-right"></i></div>
+      <div class="ar-curtain" aria-hidden="true"><i class="ar-curtain-left"></i><i class="ar-curtain-right"></i><span></span></div>
+      <header class="ar-header">
+        <div class="ar-brand"><img src="${esc(logo)}" alt="MAC Marketing"></div>
+        <div class="ar-event"><span>COMPANY TRIP · KẾT QUẢ VĂN NGHỆ</span><strong>ONE DIRECTION</strong></div>
+        <div class="ar-connection" role="status"><i></i><span>Đang đồng bộ</span></div>
+      </header>
+      <main>
+        <div class="ar-title" aria-live="polite">
+          <p>ONE DIRECTION</p>
+          <h1>THE SPOTLIGHT</h1>
+          <span>Chỉ một hướng · chỉ một khoảnh khắc</span>
+        </div>
+        <section class="ar-podiums" aria-label="Sáu vị trí công bố kết quả văn nghệ">
+          ${teams.map((team, index) => `<article class="ar-team is-pending" style="--slot:${index}" data-team-id="${team.id}" role="group" aria-label="Đội số ${team.number} ${esc(team.name)}">
+            <div class="ar-beam" aria-hidden="true"></div>
+            <div class="ar-team-copy">
+              <span class="ar-team-rank">CHỜ CÔNG BỐ</span>
+              <strong>${esc(team.name)}</strong>
+              <b>—</b>
+              <small>ĐIỂM TRUNG BÌNH</small>
+            </div>
+            <div class="ar-marker">${esc(team.name)}</div>
+            <div class="ar-podium" aria-hidden="true"><i></i><span></span></div>
+          </article>`).join("")}
+        </section>
+      </main>
+      <footer class="ar-footer"><span class="ar-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE · THE SPOTLIGHT</span></div></footer>
+    </div>`;
   }
 
   function setConnection(connected) {
@@ -33,8 +61,8 @@
     connection.querySelector("span").textContent = connected ? "Đang đồng bộ" : "Mất kết nối · đang thử lại";
   }
 
-  function setHeading(kicker, title, description, footer) {
-    const heading = root.querySelector(".ar-heading");
+  function setTitle(kicker, title, description, footer) {
+    const heading = root.querySelector(".ar-title");
     if (!heading) return;
     heading.querySelector("p").textContent = kicker;
     heading.querySelector("h1").textContent = title;
@@ -42,122 +70,88 @@
     root.querySelector(".ar-stage-copy").textContent = footer;
   }
 
-  function laneElement(id) {
+  function teamElement(id) {
     return root.querySelector(`[data-team-id="${String(id).replace(/"/g, "")}"]`);
   }
 
-  function setLane(element, position, scoreText, badgeText, isChampion) {
-    element.style.setProperty("--pos", `${clamp(2, position, 100)}%`);
-    element.querySelector(".ar-score span").textContent = scoreText;
-    const rank = element.querySelector(".ar-rank");
-    rank.hidden = !badgeText;
-    rank.textContent = badgeText;
-    element.classList.toggle("is-champion", !!isChampion);
-  }
-
-  function stopStageAnimation() {
+  function resetEffects() {
     window.clearTimeout(pyroTimer);
+    window.clearTimeout(spotlightStartTimer);
+    window.clearInterval(spotlightTimer);
     pyroTimer = 0;
-    if (frameId) cancelAnimationFrame(frameId);
-    frameId = 0;
+    spotlightStartTimer = 0;
+    spotlightTimer = 0;
+    spotlightIndex = -1;
     if (pyroStop) pyroStop();
     pyroStop = null;
   }
 
-  // Nhịp đua hồi hộp: mỗi thuyền một cặp sóng riêng (tần số khác nhau) nên ngôi đầu
-  // liên tục đổi — thuyền đang dẫn có thể tuột lại sau, thuyền sau bất ngờ vượt lên.
-  function makeWaves(teams) {
-    return teams.map((team, index) => ({
-      id: team.id,
-      base: 34 + (index % 3) * 15,
-      amp1: 12 + (index % 2) * 7,
-      amp2: 7 + ((index + 1) % 3) * 5,
-      w1: 5200 + index * 640,
-      w2: 2300 + index * 410,
-      p1: index * 1.7,
-      p2: index * 0.9,
-      value: 90 + index * 12,
-      target: 120 + index * 15,
-    }));
-  }
-
-  function wavePosition(wave, elapsed) {
-    const pos = wave.base
-      + Math.sin((elapsed / wave.w1) * Math.PI * 2 + wave.p1) * wave.amp1
-      + Math.sin((elapsed / wave.w2) * Math.PI * 2 + wave.p2) * wave.amp2;
-    return clamp(6, pos, 80);
-  }
-
   function renderIdle() {
-    setHeading("KẾT QUẢ VĂN NGHỆ", "Khoảnh khắc đang đến gần", "", "Sẵn sàng công bố");
-    state.teams.forEach((team) => setLane(laneElement(team.id), 4, "—", "", false));
+    setTitle("ONE DIRECTION", "THE SPOTLIGHT", "Chỉ một hướng · chỉ một khoảnh khắc", "Sẵn sàng công bố");
+    state.teams.forEach((team) => {
+      const element = teamElement(team.id);
+      element.className = "ar-team is-pending";
+      element.querySelector(".ar-team-rank").textContent = "CHỜ CÔNG BỐ";
+      element.querySelector(".ar-team-copy b").textContent = "—";
+    });
   }
 
-  // stage: ROLLING (đua tự do), THIRD/SECOND/FINAL (thuyền đã lộ hạng về bến theo thứ tự).
-  function renderRace(stage) {
-    const revealedMinRank = { ROLLING: 99, THIRD: 3, SECOND: 2, FINAL: 1 }[stage] ?? 99;
-    const racing = state.teams.filter((team) => team.rank === null || Number(team.rank) < revealedMinRank);
-    const racingIds = new Set(racing.map((team) => team.id));
-
+  function renderRolling() {
+    setTitle("ONE DIRECTION", "THE SPOTLIGHT", "Sân khấu đang mở · spotlight sẽ bắt đầu sau 5 giây", "Đang mở màn");
     state.teams.forEach((team) => {
-      const element = laneElement(team.id);
-      if (racingIds.has(team.id)) return; // vòng đua sẽ điều khiển các thuyền này
-      const rank = Number(team.rank);
-      setLane(
-        element,
-        FINAL_POSITIONS[rank] ?? 40,
-        team.score !== null ? fmtScore(team.score) : "—",
-        rankLabel(rank),
-        rank === 1
-      );
+      const element = teamElement(team.id);
+      element.className = "ar-team is-pending";
+      element.querySelector(".ar-team-rank").textContent = "ĐANG CHỜ";
+      element.querySelector(".ar-team-copy b").textContent = "—";
+    });
+    const elapsed = Math.max(0, Number(state.serverTime || Date.now()) - Number(state.changedAt || 0));
+    spotlightStartTimer = window.setTimeout(startSpotlightSearch, Math.max(0, 5000 - elapsed));
+  }
+
+  function startSpotlightSearch() {
+    if (!state || state.stage !== "ROLLING") return;
+    const teams = state.teams || [];
+    if (!teams.length) return;
+    setTitle("SPOTLIGHT ĐANG TÌM KIẾM", "Ai sẽ được gọi tên?", "Ánh sáng đang di chuyển giữa sáu đội", "Chờ tín hiệu công bố hạng 6");
+    if (reducedMotion.matches) return;
+    const jump = () => {
+      root.querySelectorAll(".ar-team.is-searching").forEach((element) => element.classList.remove("is-searching"));
+      let next = Math.floor(Math.random() * teams.length);
+      if (teams.length > 1 && next === spotlightIndex) next = (next + 1 + Math.floor(Math.random() * (teams.length - 1))) % teams.length;
+      spotlightIndex = next;
+      teamElement(teams[next].id)?.classList.add("is-searching");
+    };
+    jump();
+    spotlightTimer = window.setInterval(jump, 620);
+  }
+
+  function renderReveal() {
+    const current = state.teams.find((team) => team.current) || null;
+    state.teams.forEach((team) => {
+      const element = teamElement(team.id);
+      const revealed = Boolean(team.revealed || team.rank !== null);
+      element.className = `ar-team ${revealed ? "is-revealed" : "is-pending"}${team.current ? " is-current" : ""}${Number(team.rank) === 1 ? " is-champion" : ""}`;
+      element.querySelector(".ar-team-rank").textContent = revealed ? rankLabel(team.rank) : "CHỜ CÔNG BỐ";
+      element.querySelector(".ar-team-copy b").textContent = revealed && team.score !== null ? fmtScore(team.score) : "—";
     });
 
-    if (stage === "ROLLING") {
-      setHeading("ĐUA THUYỀN VĂN NGHỆ", "Sáu mái chèo ra khơi", "Ngôi dẫn đầu liên tục đổi — chưa ai nói trước điều gì", "Đang đua trực tiếp");
-    } else if (stage === "THIRD") {
-      const team = state.teams.find((entry) => Number(entry.rank) === 3);
-      setHeading("HẠNG BA", team ? team.name : "Đang chốt", team && team.score !== null ? `Xin chúc mừng ${team.name} · ${fmtScore(team.score)} điểm` : "Kết quả đang được chốt", "Tín hiệu 1 · Đã chốt");
-    } else if (stage === "SECOND") {
-      const team = state.teams.find((entry) => Number(entry.rank) === 2);
-      setHeading("HẠNG NHÌ", team ? team.name : "Đang chốt", team && team.score !== null ? `Xin chúc mừng ${team.name} · ${fmtScore(team.score)} điểm` : "Kết quả đang được chốt", "Tín hiệu 2 · Đã chốt");
-    } else {
-      const champion = state.teams.find((entry) => Number(entry.rank) === 1);
-      setHeading(
-        "QUÁN QUÂN VĂN NGHỆ",
-        champion ? champion.name : "Kết quả chung cuộc",
-        champion && champion.score !== null ? `CHÚC MỪNG ${champion.name.toUpperCase()} · ${fmtScore(champion.score)} điểm · Nhà vô địch văn nghệ Company Trip` : "Đã hoàn tất công bố",
-        "Kết quả chung cuộc"
-      );
-      if (pyroRevision !== state.revision && !reducedMotion.matches) {
-        pyroRevision = state.revision;
-        pyroTimer = window.setTimeout(() => { pyroStop = startPyro(); }, 1500);
-      }
-    }
-
-    // Các thuyền chưa lộ hạng tiếp tục đua (giữ hồi hộp cho tới khi về bến).
-    const waves = makeWaves(racing);
-    if (!waves.length) return;
-    if (reducedMotion.matches) {
-      waves.forEach((wave, index) => {
-        const element = laneElement(wave.id);
-        if (element) setLane(element, 30 + index * 12, "—", "", false);
-      });
+    if (!current) {
+      setTitle("KẾT QUẢ VĂN NGHỆ", "Đang chốt kết quả", "Spotlight sẽ khóa vào đội tiếp theo", "Chờ tín hiệu MC");
       return;
     }
-    const start = performance.now();
-    const step = (now) => {
-      const elapsed = now - start;
-      waves.forEach((wave) => {
-        const element = laneElement(wave.id);
-        if (!element) return;
-        element.style.setProperty("--pos", `${wavePosition(wave, elapsed)}%`);
-        wave.value += (wave.target - wave.value) * 0.02;
-        if (Math.abs(wave.target - wave.value) < 5) wave.target = 90 + Math.random() * 120;
-        element.querySelector(".ar-score span").textContent = String(Math.round(wave.value));
-      });
-      frameId = requestAnimationFrame(step);
-    };
-    frameId = requestAnimationFrame(step);
+
+    const champion = Number(current.rank) === 1;
+    setTitle(
+      champion ? "QUÁN QUÂN VĂN NGHỆ" : rankLabel(current.rank),
+      current.name,
+      current.score !== null ? `${fmtScore(current.score)} điểm · Spotlight thuộc về ${current.name}` : "Kết quả đã được công bố",
+      champion ? "Kết quả chung cuộc" : `Đã công bố ${rankLabel(current.rank).toLowerCase()}`
+    );
+
+    if (champion && pyroRevision !== state.revision && !reducedMotion.matches) {
+      pyroRevision = state.revision;
+      pyroTimer = window.setTimeout(() => { pyroStop = startPyro(); }, 850);
+    }
   }
 
   function applyStage(nextState, force = false) {
@@ -171,10 +165,11 @@
     state = nextState;
     setConnection(true);
     if (!changed) return;
-    stopStageAnimation();
+    resetEffects();
     root.querySelector(".ar-shell").dataset.stage = state.stage.toLowerCase();
     if (state.stage === "IDLE") renderIdle();
-    else renderRace(state.stage);
+    else if (state.stage === "ROLLING") renderRolling();
+    else renderReveal();
   }
 
   async function poll() {
@@ -187,7 +182,7 @@
       applyStage(nextState);
     } catch (error) {
       failedPolls += 1;
-      if (!state) root.innerHTML = `<div class="ar-error" role="alert"><img src="${esc(logo)}" alt="MAC Marketing"><strong>Chưa kết nối được màn đua thuyền</strong><p>${esc(error.message)}</p><button type="button">Thử lại</button></div>`;
+      if (!state) root.innerHTML = `<div class="ar-error" role="alert"><img src="${esc(logo)}" alt="MAC Marketing"><strong>Chưa kết nối được The Spotlight</strong><p>${esc(error.message)}</p><button type="button">Thử lại</button></div>`;
       if (failedPolls >= 2) setConnection(false);
       root.querySelector(".ar-error button")?.addEventListener("click", poll, { once: true });
     }
@@ -197,11 +192,9 @@
     const canvas = root.querySelector(".ar-pyro");
     const context = canvas.getContext("2d");
     const particles = [];
-    const colors = ["#ffe9ad", "#e8c17a", "#b8823f", "#ffcf7d", "#fff6e0", "#ff8a4c", "#ff5d3a"];
+    const colors = ["#fff4ce", "#efc878", "#ff6a2c", "#e31e24", "#ffffff"];
     let running = true;
     const started = performance.now();
-    let lastFountain = 0;
-    let lastBurst = 0;
     const resize = () => {
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(innerWidth * ratio);
@@ -210,52 +203,38 @@
       canvas.style.height = `${innerHeight}px`;
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
     };
-    const particle = (x, y, velocityX, velocityY, color, size, life, gravity = 0.09) => particles.push({ x, y, velocityX, velocityY, color, size, life, maxLife: life, gravity, rotation: Math.random() * Math.PI });
-    const fountain = (x) => {
-      for (let index = 0; index < 26; index += 1) particle(x + (Math.random() - 0.5) * 22, innerHeight - 18, (Math.random() - 0.5) * 4.4, -8 - Math.random() * 8.5, colors[index % colors.length], 2 + Math.random() * 3.4, 75 + Math.random() * 45, 0.13);
-    };
     const burst = (x, y) => {
-      for (let index = 0; index < 132; index += 1) {
-        const angle = (Math.PI * 2 * index) / 132 + Math.random() * 0.08;
-        const speed = 3 + Math.random() * 8.4;
-        particle(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, colors[index % colors.length], 1.6 + Math.random() * 2.8, 80 + Math.random() * 55, 0.045);
+      for (let index = 0; index < 110; index += 1) {
+        const angle = (Math.PI * 2 * index) / 110 + Math.random() * 0.08;
+        const speed = 2.5 + Math.random() * 7;
+        particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, color: colors[index % colors.length], life: 70 + Math.random() * 50, size: 1.5 + Math.random() * 3 });
       }
-    };
-    const draw = (now) => {
-      if (!running) return;
-      context.clearRect(0, 0, innerWidth, innerHeight);
-      if (now - lastFountain > 80 && now - started < 8200) {
-        [0.1, 0.3, 0.5, 0.7, 0.9].forEach((position) => fountain(innerWidth * position));
-        lastFountain = now;
-      }
-      if (now - lastBurst > 460 && now - started < 9400) {
-        burst(innerWidth * (0.14 + Math.random() * 0.72), innerHeight * (0.14 + Math.random() * 0.38));
-        lastBurst = now;
-      }
-      for (let index = particles.length - 1; index >= 0; index -= 1) {
-        const item = particles[index];
-        item.x += item.velocityX;
-        item.y += item.velocityY;
-        item.velocityY += item.gravity;
-        item.velocityX *= 0.992;
-        item.life -= 1;
-        item.rotation += 0.08;
-        if (item.life <= 0) { particles.splice(index, 1); continue; }
-        context.globalAlpha = clamp(0, item.life / Math.min(30, item.maxLife), 1);
-        context.fillStyle = item.color;
-        context.save();
-        context.translate(item.x, item.y);
-        context.rotate(item.rotation);
-        context.fillRect(-item.size / 2, -item.size / 2, item.size, item.size * 1.9);
-        context.restore();
-      }
-      context.globalAlpha = 1;
-      if (now - started > 12500 && !particles.length) { running = false; context.clearRect(0, 0, innerWidth, innerHeight); return; }
-      requestAnimationFrame(draw);
     };
     resize();
-    window.addEventListener("resize", resize);
+    burst(innerWidth * 0.25, innerHeight * 0.34);
+    burst(innerWidth * 0.75, innerHeight * 0.3);
+    window.setTimeout(() => running && burst(innerWidth * 0.5, innerHeight * 0.2), 650);
+    const draw = () => {
+      if (!running) return;
+      context.clearRect(0, 0, innerWidth, innerHeight);
+      for (let index = particles.length - 1; index >= 0; index -= 1) {
+        const particle = particles[index];
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.vy += 0.065;
+        particle.vx *= 0.993;
+        particle.life -= 1;
+        if (particle.life <= 0) { particles.splice(index, 1); continue; }
+        context.globalAlpha = Math.min(1, particle.life / 24);
+        context.fillStyle = particle.color;
+        context.fillRect(particle.x, particle.y, particle.size, particle.size * 1.8);
+      }
+      context.globalAlpha = 1;
+      if (performance.now() - started > 9000 && !particles.length) return;
+      requestAnimationFrame(draw);
+    };
     requestAnimationFrame(draw);
+    window.addEventListener("resize", resize);
     return () => {
       running = false;
       window.removeEventListener("resize", resize);
@@ -267,5 +246,5 @@
   document.addEventListener("visibilitychange", () => { if (!document.hidden) poll(); });
   poll();
   pollTimer = window.setInterval(() => { if (!document.hidden) poll(); }, 900);
-  window.addEventListener("beforeunload", () => { window.clearInterval(pollTimer); stopStageAnimation(); });
+  window.addEventListener("beforeunload", () => { window.clearInterval(pollTimer); resetEffects(); });
 })();
