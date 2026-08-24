@@ -8,7 +8,6 @@
   const esc = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
   const fmtScore = (score) => Number(score).toLocaleString("vi-VN", { maximumFractionDigits: 1 });
   const rankLabel = (rank) => ({ 1: "QUÁN QUÂN", 2: "HẠNG NHÌ", 3: "HẠNG BA" }[Number(rank)] || `HẠNG ${rank}`);
-  const ROMAN = ["I", "II", "III", "IV", "V", "VI"];
 
   let state = null;
   let rosterSignature = "";
@@ -42,7 +41,10 @@
           <span>Chỉ một hướng · chỉ một khoảnh khắc</span>
         </div>
         <section class="ar-podiums" aria-label="Sáu vị trí công bố kết quả văn nghệ">
-          <div class="ar-spot" aria-hidden="true"></div>
+          <div class="ar-spot" data-spot="0"></div>
+          <div class="ar-spot" data-spot="1"></div>
+          <div class="ar-spot" data-spot="2"></div>
+          <div class="ar-spot" data-spot="3"></div>
           <canvas class="ar-dust" aria-hidden="true"></canvas>
           ${teams.map((team, index) => `<article class="ar-team is-pending" style="--slot:${index}" data-team-id="${team.id}" role="group" aria-label="Đội số ${team.number} ${esc(team.name)}">
             <div class="ar-beam" aria-hidden="true"></div>
@@ -52,8 +54,7 @@
               <b>—</b>
               <small>ĐIỂM TRUNG BÌNH</small>
             </div>
-            <div class="ar-marker">${esc(team.name)}</div>
-            <div class="ar-podium" aria-hidden="true"><i></i><em>${ROMAN[index] || index + 1}</em><span></span></div>
+            <div class="ar-podium" aria-hidden="true"><em>${esc(team.name)}</em><span></span></div>
             <i class="ar-floor-ring" aria-hidden="true"></i>
           </article>`).join("")}
         </section>
@@ -90,20 +91,31 @@
   }
 
   /* Chùm spotlight toàn cục trượt ngang qua các bục thay vì bật tắt rời rạc. */
-  function aimSpot(target, duration, visible = true) {
-    const spot = root.querySelector(".ar-spot");
+  function aimSpots(targets, duration, visible = true) {
     const host = root.querySelector(".ar-podiums");
-    if (!spot || !host) return;
-    if (!target) {
-      spot.style.opacity = "0";
-      return;
-    }
-    const a = target.getBoundingClientRect();
-    const b = host.getBoundingClientRect();
-    const x = a.left + a.width / 2 - b.left - spot.offsetWidth / 2;
-    spot.style.transitionDuration = `${duration}ms, ${Math.min(260, duration)}ms`;
-    spot.style.opacity = visible ? "1" : "0";
-    spot.style.transform = `translateX(${x}px)`;
+    const spots = root.querySelectorAll(".ar-spot");
+    if (!host || !spots.length) return;
+    spots.forEach((spot, index) => {
+      const target = targets[index];
+      if (!target) {
+        spot.style.opacity = "0";
+        return;
+      }
+      const a = target.getBoundingClientRect();
+      const b = host.getBoundingClientRect();
+      const x = a.left + a.width / 2 - b.left - spot.offsetWidth / 2;
+      spot.style.transitionDuration = `${duration}ms, ${Math.min(260, duration)}ms`;
+      spot.style.opacity = visible ? "1" : "0";
+      spot.style.transform = `translateX(${x}px)`;
+    });
+  }
+
+  /* Nhóm đội chưa lộ — dùng cho vòng tìm kiếm sau mỗi lần công bố. */
+  function searchPool() {
+    return (state?.teams || [])
+      .filter((team) => !(team.revealed || team.rank !== null))
+      .map((team) => teamElement(team.id))
+      .filter(Boolean);
   }
 
   /* Hạt bụi lơ lửng trong luồng sáng đang active — rẻ nhưng rất "điện ảnh". */
@@ -126,22 +138,30 @@
       if (!running) return;
       const rect = canvas.getBoundingClientRect();
       context.clearRect(0, 0, rect.width, rect.height);
-      const active = root.querySelector(".ar-team.is-searching, .ar-team.is-current");
-      if (active && !root.querySelector(".ar-shell.is-decel")) {
-        const host = active.getBoundingClientRect();
-        const cx = host.left + host.width / 2 - rect.left;
-        while (motes.length < 42) {
-          motes.push({
-            x: cx + (Math.random() - 0.5) * host.width * 0.8,
-            y: rect.height * (0.2 + Math.random() * 0.8),
-            v: 0.14 + Math.random() * 0.34,
-            r: 0.6 + Math.random() * 1.4,
-            tw: Math.random() * Math.PI * 2,
-            drift: (Math.random() - 0.5) * 0.3,
-          });
-        }
+      const actives = root.querySelector(".ar-shell.is-decel") ? [] : root.querySelectorAll(".ar-team.is-searching, .ar-team.is-current");
+      if (actives.length) {
+        actives.forEach((active) => {
+          const host = active.getBoundingClientRect();
+          const cx = host.left + host.width / 2 - rect.left;
+          let owned = 0;
+          for (const m of motes) if (m.owner === active) owned += 1;
+          while (owned < 16) {
+            motes.push({
+              owner: active,
+              x: cx + (Math.random() - 0.5) * host.width * 0.8,
+              y: rect.height * (0.2 + Math.random() * 0.8),
+              v: 0.14 + Math.random() * 0.34,
+              r: 0.6 + Math.random() * 1.4,
+              tw: Math.random() * Math.PI * 2,
+              drift: (Math.random() - 0.5) * 0.3,
+            });
+            owned += 1;
+          }
+        });
         for (let index = motes.length - 1; index >= 0; index -= 1) {
           const m = motes[index];
+          const host = m.owner.getBoundingClientRect();
+          const cx = host.left + host.width / 2 - rect.left;
           m.y -= m.v;
           m.x += m.drift;
           m.tw += 0.06;
@@ -209,7 +229,7 @@
     spotlightIndex = -1;
     searchActive = false;
     root.querySelector(".ar-shell")?.classList.remove("is-decel", "ar-shake");
-    aimSpot(null);
+    aimSpots([]);
     if (pyroStop) pyroStop();
     pyroStop = null;
   }
@@ -237,20 +257,26 @@
   }
 
   function startSpotlightSearch() {
-    if (!state || state.stage !== "ROLLING") return;
-    const teams = state.teams || [];
-    if (!teams.length) return;
+    if (!state || state.stage === "IDLE" || state.stage === "FINAL") return;
+    if (!searchPool().length) return;
     searchActive = true;
-    setTitle("SPOTLIGHT ĐANG TÌM KIẾM", "Ai sẽ được gọi tên?", "Ánh sáng đang di chuyển giữa sáu đội", "Chờ tín hiệu công bố hạng 6");
+    if (state.stage === "ROLLING") {
+      setTitle("SPOTLIGHT ĐANG TÌM KIẾM", "Ai sẽ được gọi tên?", "Ánh sáng đang di chuyển giữa sáu đội", "Chờ tín hiệu công bố hạng 6");
+    } else {
+      setTitle("SPOTLIGHT TIẾP TỤC TÌM KIẾM", "Ai sẽ được gọi tên tiếp theo?", "Ánh sáng đang đi giữa những đội chưa lộ diện", "Chờ tín hiệu MC");
+    }
     if (reducedMotion.matches) return;
     const jump = () => {
       root.querySelectorAll(".ar-team.is-searching").forEach((element) => element.classList.remove("is-searching"));
-      let next = Math.floor(Math.random() * teams.length);
-      if (teams.length > 1 && next === spotlightIndex) next = (next + 1 + Math.floor(Math.random() * (teams.length - 1))) % teams.length;
-      spotlightIndex = next;
-      const element = teamElement(teams[next].id);
-      element?.classList.add("is-searching");
-      aimSpot(element, 300);
+      const pool = searchPool();
+      if (!pool.length) { aimSpots([], 300); return; }
+      // Ngẫu nhiên chiếu đồng thời 1-4 đội để tạo cảm giác kịch tính.
+      const count = Math.min(1 + Math.floor(Math.random() * 4), pool.length);
+      const bag = pool.slice();
+      const picked = [];
+      for (let i = 0; i < count; i += 1) picked.push(bag.splice(Math.floor(Math.random() * bag.length), 1)[0]);
+      picked.forEach((element) => element.classList.add("is-searching"));
+      aimSpots(picked, 300);
     };
     jump();
     spotlightTimer = window.setInterval(jump, 620);
@@ -263,13 +289,13 @@
     searchActive = false;
     if (reducedMotion.matches || !currentEl) {
       root.querySelectorAll(".ar-team.is-searching").forEach((element) => element.classList.remove("is-searching"));
-      aimSpot(null);
+      aimSpots([]);
       onLock();
       return;
     }
     const shellEl = root.querySelector(".ar-shell");
     shellEl.classList.add("is-decel");
-    const others = (state.teams || []).map((team) => teamElement(team.id)).filter((el) => el && el !== currentEl);
+    const others = searchPool().filter((el) => el !== currentEl);
     const steps = [380, 620, 900];
     let acc = 0;
     steps.forEach((delay) => {
@@ -277,17 +303,17 @@
       decelTimers.push(window.setTimeout(() => {
         root.querySelectorAll(".ar-team.is-searching").forEach((element) => element.classList.remove("is-searching"));
         pick.classList.add("is-searching");
-        aimSpot(pick, delay + 140);
+        aimSpots([pick], delay + 140);
       }, acc));
       acc += delay;
     });
     decelTimers.push(window.setTimeout(() => {
       root.querySelectorAll(".ar-team.is-searching").forEach((element) => element.classList.remove("is-searching"));
-      aimSpot(currentEl, 1000);
+      aimSpots([currentEl], 1000);
     }, acc));
     decelTimers.push(window.setTimeout(() => {
       shellEl.classList.remove("is-decel");
-      aimSpot(null);
+      aimSpots([]);
       onLock();
     }, acc + 1050));
   }
@@ -326,12 +352,16 @@
     const onLock = () => {
       countUp(currentEl?.querySelector(".ar-team-copy b"), current.score);
       if (champion) shakeStage();
+      // Giữ spotlight khóa đủ lâu cho MC xướng tên, sau ~5s tiếp tục tìm kiếm các đội chưa lộ.
+      if (!champion && searchPool().length && !reducedMotion.matches) {
+        spotlightStartTimer = window.setTimeout(startSpotlightSearch, 5000);
+      }
     };
     if (needDecel) {
       lockSpotlight(currentEl, onLock);
     } else {
       root.querySelectorAll(".ar-team.is-searching").forEach((element) => element.classList.remove("is-searching"));
-      aimSpot(null);
+      aimSpots([]);
       onLock();
     }
 

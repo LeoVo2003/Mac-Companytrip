@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.22** (2026-08-24) — nâng cấp "wow" màn The Spotlight: spotlight trượt ngang + hãm dần kiểu vòng quay số; chùm sáng nhiều lớp mix-blend screen + hạt bụi trong luồng sáng; rèm nhung nếp gấp/tua rua/rung đàn hồi/bóng đổ; vòng sáng + ripple chân bục; số La Mã khắc bục; điểm đếm chạy; tiêu đề wipe; font display; quán quân thêm ruy băng xoay + tia lửa + tia sáng xoay + rung màn hình + bục cao hơn; grain + vignette; giữ prefers-reduced-motion. Trước đó v1.9.21: màn The Spotlight (rèm đỏ, 6 bục, công bố từng đội 6→quán quân). Trước đó v1.9.20/1.9.19/1.9.18 như cũ.
+> Phiên bản hiện tại: **v1.9.23** (2026-08-24) — spotlight tìm kiếm chiếu đồng thời 1-4 đội ngẫu nhiên; bục thành card hiện đại (bỏ số La Mã, tên đội khắc vàng); nhịp công bố khóa ~5s sau mỗi đội rồi mới random tiếp các đội chưa lộ; font Cormorant Garamond (như màn tổng kết) hết lỗi dấu tiếng Việt; line-height tiêu đề thoáng. Trước đó v1.9.22: lớp wow (spot trượt + hãm dần, bụi, rèm nếp gấp/tua rua, ripple, grain/vignette...). Trước đó v1.9.21: màn The Spotlight. Trước đó như cũ.
 
 ---
 

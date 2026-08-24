@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.22";
+const tag = "v1.9.23";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Spotlight trượt ngang + hãm dần kiểu vòng quay số trước khi khóa đội.",
-  "- Chùm sáng nhiều lớp + hạt bụi trong luồng sáng; sương mù trôi chậm; vòng sáng/ripple chân bục; số La Mã khắc bục; rèm nhung nếp gấp + tua rua + rung đàn hồi.",
-  "- Điểm đếm chạy 0→thật; tiêu đề wipe; font display cho số/hạng.",
-  "- Quán quân: pháo hoa tia lửa + ruy băng xoay, tia sáng xoay chậm, rung màn hình, bục cao hơn; grain + vignette toàn màn; giữ prefers-reduced-motion.",
+  "- Spotlight tìm kiếm chiếu đồng thời 1-4 đội ngẫu nhiên.",
+  "- Card công bố hiện đại thay bục 3D: tên đội khắc vàng trên card, bỏ số La Mã.",
+  "- Nhịp công bố: khóa ~5s sau mỗi lần công bố rồi mới random tiếp các đội chưa lộ.",
+  "- Font Cormorant Garamond (như màn tổng kết) hết lỗi dấu tiếng Việt; line-height tiêu đề thoáng hơn.",
 ].join("\n");
 
 let release;
