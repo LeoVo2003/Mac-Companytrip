@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.18** (2026-08-24) — fix lỗi ẩn điểm → công bố quán quân → hiện điểm lại vẫn thấy •••: bỏ displayScore, số thật luôn ghi vào span cột điểm, ẩn/hiện thuần CSS display:none. Trước đó v1.9.17: guard null state lần tải đầu. Trước đó v1.9.16 trở về trước như cũ.
+> Phiên bản hiện tại: **v1.9.22** (2026-08-24) — nâng cấp "wow" màn The Spotlight: spotlight trượt ngang + hãm dần kiểu vòng quay số; chùm sáng nhiều lớp mix-blend screen + hạt bụi trong luồng sáng; rèm nhung nếp gấp/tua rua/rung đàn hồi/bóng đổ; vòng sáng + ripple chân bục; số La Mã khắc bục; điểm đếm chạy; tiêu đề wipe; font display; quán quân thêm ruy băng xoay + tia lửa + tia sáng xoay + rung màn hình + bục cao hơn; grain + vignette; giữ prefers-reduced-motion. Trước đó v1.9.21: màn The Spotlight (rèm đỏ, 6 bục, công bố từng đội 6→quán quân). Trước đó v1.9.20/1.9.19/1.9.18 như cũ.
 
 ---
 

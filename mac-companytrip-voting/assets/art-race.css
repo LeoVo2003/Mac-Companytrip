@@ -113,11 +113,17 @@ body.mac-art-race-page .elementor-shortcode {
   left: 50%;
   width: 34vw;
   height: 95vh;
-  background: linear-gradient(180deg, rgba(255, 244, 206, 0.18), rgba(239, 200, 120, 0.04) 66%, transparent);
+  background: linear-gradient(180deg, rgba(255, 244, 206, 0.24), rgba(239, 200, 120, 0.06) 66%, transparent);
   clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%);
   filter: blur(22px);
-  opacity: 0.55;
+  opacity: 0.8;
   transform: translateX(-50%);
+  animation: ar-haze-drift 24s ease-in-out infinite alternate;
+}
+
+@keyframes ar-haze-drift {
+  from { transform: translateX(-56%) skewX(-1.2deg); }
+  to { transform: translateX(-44%) skewX(1.2deg); }
 }
 
 .ar-runway {
@@ -374,7 +380,7 @@ body.mac-art-race-page .elementor-shortcode {
   border: 1px solid rgba(255, 248, 231, 0.1);
   border-radius: 50% 50% 16px 16px / 28% 28% 10px 10px;
   background: linear-gradient(180deg, #2a211b, #080706 52%, #140d09);
-  box-shadow: inset 0 5px 14px rgba(255, 248, 231, 0.04), 0 16px 30px rgba(0, 0, 0, 0.62);
+  box-shadow: inset 0 10px 22px rgba(255, 248, 231, 0.1), 0 16px 30px rgba(0, 0, 0, 0.62);
 }
 
 .ar-podium::before {
@@ -410,9 +416,31 @@ body.mac-art-race-page .elementor-shortcode {
   background: linear-gradient(180deg, rgba(255, 248, 220, 0.86), rgba(239, 200, 120, 0.19) 62%, rgba(255, 106, 44, 0.04));
   clip-path: polygon(45% 0, 55% 0, 100% 100%, 0 100%);
   filter: blur(8px);
+  mix-blend-mode: screen;
   opacity: 0;
   transform: translateX(-50%);
   transition: opacity 280ms ease;
+}
+
+/* Chùm sáng thật: hai lớp cone chồng với độ mờ khác nhau để ánh sáng "cháy" qua nền tối. */
+.ar-beam::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(180deg, rgba(255, 248, 220, 0.5), rgba(239, 200, 120, 0.12) 58%, transparent);
+  clip-path: polygon(41% 0, 59% 0, 100% 100%, 0 100%);
+  filter: blur(14px);
+  opacity: 0.7;
+}
+
+.ar-beam::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 241, 189, 0.28) 55%, transparent);
+  clip-path: polygon(47.5% 0, 52.5% 0, 78% 100%, 22% 100%);
+  filter: blur(3px);
+  opacity: 0.8;
 }
 
 .ar-team.is-pending { opacity: 0.58; }
@@ -478,10 +506,45 @@ body.mac-art-race-page .elementor-shortcode {
   bottom: 0;
   width: 51%;
   background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.42) 0 2.2%, rgba(255, 255, 255, 0.05) 2.2% 3.4%, rgba(0, 0, 0, 0.28) 3.4% 5.8%, rgba(255, 255, 255, 0.08) 5.8% 6.6%, transparent 6.6% 9.4%),
     linear-gradient(90deg, rgba(0, 0, 0, 0.56), transparent 11%, rgba(255, 255, 255, 0.08) 22%, transparent 35%, rgba(0, 0, 0, 0.52) 49%, transparent 65%, rgba(255, 255, 255, 0.07) 79%, rgba(0, 0, 0, 0.48)),
     linear-gradient(180deg, #b10e18, #75060e 56%, #360307);
   box-shadow: inset 0 -35px 70px rgba(0, 0, 0, 0.44);
   transition: transform 2.8s cubic-bezier(0.72, 0, 0.2, 1);
+}
+
+/* Tua rua vàng ở mép dưới rèm. */
+.ar-curtain i::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 12px;
+  content: "";
+  background: repeating-linear-gradient(90deg, var(--gold) 0 2px, rgba(239, 200, 120, 0.4) 2px 4px, transparent 4px 8px);
+  opacity: 0.85;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
+}
+
+/* Bóng đổ động chạy theo rèm khi kéo tạo chiều sâu. */
+.ar-curtain::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  content: "";
+  background: linear-gradient(90deg, transparent 26%, rgba(0, 0, 0, 0.55) 50%, transparent 74%);
+  transition: opacity 1.4s ease 1.4s;
+}
+
+.ar-shell:not([data-stage="idle"]) .ar-curtain::before { opacity: 0; }
+
+/* Vải thật "đàn hồi" nhẹ khi rèm dừng. */
+.ar-shell:not([data-stage="idle"]) .ar-curtain { animation: ar-curtain-sway 1.3s ease-in-out 2.7s 1; }
+
+@keyframes ar-curtain-sway {
+  0%, 100% { transform: none; }
+  30% { transform: skewX(0.4deg); }
+  65% { transform: skewX(-0.3deg); }
 }
 
 .ar-curtain-left { left: 0; border-right: 2px solid rgba(255, 191, 132, 0.18); }
@@ -602,6 +665,176 @@ body.mac-art-race-page .elementor-shortcode {
 
 .ar-error button:focus-visible { outline: 3px solid var(--gold-hot); outline-offset: 3px; }
 
+/* --------------------------------------------------------------------------
+   Lớp "wow": spotlight trượt, bụi trong luồng sáng, vòng sáng chân bục,
+   số bục khắc, tia sáng xoay, grain + vignette, rung màn hình.
+   -------------------------------------------------------------------------- */
+.mac-art-race-app {
+  --display: "Haettenschweiler", "Impact", "Arial Narrow", Inter, sans-serif;
+}
+
+.ar-team-copy b,
+.ar-team-copy span,
+.ar-podium em {
+  font-family: var(--display);
+}
+
+/* Spotlight toàn cục trượt ngang qua các bục thay vì cắt cảnh. */
+.ar-spot {
+  position: absolute;
+  z-index: 2;
+  top: -6%;
+  left: 0;
+  width: min(24vw, 360px);
+  height: 108%;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 241, 189, 0.4) 46%, rgba(239, 200, 120, 0.08) 78%, transparent);
+  clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+  filter: blur(5px);
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: transform 320ms cubic-bezier(0.3, 0.7, 0.3, 1), opacity 240ms ease;
+  will-change: transform, opacity;
+}
+
+.ar-dust {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+/* Vòng sáng đổ trên sàn dưới chân bục. */
+.ar-floor-ring {
+  position: absolute;
+  z-index: 2;
+  bottom: -8px;
+  left: 50%;
+  width: 130%;
+  height: 30px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, rgba(255, 241, 189, 0.5), rgba(239, 200, 120, 0.18) 45%, transparent 70%);
+  filter: blur(6px);
+  opacity: 0;
+  transform: translateX(-50%) scale(0.6);
+  transition: opacity 450ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ar-team.is-searching .ar-floor-ring,
+.ar-team.is-current .ar-floor-ring {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+/* Ripple lan tỏa từ chân bục khi spotlight khóa. */
+.ar-team.is-current .ar-floor-ring::after {
+  position: absolute;
+  inset: -6px -14%;
+  border: 2px solid rgba(255, 241, 189, 0.5);
+  border-radius: 50%;
+  content: "";
+  animation: ar-ripple 1.5s ease-out 0.1s 2;
+}
+
+@keyframes ar-ripple {
+  from { opacity: 0.8; transform: scale(0.5); }
+  to { opacity: 0; transform: scale(1.5); }
+}
+
+/* Số La Mã khắc mờ lên mặt trước bục. */
+.ar-podium em {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  font-size: clamp(15px, 2.3vw, 32px);
+  letter-spacing: 0.1em;
+  color: rgba(255, 248, 231, 0.12);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.65);
+}
+
+/* Pha hãm dần: giấu ánh khóa + copy cho tới khi vòng quay số dừng. */
+.ar-shell.is-decel .ar-team.is-current .ar-beam,
+.ar-shell.is-decel .ar-team.is-current .ar-floor-ring { opacity: 0; }
+
+.ar-shell.is-decel .ar-team.is-current .ar-team-copy {
+  opacity: 0;
+  transform: translateY(14px) scale(0.94);
+}
+
+/* Tiêu đề wipe từ trái sang, so le từng khối. */
+.ar-title.ar-swap p { animation: ar-wipe 650ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.ar-title.ar-swap h1 { animation: ar-wipe 650ms cubic-bezier(0.2, 0.8, 0.2, 1) 100ms both; }
+.ar-title.ar-swap span { animation: ar-wipe 650ms cubic-bezier(0.2, 0.8, 0.2, 1) 180ms both; }
+
+@keyframes ar-wipe {
+  from { clip-path: inset(-10% 100% -10% 0); }
+  to { clip-path: inset(-10% -4% -10% 0); }
+}
+
+/* Tia sáng xoay chậm quét nền lúc trao giải. */
+.ar-rays {
+  position: absolute;
+  inset: -42%;
+  background: repeating-conic-gradient(from 0deg at 50% 46%, rgba(255, 241, 189, 0.07) 0deg 5deg, transparent 5deg 14deg);
+  opacity: 0;
+  transition: opacity 1.4s ease;
+  animation: ar-rays-spin 18s linear infinite;
+}
+
+.ar-shell[data-stage="final"] .ar-rays { opacity: 1; }
+
+@keyframes ar-rays-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Vignette đậm 4 góc dồn mắt vào giữa sân khấu. */
+.ar-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 46%, transparent 50%, rgba(0, 0, 0, 0.4) 86%, rgba(0, 0, 0, 0.62));
+}
+
+/* Film grain rất nhẹ phủ toàn màn cho gradient bớt "phẳng nhựa". */
+.ar-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.55) 0.5px, transparent 0.6px),
+    radial-gradient(rgba(0, 0, 0, 0.7) 0.5px, transparent 0.6px);
+  background-size: 3px 3px, 4px 4px;
+  background-position: 0 0, 1px 2px;
+  mix-blend-mode: overlay;
+  animation: ar-grain-jitter 0.45s steps(2) infinite;
+}
+
+@keyframes ar-grain-jitter {
+  50% { background-position: 2px 1px, 0 3px; }
+}
+
+/* Rung màn hình rất nhẹ đúng khoảnh khắc khóa quán quân. */
+.ar-shell.ar-shake { animation: ar-shake 240ms linear 1; }
+
+@keyframes ar-shake {
+  20% { transform: translate(2px, -2px); }
+  45% { transform: translate(-2px, 2px); }
+  70% { transform: translate(1px, -1px); }
+  100% { transform: none; }
+}
+
+/* Bục quán quân cao hơn hẳn tạo phân cấp thị giác thật. */
+.ar-team.is-champion.is-current { transform: translateY(-22px) scale(1.07); }
+
+.ar-team.is-champion.is-current .ar-podium { height: clamp(34px, 6vh, 60px); }
+
 @media (max-width: 900px) {
   .ar-shell { min-height: 500px; grid-template-rows: 56px minmax(0, 1fr); }
   .ar-header { min-height: 56px; padding-block: 6px; }
@@ -615,6 +848,8 @@ body.mac-art-race-page .elementor-shortcode {
   .ar-marker { min-height: 36px; font-size: clamp(8px, 1.25vw, 11px); }
   .ar-podium { width: 12vw; height: 28px; }
   .ar-beam { width: 29vw; }
+  .ar-spot { width: 29vw; }
+  .ar-podium em { font-size: clamp(11px, 2.6vw, 18px); }
 }
 
 @media (prefers-reduced-motion: reduce) {

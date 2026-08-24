@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.21";
+const tag = "v1.9.22";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Thay màn đua thuyền bằng One Direction — The Spotlight với rèm đỏ và sân khấu 6 đội.",
-  "- Sau khi mở rèm 5 giây, spotlight nhảy ngẫu nhiên giữa tên thật của 6 đội.",
-  "- Mỗi tín hiệu chỉ công bố đúng một đội theo thứ tự hạng 6 đến quán quân; hỗ trợ đúng cả khi đồng điểm.",
-  "- Spotlight khóa vào đội vừa công bố; quán quân có pháo hoa và team Hoa tiêu được loại khỏi màn văn nghệ.",
+  "- Spotlight trượt ngang + hãm dần kiểu vòng quay số trước khi khóa đội.",
+  "- Chùm sáng nhiều lớp + hạt bụi trong luồng sáng; sương mù trôi chậm; vòng sáng/ripple chân bục; số La Mã khắc bục; rèm nhung nếp gấp + tua rua + rung đàn hồi.",
+  "- Điểm đếm chạy 0→thật; tiêu đề wipe; font display cho số/hạng.",
+  "- Quán quân: pháo hoa tia lửa + ruy băng xoay, tia sáng xoay chậm, rung màn hình, bục cao hơn; grain + vignette toàn màn; giữ prefers-reduced-motion.",
 ].join("\n");
 
 let release;
