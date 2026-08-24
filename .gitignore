@@ -2,7 +2,9 @@ node_modules/
 npm-debug.log*
 .DS_Store
 Thumbs.db
-dist/
+# Chỉ giữ zip release trong dist, bỏ qua file tạm/_verify/_v*.zip
+dist/*
+!dist/mac-companytrip-voting-v*.zip
 mac-companytrip-voting.zip
 .qoder/
 /*.png
