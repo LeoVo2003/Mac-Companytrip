@@ -5,6 +5,7 @@ Thumbs.db
 # Chỉ giữ zip release trong dist, bỏ qua file tạm/_verify/_v*.zip
 dist/*
 !dist/mac-companytrip-voting-v*.zip
+!dist/mac-companytrip-full-v*.zip
 mac-companytrip-voting.zip
 .qoder/
 /*.png
