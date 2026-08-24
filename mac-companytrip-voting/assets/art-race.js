@@ -9,27 +9,12 @@
   const clamp = (minimum, value, maximum) => Math.min(maximum, Math.max(minimum, value));
   const fmtScore = (score) => Number(score).toLocaleString("vi-VN", { maximumFractionDigits: 1 });
 
-  // Vị trí thuyền (% đường đua) theo hạng từng bước; DECOY dùng cụm featured riêng.
-  const RACE_POSITIONS = {
-    THIRD: { 3: 88, 4: 60, 5: 45, 6: 32 },
-    SECOND: { 2: 94, 3: 88, 4: 60, 5: 45, 6: 32 },
-    FINAL: { 1: 100, 2: 94, 3: 88, 4: 60, 5: 45, 6: 32 },
-  };
-  const badgeFor = (stage, rank) => {
-    const at = { 3: "THIRD", 2: "SECOND", 1: "FINAL", 4: "FINAL", 5: "FINAL", 6: "FINAL" }[rank];
-    const order = { THIRD: 1, SECOND: 2, FINAL: 3 };
-    return at && order[stage] >= order[at] ? rankLabel(rank) : "";
-  };
-  function rankLabel(rank) {
-    if (Number(rank) === 1) return "QUÁN QUÂN";
-    if (Number(rank) === 2) return "HẠNG NHÌ";
-    if (Number(rank) === 3) return "HẠNG BA";
-    return "KHUYẾN KHÍCH";
-  }
+  // Đua vịt: thuyền về theo đúng thứ hạng, vị trí giãn dần sau vạch đích.
+  const FINAL_POSITIONS = { 1: 100, 2: 94, 3: 88, 4: 70, 5: 55, 6: 40 };
+  const rankLabel = (rank) => ({ 1: "QUÁN QUÂN", 2: "HẠNG NHÌ", 3: "HẠNG BA" }[Number(rank)] || `HẠNG ${rank}`);
 
   let state = null;
   let rosterSignature = "";
-  let animationTimer = 0;
   let frameId = 0;
   let pollTimer = 0;
   let failedPolls = 0;
@@ -37,10 +22,8 @@
   let pyroStop = null;
   let pyroTimer = 0;
 
-  const BOAT_SVG = `<svg viewBox="0 0 64 44" aria-hidden="true"><path d="M6 30h52l-9 10H15z"/><path d="M31 6v24"/><path d="M31 6c11 5 16 13 18 24H31z"/><path d="M31 12c-8 4-12 10-13 18h13z"/></svg>`;
-
   function shell(teams) {
-    root.innerHTML = `<div class="ar-shell" data-stage="idle"><canvas class="ar-pyro" aria-hidden="true"></canvas><div class="ar-sea" aria-hidden="true"><i class="ar-moon"></i></div><header class="ar-header"><div class="ar-brand"><img src="${esc(logo)}" alt="MAC Marketing"></div><div class="ar-event"><span>COMPANY TRIP - One Direction</span><strong>ĐUA THUYỀN VĂN NGHỆ</strong></div><div class="ar-connection" role="status"><i></i><span>Đang đồng bộ</span></div></header><main><div class="ar-heading" aria-live="polite"><p>KẾT QUẢ VĂN NGHỆ</p><h1>Khoảnh khắc đang đến gần</h1><span></span></div><section class="ar-track" aria-label="Đường đua thuyền của 6 đội"><div class="ar-finish" aria-hidden="true"><i></i><b>VỀ BẾN</b></div>${teams.map((team) => `<article class="ar-lane" data-team-id="${team.id}" role="group" aria-label="Team số ${team.number} ${esc(team.name)}"><div class="ar-lane-head"><strong>#${team.number} ${esc(team.name)}</strong><div class="ar-rank" hidden></div></div><div class="ar-water"><div class="ar-boat">${BOAT_SVG}<i class="ar-wake"></i></div></div><div class="ar-score"><span>—</span><small>ĐIỂM TB</small></div></article>`).join("")}</section></main><footer class="ar-footer"><span class="ar-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE RACE</span></div></footer></div>`;
+    root.innerHTML = `<div class="ar-shell" data-stage="idle"><canvas class="ar-pyro" aria-hidden="true"></canvas><div class="ar-sea" aria-hidden="true"><i class="ar-moon"></i></div><header class="ar-header"><div class="ar-brand"><img src="${esc(logo)}" alt="MAC Marketing"></div><div class="ar-event"><span>COMPANY TRIP - One Direction</span><strong>ĐUA THUYỀN VĂN NGHỆ</strong></div><div class="ar-connection" role="status"><i></i><span>Đang đồng bộ</span></div></header><main><div class="ar-heading" aria-live="polite"><p>KẾT QUẢ VĂN NGHỆ</p><h1>Khoảnh khắc đang đến gần</h1><span></span></div><section class="ar-track" aria-label="Đường đua thuyền của 6 đội"><div class="ar-finish" aria-hidden="true"><i></i><b>VỀ BẾN</b></div>${teams.map((team) => `<article class="ar-lane" data-team-id="${team.id}" role="group" aria-label="Team số ${team.number} ${esc(team.name)}"><div class="ar-lane-head"><strong>#${team.number} ${esc(team.name)}</strong><div class="ar-rank" hidden></div></div><div class="ar-water"><div class="ar-boat"><svg viewBox="0 0 64 44" aria-hidden="true"><path d="M6 30h52l-9 10H15z"/><path d="M31 6v24"/><path d="M31 6c11 5 16 13 18 24H31z"/><path d="M31 12c-8 4-12 10-13 18h13z"/></svg><i class="ar-wake"></i></div></div><div class="ar-score"><span>—</span><small>ĐIỂM TB</small></div></article>`).join("")}</section></main><footer class="ar-footer"><span class="ar-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE RACE</span></div></footer></div>`;
   }
 
   function setConnection(connected) {
@@ -63,19 +46,16 @@
     return root.querySelector(`[data-team-id="${String(id).replace(/"/g, "")}"]`);
   }
 
-  function setLane(element, position, scoreText, badgeText, extraClass) {
+  function setLane(element, position, scoreText, badgeText, isChampion) {
     element.style.setProperty("--pos", `${clamp(2, position, 100)}%`);
     element.querySelector(".ar-score span").textContent = scoreText;
     const rank = element.querySelector(".ar-rank");
     rank.hidden = !badgeText;
     rank.textContent = badgeText;
-    element.classList.toggle("is-champion", extraClass === "is-champion");
-    element.classList.toggle("is-decoy", extraClass === "is-decoy");
+    element.classList.toggle("is-champion", !!isChampion);
   }
 
   function stopStageAnimation() {
-    window.clearInterval(animationTimer);
-    animationTimer = 0;
     window.clearTimeout(pyroTimer);
     pyroTimer = 0;
     if (frameId) cancelAnimationFrame(frameId);
@@ -84,35 +64,84 @@
     pyroStop = null;
   }
 
-  function renderIdle() {
-    setHeading("KẾT QUẢ VĂN NGHỆ", "Khoảnh khắc đang đến gần", "", "Sẵn sàng công bố");
-    state.teams.forEach((team) => setLane(laneElement(team.id), 4, "—", "", ""));
-  }
-
-  // Mở màn: 6 thuyền nhấp nhô tiến dần, số phiếu chạy giả để giữ hồi hộp.
-  function renderRolling() {
-    setHeading("ĐUA THUYỀN VĂN NGHỆ", "Sáu mái chèo khuấy động đêm gala", "Lượt phiếu đang dồn về bến", "Đang tung điểm trực tiếp");
-    const waves = state.teams.map((team, index) => ({
+  // Nhịp đua hồi hộp: mỗi thuyền một cặp sóng riêng (tần số khác nhau) nên ngôi đầu
+  // liên tục đổi — thuyền đang dẫn có thể tuột lại sau, thuyền sau bất ngờ vượt lên.
+  function makeWaves(teams) {
+    return teams.map((team, index) => ({
       id: team.id,
-      base: 14 + (index % 3) * 4,
-      amplitude: 5 + (index % 2) * 3,
-      period: 3000 + index * 360,
-      phase: index * 0.8,
+      base: 34 + (index % 3) * 15,
+      amp1: 12 + (index % 2) * 7,
+      amp2: 7 + ((index + 1) % 3) * 5,
+      w1: 5200 + index * 640,
+      w2: 2300 + index * 410,
+      p1: index * 1.7,
+      p2: index * 0.9,
       value: 90 + index * 12,
       target: 120 + index * 15,
     }));
-    const drift = (wave) => {
-      wave.value += (wave.target - wave.value) * 0.012;
-      if (Math.abs(wave.target - wave.value) < 3) wave.target = 90 + Math.random() * 90;
-      return String(Math.round(wave.value));
-    };
+  }
+
+  function wavePosition(wave, elapsed) {
+    const pos = wave.base
+      + Math.sin((elapsed / wave.w1) * Math.PI * 2 + wave.p1) * wave.amp1
+      + Math.sin((elapsed / wave.w2) * Math.PI * 2 + wave.p2) * wave.amp2;
+    return clamp(6, pos, 80);
+  }
+
+  function renderIdle() {
+    setHeading("KẾT QUẢ VĂN NGHỆ", "Khoảnh khắc đang đến gần", "", "Sẵn sàng công bố");
+    state.teams.forEach((team) => setLane(laneElement(team.id), 4, "—", "", false));
+  }
+
+  // stage: ROLLING (đua tự do), THIRD/SECOND/FINAL (thuyền đã lộ hạng về bến theo thứ tự).
+  function renderRace(stage) {
+    const revealedMinRank = { ROLLING: 99, THIRD: 3, SECOND: 2, FINAL: 1 }[stage] ?? 99;
+    const racing = state.teams.filter((team) => team.rank === null || Number(team.rank) < revealedMinRank);
+    const racingIds = new Set(racing.map((team) => team.id));
+
+    state.teams.forEach((team) => {
+      const element = laneElement(team.id);
+      if (racingIds.has(team.id)) return; // vòng đua sẽ điều khiển các thuyền này
+      const rank = Number(team.rank);
+      setLane(
+        element,
+        FINAL_POSITIONS[rank] ?? 40,
+        team.score !== null ? fmtScore(team.score) : "—",
+        rankLabel(rank),
+        rank === 1
+      );
+    });
+
+    if (stage === "ROLLING") {
+      setHeading("ĐUA THUYỀN VĂN NGHỆ", "Sáu mái chèo ra khơi", "Ngôi dẫn đầu liên tục đổi — chưa ai nói trước điều gì", "Đang đua trực tiếp");
+    } else if (stage === "THIRD") {
+      const team = state.teams.find((entry) => Number(entry.rank) === 3);
+      setHeading("HẠNG BA", team ? team.name : "Đang chốt", team && team.score !== null ? `Xin chúc mừng ${team.name} · ${fmtScore(team.score)} điểm` : "Kết quả đang được chốt", "Tín hiệu 1 · Đã chốt");
+    } else if (stage === "SECOND") {
+      const team = state.teams.find((entry) => Number(entry.rank) === 2);
+      setHeading("HẠNG NHÌ", team ? team.name : "Đang chốt", team && team.score !== null ? `Xin chúc mừng ${team.name} · ${fmtScore(team.score)} điểm` : "Kết quả đang được chốt", "Tín hiệu 2 · Đã chốt");
+    } else {
+      const champion = state.teams.find((entry) => Number(entry.rank) === 1);
+      setHeading(
+        "QUÁN QUÂN VĂN NGHỆ",
+        champion ? champion.name : "Kết quả chung cuộc",
+        champion && champion.score !== null ? `CHÚC MỪNG ${champion.name.toUpperCase()} · ${fmtScore(champion.score)} điểm · Nhà vô địch văn nghệ Company Trip` : "Đã hoàn tất công bố",
+        "Kết quả chung cuộc"
+      );
+      if (pyroRevision !== state.revision && !reducedMotion.matches) {
+        pyroRevision = state.revision;
+        pyroTimer = window.setTimeout(() => { pyroStop = startPyro(); }, 1500);
+      }
+    }
+
+    // Các thuyền chưa lộ hạng tiếp tục đua (giữ hồi hộp cho tới khi về bến).
+    const waves = makeWaves(racing);
+    if (!waves.length) return;
     if (reducedMotion.matches) {
-      const gentle = () => waves.forEach((wave) => {
+      waves.forEach((wave, index) => {
         const element = laneElement(wave.id);
-        if (element) setLane(element, wave.base, drift(wave), "", "");
+        if (element) setLane(element, 30 + index * 12, "—", "", false);
       });
-      gentle();
-      animationTimer = window.setInterval(gentle, 1000);
       return;
     }
     const start = performance.now();
@@ -121,74 +150,14 @@
       waves.forEach((wave) => {
         const element = laneElement(wave.id);
         if (!element) return;
-        const position = wave.base + Math.sin((elapsed / wave.period) * Math.PI * 2 + wave.phase) * wave.amplitude;
-        setLane(element, position, drift(wave), "", "");
+        element.style.setProperty("--pos", `${wavePosition(wave, elapsed)}%`);
+        wave.value += (wave.target - wave.value) * 0.02;
+        if (Math.abs(wave.target - wave.value) < 5) wave.target = 90 + Math.random() * 120;
+        element.querySelector(".ar-score span").textContent = String(Math.round(wave.value));
       });
       frameId = requestAnimationFrame(step);
     };
     frameId = requestAnimationFrame(step);
-  }
-
-  function renderRace(stage) {
-    const positions = RACE_POSITIONS[stage] || {};
-    const featured = state.teams.filter((team) => team.featured);
-    const decoyPositions = [82, 76, 70];
-    state.teams.forEach((team, index) => {
-      const element = laneElement(team.id);
-      let position;
-      let scoreText = "—";
-      let badgeText = "";
-      let extra = "";
-      if (stage === "DECOY") {
-        const featuredIndex = featured.findIndex((entry) => entry.id === team.id);
-        if (featuredIndex >= 0) {
-          position = decoyPositions[featuredIndex] ?? 70;
-          scoreText = team.score !== null ? fmtScore(team.score) : "—";
-          extra = "is-decoy";
-        } else {
-          position = 16 + (index % 3) * 4;
-        }
-      } else if (team.rank !== null) {
-        position = positions[team.rank] ?? 30;
-        scoreText = team.score !== null ? fmtScore(team.score) : "—";
-        badgeText = badgeFor(stage, team.rank);
-        if (Number(team.rank) === 1) extra = "is-champion";
-      } else {
-        // Hạng 1-2 chưa lộ ở THIRD/SECOND: thuyền vẫn bám giữa đường đua.
-        position = 24 + (index % 2) * 5;
-      }
-      setLane(element, position, scoreText, badgeText, extra);
-    });
-
-    if (stage === "DECOY") {
-      setHeading("CÚ LỪA", "Ba thuyền bứt phá sớm!", "Nhưng chưa chắc đây đã là thứ tự thật…", "Tín hiệu 1 · Cú lừa");
-      return;
-    }
-    if (stage === "THIRD") {
-      const team = state.teams.find((entry) => Number(entry.rank) === 3);
-      setHeading("HẠNG BA", team ? team.name : "Đang chốt", team && team.score !== null ? `Xin chúc mừng ${team.name} · ${fmtScore(team.score)} điểm` : "Kết quả đang được chốt", "Tín hiệu 2 · Đã chốt");
-      return;
-    }
-    if (stage === "SECOND") {
-      const team = state.teams.find((entry) => Number(entry.rank) === 2);
-      setHeading("HẠNG NHÌ", team ? team.name : "Đang chốt", team && team.score !== null ? `Xin chúc mừng ${team.name} · ${fmtScore(team.score)} điểm` : "Kết quả đang được chốt", "Tín hiệu 3 · Đã chốt");
-      return;
-    }
-    renderFinal();
-  }
-
-  function renderFinal() {
-    const champions = state.teams.filter((team) => Number(team.rank) === 1);
-    const names = champions.map((team) => team.name);
-    const title = names.length ? names.join(" · ") : "Kết quả chung cuộc";
-    const scoreLine = champions.length === 1 && champions[0].score !== null ? ` · ${fmtScore(champions[0].score)} điểm` : "";
-    const description = names.length ? `CHÚC MỪNG ${names.join(" · ").toUpperCase()}${scoreLine} · Nhà vô địch văn nghệ Company Trip` : "Đã hoàn tất công bố";
-    setHeading("QUÁN QUÂN VĂN NGHỆ", title, description, "Kết quả chung cuộc");
-    if (pyroRevision !== state.revision && !reducedMotion.matches) {
-      pyroRevision = state.revision;
-      // Đợi thuyền quán quân chạm bến xong mới bắn pháo hoa.
-      pyroTimer = window.setTimeout(() => { pyroStop = startPyro(); }, 1500);
-    }
   }
 
   function applyStage(nextState, force = false) {
@@ -204,9 +173,8 @@
     if (!changed) return;
     stopStageAnimation();
     root.querySelector(".ar-shell").dataset.stage = state.stage.toLowerCase();
-    if (state.stage === "ROLLING") renderRolling();
-    else if (["DECOY", "THIRD", "SECOND", "FINAL"].includes(state.stage)) renderRace(state.stage);
-    else renderIdle();
+    if (state.stage === "IDLE") renderIdle();
+    else renderRace(state.stage);
   }
 
   async function poll() {

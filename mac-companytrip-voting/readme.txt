@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.15
+Stable tag: 1.9.16
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,13 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.16 =
+- Ẩn điểm trên màn chiếu không còn làm tắt pháo hoa đang bắn (chỉ toggle CSS display:none).
+- Đua thuyền văn nghệ đơn giản hóa theo kiểu đua vịt: bỏ cú lừa DECOY, không đồng khuyến khích — mỗi thuyền nhận badge đúng hạng (QUÁN QUÂN / HẠNG NHÌ / HẠNG BA / HẠNG 4-5-6), thuyền về bến theo thứ hạng; khi đua các thuyền liên tục vượt lên/tuột lại giữ hồi hộp.
+- Trò chơi lớn: Hạng 6 = 0đ giờ giữ record riêng, bảng không còn nhầm thành "Chưa xếp"; chọn "Chưa xếp" mới xóa.
+- Thi đua: cho phép trùng hạng — hạng mục đủ 6 team chấm là hoàn tất và tính vào điểm chính thức (bỏ chặn "Chưa thể hoàn tất").
+- Intro bàn công bố tổng kết rút gọn; sửa padding/spacing tab Thi đua và nút QR cá nhân trên mobile/tablet.
 
 = 1.9.15 =
 - Làm lại logic Thi đua: Điểm Thi đua chính thức = ROUND(trung bình các hạng mục HOÀN TẤT), luôn 0-50; tổng toàn hệ thống tối đa 1.000đ (600 + 150 + 200 + 50). Hạng mục hoàn tất = đủ 6 team có record (kể cả 0đ) và thang 50..0 không trùng; hạng mục dở chỉ hiện điểm thô.

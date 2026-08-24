@@ -248,9 +248,8 @@ final class MAC_Points {
         }
         $vote_map = self::vote_averages();
         // v1.9.15: Điểm Thi đua chính thức = ROUND(trung bình các hạng mục HOÀN TẤT), luôn 0-50.
-        // Hạng mục hoàn tất = đủ mọi team thi đấu có record (kể cả 0đ) VÀ thang 50..0 không trùng hạng.
+        // v1.9.16: hạng mục hoàn tất = đủ mọi team thi đấu có record (kể cả 0đ); trùng hạng vẫn được tính.
         $team_count = count($teams);
-        $ladder = MAC_Voting_DB::RANK_LADDER;
         $category_meta = array();
         foreach ($rounds as $round) {
             $values = array();
@@ -260,13 +259,10 @@ final class MAC_Points {
                     $values[] = (int) $awards_of_team[(string) $round['id']];
                 }
             }
-            $sorted = $values;
-            rsort($sorted);
             $category_meta[(int) $round['id']] = array(
                 'scoredTeams' => count($values),
                 'teamCount' => $team_count,
-                'isComplete' => $team_count > 0 && count($values) === $team_count && $sorted === $ladder,
-                'hasDuplicateRanks' => count($values) !== count(array_unique($values)),
+                'isComplete' => $team_count > 0 && count($values) === $team_count,
             );
         }
         $completed_count = 0;
@@ -336,7 +332,6 @@ final class MAC_Points {
                 'scoredTeams' => 0,
                 'teamCount' => $team_count,
                 'isComplete' => false,
-                'hasDuplicateRanks' => false,
             ));
         }
         unset($round_row);

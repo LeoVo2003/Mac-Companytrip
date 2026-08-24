@@ -47,7 +47,9 @@ final class MAC_Games {
             $team_id
         ), ARRAY_A);
         $now = MAC_Voting_DB::utc_now();
-        if ($points === 0) {
+        // v1.9.16: rank 0 (Chưa xếp) mới xóa record; Hạng 6 = 0đ phải giữ record explicit
+        // để bảng không nhầm Hạng 6 thành "Chưa xếp".
+        if ($rank === 0) {
             if ($existing) {
                 $wpdb->delete($ledger, array('id' => (int) $existing['id']), array('%d'));
             }
@@ -55,7 +57,7 @@ final class MAC_Games {
                 'gameId' => $game_id,
                 'game' => $game['name'],
                 'teamName' => $team['name'],
-                'rank' => $rank,
+                'rank' => 0,
                 'points' => 0,
                 'previous' => $existing ? (int) $existing['points'] : 0,
             ));
@@ -113,12 +115,14 @@ final class MAC_Games {
             $cells = array();
             $total = 0;
             foreach ($games as $game) {
-                $points = $map[$team_id][self::SOURCE . '_' . $game['id']] ?? 0;
+                $source_id = self::SOURCE . '_' . $game['id'];
+                $has_rank = isset($map[$team_id][$source_id]);
+                $points = $has_rank ? (int) $map[$team_id][$source_id] : 0;
                 $total += $points;
                 $cells[] = array(
                     'gameId' => $game['id'],
                     'points' => $points,
-                    'rank' => $points > 0 ? self::rank_from_points($points) : 0,
+                    'rank' => $has_rank ? self::rank_from_points($points) : 0,
                 );
             }
             $board[] = array(

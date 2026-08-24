@@ -332,8 +332,12 @@ for (const tc of TIE_CASES) {
 }
 
 // --- v1.9.15: Thi đua = trung bình các hạng mục hoàn tất (0-50), không còn SUM ---
-for (const invariant of ["clear_award", "thiduaCompletedRounds", "hasDuplicateRanks", "backfill_legacy_zeros", "isComplete"]) {
+// v1.9.16: hoàn tất = đủ 6 team có record (trùng hạng vẫn tính); đua thuyền bỏ DECOY.
+for (const invariant of ["clear_award", "thiduaCompletedRounds", "backfill_legacy_zeros", "isComplete"]) {
   if (!pointsFile.includes(invariant)) throw new Error(`Missing thidua average logic in MAC_Points: ${invariant}`);
+}
+if (pointsFile.includes("hasDuplicateRanks")) {
+  throw new Error("Duplicate ranks must no longer block a thidua category from completing.");
 }
 if (!adminFile.includes("MAC_Points::clear_award") || !adminFile.includes("'operation' => 'clear'") && !adminFile.includes("$operation === 'clear'")) {
   throw new Error("Admin ajax must expose a dedicated clear operation for thidua scores.");
@@ -347,11 +351,9 @@ if (adminJs.includes("thi đua không giới hạn")) {
 
 // --- v1.9.15: test case logic Thi đua (mirror MAC_Points::dashboard) ---
 const thiduaOfficial = (categories, teamIds) => {
-  const ladder = [50, 40, 30, 20, 10, 0];
   const completed = categories.filter((cat) => {
     const values = teamIds.map((id) => cat[id]).filter((v) => v !== undefined);
-    if (values.length !== teamIds.length) return false;
-    return values.slice().sort((a, b) => b - a).join(",") === ladder.join(",");
+    return values.length === teamIds.length;
   });
   const result = {};
   teamIds.forEach((id) => {
@@ -389,10 +391,10 @@ if (thiduaOfficial([LADDER_CAT([50, 40, 30, 20, 10, 0])], T).completedCount !== 
   const half = { 1: 50, 2: 40, 3: 30 };
   if (thiduaOfficial([partial], T).completedCount !== 0 || thiduaOfficial([half], T).completedCount !== 0) throw new Error("Thidua case 7/8 failed.");
 }
-// Case 9: trùng hạng (2 team cùng 50) -> chưa hoàn tất.
-if (thiduaOfficial([{ 1: 50, 2: 50, 3: 40, 4: 30, 5: 20, 6: 0 }], T).completedCount !== 0) throw new Error("Thidua case 9 failed.");
-// Case 11: kẹp 0-50 kể cả khi dữ liệu lạ.
-if (thiduaOfficial([LADDER_CAT([50, 50, 50, 50, 50, 50])], T).result[1] !== 0) throw new Error("Thidua case 11 clamp failed.");
+// Case 9: trùng hạng vẫn hoàn tất (v1.9.16 cho phép trùng) và tính trung bình bình thường.
+if (thiduaOfficial([{ 1: 50, 2: 50, 3: 40, 4: 30, 5: 20, 6: 0 }], T).completedCount !== 1) throw new Error("Thidua case 9 failed.");
+// Case 11: điểm thi đua luôn kẹp 0-50 (6 record cùng 50 -> trung bình 50, không vượt trần).
+if (thiduaOfficial([LADDER_CAT([50, 50, 50, 50, 50, 50])], T).result[1] !== 50) throw new Error("Thidua case 11 clamp failed.");
 
 // --- Màn đua thuyền văn nghệ: tách trang /ket-qua-tong (tổng) và /ket-qua-van-nghe (đua thuyền) ---
 const publicFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-public.php"), "utf8");
@@ -407,8 +409,8 @@ for (const invariant of ["mac_voting_art_results_page_id", "ket-qua-tong", "art_
 if (!adminFile.includes("artResultsUrl") || !adminJs.includes("artResultsUrl")) {
   throw new Error("Art reveal panel must link to the /ket-qua-van-nghe race screen.");
 }
-if (!artRaceJs.includes("mac-art-race-app") || !artRaceJs.includes("DECOY")) {
-  throw new Error("Art race screen must poll the art reveal endpoint and render the decoy stage.");
+if (!artRaceJs.includes("mac-art-race-app") || !artRaceJs.includes("THIRD") || artRaceJs.includes("DECOY")) {
+  throw new Error("Art race screen must follow the simple duck-race script (no decoy).");
 }
 if (!artRaceCss.includes(".ar-boat") || !artRaceCss.includes("mac-art-race-page")) {
   throw new Error("Missing art race boat styles or theme-proof body class.");

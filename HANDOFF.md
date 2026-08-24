@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.15** (2026-08-21) — làm lại logic Thi đua: điểm chính thức = ROUND(trung bình các hạng mục HOÀN TẤT) luôn 0-50 (tổng hệ thống tối đa 1.000đ); hạng mục hoàn tất = đủ 6 team có record (kể cả 0đ) + thang không trùng; 3 trạng thái chưa chấm/0đ/xóa (operation clear riêng); backfill legacy idempotent; UI 2 tab đồng bộ. Trước đó v1.9.14: migration hội tụ tách trang + alias shortcode. Trước đó v1.9.12-13 (phiên song song): tách trang + đua thuyền. Trước đó v1.9.11 trở về trước như cũ.
+> Phiên bản hiện tại: **v1.9.16** (2026-08-24) — ẩn điểm không tắt pháo hoa; đua thuyền văn nghệ kiểu đua vịt (bỏ DECOY, badge đúng hạng 1-6, về bến theo thứ hạng, đua đổi ngôi giữ hồi hộp); game Hạng 6 = 0đ giữ record riêng (hết nhầm "Chưa xếp"); thi đua cho phép trùng hạng (đủ 6 team = hoàn tất); intro tổng kết rút gọn; fix padding/spacing mobile-tablet tab Thi đua + nút QR. Trước đó v1.9.15: thi đua = trung bình hạng mục hoàn tất 0-50 + 3 trạng thái + backfill. Trước đó v1.9.14: migration hội tụ tách trang. Trước đó v1.9.12-13 (phiên song song): tách trang + đua thuyền. Trước đó v1.9.11 trở về trước như cũ.
 
 ---
 
@@ -138,7 +138,17 @@ Chi tiết:
 
 ## 6. Lịch sử gần đây & trạng thái hiện tại
 
-### v1.9.15 (2026-08-21) — mới nhất · Thi đua = trung bình hạng mục hoàn tất
+### v1.9.16 (2026-08-24) — mới nhất · đua vịt + fix UI/bug
+
+- **results.js applyStage**: tách `scoresChanged` khỏi `changed` — toggle `is-scores-hidden` thuần CSS, không gọi `stopStageAnimation()` nên pháo hoa FINAL vẫn bắn hết timer; chỉ re-render heading khi FINAL.
+- **art-race.js viết lại**: kịch bản IDLE→ROLLING→THIRD→SECOND→FINAL (backend transitions `ROLLING => THIRD`, giữ `DECOY => THIRD` cho state cũ); không DECOY/không đồng khuyến khích — badge `rankLabel` đúng hạng (QUÁN QUÂN/HẠNG NHÌ/HẠNG BA/HẠNG n); vị trí về bến `FINAL_POSITIONS {1:100,2:94,3:88,4:70,5:55,6:40}`; thuyền chưa lộ tiếp tục đua bằng 2 sóng sin tần số khác nhau (đổi ngôi liên tục, transition left 900ms).
+- **class-mac-games.php**: `set_rank` chỉ xóa record khi rank 0 (Chưa xếp); rank 6 giữ record points=0; `board()` dùng `isset` để phân biệt chưa xếp (rank 0) với Hạng 6.
+- **class-mac-points.php**: `isComplete` = đủ 6 team có record (bỏ điều kiện thang không trùng, bỏ hasDuplicateRanks) — trùng hạng vẫn tính vào điểm chính thức.
+- **admin.js**: intro totalRevealView rút gọn "Công bố kết quả chung cuộc · 6 đội · 4 mặt trận"; revealView văn nghệ bỏ nút DECOY (00-03); categoryStatus/refreshCategoryMeta bỏ nhánh trùng hạng.
+- **admin.css** media 700px: `.ma-panel-actions` căn trái (nút QR mobile), formula/chip cho wrap, `.ma-award-step` padding gọn, `.ma-award-teams` 1 cột, presets 2 cột.
+- **check-plugin.mjs**: mirror thiduaOfficial bỏ ladder-check; case 9 trùng hạng vẫn hoàn tất; case 11 kẹp 50; invariant cấm "DECOY" trong art-race.js và cấm hasDuplicateRanks trong points.
+
+### v1.9.15 (2026-08-21) — Thi đua = trung bình hạng mục hoàn tất
 
 - **Công thức mới** nằm ở `MAC_Points::dashboard()` (class-mac-points.php): `$category_meta` tính scoredTeams/teamCount/isComplete/hasDuplicateRanks cho từng hạng mục (isComplete = đủ 6 team có record VÀ rsort(values) === RANK_LADDER); `thidua = max(0, min(50, round(raw/completed)))`; response thêm thiduaRawTotal/thiduaCompletedRounds/thiduaTotalRounds + cells.hasScore; categories merge meta.
 - **award()** không còn delete khi points=0 (record 0 tồn tại = Hạng 6 đã chấm, audit TEAM_POINTS_AWARDED kèm rank); **clear_award()** mới xóa record (audit TEAM_POINTS_CLEARED); ajax_points thêm operation `clear`.

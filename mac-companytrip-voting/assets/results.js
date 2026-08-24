@@ -331,11 +331,13 @@
       shell(nextState.teams);
       force = true;
     }
-    const changed = force || !state || nextState.revision !== state.revision || nextState.stage !== state.stage || !!nextState.scoresHidden !== !!state.scoresHidden;
+    const scoresChanged = !!nextState.scoresHidden !== !!state.scoresHidden;
+    const changed = force || !state || nextState.revision !== state.revision || nextState.stage !== state.stage;
     state = nextState;
-    // Ẩn điểm = giấu hẳn khối số (display:none) thay vì che bằng •••.
+    // Ẩn điểm chỉ toggle class CSS (display:none khối .mr-score) — không dừng pháo hoa / vòng lặp đang chạy.
     root.classList.toggle("is-scores-hidden", !!state.scoresHidden);
     setConnection(true);
+    if (scoresChanged && state.stage === "FINAL") renderFinal(); // chỉ cập nhật heading, pháo hoa giữ nguyên
     if (!changed) return;
     stopStageAnimation();
     root.querySelector(".mr-shell").dataset.stage = state.stage.toLowerCase();

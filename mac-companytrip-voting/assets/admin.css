@@ -3829,6 +3829,34 @@ body.mac-admin-public-page .ma-side > a {
   .ma-staff-teams {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  /* v1.9.16: mobile — nút QR cá nhân căn trái đồng bộ, tab Thi đua gọn khoảng cách. */
+  .ma-panel-actions {
+    justify-content: flex-start;
+  }
+
+  .ma-thidua-summary .ma-thidua-formula {
+    white-space: normal;
+    max-width: 100%;
+  }
+
+  .ma-award-cat-row .ma-thidua-cat-chip {
+    margin-left: 0;
+    white-space: normal;
+  }
+
+  .ma-award-step {
+    padding: 12px 14px 8px;
+  }
+
+  .ma-award-teams {
+    grid-template-columns: 1fr;
+  }
+
+  .ma-award-presets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
 }
 
 @media (max-width: 600px) {

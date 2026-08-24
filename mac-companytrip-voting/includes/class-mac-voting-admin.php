@@ -438,7 +438,8 @@ final class MAC_Voting_Admin {
         $current = MAC_Voting_DB::reveal_state();
         $transitions = array(
             'IDLE' => 'ROLLING',
-            'ROLLING' => 'DECOY',
+            // v1.9.16: đua thuyền văn nghệ bỏ cú lừa — ROLLING tiến thẳng THIRD; DECOY giữ cho state cũ.
+            'ROLLING' => 'THIRD',
             'DECOY' => 'THIRD',
             'THIRD' => 'SECOND',
             'SECOND' => 'FINAL',

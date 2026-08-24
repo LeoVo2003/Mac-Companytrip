@@ -400,12 +400,7 @@ body.mac-art-race-page .elementor-shortcode {
   filter: blur(1px);
 }
 
-/* Thuyền lừa (DECOY): ánh bạc lạnh để trông "nhanh" nhưng không phải vàng thật. */
-.ar-lane.is-decoy .ar-boat {
-  color: var(--silver-light);
-  filter: drop-shadow(0 0 16px rgba(228, 233, 238, 0.35));
-}
-
+/* Thuyền quán quân rực vàng đồng khi chạm bến. */
 .ar-lane.is-champion .ar-boat {
   color: var(--sunset-gold);
   filter: drop-shadow(0 0 22px rgba(255, 207, 125, 0.55));

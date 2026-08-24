@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.15";
+const tag = "v1.9.16";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,11 @@ const headers = {
 };
 
 const notes = [
-  "- Thi đua làm lại: Điểm chính thức = ROUND(trung bình các hạng mục hoàn tất), luôn 0-50; tổng hệ thống tối đa 1.000đ.",
-  "- Hạng mục hoàn tất = đủ 6 team có record (kể cả 0đ) + thang 50..0 không trùng; hạng mục dở chỉ hiện điểm thô.",
-  "- 3 trạng thái rõ ràng: chưa chấm (—) / Hạng 6 = 0đ (record 0) / xóa (operation clear riêng).",
-  "- Backfill legacy idempotent cho dữ liệu cũ thiếu row 0; UI 2 tab đồng bộ công thức mới; demo đủ 6 team.",
+  "- Ẩn điểm không tắt pháo hoa đang bắn (chỉ toggle CSS).",
+  "- Đua thuyền văn nghệ kiểu đua vịt: bỏ cú lừa, badge đúng hạng 1-6, thuyền về bến theo thứ hạng, khi đua liên tục đổi ngôi giữ hồi hộp.",
+  "- Trò chơi lớn: Hạng 6 = 0đ giữ record riêng, không còn nhầm \"Chưa xếp\".",
+  "- Thi đua cho phép trùng hạng: đủ 6 team chấm là hoàn tất và tính điểm chính thức.",
+  "- Intro tổng kết rút gọn; sửa padding/spacing tab Thi đua + nút QR mobile/tablet.",
 ].join("\n");
 
 let release;
