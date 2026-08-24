@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.18";
+const tag = "v1.9.19";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Fix lỗi ẩn điểm → công bố quán quân → hiện điểm lại vẫn thấy •••: số thật luôn ghi vào cột, ẩn/hiện thuần CSS.",
+  "- Hoàn thiện responsive và spacing cho trang Thi đua; hạng mục mới xuất hiện ngay không cần tải lại.",
+  "- Làm lại danh sách Nhân sự/QR trên mobile và căn trái nhóm thao tác.",
+  "- Tối ưu bật/tắt cổng văn nghệ, trạm check-in; mở lại trạm reset cửa sổ 15 phút nhưng giữ dữ liệu check-in.",
+  "- Đồng bộ typography cho luồng chọn team và Company Trip Check-in.",
 ].join("\n");
 
 let release;

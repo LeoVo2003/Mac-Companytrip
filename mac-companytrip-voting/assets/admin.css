@@ -433,6 +433,11 @@
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
+.ma-panel button.is-loading {
+  cursor: wait;
+  opacity: 0.68;
+}
+
 /* --------------------------------------------------------------------------
    4. Panel & thống kê nhanh
    -------------------------------------------------------------------------- */
@@ -2596,6 +2601,57 @@
   background: var(--soft);
 }
 
+.ma-people-panel {
+  margin-top: 16px;
+}
+
+.ma-people-panel > header {
+  justify-content: flex-start;
+}
+
+.ma-people-header-copy {
+  min-width: 0;
+  width: 100%;
+}
+
+.ma-people-header-copy > p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ma-people-header-copy .ma-panel-actions {
+  justify-content: flex-start;
+  margin-top: 12px;
+}
+
+.ma-people-header-copy .ma-primary {
+  margin-top: 0;
+}
+
+.ma-people-body {
+  padding: 16px 20px 20px;
+}
+
+.ma-person-email,
+.ma-person-team {
+  overflow-wrap: anywhere;
+}
+
+.ma-person-status span {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  color: var(--success);
+  background: var(--success-soft);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 /* Form chọn tài khoản quét QR */
 .ma-staff-form {
   display: grid;
@@ -2876,12 +2932,17 @@
    -------------------------------------------------------------------------- */
 .ma-award {
   display: grid;
-  gap: 8px;
-  padding: 8px 0 16px;
+  gap: 0;
+  padding: 0;
 }
 
 .ma-award-step {
-  padding: 16px 20px 8px;
+  min-width: 0;
+  padding: 20px;
+}
+
+.ma-award-step + .ma-award-step {
+  border-top: 1px solid var(--border);
 }
 
 .ma-award-step h2 {
@@ -2906,8 +2967,8 @@
 
 .ma-award-cat-actions button {
   display: inline-flex;
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 44px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   padding: 0;
@@ -2968,6 +3029,8 @@
   color: var(--r);
   background: var(--panel);
   font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
   cursor: pointer;
 }
 
@@ -3016,6 +3079,10 @@
 
 /* v1.9.15: trạng thái hạng mục thi đua (hoàn tất / đang chấm / trùng hạng) + cột Điểm Thi đua. */
 .ma-thidua-summary .ma-thidua-formula {
+  display: inline-flex;
+  max-width: min(100%, 620px);
+  min-height: 32px;
+  align-items: center;
   padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -3023,14 +3090,17 @@
   background: var(--soft);
   font-size: 11px;
   font-weight: 700;
+  line-height: 1.4;
   white-space: nowrap;
 }
 
-.ma-thidua-summary p {
-  margin: 10px 0 0;
+.ma-thidua-summary .ma-thidua-summary-copy {
+  margin: 0;
+  padding: 14px 20px 16px;
   color: var(--muted);
   font-size: 13px;
   line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .ma-thidua-status {
@@ -3051,12 +3121,16 @@
 }
 
 .ma-thidua-cat-chip {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
   margin-left: 10px;
   padding: 5px 10px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--soft);
   font-size: 11px;
+  line-height: 1.4;
   white-space: nowrap;
 }
 
@@ -3064,7 +3138,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
+  gap: 12px;
 }
 
 .ma-award-cat-row select {
@@ -3836,17 +3910,51 @@ body.mac-admin-public-page .ma-side > a {
   }
 
   .ma-thidua-summary .ma-thidua-formula {
+    width: 100%;
     white-space: normal;
     max-width: 100%;
+    border-radius: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .ma-thidua-summary > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ma-thidua-summary .ma-thidua-summary-copy {
+    padding: 12px 14px 14px;
   }
 
   .ma-award-cat-row .ma-thidua-cat-chip {
+    width: 100%;
     margin-left: 0;
+    border-radius: 12px;
     white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .ma-award-step {
-    padding: 12px 14px 8px;
+    padding: 16px 14px;
+  }
+
+  .ma-award-step-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .ma-award-cat-actions {
+    margin-left: auto;
+  }
+
+  .ma-award-cat-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ma-award-cat-row select {
+    width: 100%;
+    min-width: 0;
   }
 
   .ma-award-teams {
@@ -3998,6 +4106,115 @@ body.mac-admin-public-page .ma-side > a {
     flex: 1 1 140px;
   }
 
+  .ma-people-header-copy .ma-panel-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .ma-people-header-copy .ma-panel-actions button {
+    width: 100%;
+  }
+
+  .ma-people-body {
+    padding: 14px;
+  }
+
+  .ma-people-filter {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .ma-people-filter select,
+  .ma-people-filter input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ma-people-table {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .ma-people-table table,
+  .ma-people-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .ma-people-table thead {
+    display: none;
+  }
+
+  .ma-people-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 12px;
+    margin-bottom: 10px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--panel);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  }
+
+  .ma-people-table td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    font-size: 13px;
+  }
+
+  .ma-people-table .ma-person-name,
+  .ma-people-table .ma-person-email,
+  .ma-people-table .ma-people-actions,
+  .ma-people-table .ma-people-empty td {
+    grid-column: 1 / -1;
+  }
+
+  .ma-people-table .ma-person-name strong {
+    display: block;
+    font-size: 15px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .ma-people-table .ma-person-email {
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+
+  .ma-people-table .ma-person-team {
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+
+  .ma-people-table .ma-person-status {
+    justify-self: end;
+  }
+
+  .ma-people-table .ma-people-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .ma-people-table .ma-people-actions button {
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 8px;
+    line-height: 1.25;
+    white-space: normal;
+  }
+
+  .ma-people-table .ma-people-empty {
+    display: block;
+    color: var(--muted);
+  }
+
   .ma-panel .ma-board-table {
     margin: 10px 10px 14px;
   }
@@ -4012,6 +4229,10 @@ body.mac-admin-public-page .ma-side > a {
 @media (max-width: 430px) {
   .ma-chart {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ma-people-table .ma-people-actions {
+    grid-template-columns: 1fr;
   }
 }
 

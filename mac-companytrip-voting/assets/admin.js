@@ -76,6 +76,17 @@
     return result.data;
   };
   const notify = (message, error = false) => { const old = root.querySelector(".ma-alert"); if (old) old.remove(); const box = document.createElement("div"); box.className = "ma-alert" + (error ? " error" : ""); box.setAttribute("role", error ? "alert" : "status"); box.setAttribute("aria-live", error ? "assertive" : "polite"); box.textContent = message; root.prepend(box); setTimeout(() => box.remove(), 4500); };
+  const applyPointsPayload = (result) => {
+    const board = result?.totalBoard || result?.overview?.totalBoard;
+    if (board) data.totalBoard = board;
+  };
+  const applyCheckpointPayload = (result) => {
+    if (Array.isArray(result?.checkpoints)) data.checkpoints = result.checkpoints;
+    if (Array.isArray(result?.checkinBoard)) data.checkinBoard = result.checkinBoard;
+    if (Array.isArray(result?.teamPoints)) data.teamPoints = result.teamPoints;
+    if (result?.totalBoard) data.totalBoard = result.totalBoard;
+    data.stats = { ...(data.stats || {}), openCheckpointId: Number(result?.openCheckpointId || 0) };
+  };
   const normalizeHeader = (value) => String(value || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -441,7 +452,7 @@
     const selectedCell = selectedTeam ? (selectedTeam.cells || []).find((entry) => String(entry.categoryId) === String(awardCategoryId)) : null;
     const currentPoints = selectedCell?.hasScore ? Number(selectedCell.points) : null;
     const canScore = Boolean(awardCategoryId && awardTeamId);
-    const info = `<section class="ma-panel ma-thidua-summary"><header><div><small>THI ĐUA · 5%</small><h2>Tối đa 50 điểm</h2></div><span class="ma-thidua-formula">Điểm chính thức = ROUND(tổng hạng mục hoàn tất ÷ số hạng mục hoàn tất)</span></header><p>Mỗi hạng mục xếp hạng 50 · 40 · 30 · 20 · 10 · 0. Hạng mục đủ 6 team chấm là hoàn tất và tính vào điểm Thi đua (trùng hạng vẫn tính); hạng mục chấm dở chỉ hiện điểm thô.</p></section>`;
+    const info = `<section class="ma-panel ma-thidua-summary"><header><div><small>THI ĐUA · 5%</small><h2>Tối đa 50 điểm</h2></div><span class="ma-thidua-formula">Điểm chính thức = ROUND(tổng hạng mục hoàn tất ÷ số hạng mục hoàn tất)</span></header><p class="ma-thidua-summary-copy">Mỗi hạng mục xếp hạng 50 · 40 · 30 · 20 · 10 · 0. Hạng mục đủ 6 team chấm là hoàn tất và tính vào điểm Thi đua (trùng hạng vẫn tính); hạng mục chấm dở chỉ hiện điểm thô.</p></section>`;
     const award = `${info}<section class="ma-panel ma-award"><div class="ma-award-step"><div class="ma-award-step-head"><h2>1. Hạng mục thi đua</h2><div class="ma-award-cat-actions"><button type="button" id="ma-cat-add" aria-label="Thêm hạng mục thi đua">+</button><button type="button" id="ma-cat-edit" aria-label="Sửa hạng mục thi đua" ${awardCategoryId ? "" : "disabled"}>✎</button><button type="button" id="ma-cat-delete" class="is-danger" aria-label="Xóa hạng mục thi đua" ${awardCategoryId ? "" : "disabled"}>×</button></div></div>${categories.length ? `<div class="ma-award-cat-row"><select id="ma-award-category">${categories.map((category) => `<option value="${category.id}" ${String(category.id) === String(awardCategoryId) ? "selected" : ""}>${esc(category.name)}</option>`).join("")}</select>${selectedCategory ? `<span class="ma-thidua-status ${catStatus.cls} ma-thidua-cat-chip">${catStatus.label} team đã chấm${selectedCategory.isComplete ? " · ✓ Hoàn tất · Được tính vào điểm Thi đua" : " · Chưa hoàn tất · Chưa tính vào tổng"}</span>` : ""}</div>` : `<p class="ma-cat-empty">Chưa có hạng mục thi đua. Bấm + để thêm.</p>`}</div><div class="ma-award-step"><h2>2. Team</h2><div class="ma-award-teams">${teams.map((team) => { const cell = (team.cells || []).find((entry) => String(entry.categoryId) === String(awardCategoryId)); const selected = String(team.teamId) === String(awardTeamId); return `<button type="button" data-award-team="${team.teamId}" class="${selected ? "is-selected" : ""}" ${awardCategoryId ? "" : "disabled"} aria-pressed="${selected}"><strong>${esc(team.teamName)}</strong><small class="${cell?.hasScore ? "" : "ma-thidua-unscored"}">${cell?.hasScore ? `Hạng ${rankOfPoints(cell.points)} · ${cell.points}đ` : "Chưa chấm"}</small></button>`; }).join("")}</div></div><div class="ma-award-step"><h2>3. Điểm theo hạng</h2><p style="margin:0 0 8px;color:#667085;font-size:13px">Chọn hạng cho team; bấm lại ô đang chọn để xóa điểm đã chấm.</p><div class="ma-award-presets">${ladder.map((value, index) => `<button type="button" data-award-points="${value}" class="${canScore && currentPoints === value ? "is-selected" : ""} ${value === 0 ? "is-zero" : ""}" ${canScore ? "" : "disabled"} aria-pressed="${canScore && currentPoints === value}">Hạng ${index + 1} · ${value}đ</button>`).join("")}</div></div></section>`;
     const read = `${info}<section class="ma-panel"><header><div><small>THI ĐUA</small><h2>Điểm từng đội</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Điểm chính thức là trung bình các hạng mục đã hoàn tất, tối đa 50đ. Chỉ super admin mới chấm được.</p></div></header>${thiduaMatrix(categories, teams)}</section>`;
     return `<header class="ma-top"><div><small>THI ĐUA</small><h1>Chấm điểm thi đua</h1></div>${topActions()}</header>${canWrite() ? award : read}`;
@@ -480,7 +491,9 @@
       if (peopleQuery && haystack.indexOf(peopleQuery.toLowerCase()) === -1) return false;
       return true;
     });
-    return `<section class="ma-panel" style="margin-top:16px"><header><div><small>QR CÁ NHÂN</small><h2>${canWrite() ? "Gửi QR qua email" : "Danh sách nhân sự"}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">${canWrite() ? "Mỗi người một QR. Dùng cho check-in và login văn nghệ." : "Chỉ xem danh sách. Super admin mới gửi hoặc tạo lại QR."}</p></div>${canWrite() ? `<div class="ma-panel-actions"><button type="button" class="ma-primary" id="ma-person-add">+ Thêm người</button><button type="button" class="ma-primary" id="ma-send-filtered">Gửi QR cho danh sách đang lọc</button></div>` : ""}</header><div style="padding:16px 20px 20px"><div class="ma-people-filter"><select id="ma-people-team"><option value="all">Tất cả team</option>${(data.teams || []).map((team) => `<option value="${team.id}" ${String(peopleTeam) === String(team.id) ? "selected" : ""}>#${team.team_no} ${esc(team.name)}</option>`).join("")}</select><input id="ma-people-query" type="search" placeholder="Tìm tên hoặc email" value="${esc(peopleQuery)}"></div><div class="ma-people-table"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Team</th><th>Trạng thái</th>${canWrite() ? "<th></th>" : ""}</tr></thead><tbody>${voters.map((row) => `<tr><td><strong>${esc(row.full_name)}</strong></td><td>${esc(row.email || "—")}</td><td>#${row.team_no} ${esc(row.team_name)}</td><td>${row.status === "ACTIVE" ? "Hoạt động" : "Ngưng"}</td>${canWrite() ? `<td class="ma-people-actions"><button type="button" data-qr-view="${row.id}">Xem & gửi</button><button type="button" data-qr-regen="${row.id}">Tạo lại QR</button>${row.email ? `<button type="button" data-role-grant="${row.id}">Cấp quyền</button>` : ""}</td>` : ""}</tr>`).join("") || `<tr><td colspan="${canWrite() ? 5 : 4}">Không có nhân sự khớp bộ lọc.</td></tr>`}</tbody></table></div></div></section>`;
+    const actions = canWrite() ? `<div class="ma-panel-actions"><button type="button" class="ma-primary" id="ma-person-add">+ Thêm người</button><button type="button" class="ma-primary" id="ma-send-filtered">Gửi QR cho danh sách đang lọc</button></div>` : "";
+    const rows = voters.map((row) => `<tr><td class="ma-person-name"><strong>${esc(row.full_name)}</strong></td><td class="ma-person-email">${esc(row.email || "—")}</td><td class="ma-person-team">#${row.team_no} ${esc(row.team_name)}</td><td class="ma-person-status"><span>${row.status === "ACTIVE" ? "Hoạt động" : "Ngưng"}</span></td>${canWrite() ? `<td class="ma-people-actions"><button type="button" data-qr-view="${row.id}">Xem & gửi</button><button type="button" data-qr-regen="${row.id}">Tạo lại QR</button>${row.email ? `<button type="button" data-role-grant="${row.id}">Cấp quyền</button>` : ""}</td>` : ""}</tr>`).join("");
+    return `<section class="ma-panel ma-people-panel"><header><div class="ma-people-header-copy"><small>QR CÁ NHÂN</small><h2>${canWrite() ? "Gửi QR qua email" : "Danh sách nhân sự"}</h2><p>${canWrite() ? "Mỗi người một QR. Dùng cho check-in và login văn nghệ." : "Chỉ xem danh sách. Super admin mới gửi hoặc tạo lại QR."}</p>${actions}</div></header><div class="ma-people-body"><div class="ma-people-filter"><select id="ma-people-team"><option value="all">Tất cả team</option>${(data.teams || []).map((team) => `<option value="${team.id}" ${String(peopleTeam) === String(team.id) ? "selected" : ""}>#${team.team_no} ${esc(team.name)}</option>`).join("")}</select><input id="ma-people-query" type="search" placeholder="Tìm tên hoặc email" value="${esc(peopleQuery)}"></div><div class="ma-people-table"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Team</th><th>Trạng thái</th>${canWrite() ? "<th></th>" : ""}</tr></thead><tbody>${rows || `<tr class="ma-people-empty"><td colspan="${canWrite() ? 5 : 4}">Không có nhân sự khớp bộ lọc.</td></tr>`}</tbody></table></div></div></section>`;
   }
   function dataView() { return `<header class="ma-top"><div><small>NHÂN SỰ</small><h1>Nhân sự & QR</h1></div></header>${window.MACVotingAdmin.permalinkWarning ? `<div class="ma-permalink-warning"><strong>URL đẹp chưa được bật</strong><span>Website đang dùng link dạng <code>?page_id=...</code>. Chọn cấu trúc “Tên bài viết” rồi lưu để dùng đường dẫn /cham-diem-van-nghe/.</span><a href="${esc(window.MACVotingAdmin.permalinkSettingsUrl)}">Mở cài đặt Permalink →</a></div>` : ""}${Number(data.stats.missingEmailVoters) ? `<div class="ma-permalink-warning"><strong>${data.stats.missingEmailVoters} nhân sự chưa có email</strong><span>Những người này chưa thể đăng nhập bằng username. Hãy import lại CSV có cột Email để mapping vào dữ liệu cũ.</span><a href="${esc(window.MACVotingAdmin.templateUrl)}">Tải CSV mẫu mới →</a></div>` : ""}${importFeedback ? `<div class="ma-import-success"><span>✓</span><div><strong>${esc(importFeedback.message)}</strong><small>${esc(importFeedback.fileName)} · ${esc(importFeedback.at)} · Tổng hiện có ${data.stats.activeVoters} người được vote</small></div></div>${(importFeedback.staffAccounts || []).length ? `<div class="ma-import-success ma-staff-passwords"><span>!</span><div><strong>Mật khẩu tài khoản BTC — chỉ hiện một lần</strong><ul>${importFeedback.staffAccounts.map((item) => `<li><b>${esc(item.email)}</b> · ${esc(item.password)}</li>`).join("")}</ul></div></div>` : ""}` : ""}${personFeedback ? `<div class="ma-import-success ma-staff-passwords"><span>!</span><div><strong>Tài khoản ${personFeedback.kind === "super" ? "Super admin" : "BTC"} của ${esc(personFeedback.name)} — chỉ hiện một lần</strong><ul><li>Đăng nhập: <b>${esc(personFeedback.login)}</b> · Mật khẩu: <b>${esc(personFeedback.password)}</b></li></ul><small>Dùng tài khoản này đăng nhập trang Máy quét BTC. Muốn đổi team được quét thì vào tab Check-in → Tài khoản máy quét.</small></div></div>` : ""}${canWrite() ? `<div class="ma-data"><section class="ma-panel"><span class="ma-icon">⇧</span><small>IMPORT CSV</small><h2>Danh sách nhân sự</h2><p>Cột bắt buộc: Họ tên, Team, Email. Cột tùy chọn: Vai trò (BTC/Super admin) và Mật khẩu để tạo tài khoản dashboard. Email chấp nhận @macusaone.com, @yesoffice.vn hoặc @macmarketing.vn; username không có @ mặc định thành @macusaone.com.</p><label class="ma-primary">Chọn & xem trước CSV<input id="ma-import" type="file" accept=".csv,text/csv"></label><a href="${esc(window.MACVotingAdmin.templateUrl)}">↓ Tải file mẫu</a></section><section class="ma-panel"><span class="ma-icon">▦</span><small>SAO LƯU & ĐỐI SOÁT</small><h2>Xuất dữ liệu</h2><p>Gồm bảng điểm và chi tiết toàn bộ phiếu hợp lệ/đã hủy.</p><a class="ma-primary" href="${esc(window.MACVotingAdmin.exportUrl)}">↓ Xuất CSV kết quả</a></section></div>` : ""}${personnelQr()}`; }
   function render() {
@@ -651,12 +664,19 @@
     root.querySelector("#ma-gate")?.addEventListener("click", async () => {
       const next = !data.votingEnabled;
       if (!(await confirmDialog({ title: "Cổng văn nghệ", message: next ? "Bật cổng văn nghệ? Nhân viên sẽ login được bằng QR và username." : "Tắt cổng văn nghệ? Public sẽ không vào được trang chấm điểm.", confirmLabel: next ? "Bật cổng" : "Tắt cổng", danger: !next }))) return;
+      const previous = !!data.votingEnabled;
+      data.votingEnabled = next;
+      render();
       try {
         const result = await ajax("mac_vote_gate", { enabled: next ? "1" : "0" });
-        data = result.overview;
+        data.votingEnabled = !!result.votingEnabled;
         render();
         notify(result.message);
-      } catch (err) { notify(err.message, true); }
+      } catch (err) {
+        data.votingEnabled = previous;
+        render();
+        notify(err.message, true);
+      }
     });
     root.querySelectorAll("[data-checkpoint]").forEach((button) => button.addEventListener("click", async () => {
       const operation = button.dataset.op;
@@ -672,11 +692,21 @@
       };
       const checkpointLabels = { open: "Mở trạm", close: "Đóng & chốt", reopen: "Mở lại" };
       if (!(await confirmDialog({ title: `Trạm ${button.dataset.checkpoint}`, message: messages[operation], confirmLabel: checkpointLabels[operation], danger: operation === "close" }))) return;
+      const originalLabel = button.textContent;
+      button.disabled = true;
+      button.classList.add("is-loading");
+      button.textContent = operation === "reopen" ? "Đang mở lại…" : operation === "close" ? "Đang chốt…" : "Đang mở…";
       try {
-        data = await ajax("mac_vote_checkpoint", { checkpointId: button.dataset.checkpoint, operation, durationMinutes: duration || "" });
+        const result = await ajax("mac_vote_checkpoint", { checkpointId: button.dataset.checkpoint, operation, durationMinutes: duration || "" });
+        applyCheckpointPayload(result);
         render();
-        notify("Đã cập nhật trạm check-in.");
-      } catch (err) { notify(err.message, true); }
+        notify(result.message || "Đã cập nhật trạm check-in.");
+      } catch (err) {
+        button.disabled = false;
+        button.classList.remove("is-loading");
+        button.textContent = originalLabel;
+        notify(err.message, true);
+      }
     }));
     root.querySelectorAll("[data-game-rank]").forEach((select) => select.addEventListener("change", async () => {
       const rank = Number(select.value);
@@ -927,7 +957,7 @@
           teamId: awardTeamId,
           points,
         });
-        data = result.overview;
+        applyPointsPayload(result);
         render();
         notify(result.message);
       } catch (err) {
@@ -945,7 +975,7 @@
           categoryId: awardCategoryId,
           teamId: awardTeamId,
         });
-        data = result.overview;
+        applyPointsPayload(result);
         render();
         notify(result.message);
       } catch (err) {
@@ -962,18 +992,27 @@
       if (cell?.hasScore && Number(cell.points) === value) await saveClear();
       else await saveAward(value);
     }));
-    root.querySelector("#ma-cat-add")?.addEventListener("click", async () => {
+    root.querySelector("#ma-cat-add")?.addEventListener("click", async (event) => {
+      const trigger = event.currentTarget;
       const name = await promptDialog({ title: "Thêm hạng mục thi đua", label: "Tên hạng mục thi đua", confirmLabel: "Thêm hạng mục", placeholder: "Ví dụ: Trang phục đẹp" });
       if (name === null) return;
       const trimmed = name.trim();
       if (trimmed.length < 2) { notify("Tên hạng mục thi đua phải có ít nhất 2 ký tự.", true); return; }
+      trigger.disabled = true;
+      trigger.classList.add("is-loading");
+      trigger.textContent = "…";
       try {
         const result = await ajax("mac_vote_points", { operation: "add", name: trimmed });
         if (result.categoryId) awardCategoryId = String(result.categoryId);
-        data = result.overview;
+        applyPointsPayload(result);
         render();
         notify(result.message);
-      } catch (err) { notify(err.message, true); }
+      } catch (err) {
+        trigger.disabled = false;
+        trigger.classList.remove("is-loading");
+        trigger.textContent = "+";
+        notify(err.message, true);
+      }
     });
     root.querySelector("#ma-cat-edit")?.addEventListener("click", async () => {
       const current = (data.totalBoard?.categories || []).find((category) => String(category.id) === String(awardCategoryId));
@@ -984,7 +1023,7 @@
       if (trimmed.length < 2) { notify("Tên hạng mục thi đua phải có ít nhất 2 ký tự.", true); return; }
       try {
         const result = await ajax("mac_vote_points", { operation: "rename", categoryId: awardCategoryId, name: trimmed });
-        data = result.overview;
+        applyPointsPayload(result);
         render();
         notify(result.message);
       } catch (err) { notify(err.message, true); }
@@ -996,7 +1035,7 @@
       try {
         const result = await ajax("mac_vote_points", { operation: "delete", categoryId: awardCategoryId });
         awardCategoryId = "";
-        data = result.overview;
+        applyPointsPayload(result);
         render();
         notify(result.message);
       } catch (err) { notify(err.message, true); }

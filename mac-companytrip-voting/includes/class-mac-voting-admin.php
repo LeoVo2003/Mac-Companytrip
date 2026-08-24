@@ -1045,7 +1045,7 @@ final class MAC_Voting_Admin {
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), $enabled ? 'VOTING_MODULE_ENABLED' : 'VOTING_MODULE_DISABLED', 'setting', 'mac_voting_public_enabled');
         wp_send_json_success(array(
             'message' => $enabled ? 'Đã bật cổng văn nghệ. QR cá nhân và username đã mở.' : 'Đã tắt cổng văn nghệ.',
-            'overview' => self::overview(),
+            'votingEnabled' => $enabled,
         ));
     }
 
@@ -1072,7 +1072,20 @@ final class MAC_Voting_Admin {
                 'openCheckpointId' => is_array($error_data) ? ($error_data['openCheckpointId'] ?? null) : null,
             ), is_array($error_data) ? (int) ($error_data['status'] ?? 400) : 400);
         }
-        wp_send_json_success(self::overview_payload());
+        $active = MAC_Checkin::active_checkpoint();
+        $payload = array(
+            'message' => $operation === 'close' ? 'Đã đóng và chốt trạm check-in.' : ($operation === 'reopen' ? 'Đã mở lại trạm với cửa sổ team mới.' : 'Đã mở trạm check-in.'),
+            'checkpoints' => MAC_Checkin::checkpoints(),
+            'checkinBoard' => self::checkin_overview_board(),
+            'openCheckpointId' => $active ? (int) $active['id'] : 0,
+        );
+        // Chỉ khi đóng trạm mới phải tải lại các bảng điểm nặng;
+        // mở/mở lại chỉ thay đổi trạng thái và cửa sổ check-in.
+        if ($operation === 'close') {
+            $payload['teamPoints'] = MAC_Checkin::team_points_board();
+            $payload['totalBoard'] = MAC_Points::dashboard();
+        }
+        wp_send_json_success($payload);
     }
 
     public static function ajax_qr(): void {
@@ -1340,7 +1353,7 @@ final class MAC_Voting_Admin {
         );
         wp_send_json_success(array(
             'message' => $messages[$operation] ?? 'Đã cập nhật.',
-            'overview' => self::overview(),
+            'totalBoard' => MAC_Points::dashboard(),
             'categoryId' => $operation === 'add' ? (int) $result : 0,
         ));
     }

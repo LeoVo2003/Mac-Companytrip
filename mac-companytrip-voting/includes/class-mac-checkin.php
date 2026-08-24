@@ -137,6 +137,7 @@ final class MAC_Checkin {
     public static function reopen_checkpoint(int $checkpoint_id, int $minutes = 0) {
         global $wpdb;
         $table = MAC_Voting_DB::table('checkpoints');
+        $windows = MAC_Voting_DB::table('checkpoint_windows');
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id=%d", $checkpoint_id), ARRAY_A);
         if (!$row) {
             return new WP_Error('not_found', 'Trạm check-in không tồn tại.', array('status' => 404));
@@ -152,14 +153,30 @@ final class MAC_Checkin {
             ));
         }
         $minutes = MAC_Voting_DB::duration_minutes($minutes, MAC_Voting_DB::DEFAULT_CHECKIN_DURATION_MINUTES);
-        $wpdb->update(
+        $wpdb->query('START TRANSACTION');
+        $updated = $wpdb->update(
             $table,
             array('status' => 'OPEN', 'opened_at' => MAC_Voting_DB::utc_now(), 'closes_at' => MAC_Voting_DB::deadline_from_minutes($minutes), 'closed_at' => null, 'finalized_at' => null),
             array('id' => $checkpoint_id),
             array('%s', '%s', '%s', '%s', '%s'),
             array('%d')
         );
-        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'CHECKPOINT_REOPENED', 'checkpoint', (string) $checkpoint_id);
+        if ($updated === false) {
+            $wpdb->query('ROLLBACK');
+            return new WP_Error('db_error', 'Không thể mở lại trạm.', array('status' => 500));
+        }
+        // Mở lại là một phiên check-in mới: giữ các lượt quét đã ghi nhận,
+        // nhưng xóa cửa sổ 15 phút cũ để team chưa đủ được quét tiếp.
+        $deleted = $wpdb->delete($windows, array('checkpoint_id' => $checkpoint_id), array('%d'));
+        if ($deleted === false) {
+            $wpdb->query('ROLLBACK');
+            return new WP_Error('db_error', 'Không thể reset cửa sổ check-in khi mở lại trạm.', array('status' => 500));
+        }
+        $wpdb->query('COMMIT');
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'CHECKPOINT_REOPENED', 'checkpoint', (string) $checkpoint_id, array(
+            'durationMinutes' => $minutes,
+            'resetTeamWindows' => true,
+        ));
         return self::checkpoint_row($checkpoint_id);
     }
 

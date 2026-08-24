@@ -124,6 +124,8 @@ const qrFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-
 const adminFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-admin.php"), "utf8");
 const publicJs = fs.readFileSync(path.join(pluginRoot, "assets/public.js"), "utf8");
 const adminJs = fs.readFileSync(path.join(pluginRoot, "assets/admin.js"), "utf8");
+const adminCss = fs.readFileSync(path.join(pluginRoot, "assets/admin.css"), "utf8");
+const checkinCss = fs.readFileSync(path.join(pluginRoot, "assets/checkin.css"), "utf8");
 const resultsJs = fs.readFileSync(path.join(pluginRoot, "assets/results.js"), "utf8");
 const pointsFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-points.php"), "utf8");
 const gamesFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-games.php"), "utf8");
@@ -135,6 +137,18 @@ for (const invariant of ["CHECKIN_MAX_PER_CHECKPOINT = 150", "CHECKIN_WINDOW_MIN
 }
 for (const invariant of ["window_locked", "WINDOW_LOCKED", "set_exemption", "team_window"]) {
   if (!checkinFile.includes(invariant)) throw new Error(`Missing 15-minute window or exemption invariant: ${invariant}`);
+}
+for (const invariant of ["$wpdb->delete($windows", "resetTeamWindows"]) {
+  if (!checkinFile.includes(invariant)) throw new Error(`Reopening a checkpoint must reset stale team windows: ${invariant}`);
+}
+for (const invariant of ["applyPointsPayload", "applyCheckpointPayload", "ma-people-panel"]) {
+  if (!adminJs.includes(invariant)) throw new Error(`Missing responsive or lightweight admin update flow: ${invariant}`);
+}
+for (const invariant of [".ma-people-table tr", ".ma-thidua-summary-copy", ".ma-award-step + .ma-award-step"]) {
+  if (!adminCss.includes(invariant)) throw new Error(`Missing Thi dua or personnel responsive styles: ${invariant}`);
+}
+for (const invariant of ["button.mc-back", "font-size: 14px", "font-weight: 600"]) {
+  if (!checkinCss.includes(invariant)) throw new Error(`Check-in back controls must keep shared typography: ${invariant}`);
 }
 for (const invariant of ["SOURCE = 'GAME'", "RANK_LADDER", "GAME_RANK_SET", "function board"]) {
   if (!gamesFile.includes(invariant)) throw new Error(`Missing big-game ranking invariant: ${invariant}`);

@@ -73,8 +73,16 @@ body.mac-checkin-page .wp-block-post-content {
 }
 
 .mac-checkin-app button,
-.mac-checkin-app select {
+.mac-checkin-app select,
+.mac-checkin-app input {
   font: inherit;
+}
+
+.mac-checkin-app h1,
+.mac-checkin-app p,
+.mac-checkin-app strong,
+.mac-checkin-app small {
+  font-family: inherit;
 }
 
 .mac-checkin-app button:focus-visible,
@@ -111,6 +119,7 @@ body.mac-checkin-page .wp-block-post-content {
 }
 
 .mc-top img {
+  flex: 0 0 auto;
   width: 84px;
   height: auto;
 }
@@ -124,8 +133,11 @@ body.mac-checkin-page .wp-block-post-content {
   border-radius: 12px;
   background: var(--panel);
   color: var(--muted);
+  font-family: inherit;
   font-size: 14px;
   font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
   text-decoration: none;
 }
 
@@ -206,6 +218,8 @@ body.mac-checkin-page .wp-block-post-content {
 .mc-card h1 {
   margin: 0 0 4px;
   font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
   letter-spacing: -0.03em;
 }
 
@@ -270,7 +284,10 @@ body.mac-checkin-page .wp-block-post-content {
 }
 
 button.mc-back {
-  font: inherit;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
 }
 
