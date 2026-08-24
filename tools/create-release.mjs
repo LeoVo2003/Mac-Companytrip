@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.17";
+const tag = "v1.9.18";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Fix lỗi màn tổng kết văng \"Cannot read properties of null (reading 'scoresHidden')\" ở lần tải đầu tiên.",
+  "- Fix lỗi ẩn điểm → công bố quán quân → hiện điểm lại vẫn thấy •••: số thật luôn ghi vào cột, ẩn/hiện thuần CSS.",
 ].join("\n");
 
 let release;

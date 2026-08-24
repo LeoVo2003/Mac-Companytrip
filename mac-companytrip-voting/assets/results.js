@@ -80,11 +80,6 @@
     element.querySelector(".mr-score span").textContent = scoreText;
   }
 
-  // Admin có thể ẩn điểm trên màn chiếu: che số bằng ••• cho tới khi mở lại.
-  function displayScore(text) {
-    return state?.scoresHidden ? "•••" : text;
-  }
-
   function stopStageAnimation() {
     window.clearInterval(animationTimer);
     animationTimer = 0;
@@ -135,7 +130,7 @@
     if (reducedMotion.matches) {
       const gentle = () => waves.forEach((wave) => {
         const element = teamElement(wave.id);
-        if (element) setBar(element, wave.base, displayScore(drift(wave)));
+        if (element) setBar(element, wave.base, drift(wave));
       });
       gentle();
       animationTimer = window.setInterval(gentle, 1000);
@@ -152,7 +147,7 @@
         clearTeamState(element);
         const waveLevel = wave.base + Math.sin((elapsed / wave.period) * Math.PI * 2 + wave.phase) * wave.amplitude;
         const level = wave.start + (waveLevel - wave.start) * ease;
-        setBar(element, level, displayScore(drift(wave)));
+        setBar(element, level, drift(wave));
       });
       frameId = requestAnimationFrame(step);
     };
@@ -262,7 +257,9 @@
         if (podium) classes.push("is-finalist", podium);
         if (heroIds.has(team.id)) classes.push("is-score-hero");
         level = cells * CELL;
-        scoreText = displayScore(formatTotal(team.score));
+        // Số thật luôn ghi vào span — ẩn/hiện điểm là thuần CSS (display:none khối .mr-score),
+        // tránh lỗi hiện điểm lại sau FINAL vẫn thấy •••.
+        scoreText = formatTotal(team.score);
         if (badgeFor(stage, team.rank)) badgeText = rankLabel(team.rank);
       } else if (stage === "RANK12" || stage === "TWIST" || stage === "REVEAL3") {
         // Ứng viên (TWIST: hạng 1-3, REVEAL3: hạng 1-2) leo lên mốc dao động nhưng giấu hạng +
