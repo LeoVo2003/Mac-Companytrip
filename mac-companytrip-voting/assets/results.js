@@ -331,7 +331,7 @@
       shell(nextState.teams);
       force = true;
     }
-    const scoresChanged = !!nextState.scoresHidden !== !!state.scoresHidden;
+    const scoresChanged = state ? (!!nextState.scoresHidden !== !!state.scoresHidden) : false;
     const changed = force || !state || nextState.revision !== state.revision || nextState.stage !== state.stage;
     state = nextState;
     // Ẩn điểm chỉ toggle class CSS (display:none khối .mr-score) — không dừng pháo hoa / vòng lặp đang chạy.

@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.16";
+const tag = "v1.9.17";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,11 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Ẩn điểm không tắt pháo hoa đang bắn (chỉ toggle CSS).",
-  "- Đua thuyền văn nghệ kiểu đua vịt: bỏ cú lừa, badge đúng hạng 1-6, thuyền về bến theo thứ hạng, khi đua liên tục đổi ngôi giữ hồi hộp.",
-  "- Trò chơi lớn: Hạng 6 = 0đ giữ record riêng, không còn nhầm \"Chưa xếp\".",
-  "- Thi đua cho phép trùng hạng: đủ 6 team chấm là hoàn tất và tính điểm chính thức.",
-  "- Intro tổng kết rút gọn; sửa padding/spacing tab Thi đua + nút QR mobile/tablet.",
+  "- Fix lỗi màn tổng kết văng \"Cannot read properties of null (reading 'scoresHidden')\" ở lần tải đầu tiên.",
 ].join("\n");
 
 let release;

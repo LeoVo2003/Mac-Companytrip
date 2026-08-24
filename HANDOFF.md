@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.16** (2026-08-24) — ẩn điểm không tắt pháo hoa; đua thuyền văn nghệ kiểu đua vịt (bỏ DECOY, badge đúng hạng 1-6, về bến theo thứ hạng, đua đổi ngôi giữ hồi hộp); game Hạng 6 = 0đ giữ record riêng (hết nhầm "Chưa xếp"); thi đua cho phép trùng hạng (đủ 6 team = hoàn tất); intro tổng kết rút gọn; fix padding/spacing mobile-tablet tab Thi đua + nút QR. Trước đó v1.9.15: thi đua = trung bình hạng mục hoàn tất 0-50 + 3 trạng thái + backfill. Trước đó v1.9.14: migration hội tụ tách trang. Trước đó v1.9.12-13 (phiên song song): tách trang + đua thuyền. Trước đó v1.9.11 trở về trước như cũ.
+> Phiên bản hiện tại: **v1.9.17** (2026-08-24) — fix lỗi màn /ket-qua-tong/ văng "Cannot read properties of null (reading 'scoresHidden')" lần tải đầu (scoresChanged phải guard `state ? ... : false`). Trước đó v1.9.16: ẩn điểm không tắt pháo hoa; đua thuyền kiểu đua vịt (bỏ DECOY, badge đúng hạng); game Hạng 6 giữ record; thi đua cho phép trùng hạng; fix mobile. Trước đó v1.9.15 trở về trước như cũ.
 
 ---
 
