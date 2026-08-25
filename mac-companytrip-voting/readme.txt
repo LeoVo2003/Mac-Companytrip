@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.42
+Stable tag: 1.9.43
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,9 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.43 =
+- Phát hành lại bản 1.9.42 với zip đầy đủ (bản 1.9.42 thiếu zip do check font).
 
 = 1.9.42 =
 - Làm lại tiêu đề màn văn nghệ chuẩn UI từng tầng, tất cả Bricolage Grotesque 600: kicker nhỏ màu vàng → tên đội lớn → dòng điểm; không in hoa toàn bộ.

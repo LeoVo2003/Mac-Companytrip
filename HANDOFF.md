@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.42** (2026-08-25) — tiêu đề màn văn nghệ chuẩn UI từng tầng, tất cả Bricolage Grotesque 600 (kicker nhỏ vàng → tên đội lớn ivory → dòng điểm gold-hot; FINAL tên vàng đồng); bục tên đội to hơn 13vw/220px hết rớt chữ; ket-qua-tong: .mr-rank Bricolage 600 chỉ in hoa chữ đầu ("Hạng 6", "Quán quân", "Khuyến khích"); twist: khuyến khích giữ 50%, 3 cột ứng viên chạy 50→80%. Trước đó v1.9.41: tiết chế 1 hàng + bỏ ĐIỂM TRUNG BÌNH. Trước đó như cũ.
+> Phiên bản hiện tại: **v1.9.43** (2026-08-25) — phát hành lại 1.9.42 với zip đầy đủ. Nội dung 1.9.42: tiêu đề màn văn nghệ chuẩn UI từng tầng Bricolage 600; bục to hơn; mr-rank Bricolage 600 in hoa chữ đầu; twist khuyến khích 50% / ứng viên 50→80%. Lưu ý: Prata giờ chỉ còn bundle dự phòng, UI dùng Bricolage toàn bộ.
 
 ---
 

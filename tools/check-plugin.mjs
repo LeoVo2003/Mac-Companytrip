@@ -48,8 +48,8 @@ for (const stylesheet of [resultsCss, artRaceCss]) {
     if (stylesheet.includes(banned)) throw new Error(`Event results must not retain the replaced font dependency: ${banned}`);
   }
 }
-for (const invariant of ["font-family: Prata", "font-family: var(--display)"]) {
-  if (!resultsCss.includes(invariant) && !artRaceCss.includes(invariant)) throw new Error(`Missing Prata display role: ${invariant}`);
+for (const invariant of ['font-family: "Prata"']) {
+  if (!resultsCss.includes(invariant) && !artRaceCss.includes(invariant)) throw new Error(`Missing bundled Prata face: ${invariant}`);
 }
 const totalHeadingStyle = resultsCss.match(/\.mr-heading h1\s*\{[^}]+\}/s)?.[0] || "";
 if (!totalHeadingStyle.includes('font-family: "Bricolage Grotesque"') || !totalHeadingStyle.includes("font-weight: 500")) {
