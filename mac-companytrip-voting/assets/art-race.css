@@ -118,7 +118,7 @@ body.mac-art-race-page .elementor-shortcode {
   background: linear-gradient(180deg, rgba(255, 244, 206, 0.24), rgba(239, 200, 120, 0.06) 66%, transparent);
   clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%);
   filter: blur(22px);
-  opacity: 0.8;
+  opacity: 0.4;
   transform: translateX(-50%);
   animation: ar-haze-drift 24s ease-in-out infinite alternate;
 }
@@ -143,13 +143,7 @@ body.mac-art-race-page .elementor-shortcode {
 }
 
 .ar-edge {
-  position: absolute;
-  top: 8%;
-  width: 2px;
-  height: 64%;
-  background: linear-gradient(180deg, transparent, var(--red), var(--orange), transparent);
-  box-shadow: 0 0 15px rgba(227, 30, 36, 0.62);
-  opacity: 0.72;
+  display: none;
 }
 
 .ar-edge-left { left: 4vw; transform: rotate(-10deg); }
@@ -431,7 +425,6 @@ body.mac-art-race-page .elementor-shortcode {
   transform: translateY(-10px) scale(1.035);
 }
 
-.ar-team.is-searching .ar-beam,
 .ar-team.is-current .ar-beam { opacity: 0.92; }
 
 .ar-team.is-searching .ar-podium,
@@ -567,19 +560,7 @@ body.mac-art-race-page .elementor-shortcode {
 }
 
 .ar-footer {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 9;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 10px clamp(20px, 3.4vw, 64px);
-  border-top: 1px solid rgba(255, 248, 231, 0.09);
-  background: rgba(5, 4, 3, 0.74);
-  backdrop-filter: blur(14px);
+  display: none;
 }
 
 .ar-footer > div {
@@ -648,18 +629,19 @@ body.mac-art-race-page .elementor-shortcode {
   letter-spacing: 0.02em;
 }
 
-/* Spotlight toàn cục trượt ngang qua các bục thay vì cắt cảnh. */
+/* Spotlight toàn cục trượt ngang qua các bục; cùng kích cỡ với luồng sáng khóa (92vh). */
 .ar-spot {
   position: absolute;
   z-index: 2;
-  top: -6%;
+  top: auto;
+  bottom: 1px;
   left: 0;
   width: min(24vw, 360px);
-  height: 108%;
+  height: 92vh;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 241, 189, 0.4) 46%, rgba(239, 200, 120, 0.08) 78%, transparent);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 241, 189, 0.3) 48%, rgba(239, 200, 120, 0.06) 80%, transparent);
   clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
-  filter: blur(5px);
+  filter: blur(7px);
   mix-blend-mode: screen;
   opacity: 0;
   transition: transform 320ms cubic-bezier(0.3, 0.7, 0.3, 1), opacity 240ms ease;
@@ -674,7 +656,7 @@ body.mac-art-race-page .elementor-shortcode {
   mix-blend-mode: screen;
 }
 
-/* Vòng sáng đổ trên sàn dưới chân bục. */
+/* Vòng sáng đổ trên sàn dưới chân bục — chỉ bật khi đã khóa. */
 .ar-floor-ring {
   position: absolute;
   z-index: 2;
@@ -690,7 +672,6 @@ body.mac-art-race-page .elementor-shortcode {
   transition: opacity 450ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.ar-team.is-searching .ar-floor-ring,
 .ar-team.is-current .ar-floor-ring {
   opacity: 1;
   transform: translateX(-50%) scale(1);
@@ -741,16 +722,25 @@ body.mac-art-race-page .elementor-shortcode {
 .ar-title.ar-swap h1 { animation: ar-wipe 650ms cubic-bezier(0.2, 0.8, 0.2, 1) 100ms both; }
 .ar-title.ar-swap span { animation: ar-wipe 650ms cubic-bezier(0.2, 0.8, 0.2, 1) 180ms both; }
 
+/* Khi spotlight đang tìm kiếm: tiêu đề nhỏ lại để không đè sân khấu. */
+.ar-title.is-soft p {
+  font-size: clamp(20px, 2.6vw, 44px);
+  letter-spacing: 0.06em;
+}
+
 @keyframes ar-wipe {
   from { clip-path: inset(-10% 100% -10% 0); }
   to { clip-path: inset(-10% -4% -10% 0); }
 }
 
-/* Tia sáng xoay chậm quét nền lúc trao giải. */
+/* Tia sáng xoay chậm quét nền lúc trao giải — blur mạnh + mask tỏa tròn cho mềm. */
 .ar-rays {
   position: absolute;
   inset: -42%;
-  background: repeating-conic-gradient(from 0deg at 50% 46%, rgba(255, 241, 189, 0.07) 0deg 5deg, transparent 5deg 14deg);
+  background: repeating-conic-gradient(from 0deg at 50% 46%, rgba(255, 241, 189, 0.09) 0deg 5deg, transparent 5deg 14deg);
+  filter: blur(26px);
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 0 26%, transparent 66%);
+  mask-image: radial-gradient(circle at 50% 46%, #000 0 26%, transparent 66%);
   opacity: 0;
   transition: opacity 1.4s ease;
   animation: ar-rays-spin 18s linear infinite;
@@ -808,6 +798,33 @@ body.mac-art-race-page .elementor-shortcode {
   min-height: clamp(56px, 8.4vh, 76px);
   border-color: rgba(255, 241, 189, 0.6);
   box-shadow: inset 0 1px 0 rgba(255, 248, 231, 0.2), 0 0 34px rgba(239, 200, 120, 0.4), 0 18px 32px rgba(0, 0, 0, 0.62);
+}
+
+/* Tone đại dương (đại hải trình): nền biển xanh thay vì than đen, giữ rèm đỏ và ánh vàng. */
+.mac-art-race-app.is-light {
+  --black: #062033;
+  --panel: #0a2338;
+  background: #062033;
+}
+
+.mac-art-race-app.is-light .ar-shell {
+  background:
+    radial-gradient(90% 7% at 50% 0%, rgba(255, 138, 76, 0.28), transparent 68%),
+    radial-gradient(70% 42% at 50% 2%, rgba(255, 207, 125, 0.12), transparent 70%),
+    linear-gradient(180deg, #2c5b74 0%, #123a52 16%, #0a2338 48%, #062033 100%);
+}
+
+.mac-art-race-app.is-light .ar-header {
+  background: rgba(6, 32, 51, 0.72);
+}
+
+.mac-art-race-app.is-light .ar-podium {
+  background: linear-gradient(180deg, rgba(18, 58, 82, 0.92), rgba(6, 32, 51, 0.94));
+  border-color: rgba(232, 193, 122, 0.4);
+}
+
+.mac-art-race-app.is-light .ar-runway {
+  background: linear-gradient(180deg, rgba(232, 193, 122, 0.14), rgba(6, 32, 51, 0.9));
 }
 
 @media (max-width: 900px) {

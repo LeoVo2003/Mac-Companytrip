@@ -160,6 +160,7 @@ final class MAC_Voting_REST {
             'changedAt' => $state['changedAt'],
             'serverTime' => (int) round(microtime(true) * 1000),
             'teams' => $public_teams,
+            'lightTheme' => MAC_Voting_DB::art_light_theme(),
         ));
         $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
         return $response;

@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.23** (2026-08-24) — spotlight tìm kiếm chiếu đồng thời 1-4 đội ngẫu nhiên; bục thành card hiện đại (bỏ số La Mã, tên đội khắc vàng); nhịp công bố khóa ~5s sau mỗi đội rồi mới random tiếp các đội chưa lộ; font Cormorant Garamond (như màn tổng kết) hết lỗi dấu tiếng Việt; line-height tiêu đề thoáng. Trước đó v1.9.22: lớp wow (spot trượt + hãm dần, bụi, rèm nếp gấp/tua rua, ripple, grain/vignette...). Trước đó v1.9.21: màn The Spotlight. Trước đó như cũ.
+> Phiên bản hiện tại: **v1.9.24** (2026-08-25) — lighting-fix: khi tìm kiếm chỉ 1 luồng sáng trượt duy nhất (.ar-beam/.ar-floor-ring chỉ bật khi khóa), .ar-spot 92vh khớp luồng khóa, sương mù 0.4, tia quán quân blur(26px)+mask tỏa tròn, bỏ 2 line đỏ cạnh sân khấu, ẩn footer; tiêu đề tìm kiếm nhỏ lại + câu mới; công tắc tone admin (tối / đại dương xanh, option mac_voting_art_light_theme, REST /results trả lightTheme). Trước đó v1.9.23: multi-spotlight→1, card tên vàng, nhịp 5s, Cormorant. Trước đó như cũ.
 
 ---
 

@@ -14,6 +14,7 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_reveal', array(__CLASS__, 'ajax_reveal'));
         add_action('wp_ajax_mac_vote_reveal_total', array(__CLASS__, 'ajax_reveal_total'));
         add_action('wp_ajax_mac_vote_toggle_scores', array(__CLASS__, 'ajax_toggle_scores'));
+        add_action('wp_ajax_mac_vote_toggle_art_theme', array(__CLASS__, 'ajax_toggle_art_theme'));
         add_action('wp_ajax_mac_vote_team', array(__CLASS__, 'ajax_team'));
         add_action('wp_ajax_mac_vote_swap', array(__CLASS__, 'ajax_swap'));
         add_action('wp_ajax_mac_vote_ballot', array(__CLASS__, 'ajax_ballot'));
@@ -503,6 +504,17 @@ final class MAC_Voting_Admin {
         ));
     }
 
+    public static function ajax_toggle_art_theme(): void {
+        self::guard();
+        $light = !empty($_POST['light']);
+        MAC_Voting_DB::set_art_light_theme($light);
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'ART_THEME_' . ($light ? 'LIGHT' : 'DARK'), 'reveal', null, array());
+        wp_send_json_success(array(
+            'message' => $light ? 'Màn văn nghệ chuyển sang tone đại dương.' : 'Màn văn nghệ về tone tối.',
+            'overview' => self::overview(),
+        ));
+    }
+
     public static function ajax_reveal_total(): void {
         self::guard();
         $next = strtoupper(sanitize_text_field(wp_unslash($_POST['stage'] ?? '')));
@@ -954,6 +966,7 @@ final class MAC_Voting_Admin {
             'reveal' => MAC_Voting_DB::reveal_state(),
             'totalReveal' => MAC_Voting_DB::total_reveal_state(),
             'totalScoresHidden' => MAC_Voting_DB::scores_hidden(),
+            'artLightTheme' => MAC_Voting_DB::art_light_theme(),
             'totalTieWarnings' => self::total_tie_warnings(),
             'votingEnabled' => MAC_Voting_DB::is_voting_enabled(),
             'checkpoints' => MAC_Checkin::checkpoints(),

@@ -27,7 +27,7 @@
   function shell(teams) {
     root.innerHTML = `<div class="ar-shell" data-stage="idle">
       <canvas class="ar-pyro" aria-hidden="true"></canvas>
-      <div class="ar-stage-world" aria-hidden="true"><i class="ar-rays"></i><i class="ar-haze"></i><i class="ar-runway"></i><i class="ar-edge ar-edge-left"></i><i class="ar-edge ar-edge-right"></i></div>
+      <div class="ar-stage-world" aria-hidden="true"><i class="ar-rays"></i><i class="ar-haze"></i><i class="ar-runway"></i></div>
       <div class="ar-curtain" aria-hidden="true"><i class="ar-curtain-left"></i><i class="ar-curtain-right"></i><span></span></div>
       <header class="ar-header">
         <div class="ar-brand"><img src="${esc(logo)}" alt="MAC Marketing"></div>
@@ -76,6 +76,7 @@
   function setTitle(kicker, title, description, footer) {
     const heading = root.querySelector(".ar-title");
     if (!heading) return;
+    heading.classList.remove("is-soft");
     heading.querySelector("p").textContent = kicker;
     heading.querySelector("h1").textContent = title;
     heading.querySelector("span").textContent = description;
@@ -261,20 +262,18 @@
     if (!searchPool().length) return;
     searchActive = true;
     if (state.stage === "ROLLING") {
-      setTitle("SPOTLIGHT ĐANG TÌM KIẾM", "Ai sẽ được gọi tên?", "Ánh sáng đang di chuyển giữa sáu đội", "Chờ tín hiệu công bố hạng 6");
+      setTitle("SPOTLIGHT ĐANG TÌM KIẾM", "Ai sẽ được gọi tên?", "Ánh sáng đang lướt qua từng mũi thuyền", "Chờ tín hiệu công bố hạng 6");
     } else {
-      setTitle("SPOTLIGHT TIẾP TỤC TÌM KIẾM", "Ai sẽ được gọi tên tiếp theo?", "Ánh sáng đang đi giữa những đội chưa lộ diện", "Chờ tín hiệu MC");
+      setTitle("SPOTLIGHT TIẾP TỤC TÌM KIẾM", "Ai sẽ được gọi tên tiếp theo?", "Ánh sáng đang lướt qua những đội chưa lộ diện", "Chờ tín hiệu MC");
     }
+    root.querySelector(".ar-title")?.classList.add("is-soft");
     if (reducedMotion.matches) return;
     const jump = () => {
       root.querySelectorAll(".ar-team.is-searching").forEach((element) => element.classList.remove("is-searching"));
       const pool = searchPool();
       if (!pool.length) { aimSpots([], 300); return; }
-      // Ngẫu nhiên chiếu đồng thời 1-4 đội để tạo cảm giác kịch tính.
-      const count = Math.min(1 + Math.floor(Math.random() * 4), pool.length);
-      const bag = pool.slice();
-      const picked = [];
-      for (let i = 0; i < count; i += 1) picked.push(bag.splice(Math.floor(Math.random() * bag.length), 1)[0]);
+      // Chỉ một luồng sáng duy nhất lướt qua từng đội khi tìm kiếm.
+      const picked = [pool.splice(Math.floor(Math.random() * pool.length), 1)[0]];
       picked.forEach((element) => element.classList.add("is-searching"));
       aimSpots(picked, 300);
     };
@@ -380,6 +379,7 @@
     }
     const changed = force || !state || nextState.revision !== state.revision || nextState.stage !== state.stage;
     state = nextState;
+    root.classList.toggle("is-light", !!state.lightTheme);
     setConnection(true);
     if (!changed) return;
     resetEffects();

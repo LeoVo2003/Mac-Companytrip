@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.23";
+const tag = "v1.9.24";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Spotlight tìm kiếm chiếu đồng thời 1-4 đội ngẫu nhiên.",
-  "- Card công bố hiện đại thay bục 3D: tên đội khắc vàng trên card, bỏ số La Mã.",
-  "- Nhịp công bố: khóa ~5s sau mỗi lần công bố rồi mới random tiếp các đội chưa lộ.",
-  "- Font Cormorant Garamond (như màn tổng kết) hết lỗi dấu tiếng Việt; line-height tiêu đề thoáng hơn.",
+  "- Ánh sáng thật hơn: khi tìm kiếm chỉ 1 luồng sáng trượt duy nhất; beam/floor-ring chỉ bật khi khóa; spot 92vh khớp luồng khóa; sương mù 0.4; tia quán quân blur+mask mềm; bỏ 2 line cạnh; ẩn footer.",
+  "- Tiêu đề tìm kiếm nhỏ lại; câu mô tả mới \"Ánh sáng đang lướt qua từng mũi thuyền\".",
+  "- Công tắc tone trong admin: tối mặc định / đại dương xanh kiểu đại hải trình.",
 ].join("\n");
 
 let release;

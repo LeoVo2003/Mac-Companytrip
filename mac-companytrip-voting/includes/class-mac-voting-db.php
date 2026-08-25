@@ -795,4 +795,12 @@ final class MAC_Voting_DB {
     public static function set_scores_hidden(bool $hidden): void {
         update_option('mac_voting_total_scores_hidden', $hidden, false);
     }
+
+    public static function art_light_theme(): bool {
+        return (bool) get_option('mac_voting_art_light_theme', false);
+    }
+
+    public static function set_art_light_theme(bool $light): void {
+        update_option('mac_voting_art_light_theme', $light ? '1' : '0', false);
+    }
 }

@@ -442,10 +442,10 @@ for (const invariant of ["mac_voting_art_results_page_id", "ket-qua-tong", "art_
 if (!adminFile.includes("artResultsUrl") || !adminJs.includes("artResultsUrl")) {
   throw new Error("Art reveal panel must link to the /ket-qua-van-nghe race screen.");
 }
-for (const invariant of ["THE SPOTLIGHT", "startSpotlightSearch", "5000 - elapsed", "team.current", "team.revealed", "aimSpot", "ar-dust", "is-decel"]) {
+for (const invariant of ["THE SPOTLIGHT", "startSpotlightSearch", "5000 - elapsed", "team.current", "team.revealed", "aimSpots", "ar-dust", "is-decel", "is-light"]) {
   if (!artRaceJs.includes(invariant)) throw new Error(`Missing sequential spotlight screen behavior: ${invariant}`);
 }
-for (const invariant of [".ar-curtain", ".ar-beam", ".ar-team.is-searching", "mac-art-race-page", ".ar-spot", ".ar-grain", ".ar-floor-ring"]) {
+for (const invariant of [".ar-curtain", ".ar-beam", ".ar-team.is-searching", "mac-art-race-page", ".ar-spot", ".ar-grain", ".ar-floor-ring", ".mac-art-race-app.is-light"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Missing spotlight stage style: ${invariant}`);
 }
 
