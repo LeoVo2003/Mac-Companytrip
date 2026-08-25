@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.43** (2026-08-25) — phát hành lại 1.9.42 với zip đầy đủ. Nội dung 1.9.42: tiêu đề màn văn nghệ chuẩn UI từng tầng Bricolage 600; bục to hơn; mr-rank Bricolage 600 in hoa chữ đầu; twist khuyến khích 50% / ứng viên 50→80%. Lưu ý: Prata giờ chỉ còn bundle dự phòng, UI dùng Bricolage toàn bộ.
+> Phiên bản hiện tại: **v1.9.44** (2026-08-25) — phân cấp lại tiêu đề văn nghệ: search = kicker nhỏ (12-18px) / tên vừa (22-40px) / mô tả nhỏ mờ; reveal = tên 36-76px line-height 1.16 + margin 12px khỏi dính kicker. ket-qua-tong kicker twist: "Company Trip · Chặng về đích". Trước đó v1.9.42-43: title tầng Bricolage 600, bục to, mr-rank thường, twist 50/50-80.
 
 ---
 

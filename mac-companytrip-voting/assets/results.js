@@ -106,7 +106,7 @@
   function renderRolling() {
     revealedIds.clear();
     heroIds = new Set();
-    setHeading("TỔNG ĐIỂM ĐANG CHUYỂN ĐỘNG", "Ai sẽ chạm đỉnh?", "6 đội · 4 chặng đường · 1 ngôi vương duy nhất", "Đang tung điểm trực tiếp");
+    setHeading("Company Trip · Chặng về đích", "Ai sẽ chạm đỉnh?", "6 đội · 4 chặng đường · 1 ngôi vương duy nhất", "Đang tung điểm trực tiếp");
     const waves = state.teams.map((team, index) => {
       const column = teamElement(team.id)?.querySelector(".mr-column");
       // Vạch xuất phát 122px quy đổi sang % theo chiều cao cột thật để kéo mượt, không giật.

@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.43";
+const tag = "v1.9.44";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,10 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Tiêu đề màn văn nghệ chuẩn UI từng tầng, Bricolage Grotesque 600: kicker nhỏ → tên đội lớn → dòng điểm.",
-  "- Bục tên đội to hơn, hết rớt chữ \"Sao Bắc Cực\".",
-  "- ket-qua-tong: badge hạng Bricolage 600, chỉ in hoa chữ đầu; twist khuyến khích 50%, ứng viên chạy 50→80%.",
-  "- Phát hành lại với zip đầy đủ (bản 1.9.42 thiếu zip).",
+  "- Phân cấp lại tiêu đề văn nghệ: search kicker nhỏ / tên vừa / mô tả mờ; reveal giãn khoảng cách, hết dính chữ.",
+  "- ket-qua-tong: kicker twist mới \"Company Trip · Chặng về đích\".",
 ].join("\n");
 
 let release;
