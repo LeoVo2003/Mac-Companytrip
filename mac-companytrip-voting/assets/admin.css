@@ -1192,6 +1192,11 @@
   opacity: 0.72;
 }
 
+.ma-reveal-actions button.is-skipped:disabled {
+  opacity: 0.34;
+  filter: grayscale(0.7);
+}
+
 .ma-reveal-actions button:disabled > span {
   color: var(--faint);
   background: #eaecf0;

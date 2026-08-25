@@ -145,6 +145,50 @@ body.mac-art-race-page .elementor-shortcode {
   transform: translateX(-50%);
 }
 
+/* Hai đèn viền MAC có đầu đèn và điểm rơi rõ ràng, chỉ dùng để đóng khung sân khấu. */
+.ar-edge {
+  position: absolute;
+  z-index: 1;
+  top: 64px;
+  width: 3px;
+  height: 72vh;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 241, 189, 0.92), rgba(255, 106, 44, 0.78) 10%, rgba(227, 30, 36, 0.58) 52%, transparent 100%);
+  box-shadow: 0 0 8px rgba(255, 106, 44, 0.7), 0 0 24px rgba(227, 30, 36, 0.3);
+  opacity: 0.52;
+  transform-origin: 50% 0;
+}
+
+.ar-edge::before {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 20px;
+  height: 10px;
+  content: "";
+  border: 1px solid rgba(255, 241, 189, 0.52);
+  border-radius: 999px;
+  background: radial-gradient(circle, #fff8e7 0 18%, #ff6a2c 35%, #e31e24 68%, #24110d 72%);
+  box-shadow: 0 0 18px rgba(255, 106, 44, 0.72);
+  transform: translateX(-50%);
+}
+
+.ar-edge::after {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  width: 54px;
+  height: 18px;
+  content: "";
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(227, 30, 36, 0.38), rgba(255, 106, 44, 0.12) 44%, transparent 72%);
+  filter: blur(5px);
+  transform: translateX(-50%);
+}
+
+.ar-edge-left { left: 5vw; transform: rotate(-5deg); }
+.ar-edge-right { right: 5vw; transform: rotate(5deg); }
+
 .ar-header {
   position: relative;
   z-index: 8;
@@ -783,16 +827,17 @@ body.mac-art-race-page .elementor-shortcode {
 .ar-rays {
   position: absolute;
   inset: -42%;
-  background: repeating-conic-gradient(from 0deg at 50% 46%, rgba(255, 241, 189, 0.09) 0deg 5deg, transparent 5deg 14deg);
+  background: repeating-conic-gradient(from 0deg at 50% 46%, rgba(255, 241, 189, 0.055) 0deg 5deg, transparent 5deg 14deg);
   filter: blur(26px);
   -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 0 26%, transparent 66%);
   mask-image: radial-gradient(circle at 50% 46%, #000 0 26%, transparent 66%);
   opacity: 0;
+  mix-blend-mode: screen;
   transition: opacity 1.4s ease;
   animation: ar-rays-spin 18s linear infinite;
 }
 
-.ar-shell[data-stage="final"] .ar-rays { opacity: 1; }
+.ar-shell[data-stage="final"] .ar-rays { opacity: 0.34; }
 
 @keyframes ar-rays-spin {
   to { transform: rotate(360deg); }
@@ -920,6 +965,8 @@ body.mac-art-race-page .elementor-shortcode {
   background: rgba(5, 61, 82, 0.68);
 }
 
+.mac-art-race-app.is-light .ar-edge { opacity: 0.4; }
+
 .mac-art-race-app.is-light .ar-title h1 { color: var(--gold-hot); }
 
 .mac-art-race-app.is-light .ar-podium {
@@ -977,7 +1024,7 @@ body.mac-art-race-page .elementor-shortcode {
 }
 
 .mac-art-race-app.is-light .ar-rays {
-  background: repeating-conic-gradient(from 0deg at 50% 46%, rgba(194, 238, 247, 0.1) 0deg 5deg, transparent 5deg 14deg);
+  background: repeating-conic-gradient(from 0deg at 50% 46%, rgba(194, 238, 247, 0.065) 0deg 5deg, transparent 5deg 14deg);
 }
 
 .mac-art-race-app.is-light .ar-vignette {

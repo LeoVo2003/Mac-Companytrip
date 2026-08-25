@@ -126,21 +126,20 @@ final class MAC_Voting_REST {
             $previous_score = $row['average_score'];
         }
         unset($row);
-        // Mỗi tín hiệu chỉ công bố đúng một đội, đi từ cuối bảng lên quán quân.
-        // Dùng vị trí trong bảng đã sắp xếp thay vì ngưỡng rank để trường hợp đồng điểm
-        // cũng không làm lộ hai đội trong cùng một lần bấm.
-        $reveal_count = array(
-            'SIXTH' => 1,
-            'FIFTH' => 2,
-            'FOURTH' => 3,
-            'THIRD' => 4,
-            'SECOND' => 5,
-            'FINAL' => 6,
+        // Công bố theo nhóm hạng thực tế. Competition ranking có thể bỏ hạng khi
+        // đồng điểm (1,1,3...), vì vậy tất cả đội cùng hạng phải sáng trong một nhịp.
+        $target_rank = array(
+            'SIXTH' => 6,
+            'FIFTH' => 5,
+            'FOURTH' => 4,
+            'THIRD' => 3,
+            'SECOND' => 2,
+            'FINAL' => 1,
         )[$state['stage']] ?? 0;
-        $revealed_rows = $reveal_count > 0 ? array_slice($rows, -min($reveal_count, count($rows))) : array();
+        $revealed_rows = $target_rank > 0 ? array_values(array_filter($rows, static fn(array $row): bool => $row['rank'] !== null && (int) $row['rank'] >= $target_rank)) : array();
         $revealed_ids = array_map('intval', array_column($revealed_rows, 'team_id'));
-        $current_id = count($revealed_rows) ? (int) $revealed_rows[0]['team_id'] : 0;
-        $public_teams = array_map(static function(array $row) use ($revealed_ids, $current_id): array {
+        $current_ids = $target_rank > 0 ? array_map('intval', array_column(array_values(array_filter($rows, static fn(array $row): bool => (int) $row['rank'] === $target_rank)), 'team_id')) : array();
+        $public_teams = array_map(static function(array $row) use ($revealed_ids, $current_ids): array {
             $is_revealed = in_array((int) $row['team_id'], $revealed_ids, true);
             return array(
                 'id' => (int) $row['team_id'],
@@ -150,7 +149,7 @@ final class MAC_Voting_REST {
                 'rank' => $is_revealed ? $row['rank'] : null,
                 'voterCount' => $is_revealed ? (int) $row['voter_count'] : null,
                 'revealed' => $is_revealed,
-                'current' => $is_revealed && (int) $row['team_id'] === $current_id,
+                'current' => $is_revealed && in_array((int) $row['team_id'], $current_ids, true),
             );
         }, $rows);
         usort($public_teams, static fn(array $a, array $b): int => $a['number'] <=> $b['number']);

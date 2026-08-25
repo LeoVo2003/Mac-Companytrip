@@ -178,20 +178,16 @@ for (const invariant of ['["Email", ["email", "mail", "email cong ty"]]', "email
 for (const invariant of ["Bạn không thể chấm tiết mục của team mình", "status='VALID'", "active_key", "round_status"]) {
   if (!restFile.includes(invariant)) throw new Error(`Missing vote protection: ${invariant}`);
 }
-for (const invariant of ["$reveal_count", "$revealed_ids", "$current_id", "'revealed' => $is_revealed", "'current' =>"]) {
-  if (!restFile.includes(invariant)) throw new Error(`Missing one-team spotlight reveal rule: ${invariant}`);
+for (const invariant of ["$target_rank", "$revealed_ids", "$current_ids", "(int) $row['rank'] >= $target_rank", "in_array((int) $row['team_id'], $current_ids, true)"]) {
+  if (!restFile.includes(invariant)) throw new Error(`Missing tied-rank spotlight reveal rule: ${invariant}`);
 }
 if (!restFile.includes("WHERE t.team_no<>%d")) throw new Error("The Spotlight must exclude the Hoa tiêu staff team.");
-for (const invariant of ["'ROLLING' => 'SIXTH'", "'SIXTH' => 'FIFTH'", "'FIFTH' => 'FOURTH'", "'FOURTH' => 'THIRD'", "'THIRD' => 'SECOND'", "'SECOND' => 'FINAL'"]) {
-  if (!adminFile.includes(invariant)) throw new Error(`Missing sequential spotlight transition: ${invariant}`);
+for (const invariant of ["art_reveal_plan", "'nextStage' => $next_stage", "'rankCounts' => $rank_counts", "$plan['nextStage'] !== $next", "artRevealPlan"]) {
+  if (!adminFile.includes(invariant)) throw new Error(`Missing dynamic tied-rank spotlight transition: ${invariant}`);
 }
-const spotlightStages = ["ROLLING", "SIXTH", "FIFTH", "FOURTH", "THIRD", "SECOND", "FINAL"];
-const spotlightCounts = { ROLLING: 0, SIXTH: 1, FIFTH: 2, FOURTH: 3, THIRD: 4, SECOND: 5, FINAL: 6 };
-spotlightStages.forEach((stage, index) => {
-  const current = spotlightCounts[stage];
-  const previous = index ? spotlightCounts[spotlightStages[index - 1]] : 0;
-  if (index && current - previous !== 1) throw new Error(`Spotlight stage ${stage} must reveal exactly one new team.`);
-});
+for (const invariant of ["revealRankButton", "is-skipped", "Đội đồng điểm được công bố cùng lúc"] ) {
+  if (!adminJs.includes(invariant)) throw new Error(`Missing tied-rank reveal admin UI: ${invariant}`);
+}
 if (!resultsJs.includes('["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST", "REVEAL3", "FINAL"].includes(state.stage)')) {
   throw new Error("Total reveal must render from seven explicit admin stages without an automatic timer.");
 }
@@ -353,6 +349,30 @@ for (const tc of TIE_CASES) {
   }
 }
 
+// Màn văn nghệ phải công bố theo nhóm hạng tồn tại, bỏ qua mọi hạng bị khuyết.
+const ART_STAGE_BY_RANK = { 6: "SIXTH", 5: "FIFTH", 4: "FOURTH", 3: "THIRD", 2: "SECOND", 1: "FINAL" };
+for (const tc of TIE_CASES) {
+  const ranks = tieRanks(tc.totals);
+  const availableRanks = [...new Set(ranks)].sort((a, b) => b - a);
+  const stages = availableRanks.map((rank) => ART_STAGE_BY_RANK[rank]);
+  for (const rank of availableRanks) {
+    const tiedCount = ranks.filter((value) => value === rank).length;
+    const currentCount = ranks.filter((value) => value === rank).length;
+    const revealedCount = ranks.filter((value) => value >= rank).length;
+    if (currentCount !== tiedCount) throw new Error(`${tc.name}: hạng ${rank} phải sáng cùng lúc đủ ${tiedCount} đội.`);
+    if (revealedCount < tiedCount) throw new Error(`${tc.name}: hạng ${rank} không được lộ thiếu đội đồng hạng.`);
+  }
+  for (const rank of [6, 5, 4, 3, 2, 1]) {
+    if (!availableRanks.includes(rank) && stages.includes(ART_STAGE_BY_RANK[rank])) {
+      throw new Error(`${tc.name}: hạng ${rank} bị khuyết phải được bỏ qua.`);
+    }
+  }
+  if (ranks[0] === 1 && ranks[1] === 1 && !availableRanks.includes(2)) {
+    const finalIndex = stages.indexOf("FINAL");
+    if (finalIndex < 0 || stages[finalIndex - 1] === "SECOND") throw new Error(`${tc.name}: đồng quán quân phải bỏ qua hạng nhì và đi thẳng FINAL.`);
+  }
+}
+
 // --- Thi đua = trung bình các hạng mục có ít nhất một team tham gia (0-50), không còn SUM ---
 // Team không có record trong hạng mục đang tính được xem là không tham gia và nhận 0đ.
 for (const invariant of ["clear_award", "thiduaCompletedRounds", "backfill_legacy_zeros", "isComplete"]) {
@@ -442,7 +462,7 @@ for (const invariant of ["mac_voting_art_results_page_id", "ket-qua-tong", "art_
 if (!adminFile.includes("artResultsUrl") || !adminJs.includes("artResultsUrl")) {
   throw new Error("Art reveal panel must link to the /ket-qua-van-nghe race screen.");
 }
-for (const invariant of ["THE SPOTLIGHT", "startSpotlightSearch", "5000 - elapsed", "team.current", "team.revealed", "aimSpots", "ar-dust", "is-decel", "is-light"]) {
+for (const invariant of ["THE SPOTLIGHT", "startSpotlightSearch", "5000 - elapsed", "team.current", "team.revealed", "aimSpots", "ar-dust", "is-decel", "is-light", "ĐỒNG QUÁN QUÂN", "const currents = state.teams.filter"]) {
   if (!artRaceJs.includes(invariant)) throw new Error(`Missing sequential spotlight screen behavior: ${invariant}`);
 }
 for (const invariant of [".ar-curtain", ".ar-beam", ".ar-team.is-searching", "mac-art-race-page", ".ar-spot", ".ar-offline-overlay", ".ar-floor-ring", ".mac-art-race-app.is-light"]) {
@@ -475,8 +495,14 @@ for (const invariant of ["--black: #050403", "rgba(255, 106, 44, 0.58)", "linear
 for (const invariant of [".ar-team.is-revealed .ar-beam { opacity: 0.54; }", ".ar-team.is-revealed .ar-dust", "ÁNH SÁNG ĐANG GỌI TÊN", "window.setTimeout(startSpotlightSearch, 3000)", "#000 0 91%", ".ar-team.is-name-long", ".ar-team.is-name-xlong", ".ar-shell.has-connection-alert .ar-offline-overlay", "failedPolls >= 6"]) {
   if (!artRaceCss.includes(invariant) && !artRaceJs.includes(invariant)) throw new Error(`Missing persistent revealed-team lighting behavior: ${invariant}`);
 }
-for (const banned of ["class=\"ar-grain\"", "class=\"ar-edge", ".ar-grain {", ".ar-edge {", "overflow-wrap: anywhere"]) {
+for (const invariant of [".ma-reveal-actions button.is-skipped:disabled", "opacity: 0.34", ".ar-shell[data-stage=\"final\"] .ar-rays { opacity: 0.34; }", "mix-blend-mode: screen"]) {
+  if (!adminCss.includes(invariant) && !artRaceCss.includes(invariant)) throw new Error(`Missing tied-rank or champion-ray presentation: ${invariant}`);
+}
+for (const banned of ["class=\"ar-grain\"", ".ar-grain {", "overflow-wrap: anywhere"]) {
   if (artRaceJs.includes(banned) || artRaceCss.includes(banned)) throw new Error(`Projector-only spotlight must omit obsolete visual treatment: ${banned}`);
+}
+for (const invariant of ["ar-edge ar-edge-left", "ar-edge ar-edge-right", ".ar-edge::before", ".ar-edge::after", "transform-origin: 50% 0"]) {
+  if (!artRaceJs.includes(invariant) && !artRaceCss.includes(invariant)) throw new Error(`Missing sourced MAC edge light: ${invariant}`);
 }
 if (artRaceJs.includes("SPOTLIGHT ĐANG TÌM KIẾM")) {
   throw new Error("Old searching headline must be replaced with the new reveal copy.");

@@ -38,7 +38,7 @@
   function shell(teams) {
     root.innerHTML = `<div class="ar-shell" data-stage="idle">
       <canvas class="ar-pyro" aria-hidden="true"></canvas>
-      <div class="ar-stage-world" aria-hidden="true"><i class="ar-rays"></i><i class="ar-haze"></i><i class="ar-runway"></i></div>
+      <div class="ar-stage-world" aria-hidden="true"><i class="ar-rays"></i><i class="ar-haze"></i><i class="ar-runway"></i><i class="ar-edge ar-edge-left"></i><i class="ar-edge ar-edge-right"></i></div>
       <div class="ar-curtain" aria-hidden="true"><i class="ar-curtain-left"></i><i class="ar-curtain-right"></i><span></span></div>
       <header class="ar-header">
         <div class="ar-brand"><img src="${esc(logo)}" alt="MAC Marketing"></div>
@@ -185,7 +185,7 @@
     setTitle("ONE DIRECTION", "THE SPOTLIGHT", "Chỉ một hướng · chỉ một khoảnh khắc", "Sẵn sàng công bố");
     state.teams.forEach((team) => {
       const element = teamElement(team.id);
-      element.className = "ar-team is-pending";
+      element.className = `ar-team is-pending${teamNameClass(team.name)}`;
       element.querySelector(".ar-team-rank").textContent = "CHỜ CÔNG BỐ";
       element.querySelector(".ar-team-copy b").textContent = "—";
     });
@@ -195,7 +195,7 @@
     setTitle("ONE DIRECTION", "THE SPOTLIGHT", "Sân khấu đang mở · spotlight sẽ bắt đầu sau 5 giây", "Đang mở màn");
     state.teams.forEach((team) => {
       const element = teamElement(team.id);
-      element.className = "ar-team is-pending";
+      element.className = `ar-team is-pending${teamNameClass(team.name)}`;
       element.querySelector(".ar-team-rank").textContent = "ĐANG CHỜ";
       element.querySelector(".ar-team-copy b").textContent = "—";
     });
@@ -266,15 +266,16 @@
   }
 
   function renderReveal() {
-    const current = state.teams.find((team) => team.current) || null;
-    const currentEl = current ? teamElement(current.id) : null;
-    const champion = current && Number(current.rank) === 1;
-    const needDecel = searchActive && currentEl && !reducedMotion.matches;
+    const currents = state.teams.filter((team) => team.current);
+    const current = currents[0] || null;
+    const currentEls = currents.map((team) => teamElement(team.id)).filter(Boolean);
+    const champion = currents.length > 0 && currents.every((team) => Number(team.rank) === 1);
+    const needDecel = searchActive && currentEls.length > 0 && !reducedMotion.matches;
 
     state.teams.forEach((team) => {
       const element = teamElement(team.id);
       const revealed = Boolean(team.revealed || team.rank !== null);
-      element.className = `ar-team ${revealed ? "is-revealed" : "is-pending"}${team.current ? " is-current" : ""}${Number(team.rank) === 1 ? " is-champion" : ""}`;
+      element.className = `ar-team ${revealed ? "is-revealed" : "is-pending"}${teamNameClass(team.name)}${team.current ? " is-current" : ""}${Number(team.rank) === 1 ? " is-champion" : ""}`;
       element.querySelector(".ar-team-rank").textContent = revealed ? rankLabel(team.rank) : "CHỜ CÔNG BỐ";
       const scoreEl = element.querySelector(".ar-team-copy b");
       if (team.current) {
@@ -289,15 +290,17 @@
       return;
     }
 
+    const tied = currents.length > 1;
+    const names = currents.map((team) => team.name).join(" · ");
     setTitle(
-      champion ? "QUÁN QUÂN VĂN NGHỆ" : rankLabel(current.rank),
-      current.name,
-      current.score !== null ? `${fmtScore(current.score)} điểm · Spotlight thuộc về ${current.name}` : "Kết quả đã được công bố",
+      tied ? (champion ? "ĐỒNG QUÁN QUÂN" : `ĐỒNG ${rankLabel(current.rank)}`) : (champion ? "QUÁN QUÂN VĂN NGHỆ" : rankLabel(current.rank)),
+      tied ? names : current.name,
+      tied ? `${currents.length} đội đồng hạng · ${fmtScore(current.score)} điểm` : (current.score !== null ? `${fmtScore(current.score)} điểm · Spotlight thuộc về ${current.name}` : "Kết quả đã được công bố"),
       champion ? "Kết quả chung cuộc" : `Đã công bố ${rankLabel(current.rank).toLowerCase()}`
     );
 
     const onLock = () => {
-      countUp(currentEl?.querySelector(".ar-team-copy b"), current.score);
+      currents.forEach((team, index) => countUp(currentEls[index]?.querySelector(".ar-team-copy b"), team.score));
       if (champion) shakeStage();
       // Giữ spotlight khóa 3 giây cho MC xướng tên rồi tiếp tục tìm kiếm các đội chưa lộ.
       if (!champion && searchPool().length && !reducedMotion.matches) {
@@ -305,7 +308,7 @@
       }
     };
     if (needDecel) {
-      lockSpotlight(currentEl, onLock);
+      lockSpotlight(currentEls[0], onLock);
     } else {
       root.querySelectorAll(".ar-team.is-searching").forEach((element) => element.classList.remove("is-searching"));
       aimSpots([]);

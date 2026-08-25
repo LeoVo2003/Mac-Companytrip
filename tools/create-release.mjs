@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.30";
+const tag = "v1.9.31";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Tối ưu sân khấu cho máy chiếu: beam cũ sáng rõ hơn, luồng sáng chạm bục và sàn dark tăng tương phản theo cùng tone kem–vàng.",
-  "- Bỏ hai vệt đỏ chéo và film grain; nâng cỡ chữ, tự co tên đội dài mà không cắt giữa chữ.",
-  "- Thêm overlay toàn màn hình khi mất kết nối kéo dài và tự đóng khi đồng bộ trở lại.",
+  "- Sửa công bố đồng điểm theo nhóm hạng thực tế: đội cùng hạng sáng cùng lúc, hạng khuyết tự làm mờ và bỏ qua.",
+  "- Đồng top 1 đi thẳng từ hạng ba tới công bố toàn bộ quán quân, không còn lặp danh hiệu ở nút hạng nhì.",
+  "- Giảm vòng tia xoay quán quân để không làm tối khung hình; thêm hai đèn viền đỏ–cam mới có nguồn và điểm rơi rõ ràng.",
 ].join("\n");
 
 let release;

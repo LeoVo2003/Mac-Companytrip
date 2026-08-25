@@ -429,6 +429,43 @@ final class MAC_Voting_Admin {
         wp_send_json_success(self::overview());
     }
 
+    /**
+     * Lập kế hoạch công bố theo các hạng thực sự tồn tại. Competition ranking có
+     * thể bỏ hạng khi đồng điểm (1,1,3...), nên không được ép MC đi qua slot rỗng.
+     */
+    private static function art_reveal_plan(array $results, ?string $current_stage = null): array {
+        $stage_by_rank = array(6 => 'SIXTH', 5 => 'FIFTH', 4 => 'FOURTH', 3 => 'THIRD', 2 => 'SECOND', 1 => 'FINAL');
+        $rank_counts = array();
+        $rank = 0;
+        $previous_score = null;
+        foreach ($results as $index => $row) {
+            if ($row['average_score'] === null) continue;
+            $score = round((float) $row['average_score'], 6);
+            if ($previous_score === null || abs($previous_score - $score) > 0.000001) {
+                $rank = $index + 1;
+            }
+            $rank_counts[$rank] = ($rank_counts[$rank] ?? 0) + 1;
+            $previous_score = $score;
+        }
+        $current_stage = $current_stage ?: MAC_Voting_DB::reveal_state()['stage'];
+        $rank_by_stage = array_flip($stage_by_rank);
+        $next_stage = null;
+        if ($current_stage === 'IDLE') {
+            $next_stage = 'ROLLING';
+        } elseif ($current_stage === 'ROLLING') {
+            $available = array_keys($rank_counts);
+            if ($available) $next_stage = $stage_by_rank[max($available)] ?? null;
+        } elseif (isset($rank_by_stage[$current_stage])) {
+            $current_rank = (int) $rank_by_stage[$current_stage];
+            $available = array_values(array_filter(array_keys($rank_counts), static fn($candidate): bool => (int) $candidate < $current_rank));
+            if ($available) $next_stage = $stage_by_rank[max($available)] ?? null;
+        }
+        return array(
+            'nextStage' => $next_stage,
+            'rankCounts' => $rank_counts,
+        );
+    }
+
     public static function ajax_reveal(): void {
         self::guard();
         $next = strtoupper(sanitize_text_field(wp_unslash($_POST['stage'] ?? '')));
@@ -437,25 +474,21 @@ final class MAC_Voting_Admin {
             wp_send_json_error(array('message' => 'Trạng thái công bố không hợp lệ.'), 400);
         }
         $current = MAC_Voting_DB::reveal_state();
-        $transitions = array(
-            'IDLE' => 'ROLLING',
-            'ROLLING' => 'SIXTH',
-            'SIXTH' => 'FIFTH',
-            'FIFTH' => 'FOURTH',
-            'FOURTH' => 'THIRD',
-            'THIRD' => 'SECOND',
-            'SECOND' => 'FINAL',
-        );
-        if ($next !== 'IDLE' && ($transitions[$current['stage']] ?? '') !== $next) {
+        global $wpdb;
+        $performances = MAC_Voting_DB::table('performances');
+        $teams = MAC_Voting_DB::table('teams');
+        $slots = MAC_Voting_DB::table('slots');
+        $ballots = MAC_Voting_DB::table('ballots');
+        $rank_results = $wpdb->get_results("SELECT p.id AS performance_id,t.id AS team_id,t.team_no,t.name AS team_name,AVG(b.total_score) AS average_score
+            FROM $performances p JOIN $slots s ON s.performance_id=p.id JOIN $teams t ON t.id=p.team_id
+            LEFT JOIN $ballots b ON b.performance_id=p.id AND b.status='VALID'
+            GROUP BY p.id,t.id ORDER BY average_score DESC,t.team_no", ARRAY_A) ?: array();
+        $plan = self::art_reveal_plan($rank_results, $current['stage']);
+        if ($next !== 'IDLE' && $plan['nextStage'] !== $next) {
             wp_send_json_error(array('message' => 'Tín hiệu không đúng thứ tự. Hãy tải lại dashboard và thử lại.'), 409);
         }
         if ($next === 'ROLLING') {
-            global $wpdb;
             $rounds = MAC_Voting_DB::table('rounds');
-            $teams = MAC_Voting_DB::table('teams');
-            $performances = MAC_Voting_DB::table('performances');
-            $slots = MAC_Voting_DB::table('slots');
-            $ballots = MAC_Voting_DB::table('ballots');
             $unfinished = (int) $wpdb->get_var("SELECT COUNT(*) FROM $rounds WHERE status!='CLOSED'");
             if ($unfinished) {
                 wp_send_json_error(array('message' => 'Hãy đóng đủ cả 3 lượt vote trước khi bắt đầu công bố.'), 409);
@@ -479,12 +512,12 @@ final class MAC_Voting_Admin {
         $messages = array(
             'IDLE' => 'Đã đưa màn hình công bố về trạng thái chờ.',
             'ROLLING' => 'Spotlight đang tìm kiếm giữa 6 đội.',
-            'SIXTH' => 'Đã công bố đội xếp hạng sáu.',
-            'FIFTH' => 'Đã công bố đội xếp hạng năm.',
-            'FOURTH' => 'Đã công bố đội xếp hạng tư.',
-            'THIRD' => 'Đã công bố đội xếp hạng ba.',
-            'SECOND' => 'Đã công bố đội xếp hạng nhì.',
-            'FINAL' => 'Đã công bố quán quân.',
+            'SIXTH' => 'Đã công bố nhóm xếp hạng sáu.',
+            'FIFTH' => 'Đã công bố nhóm xếp hạng năm.',
+            'FOURTH' => 'Đã công bố nhóm xếp hạng tư.',
+            'THIRD' => 'Đã công bố nhóm xếp hạng ba.',
+            'SECOND' => 'Đã công bố nhóm xếp hạng nhì.',
+            'FINAL' => 'Đã công bố nhóm quán quân.',
         );
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'RESULTS_REVEAL_' . $next, 'reveal', (string) $state['revision'], array(
             'previousStage' => $current['stage'],
@@ -964,6 +997,7 @@ final class MAC_Voting_Admin {
         return array(
             'rounds' => $round_rows, 'results' => $results, 'ballots' => $recent,
             'reveal' => MAC_Voting_DB::reveal_state(),
+            'artRevealPlan' => self::art_reveal_plan($results),
             'totalReveal' => MAC_Voting_DB::total_reveal_state(),
             'totalScoresHidden' => MAC_Voting_DB::scores_hidden(),
             'artLightTheme' => MAC_Voting_DB::art_light_theme(),
