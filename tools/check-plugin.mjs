@@ -445,7 +445,7 @@ if (!adminFile.includes("artResultsUrl") || !adminJs.includes("artResultsUrl")) 
 for (const invariant of ["THE SPOTLIGHT", "startSpotlightSearch", "5000 - elapsed", "team.current", "team.revealed", "aimSpots", "ar-dust", "is-decel", "is-light"]) {
   if (!artRaceJs.includes(invariant)) throw new Error(`Missing sequential spotlight screen behavior: ${invariant}`);
 }
-for (const invariant of [".ar-curtain", ".ar-beam", ".ar-team.is-searching", "mac-art-race-page", ".ar-spot", ".ar-grain", ".ar-floor-ring", ".mac-art-race-app.is-light"]) {
+for (const invariant of [".ar-curtain", ".ar-beam", ".ar-team.is-searching", "mac-art-race-page", ".ar-spot", ".ar-offline-overlay", ".ar-floor-ring", ".mac-art-race-app.is-light"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Missing spotlight stage style: ${invariant}`);
 }
 if ((artRaceJs.match(/class="ar-spot"/g) || []).length !== 1) {
@@ -469,11 +469,14 @@ if (!titleKickerStyle.includes("text-shadow: none")) {
 for (const invariant of ["--ocean-deep", "--wood", "--bronze", "Tone biển sáng", "mask-image: linear-gradient(180deg, transparent, #000 15%, #000)"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Missing ocean-voyage stage treatment: ${invariant}`);
 }
-for (const invariant of ["--black: #050403", "rgba(255, 106, 44, 0.58)", "rgba(227, 30, 36, 0.62)", "rgba(5, 4, 3, 0.72)"]) {
-  if (!artRaceCss.includes(invariant)) throw new Error(`Dark spotlight theme must retain its v1.9.26 styling: ${invariant}`);
+for (const invariant of ["--black: #050403", "rgba(255, 106, 44, 0.58)", "linear-gradient(120deg, var(--red), var(--orange))", "rgba(5, 4, 3, 0.72)"]) {
+  if (!artRaceCss.includes(invariant)) throw new Error(`Dark spotlight theme must retain MAC styling: ${invariant}`);
 }
-for (const invariant of [".ar-team.is-revealed .ar-beam", ".ar-team.is-revealed .ar-dust", "ÁNH SÁNG ĐANG GỌI TÊN", "window.setTimeout(startSpotlightSearch, 3000)"]) {
+for (const invariant of [".ar-team.is-revealed .ar-beam { opacity: 0.54; }", ".ar-team.is-revealed .ar-dust", "ÁNH SÁNG ĐANG GỌI TÊN", "window.setTimeout(startSpotlightSearch, 3000)", "#000 0 91%", ".ar-team.is-name-long", ".ar-team.is-name-xlong", ".ar-shell.has-connection-alert .ar-offline-overlay", "failedPolls >= 6"]) {
   if (!artRaceCss.includes(invariant) && !artRaceJs.includes(invariant)) throw new Error(`Missing persistent revealed-team lighting behavior: ${invariant}`);
+}
+for (const banned of ["class=\"ar-grain\"", "class=\"ar-edge", ".ar-grain {", ".ar-edge {", "overflow-wrap: anywhere"]) {
+  if (artRaceJs.includes(banned) || artRaceCss.includes(banned)) throw new Error(`Projector-only spotlight must omit obsolete visual treatment: ${banned}`);
 }
 if (artRaceJs.includes("SPOTLIGHT ĐANG TÌM KIẾM")) {
   throw new Error("Old searching headline must be replaced with the new reveal copy.");

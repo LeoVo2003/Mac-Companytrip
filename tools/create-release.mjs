@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.29";
+const tag = "v1.9.30";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Các đội đã công bố tiếp tục giữ beam và bụi riêng; đội vừa công bố sáng mạnh hơn, spotlight động chỉ quét đội chưa lộ diện.",
-  "- Đổi lời dẫn tìm kiếm thành ÁNH SÁNG ĐANG GỌI TÊN và giảm khoảng nghỉ sau mỗi lần công bố từ 5 giây xuống 3 giây.",
-  "- Dựng lại beam dạng ánh sáng sân khấu mềm nhiều lớp; thay runway một vệt bằng mặt sàn cong tỏa rộng và haze nhiều điểm tự nhiên hơn.",
+  "- Tối ưu sân khấu cho máy chiếu: beam cũ sáng rõ hơn, luồng sáng chạm bục và sàn dark tăng tương phản theo cùng tone kem–vàng.",
+  "- Bỏ hai vệt đỏ chéo và film grain; nâng cỡ chữ, tự co tên đội dài mà không cắt giữa chữ.",
+  "- Thêm overlay toàn màn hình khi mất kết nối kéo dài và tự đóng khi đồng bộ trở lại.",
 ].join("\n");
 
 let release;

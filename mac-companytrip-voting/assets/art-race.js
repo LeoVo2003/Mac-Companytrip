@@ -8,6 +8,10 @@
   const esc = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
   const fmtScore = (score) => Number(score).toLocaleString("vi-VN", { maximumFractionDigits: 1 });
   const rankLabel = (rank) => ({ 1: "QUÁN QUÂN", 2: "HẠNG NHÌ", 3: "HẠNG BA" }[Number(rank)] || `HẠNG ${rank}`);
+  const teamNameClass = (name) => {
+    const length = Array.from(String(name || "").trim()).length;
+    return length > 24 ? " is-name-xlong" : length > 16 ? " is-name-long" : "";
+  };
   const dustMarkup = () => `<div class="ar-dust" aria-hidden="true">${Array.from({ length: 30 }, (_, index) => {
     const x = 16 + ((index * 37) % 69);
     const y = 8 + ((index * 53) % 83);
@@ -34,7 +38,7 @@
   function shell(teams) {
     root.innerHTML = `<div class="ar-shell" data-stage="idle">
       <canvas class="ar-pyro" aria-hidden="true"></canvas>
-      <div class="ar-stage-world" aria-hidden="true"><i class="ar-rays"></i><i class="ar-haze"></i><i class="ar-runway"></i><i class="ar-edge ar-edge-left"></i><i class="ar-edge ar-edge-right"></i></div>
+      <div class="ar-stage-world" aria-hidden="true"><i class="ar-rays"></i><i class="ar-haze"></i><i class="ar-runway"></i></div>
       <div class="ar-curtain" aria-hidden="true"><i class="ar-curtain-left"></i><i class="ar-curtain-right"></i><span></span></div>
       <header class="ar-header">
         <div class="ar-brand"><img src="${esc(logo)}" alt="MAC Marketing"></div>
@@ -49,7 +53,7 @@
         </div>
         <section class="ar-podiums" aria-label="Sáu vị trí công bố kết quả văn nghệ">
           <div class="ar-spot" data-spot="0"></div>
-          ${teams.map((team, index) => `<article class="ar-team is-pending" style="--slot:${index}" data-team-id="${team.id}" role="group" aria-label="Đội số ${team.number} ${esc(team.name)}">
+          ${teams.map((team, index) => `<article class="ar-team is-pending${teamNameClass(team.name)}" style="--slot:${index}" data-team-id="${team.id}" role="group" aria-label="Đội số ${team.number} ${esc(team.name)}">
             <div class="ar-beam" aria-hidden="true"></div>
             ${dustMarkup()}
             <div class="ar-team-copy">
@@ -64,16 +68,25 @@
         </section>
       </main>
       <i class="ar-vignette" aria-hidden="true"></i>
-      <i class="ar-grain" aria-hidden="true"></i>
+      <div class="ar-offline-overlay" role="alert" aria-live="assertive" aria-hidden="true">
+        <i aria-hidden="true"></i>
+        <strong>Tạm mất kết nối</strong>
+        <p>Đang tự động kết nối lại với bàn điều khiển. Kết quả trên màn hình vẫn được giữ nguyên.</p>
+      </div>
       <footer class="ar-footer"><span class="ar-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE · THE SPOTLIGHT</span></div></footer>
     </div>`;
   }
 
-  function setConnection(connected) {
+  function setConnection(connected, showOverlay = false) {
     const connection = root.querySelector(".ar-connection");
     if (!connection) return;
     connection.classList.toggle("is-offline", !connected);
     connection.querySelector("span").textContent = connected ? "Đang đồng bộ" : "Mất kết nối · đang thử lại";
+    const shellElement = root.querySelector(".ar-shell");
+    const overlay = root.querySelector(".ar-offline-overlay");
+    const overlayVisible = !connected && showOverlay;
+    shellElement?.classList.toggle("has-connection-alert", overlayVisible);
+    overlay?.setAttribute("aria-hidden", overlayVisible ? "false" : "true");
   }
 
   function setTitle(kicker, title, description, footer) {
@@ -335,7 +348,7 @@
     } catch (error) {
       failedPolls += 1;
       if (!state) root.innerHTML = `<div class="ar-error" role="alert"><img src="${esc(logo)}" alt="MAC Marketing"><strong>Chưa kết nối được The Spotlight</strong><p>${esc(error.message)}</p><button type="button">Thử lại</button></div>`;
-      if (failedPolls >= 2) setConnection(false);
+      if (failedPolls >= 2) setConnection(false, failedPolls >= 6);
       root.querySelector(".ar-error button")?.addEventListener("click", poll, { once: true });
     }
   }
