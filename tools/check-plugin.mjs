@@ -51,6 +51,14 @@ for (const stylesheet of [resultsCss, artRaceCss]) {
 for (const invariant of ["font-family: Prata", "font-family: var(--display)"]) {
   if (!resultsCss.includes(invariant) && !artRaceCss.includes(invariant)) throw new Error(`Missing Prata display role: ${invariant}`);
 }
+const totalHeadingStyle = resultsCss.match(/\.mr-heading h1\s*\{[^}]+\}/s)?.[0] || "";
+if (!totalHeadingStyle.includes('font-family: "Bricolage Grotesque"') || !totalHeadingStyle.includes("font-weight: 500")) {
+  throw new Error("Total-results featured team name must use Bricolage Grotesque 500.");
+}
+const totalRankStyle = resultsCss.match(/\.mr-rank\s*\{[^}]+\}/s)?.[0] || "";
+if (!totalRankStyle.includes("font-family: Prata") || !totalRankStyle.includes("font-weight: 400")) {
+  throw new Error("Total-results rank badges must use Prata 400.");
+}
 for (const invariant of [".ar-team-copy b {", 'font-family: "Bricolage Grotesque"', '.ar-shell[data-stage="final"] .ar-title p']) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Art results must keep scores/ranks readable while reserving Prata for display: ${invariant}`);
 }
@@ -483,7 +491,7 @@ for (const invariant of ["mac_voting_art_results_page_id", "ket-qua-tong", "art_
 if (!adminFile.includes("artResultsUrl") || !adminJs.includes("artResultsUrl")) {
   throw new Error("Art reveal panel must link to the /ket-qua-van-nghe race screen.");
 }
-for (const invariant of ["THE SPOTLIGHT", "startSpotlightSearch", "5000 - elapsed", "team.current", "team.revealed", "aimSpots", "ar-dust", "is-decel", "is-light", "ĐỒNG QUÁN QUÂN", "const currents = state.teams.filter"]) {
+for (const invariant of ["THE SPOTLIGHT", "startSpotlightSearch", "5000 - elapsed", "team.current", "team.revealed", "aimSpots", "ar-dust", "is-decel", "is-light", "Đồng quán quân", "const currents = state.teams.filter"]) {
   if (!artRaceJs.includes(invariant)) throw new Error(`Missing sequential spotlight screen behavior: ${invariant}`);
 }
 for (const invariant of [".ar-curtain", ".ar-beam", ".ar-team.is-searching", "mac-art-race-page", ".ar-spot", ".ar-offline-overlay", ".ar-floor-ring", ".mac-art-race-app.is-light"]) {
@@ -517,13 +525,13 @@ for (const invariant of ["border-top", "border-radius: 50% 50% 0 0", "repeating-
 for (const banned of [".ar-stage-world::after", "@keyframes ar-backdrop-breathe"]) {
   if (artRaceCss.includes(banned)) throw new Error(`Restored oval stage must omit gala-stage treatment: ${banned}`);
 }
-for (const invariant of ["clamp(42px, 6vw, 104px)", "clamp(21px, 1.55vw, 30px)", "clamp(34px, 2.7vw, 52px)", "clamp(16px, 1.2vw, 21px)"]) {
+for (const invariant of ["clamp(42px, 6vw, 104px)", "clamp(21px, 1.55vw, 30px)", "clamp(34px, 2.7vw, 52px)", "clamp(14px, 1.1vw, 19px)"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Missing large-venue typography scale: ${invariant}`);
 }
 for (const invariant of ["--black: #050403", "rgba(255, 106, 44, 0.58)", "linear-gradient(120deg, var(--red), var(--orange))", "rgba(5, 4, 3, 0.72)"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Dark spotlight theme must retain MAC styling: ${invariant}`);
 }
-for (const invariant of [".ar-team.is-revealed .ar-beam { opacity: 0.54; }", ".ar-team.is-revealed .ar-dust", "ÁNH SÁNG ĐANG GỌI TÊN", "Number(current.rank) !== 2 && searchPool().length", "window.setTimeout(startSpotlightSearch, 3000)", "#000 0 91%", ".ar-team.is-name-long", ".ar-team.is-name-xlong", ".ar-shell.has-connection-alert .ar-offline-overlay", "failedPolls >= 6"]) {
+for (const invariant of [".ar-team.is-revealed .ar-beam { opacity: 0.54; }", ".ar-team.is-revealed .ar-dust", "Ánh sáng đang gọi tên", "Number(current.rank) !== 2 && searchPool().length", "window.setTimeout(startSpotlightSearch, 3000)", "#000 0 91%", ".ar-team.is-name-long", ".ar-team.is-name-xlong", ".ar-shell.has-connection-alert .ar-offline-overlay", "failedPolls >= 6"]) {
   if (!artRaceCss.includes(invariant) && !artRaceJs.includes(invariant)) throw new Error(`Missing persistent revealed-team lighting behavior: ${invariant}`);
 }
 for (const invariant of [".ma-reveal-actions button.is-skipped:disabled", "opacity: 0.34", ".ar-shell[data-stage=\"final\"] .ar-rays { opacity: 0.34; }", "mix-blend-mode: screen"]) {

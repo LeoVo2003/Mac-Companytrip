@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.39
+Stable tag: 1.9.41
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,15 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.41 =
+- Tiết chế màn văn nghệ: tiêu đề công bố còn 1 hàng viết thường kiểu "Quán quân văn nghệ · Đèn Hiệu · 141 điểm", bỏ khối kicker/description thừa.
+- Bỏ nhãn "ĐIỂM TRUNG BÌNH" dưới điểm (giữ nguyên số điểm); tên trên bục để 1 hàng, không in hoa, tràn thì cắt gọn.
+- Kết quả tổng giữ nguyên font đã duyệt: h1 Bricolage Grotesque, badge hạng Prata.
+
+= 1.9.40 =
+- Đảo vai trò font trên Kết quả tổng theo duyệt trực tiếp: tên đội nổi bật dùng Bricolage Grotesque 500, badge hạng dùng Prata 400.
+- Tăng nhẹ cỡ và giảm letter-spacing của badge Prata để danh hiệu vẫn rõ khi trình chiếu xa và không tràn trên màn nhỏ.
 
 = 1.9.39 =
 - Thay Newsreader bằng Prata Regular 400 cho tiêu đề và tên đội nổi bật trên cả Kết quả tổng lẫn Kết quả văn nghệ.

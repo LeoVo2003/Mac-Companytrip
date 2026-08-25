@@ -60,7 +60,6 @@
               <span class="ar-team-rank">CHỜ CÔNG BỐ</span>
               <strong>${esc(team.name)}</strong>
               <b>—</b>
-              <small>ĐIỂM TRUNG BÌNH</small>
             </div>
             <div class="ar-podium" aria-hidden="true"><em>${esc(team.name)}</em><span></span></div>
             <i class="ar-floor-ring" aria-hidden="true"></i>
@@ -208,9 +207,9 @@
     if (!searchPool().length) return;
     searchActive = true;
     if (state.stage === "ROLLING") {
-      setTitle("ÁNH SÁNG ĐANG GỌI TÊN", "Ai sẽ bước vào tâm điểm?", "Một khoảnh khắc · một cái tên được chọn", "Chờ tín hiệu công bố hạng 6");
+      setTitle("Ánh sáng đang gọi tên", "Ai sẽ bước vào tâm điểm?", "Một khoảnh khắc · một cái tên được chọn", "Chờ tín hiệu công bố hạng 6");
     } else {
-      setTitle("ÁNH SÁNG TIẾP TỤC GỌI TÊN", "Tâm điểm tiếp theo thuộc về ai?", "Spotlight đang lướt qua những đội chưa lộ diện", "Chờ tín hiệu MC");
+      setTitle("Ánh sáng tiếp tục gọi tên", "Tâm điểm tiếp theo thuộc về ai?", "Spotlight đang lướt qua những đội chưa lộ diện", "Chờ tín hiệu MC");
     }
     root.querySelector(".ar-title")?.classList.add("is-soft");
     if (reducedMotion.matches) return;
@@ -286,18 +285,18 @@
     });
 
     if (!current) {
-      setTitle("KẾT QUẢ VĂN NGHỆ", "Đang chốt kết quả", "Spotlight sẽ khóa vào đội tiếp theo", "Chờ tín hiệu MC");
+      setTitle("", "Kết quả văn nghệ · đang chốt kết quả", "", "Chờ tín hiệu MC");
       return;
     }
 
     const tied = currents.length > 1;
     const names = currents.map((team) => team.name).join(" · ");
-    setTitle(
-      tied ? (champion ? "ĐỒNG QUÁN QUÂN" : `ĐỒNG ${rankLabel(current.rank)}`) : (champion ? "QUÁN QUÂN VĂN NGHỆ" : rankLabel(current.rank)),
-      tied ? names : current.name,
-      tied ? `${currents.length} đội đồng hạng · ${fmtScore(current.score)} điểm` : (current.score !== null ? `${fmtScore(current.score)} điểm · Spotlight thuộc về ${current.name}` : "Kết quả đã được công bố"),
-      champion ? "Kết quả chung cuộc" : `Đã công bố ${rankLabel(current.rank).toLowerCase()}`
-    );
+    // Tiết chế: tiêu đề 1 hàng, không in hoa toàn bộ — gộp danh hiệu · tên · điểm vào h1.
+    const kickerNormal = tied
+      ? (champion ? "Đồng quán quân" : `Đồng ${rankLabel(current.rank).toLowerCase()}`)
+      : (champion ? "Quán quân văn nghệ" : rankLabel(current.rank).toLowerCase());
+    const scorePart = current.score !== null ? ` · ${fmtScore(current.score)} điểm` : "";
+    setTitle("", `${kickerNormal} · ${tied ? names : current.name}${scorePart}`, "", champion ? "Kết quả chung cuộc" : `Đã công bố ${rankLabel(current.rank).toLowerCase()}`);
 
     const onLock = () => {
       currents.forEach((team, index) => countUp(currentEls[index]?.querySelector(".ar-team-copy b"), team.score));

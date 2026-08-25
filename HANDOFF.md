@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.39** (2026-08-25) — Prata Regular 400 tạo điểm nhấn cho tiêu đề và tên đội nổi bật trên cả hai màn kết quả; Bricolage Grotesque giữ hạng, điểm số, nhãn nhỏ và chữ cần đọc xa. Bundle local Prata Latin + Vietnamese cùng SIL OFL, gỡ Newsreader. Nền oval v1.9.35 và toàn bộ logic công bố giữ nguyên.
+> Phiên bản hiện tại: **v1.9.41** (2026-08-25) — tiết chế màn văn nghệ: tiêu đề công bố 1 hàng viết thường ("Quán quân văn nghệ · Đèn Hiệu · 141 điểm"), bỏ nhãn ĐIỂM TRUNG BÌNH (giữ số điểm), tên trên bục 1 hàng không in hoa; lời dẫn tìm kiếm cũng viết thường. Kết quả tổng giữ font đã duyệt: h1 Bricolage Grotesque 500, badge hạng Prata 400. Trước đó v1.9.40: đảo font kết quả tổng; v1.9.35: nền oval; v1.9.32: giữ khung sau hạng nhì. Trước đó như cũ.
 
 ---
 

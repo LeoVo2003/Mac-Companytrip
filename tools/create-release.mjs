@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.39";
+const tag = "v1.9.41";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Thay Newsreader bằng Prata Regular 400 cho tiêu đề và tên đội nổi bật trên cả hai màn kết quả.",
-  "- Giữ Bricolage Grotesque cho hạng, điểm số, nhãn nhỏ và chữ trên bục để bảo đảm đọc xa trên màn LED.",
-  "- Bundle local Prata Latin + Vietnamese cùng giấy phép SIL OFL; gỡ toàn bộ asset và dependency Newsreader.",
+  "- Màn văn nghệ tiết chế: tiêu đề 1 hàng viết thường (\"Quán quân văn nghệ · Đèn Hiệu · 141 điểm\"), bỏ nhãn ĐIỂM TRUNG BÌNH, tên trên bục 1 hàng không in hoa.",
+  "- Kết quả tổng giữ font đã duyệt: h1 Bricolage Grotesque, badge Prata.",
 ].join("\n");
 
 let release;

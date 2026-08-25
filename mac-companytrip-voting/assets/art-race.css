@@ -321,6 +321,12 @@ body.mac-art-race-page .elementor-shortcode {
   letter-spacing: 0.07em;
 }
 
+/* Tiêu đề tiết chế 1 hàng: ẩn các khối trống khi không dùng. */
+.ar-title p:empty,
+.ar-title span:empty {
+  display: none;
+}
+
 .ar-podiums {
   position: relative;
   z-index: 3;
@@ -701,9 +707,11 @@ body.mac-art-race-page .elementor-shortcode {
   font-weight: 700;
 }
 
-.ar-shell[data-stage="final"] .ar-title p {
+.ar-shell[data-stage="final"] .ar-title p,
+.ar-shell[data-stage="final"] .ar-title h1 {
   font-family: var(--display);
   font-weight: 400;
+  color: var(--gold-hot);
 }
 
 /* Spotlight động dùng cone mềm, khác lớp haze nền và không tạo hai mép trắng. */
@@ -808,15 +816,17 @@ body.mac-art-race-page .elementor-shortcode {
   z-index: 1;
   font-style: normal;
   font-family: "Bricolage Grotesque", Avenir, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: clamp(16px, 1.2vw, 21px);
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: clamp(14px, 1.1vw, 19px);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
   text-align: center;
   color: var(--gold);
   text-shadow: 0 0 14px rgba(239, 200, 120, 0.35);
-  overflow-wrap: normal;
-  word-break: normal;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ar-team.is-name-long .ar-team-copy strong { font-size: clamp(18px, 1.3vw, 25px); letter-spacing: -0.01em; }
