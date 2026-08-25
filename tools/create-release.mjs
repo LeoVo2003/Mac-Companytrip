@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.37";
+const tag = "v1.9.38";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Thay Fraunces bằng Newsreader cho tiêu đề/hạng/điểm trên cả hai màn; nét thanh hơn và số vẫn thẳng baseline.",
-  "- Dùng Bricolage Grotesque làm sans chính với weight nền 400, thay toàn bộ Manrope và Plus Jakarta Sans.",
-  "- Bundle local đủ Latin, Latin Extended, Vietnamese và gỡ sạch font thử nghiệm không còn dùng.",
+  "- Chuyển toàn bộ Newsreader display sang đúng Regular 400 Italic trên cả hai màn kết quả.",
+  "- Dùng italic font file thật cho tiêu đề hạng, điểm display, nhãn la bàn và brand serif; số vẫn thẳng baseline.",
+  "- Chỉ bundle Newsreader Italic Latin, Latin Extended, Vietnamese cần thiết; Bricolage Grotesque giữ weight nền 400.",
 ].join("\n");
 
 let release;

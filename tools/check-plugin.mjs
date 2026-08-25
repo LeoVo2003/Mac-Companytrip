@@ -41,7 +41,7 @@ for (const file of cssFiles) {
 const resultsCss = fs.readFileSync(path.join(pluginRoot, "assets/results.css"), "utf8");
 const artRaceCss = fs.readFileSync(path.join(pluginRoot, "assets/art-race.css"), "utf8");
 for (const stylesheet of [resultsCss, artRaceCss]) {
-  for (const invariant of ['font-family: "Newsreader"', 'font-family: "Bricolage Grotesque"', 'font-feature-settings: "lnum" 1, "tnum" 1', "font-weight: 400;"]) {
+  for (const invariant of ['font-family: "Newsreader"', 'font-family: "Bricolage Grotesque"', 'font-feature-settings: "lnum" 1, "tnum" 1', "font-style: italic;", "font-weight: 400;"]) {
     if (!stylesheet.includes(invariant)) throw new Error(`Event results must use bundled Newsreader + Bricolage Grotesque typography: ${invariant}`);
   }
   for (const banned of ["Cormorant Garamond", "Fraunces", "Manrope", "Plus Jakarta Sans", "fonts.googleapis.com", "font-family: Inter"]) {
@@ -80,9 +80,9 @@ const required = [
   "assets/fonts/inter-latin.woff2",
   "assets/fonts/inter-vietnamese.woff2",
   "assets/fonts/INTER-LICENSE.txt",
-  "assets/fonts/newsreader-latin.woff2",
-  "assets/fonts/newsreader-latin-ext.woff2",
-  "assets/fonts/newsreader-vietnamese.woff2",
+  "assets/fonts/newsreader-latin-italic.woff2",
+  "assets/fonts/newsreader-latin-ext-italic.woff2",
+  "assets/fonts/newsreader-vietnamese-italic.woff2",
   "assets/fonts/NEWSREADER-LICENSE.txt",
   "assets/fonts/bricolage-grotesque-latin.woff2",
   "assets/fonts/bricolage-grotesque-latin-ext.woff2",

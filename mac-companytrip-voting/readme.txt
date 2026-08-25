@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.37
+Stable tag: 1.9.38
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,11 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.38 =
+- Chuyển toàn bộ Newsreader display sang đúng Regular 400 Italic trên cả Kết quả tổng và Kết quả văn nghệ theo lựa chọn cuối.
+- Tiêu đề hạng, điểm display, nhãn la bàn và brand serif dùng italic thật từ font file, không dùng browser giả nghiêng; lining/tabular figures vẫn giữ đúng baseline.
+- Gỡ ba file Newsreader Regular đứng khỏi plugin, chỉ bundle italic Latin, Latin Extended và Vietnamese cần thiết.
 
 = 1.9.37 =
 - Thay Fraunces bằng Newsreader cho tiêu đề/hạng/điểm trên cả hai màn kết quả: thanh hơn, bớt retro nhưng vẫn giữ lining/tabular figures đúng baseline.
