@@ -41,12 +41,18 @@ for (const file of cssFiles) {
 const resultsCss = fs.readFileSync(path.join(pluginRoot, "assets/results.css"), "utf8");
 const artRaceCss = fs.readFileSync(path.join(pluginRoot, "assets/art-race.css"), "utf8");
 for (const stylesheet of [resultsCss, artRaceCss]) {
-  for (const invariant of ['font-family: "Newsreader"', 'font-family: "Bricolage Grotesque"', 'font-feature-settings: "lnum" 1, "tnum" 1', "font-style: italic;", "font-weight: 400;"]) {
-    if (!stylesheet.includes(invariant)) throw new Error(`Event results must use bundled Newsreader + Bricolage Grotesque typography: ${invariant}`);
+  for (const invariant of ['font-family: "Prata"', 'font-family: "Bricolage Grotesque"', 'font-feature-settings: "lnum" 1, "tnum" 1', "font-style: normal;", "font-weight: 400;"]) {
+    if (!stylesheet.includes(invariant)) throw new Error(`Event results must use bundled Prata + Bricolage Grotesque typography: ${invariant}`);
   }
-  for (const banned of ["Cormorant Garamond", "Fraunces", "Manrope", "Plus Jakarta Sans", "fonts.googleapis.com", "font-family: Inter"]) {
+  for (const banned of ["Cormorant Garamond", "Fraunces", "Newsreader", "Manrope", "Plus Jakarta Sans", "fonts.googleapis.com", "font-family: Inter"]) {
     if (stylesheet.includes(banned)) throw new Error(`Event results must not retain the replaced font dependency: ${banned}`);
   }
+}
+for (const invariant of ["font-family: Prata", "font-family: var(--display)"]) {
+  if (!resultsCss.includes(invariant) && !artRaceCss.includes(invariant)) throw new Error(`Missing Prata display role: ${invariant}`);
+}
+for (const invariant of [".ar-team-copy b {", 'font-family: "Bricolage Grotesque"', '.ar-shell[data-stage="final"] .ar-title p']) {
+  if (!artRaceCss.includes(invariant)) throw new Error(`Art results must keep scores/ranks readable while reserving Prata for display: ${invariant}`);
 }
 for (const invariant of ["grid-template-rows: minmax(0, 1fr) 64px 40px;", "flex: 0 0 auto;", "margin: 0 0 8px;"]) {
   if (!resultsCss.includes(invariant)) throw new Error(`Podium label must remain in flow above the bar: ${invariant}`);
@@ -80,10 +86,9 @@ const required = [
   "assets/fonts/inter-latin.woff2",
   "assets/fonts/inter-vietnamese.woff2",
   "assets/fonts/INTER-LICENSE.txt",
-  "assets/fonts/newsreader-latin-italic.woff2",
-  "assets/fonts/newsreader-latin-ext-italic.woff2",
-  "assets/fonts/newsreader-vietnamese-italic.woff2",
-  "assets/fonts/NEWSREADER-LICENSE.txt",
+  "assets/fonts/prata-latin-400-normal.woff2",
+  "assets/fonts/prata-vietnamese-400-normal.woff2",
+  "assets/fonts/PRATA-LICENSE.txt",
   "assets/fonts/bricolage-grotesque-latin.woff2",
   "assets/fonts/bricolage-grotesque-latin-ext.woff2",
   "assets/fonts/bricolage-grotesque-vietnamese.woff2",

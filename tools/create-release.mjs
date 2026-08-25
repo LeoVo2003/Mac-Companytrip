@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.38";
+const tag = "v1.9.39";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Chuyển toàn bộ Newsreader display sang đúng Regular 400 Italic trên cả hai màn kết quả.",
-  "- Dùng italic font file thật cho tiêu đề hạng, điểm display, nhãn la bàn và brand serif; số vẫn thẳng baseline.",
-  "- Chỉ bundle Newsreader Italic Latin, Latin Extended, Vietnamese cần thiết; Bricolage Grotesque giữ weight nền 400.",
+  "- Thay Newsreader bằng Prata Regular 400 cho tiêu đề và tên đội nổi bật trên cả hai màn kết quả.",
+  "- Giữ Bricolage Grotesque cho hạng, điểm số, nhãn nhỏ và chữ trên bục để bảo đảm đọc xa trên màn LED.",
+  "- Bundle local Prata Latin + Vietnamese cùng giấy phép SIL OFL; gỡ toàn bộ asset và dependency Newsreader.",
 ].join("\n");
 
 let release;

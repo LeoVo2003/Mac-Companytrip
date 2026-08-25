@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.38** (2026-08-25) — Newsreader display trên cả hai màn dùng đúng Regular 400 Italic bằng font file italic thật; lining/tabular figures tiếp tục giữ số đúng baseline. Bricolage Grotesque vẫn là sans chính với weight nền 400. Chỉ bundle các subset Latin, Latin Extended và Vietnamese thực sự dùng. Nền oval v1.9.35 cùng mọi logic công bố giữ nguyên.
+> Phiên bản hiện tại: **v1.9.39** (2026-08-25) — Prata Regular 400 tạo điểm nhấn cho tiêu đề và tên đội nổi bật trên cả hai màn kết quả; Bricolage Grotesque giữ hạng, điểm số, nhãn nhỏ và chữ cần đọc xa. Bundle local Prata Latin + Vietnamese cùng SIL OFL, gỡ Newsreader. Nền oval v1.9.35 và toàn bộ logic công bố giữ nguyên.
 
 ---
 
