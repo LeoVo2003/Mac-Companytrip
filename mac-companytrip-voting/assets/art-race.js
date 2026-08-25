@@ -181,7 +181,7 @@
   }
 
   function renderIdle() {
-    setTitle("ONE DIRECTION", "THE SPOTLIGHT", "Chỉ một hướng · chỉ một khoảnh khắc", "Sẵn sàng công bố");
+    setTitle("One Direction", "The Spotlight", "Chỉ một hướng · chỉ một khoảnh khắc", "Sẵn sàng công bố");
     state.teams.forEach((team) => {
       const element = teamElement(team.id);
       element.className = `ar-team is-pending${teamNameClass(team.name)}`;
@@ -191,7 +191,7 @@
   }
 
   function renderRolling() {
-    setTitle("ONE DIRECTION", "THE SPOTLIGHT", "Sân khấu đang mở · spotlight sẽ bắt đầu sau 5 giây", "Đang mở màn");
+    setTitle("One Direction", "The Spotlight", "Sân khấu đang mở · spotlight sẽ bắt đầu sau 5 giây", "Đang mở màn");
     state.teams.forEach((team) => {
       const element = teamElement(team.id);
       element.className = `ar-team is-pending${teamNameClass(team.name)}`;
@@ -285,18 +285,23 @@
     });
 
     if (!current) {
-      setTitle("", "Kết quả văn nghệ · đang chốt kết quả", "", "Chờ tín hiệu MC");
+      setTitle("Kết quả văn nghệ", "Đang chốt kết quả", "", "Chờ tín hiệu MC");
       return;
     }
 
     const tied = currents.length > 1;
     const names = currents.map((team) => team.name).join(" · ");
-    // Tiết chế: tiêu đề 1 hàng, không in hoa toàn bộ — gộp danh hiệu · tên · điểm vào h1.
+    // Chuẩn UI từng tầng: kicker nhỏ → tên đội lớn → dòng điểm; Bricolage 600, không in hoa toàn bộ.
+    const rankSoft = (rank) => ({ 1: "Quán quân", 2: "Hạng nhì", 3: "Hạng ba" }[Number(rank)] || `Hạng ${rank}`);
     const kickerNormal = tied
-      ? (champion ? "Đồng quán quân" : `Đồng ${rankLabel(current.rank).toLowerCase()}`)
-      : (champion ? "Quán quân văn nghệ" : rankLabel(current.rank).toLowerCase());
-    const scorePart = current.score !== null ? ` · ${fmtScore(current.score)} điểm` : "";
-    setTitle("", `${kickerNormal} · ${tied ? names : current.name}${scorePart}`, "", champion ? "Kết quả chung cuộc" : `Đã công bố ${rankLabel(current.rank).toLowerCase()}`);
+      ? (champion ? "Đồng quán quân" : `Đồng ${rankSoft(current.rank).toLowerCase()}`)
+      : (champion ? "Quán quân văn nghệ" : rankSoft(current.rank));
+    setTitle(
+      kickerNormal,
+      tied ? names : current.name,
+      current.score !== null ? `${fmtScore(current.score)} điểm` : "",
+      champion ? "Kết quả chung cuộc" : `Đã công bố ${rankSoft(current.rank).toLowerCase()}`
+    );
 
     const onLock = () => {
       currents.forEach((team, index) => countUp(currentEls[index]?.querySelector(".ar-team-copy b"), team.score));

@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.41";
+const tag = "v1.9.42";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Màn văn nghệ tiết chế: tiêu đề 1 hàng viết thường (\"Quán quân văn nghệ · Đèn Hiệu · 141 điểm\"), bỏ nhãn ĐIỂM TRUNG BÌNH, tên trên bục 1 hàng không in hoa.",
-  "- Kết quả tổng giữ font đã duyệt: h1 Bricolage Grotesque, badge Prata.",
+  "- Tiêu đề màn văn nghệ chuẩn UI từng tầng, Bricolage Grotesque 600: kicker nhỏ → tên đội lớn → dòng điểm.",
+  "- Bục tên đội to hơn, hết rớt chữ \"Sao Bắc Cực\".",
+  "- ket-qua-tong: badge hạng Bricolage 600, chỉ in hoa chữ đầu; twist khuyến khích 50%, ứng viên chạy 50→80%.",
 ].join("\n");
 
 let release;

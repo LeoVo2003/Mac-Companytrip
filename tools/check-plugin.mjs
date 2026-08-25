@@ -56,10 +56,10 @@ if (!totalHeadingStyle.includes('font-family: "Bricolage Grotesque"') || !totalH
   throw new Error("Total-results featured team name must use Bricolage Grotesque 500.");
 }
 const totalRankStyle = resultsCss.match(/\.mr-rank\s*\{[^}]+\}/s)?.[0] || "";
-if (!totalRankStyle.includes("font-family: Prata") || !totalRankStyle.includes("font-weight: 400")) {
-  throw new Error("Total-results rank badges must use Prata 400.");
+if (!totalRankStyle.includes('font-family: "Bricolage Grotesque"') || !totalRankStyle.includes("font-weight: 600") || !totalRankStyle.includes("text-transform: none")) {
+  throw new Error("Total-results rank badges must use Bricolage Grotesque 600 in normal case.");
 }
-for (const invariant of [".ar-team-copy b {", 'font-family: "Bricolage Grotesque"', '.ar-shell[data-stage="final"] .ar-title p']) {
+for (const invariant of [".ar-team-copy b {", 'font-family: "Bricolage Grotesque"', '.ar-shell[data-stage="final"] .ar-title h1']) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Art results must keep scores/ranks readable while reserving Prata for display: ${invariant}`);
 }
 for (const invariant of ["grid-template-rows: minmax(0, 1fr) 64px 40px;", "flex: 0 0 auto;", "margin: 0 0 8px;"]) {
@@ -525,7 +525,7 @@ for (const invariant of ["border-top", "border-radius: 50% 50% 0 0", "repeating-
 for (const banned of [".ar-stage-world::after", "@keyframes ar-backdrop-breathe"]) {
   if (artRaceCss.includes(banned)) throw new Error(`Restored oval stage must omit gala-stage treatment: ${banned}`);
 }
-for (const invariant of ["clamp(42px, 6vw, 104px)", "clamp(21px, 1.55vw, 30px)", "clamp(34px, 2.7vw, 52px)", "clamp(14px, 1.1vw, 19px)"]) {
+for (const invariant of ["clamp(40px, 4.8vw, 86px)", "clamp(21px, 1.55vw, 30px)", "clamp(34px, 2.7vw, 52px)", "clamp(15px, 1.25vw, 22px)"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Missing large-venue typography scale: ${invariant}`);
 }
 for (const invariant of ["--black: #050403", "rgba(255, 106, 44, 0.58)", "linear-gradient(120deg, var(--red), var(--orange))", "rgba(5, 4, 3, 0.72)"]) {

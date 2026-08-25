@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.41
+Stable tag: 1.9.42
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,12 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.42 =
+- Làm lại tiêu đề màn văn nghệ chuẩn UI từng tầng, tất cả Bricolage Grotesque 600: kicker nhỏ màu vàng → tên đội lớn → dòng điểm; không in hoa toàn bộ.
+- Bục tên đội to hơn (13vw/220px, chữ 15-22px) để "Sao Bắc Cực" không rớt chữ.
+- ket-qua-tong: badge .mr-rank chuyển sang Bricolage Grotesque 600, chữ chỉ in hoa đầu ("Hạng 6", "Quán quân", "Khuyến khích").
+- Cú twist: 3 cột khuyến khích giữ 50%, 3 cột ứng viên chạy 50%→80%.
 
 = 1.9.41 =
 - Tiết chế màn văn nghệ: tiêu đề công bố còn 1 hàng viết thường kiểu "Quán quân văn nghệ · Đèn Hiệu · 141 điểm", bỏ khối kicker/description thừa.

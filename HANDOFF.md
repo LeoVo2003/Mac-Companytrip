@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.41** (2026-08-25) — tiết chế màn văn nghệ: tiêu đề công bố 1 hàng viết thường ("Quán quân văn nghệ · Đèn Hiệu · 141 điểm"), bỏ nhãn ĐIỂM TRUNG BÌNH (giữ số điểm), tên trên bục 1 hàng không in hoa; lời dẫn tìm kiếm cũng viết thường. Kết quả tổng giữ font đã duyệt: h1 Bricolage Grotesque 500, badge hạng Prata 400. Trước đó v1.9.40: đảo font kết quả tổng; v1.9.35: nền oval; v1.9.32: giữ khung sau hạng nhì. Trước đó như cũ.
+> Phiên bản hiện tại: **v1.9.42** (2026-08-25) — tiêu đề màn văn nghệ chuẩn UI từng tầng, tất cả Bricolage Grotesque 600 (kicker nhỏ vàng → tên đội lớn ivory → dòng điểm gold-hot; FINAL tên vàng đồng); bục tên đội to hơn 13vw/220px hết rớt chữ; ket-qua-tong: .mr-rank Bricolage 600 chỉ in hoa chữ đầu ("Hạng 6", "Quán quân", "Khuyến khích"); twist: khuyến khích giữ 50%, 3 cột ứng viên chạy 50→80%. Trước đó v1.9.41: tiết chế 1 hàng + bỏ ĐIỂM TRUNG BÌNH. Trước đó như cũ.
 
 ---
 

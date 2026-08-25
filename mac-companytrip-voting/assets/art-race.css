@@ -286,39 +286,35 @@ body.mac-art-race-page .elementor-shortcode {
 }
 
 .ar-title p {
-  margin: 0 0 2px;
-  color: var(--ivory);
-  font-family: var(--display);
-  font-size: clamp(42px, 6vw, 104px);
-  font-weight: 800;
-  font-variant-numeric: lining-nums tabular-nums;
-  font-feature-settings: "lnum" 1, "tnum" 1;
-  font-optical-sizing: auto;
-  line-height: 1.18;
-  letter-spacing: 0.02em;
+  margin: 0 0 6px;
+  color: var(--gold);
+  font-family: "Bricolage Grotesque", Avenir, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(15px, 1.35vw, 24px);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
   text-shadow: none;
-  text-wrap: balance;
 }
 
 .ar-title h1 {
-  margin: 10px 0 0;
-  color: var(--orange);
-  font-family: var(--display);
-  font-size: clamp(22px, 2.45vw, 42px);
-  font-weight: 400;
-  line-height: 1.16;
-  letter-spacing: 0.08em;
-  text-indent: 0.08em;
+  margin: 0;
+  color: var(--ivory);
+  font-family: "Bricolage Grotesque", Avenir, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(40px, 4.8vw, 86px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: 0.01em;
   text-shadow: none;
   text-wrap: balance;
 }
 
 .ar-title span {
-  margin-top: 14px;
-  color: var(--muted);
-  font-size: clamp(13px, 1.05vw, 18px);
+  margin-top: 8px;
+  color: var(--gold-hot);
+  font-family: "Bricolage Grotesque", Avenir, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(18px, 1.7vw, 30px);
   font-weight: 600;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
 }
 
 /* Tiêu đề tiết chế 1 hàng: ẩn các khối trống khi không dùng. */
@@ -404,7 +400,7 @@ body.mac-art-race-page .elementor-shortcode {
   z-index: 4;
   display: grid;
   place-items: center;
-  width: min(11vw, 180px);
+  width: min(13vw, 220px);
   min-height: clamp(46px, 7vh, 64px);
   padding: 8px 10px;
   border: 1px solid rgba(239, 200, 120, 0.3);
@@ -704,13 +700,15 @@ body.mac-art-race-page .elementor-shortcode {
 .ar-title p {
   font-family: "Bricolage Grotesque", Avenir, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 600;
 }
 
-.ar-shell[data-stage="final"] .ar-title p,
+/* Lúc tìm kiếm: tầng tên nhỏ lại để không đè sân khấu. */
+.ar-title.is-soft h1 {
+  font-size: clamp(24px, 2.6vw, 46px);
+}
+
 .ar-shell[data-stage="final"] .ar-title h1 {
-  font-family: var(--display);
-  font-weight: 400;
   color: var(--gold-hot);
 }
 
@@ -816,7 +814,7 @@ body.mac-art-race-page .elementor-shortcode {
   z-index: 1;
   font-style: normal;
   font-family: "Bricolage Grotesque", Avenir, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: clamp(14px, 1.1vw, 19px);
+  font-size: clamp(15px, 1.25vw, 22px);
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: none;

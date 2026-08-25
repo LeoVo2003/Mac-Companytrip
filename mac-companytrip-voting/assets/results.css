@@ -643,11 +643,12 @@ body.mac-results-page .elementor-shortcode {
   color: var(--brass-highlight);
   background: rgba(4, 13, 28, 0.88);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
-  font-family: Prata, Georgia, "Times New Roman", serif;
+  font-family: "Bricolage Grotesque", Avenir, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: clamp(9px, 0.72vw, 13px);
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.1;
   letter-spacing: 0.055em;
+  text-transform: none;
   opacity: 0;
   transform: translateY(8px) scale(0.8);
   transition: opacity 450ms ease 520ms, transform 450ms ease 520ms;

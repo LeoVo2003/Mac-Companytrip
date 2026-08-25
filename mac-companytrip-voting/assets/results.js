@@ -155,10 +155,10 @@
   }
 
   function rankLabel(rank) {
-    if (Number(rank) === 1) return "QUÁN QUÂN";
-    if (Number(rank) === 2) return "HẠNG NHÌ";
-    if (Number(rank) === 3) return "HẠNG BA";
-    return "KHUYẾN KHÍCH";
+    if (Number(rank) === 1) return "Quán quân";
+    if (Number(rank) === 2) return "Hạng nhì";
+    if (Number(rank) === 3) return "Hạng ba";
+    return "Khuyến khích";
   }
 
   function podiumClass(rank) {
@@ -183,7 +183,7 @@
     return Object.entries(counts)
       .map(([rank, count]) => ({ rank: Number(rank), count }))
       .sort((a, b) => b.rank - a.rank)
-      .map((entry) => entry.count > 1 ? `HẠNG ${entry.rank} ×${entry.count}` : `HẠNG ${entry.rank}`)
+      .map((entry) => entry.count > 1 ? `Hạng ${entry.rank} ×${entry.count}` : `Hạng ${entry.rank}`)
       .join(" & ");
   }
 
@@ -193,8 +193,8 @@
     if (reducedMotion.matches) return;
     const ids = state.topTwo || [];
     const phaseStep = (Math.PI * 2) / Math.max(2, ids.length);
-    // TWIST: ứng viên dao động 45→60%; REVEAL3: hai đội còn lại dao động mạnh hơn 50→90%.
-    const osc = state.stage === "REVEAL3" ? { base: 70, amp: 20 } : { base: 52.5, amp: 7.5 };
+    // TWIST: 3 cột ứng viên chạy 50→80%; REVEAL3: hai đội còn lại dao động mạnh hơn 50→90%.
+    const osc = state.stage === "REVEAL3" ? { base: 70, amp: 20 } : { base: 65, amp: 15 };
     ids.forEach((id) => {
       const bar = teamElement(id)?.querySelector(".mr-bar");
       if (bar) bar.style.transitionDuration = "120ms";
@@ -264,7 +264,7 @@
       } else if (stage === "RANK12" || stage === "TWIST" || stage === "REVEAL3") {
         // Ứng viên (TWIST: hạng 1-3, REVEAL3: hạng 1-2) leo lên mốc dao động nhưng giấu hạng +
         // điểm thật — số sẽ được vòng lặp twist tung liên tục.
-        level = stage === "REVEAL3" ? 70 : stage === "RANK12" ? 60 : 52.5;
+        level = stage === "REVEAL3" ? 70 : stage === "RANK12" ? 60 : 65;
         scoreText = "•••";
       } else {
         // Chưa lộ: cột về vạch xuất phát 122px để nhóm được lộ nổi bật hẳn.
