@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.26";
+const tag = "v1.9.27";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Giữ lại 2 line đỏ hai bên sân khấu và runway viền đỏ theo ý thích; chỉ bỏ line trắng cắt cứng ở mép vệt sáng (đã blur mềm).",
+  "- Spotlight mới dùng radial beam mềm, loại bỏ hai vệt trắng ở mép và chỉ giữ một luồng sáng khi tìm kiếm.",
+  "- Hạt bụi xanh ngọc/đồng đi theo đội đang quét hoặc vừa khóa thay vì đứng riêng tại La Bàn.",
+  "- Dựng lại sân khấu biển–boong tàu liền mạch với palette xanh đại dương, đồng và gỗ; bỏ bóng đỏ khỏi tiêu đề.",
 ].join("\n");
 
 let release;

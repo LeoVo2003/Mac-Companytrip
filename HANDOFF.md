@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.26** (2026-08-25) — giữ lại 2 line đỏ .ar-edge và runway viền đỏ theo ý user (chỉ bỏ line trắng cắt cứng mép vệt sáng, đã blur mềm). Trước đó v1.9.25: bụi chỉ trong luồng khóa + blur mép cone 12px. Trước đó v1.9.24: lighting-fix + công tắc tone đại dương. Trước đó như cũ.
+> Phiên bản hiện tại: **v1.9.27** (2026-08-25) — spotlight radial mềm không còn hai vệt mép; bụi đi theo đội đang quét/khóa; sân khấu biển–boong tàu và palette xanh/đồng/gỗ được dựng lại; tiêu đề bỏ bóng đỏ. Trước đó v1.9.26 giữ hai line cạnh và runway. Trước đó như cũ.
 
 ---
 

@@ -448,6 +448,23 @@ for (const invariant of ["THE SPOTLIGHT", "startSpotlightSearch", "5000 - elapse
 for (const invariant of [".ar-curtain", ".ar-beam", ".ar-team.is-searching", "mac-art-race-page", ".ar-spot", ".ar-grain", ".ar-floor-ring", ".mac-art-race-app.is-light"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Missing spotlight stage style: ${invariant}`);
 }
+if ((artRaceJs.match(/class="ar-spot"/g) || []).length !== 1) {
+  throw new Error("Art reveal must render exactly one moving spotlight.");
+}
+if (!artRaceJs.includes('.ar-team.is-searching, .ar-team.is-current') || !artRaceJs.includes("activeSet")) {
+  throw new Error("Art reveal dust must follow the searching or locked spotlight team.");
+}
+const spotStyle = artRaceCss.match(/\.ar-spot\s*\{[^}]+\}/s)?.[0] || "";
+if (!spotStyle.includes("radial-gradient") || spotStyle.includes("clip-path")) {
+  throw new Error("Moving spotlight must use a soft edge-free radial beam.");
+}
+const titleStyle = artRaceCss.match(/\.ar-title h1\s*\{[^}]+\}/s)?.[0] || "";
+if (!titleStyle.includes("text-shadow: none")) {
+  throw new Error("Art reveal title must not use the old red text shadow.");
+}
+for (const invariant of ["--ocean-deep", "--wood", "--bronze", "Tone biển sáng", "mask-image: linear-gradient(180deg, transparent, #000 15%, #000)"]) {
+  if (!artRaceCss.includes(invariant)) throw new Error(`Missing ocean-voyage stage treatment: ${invariant}`);
+}
 
 const totalBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);
 console.log(`Plugin source OK: ${phpFiles.length} PHP, ${jsFiles.length} JS, ${cssFiles.length} CSS, ${totalBytes} bytes. Tie tests: ${TIE_CASES.length} cases passed.`);

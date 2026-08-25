@@ -42,9 +42,6 @@
         </div>
         <section class="ar-podiums" aria-label="Sáu vị trí công bố kết quả văn nghệ">
           <div class="ar-spot" data-spot="0"></div>
-          <div class="ar-spot" data-spot="1"></div>
-          <div class="ar-spot" data-spot="2"></div>
-          <div class="ar-spot" data-spot="3"></div>
           <canvas class="ar-dust" aria-hidden="true"></canvas>
           ${teams.map((team, index) => `<article class="ar-team is-pending" style="--slot:${index}" data-team-id="${team.id}" role="group" aria-label="Đội số ${team.number} ${esc(team.name)}">
             <div class="ar-beam" aria-hidden="true"></div>
@@ -139,21 +136,25 @@
       if (!running) return;
       const rect = canvas.getBoundingClientRect();
       context.clearRect(0, 0, rect.width, rect.height);
-      // Bụi chỉ bay trong luồng sáng đã khóa (is-current) — tránh hạt lơ lửng giữa trời không đèn.
-      const actives = root.querySelector(".ar-shell.is-decel") ? [] : root.querySelectorAll(".ar-team.is-current");
+      // Bụi đi cùng đúng luồng sáng: đội đang được quét hoặc đội vừa khóa kết quả.
+      const actives = [...root.querySelectorAll(".ar-team.is-searching, .ar-team.is-current")];
       if (actives.length) {
+        const activeSet = new Set(actives);
+        for (let index = motes.length - 1; index >= 0; index -= 1) {
+          if (!activeSet.has(motes[index].owner)) motes.splice(index, 1);
+        }
         actives.forEach((active) => {
           const host = active.getBoundingClientRect();
           const cx = host.left + host.width / 2 - rect.left;
           let owned = 0;
           for (const m of motes) if (m.owner === active) owned += 1;
-          while (owned < 16) {
+          while (owned < 22) {
             motes.push({
               owner: active,
-              x: cx + (Math.random() - 0.5) * host.width * 0.8,
-              y: rect.height * (0.2 + Math.random() * 0.8),
+              x: cx + (Math.random() - 0.5) * host.width * 0.72,
+              y: rect.height * (0.16 + Math.random() * 0.84),
               v: 0.14 + Math.random() * 0.34,
-              r: 0.6 + Math.random() * 1.4,
+              r: 0.8 + Math.random() * 1.7,
               tw: Math.random() * Math.PI * 2,
               drift: (Math.random() - 0.5) * 0.3,
             });
@@ -167,10 +168,10 @@
           m.y -= m.v;
           m.x += m.drift;
           m.tw += 0.06;
-          const half = host.width * (0.14 + 0.5 * (m.y / rect.height));
+          const half = host.width * (0.12 + 0.46 * (m.y / rect.height));
           if (m.y < rect.height * 0.1 || Math.abs(m.x - cx) > half) { motes.splice(index, 1); continue; }
-          context.globalAlpha = 0.22 + 0.45 * Math.abs(Math.sin(m.tw));
-          context.fillStyle = "#fff4ce";
+          context.globalAlpha = 0.3 + 0.5 * Math.abs(Math.sin(m.tw));
+          context.fillStyle = Math.sin(m.tw) > 0.2 ? "#d9f5ff" : "#e5bc70";
           context.beginPath();
           context.arc(m.x, m.y, m.r, 0, Math.PI * 2);
           context.fill();
