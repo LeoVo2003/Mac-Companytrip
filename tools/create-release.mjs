@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.32";
+const tag = "v1.9.33";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Trả hai line viền về kiểu sân khấu gốc: đỏ–cam 2px, cao 64%, nghiêng ±10° và tan mềm ở hai đầu.",
-  "- Bỏ đầu đèn/quầng tròn của bản trước để line mảnh và sạch như ảnh tham chiếu.",
-  "- Sau hạng nhì giữ nguyên khung hình, không tự bật spotlight ở ô quán quân; chờ MC bấm công bố trực tiếp.",
+  "- Làm lại nền công bố thành phông điện ảnh liền mạch, bỏ oval/radar, vòng lưới và đường chân trời cắt ngang bục.",
+  "- Dùng sương tầng thấp và phản quang mềm theo từng vị trí đội để sân khấu có chiều sâu tự nhiên hơn.",
+  "- Áp dụng cho cả dark mode và tone biển sáng; giữ nguyên line đỏ–cam và logic spotlight hiện tại.",
 ].join("\n");
 
 let release;

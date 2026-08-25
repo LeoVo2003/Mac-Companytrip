@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.32
+Stable tag: 1.9.33
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,11 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.33 =
+- Làm lại nền sân khấu công bố thành phông điện ảnh liền mạch, bỏ hoàn toàn oval/radar, vòng lưới và đường chân trời cắt ngang bục.
+- Thay sàn cũ bằng sương tầng thấp cùng các vùng phản quang riêng dưới từng vị trí đội, giúp khung hình có chiều sâu nhưng không bị nặng hoặc đục.
+- Đồng bộ cách xử lý mới cho cả dark mode và tone biển sáng; giữ nguyên hai line đỏ–cam cùng toàn bộ logic spotlight công bố.
 
 = 1.9.32 =
 - Trả hai line viền về đúng kiểu sân khấu gốc: tia đỏ–cam 2px, cao 64%, nghiêng ±10° và tan mềm ở hai đầu; bỏ đầu đèn/quầng tròn của bản 1.9.31.

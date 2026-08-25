@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.32** (2026-08-25) — hai line viền trở lại đúng kiểu gốc đỏ–cam 2px, cao 64%, nghiêng ±10°, không còn đầu đèn/quầng tròn; sau hạng nhì màn hình giữ nguyên và không tự tìm ở ô quán quân, chờ MC bấm công bố. Tiếp tục giữ logic đồng hạng theo nhóm và vòng tia FINAL nhẹ từ v1.9.31.
+> Phiên bản hiện tại: **v1.9.33** (2026-08-25) — nền sân khấu công bố chuyển sang phông điện ảnh liền mạch, bỏ oval/radar, vòng lưới và đường chân trời; thay bằng sương thấp cùng phản quang mềm theo từng vị trí đội. Cả dark mode và tone biển sáng dùng cùng ngôn ngữ chiều sâu mới; hai line đỏ–cam và logic spotlight giữ nguyên.
 
 ---
 

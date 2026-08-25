@@ -97,30 +97,50 @@ body.mac-art-race-page .elementor-shortcode {
   inset: 0;
   overflow: hidden;
   pointer-events: none;
+  background:
+    radial-gradient(ellipse 68% 22% at 50% 104%, rgba(239, 200, 120, 0.1), transparent 72%),
+    linear-gradient(180deg, rgba(18, 13, 10, 0.08), rgba(3, 3, 2, 0.4));
 }
 
 .ar-stage-world::before {
   position: absolute;
-  inset: 0;
+  inset: 64px 0 0;
   content: "";
   background:
-    radial-gradient(ellipse at 50% -8%, rgba(255, 241, 189, 0.16), transparent 42%);
-  opacity: 0.7;
+    radial-gradient(ellipse 38% 66% at 50% -12%, rgba(255, 241, 189, 0.13), transparent 72%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.34), transparent 20% 80%, rgba(0, 0, 0, 0.34));
+}
+
+.ar-stage-world::after {
+  position: absolute;
+  right: -8vw;
+  bottom: -7vh;
+  left: -8vw;
+  height: 28vh;
+  content: "";
+  background:
+    radial-gradient(ellipse 11% 32% at 7% 44%, rgba(255, 106, 44, 0.055), transparent 74%),
+    radial-gradient(ellipse 12% 34% at 25% 48%, rgba(239, 200, 120, 0.05), transparent 76%),
+    radial-gradient(ellipse 14% 38% at 50% 50%, rgba(255, 248, 220, 0.06), transparent 76%),
+    radial-gradient(ellipse 12% 34% at 75% 48%, rgba(239, 200, 120, 0.05), transparent 76%),
+    radial-gradient(ellipse 11% 32% at 93% 44%, rgba(255, 106, 44, 0.055), transparent 74%);
+  filter: blur(14px);
+  opacity: 0.82;
 }
 
 .ar-haze {
   position: absolute;
   top: auto;
-  bottom: 9vh;
+  bottom: 5vh;
   left: 50%;
-  width: 86vw;
-  height: 28vh;
+  width: 94vw;
+  height: 22vh;
   background:
-    radial-gradient(ellipse at 28% 54%, rgba(255, 248, 220, 0.23), transparent 40%),
-    radial-gradient(ellipse at 72% 46%, rgba(239, 200, 120, 0.16), transparent 42%),
-    radial-gradient(ellipse at 50% 70%, rgba(255, 241, 189, 0.17), transparent 60%);
-  filter: blur(34px);
-  opacity: 0.68;
+    radial-gradient(ellipse 28% 48% at 18% 70%, rgba(255, 248, 220, 0.07), transparent 72%),
+    radial-gradient(ellipse 34% 52% at 50% 72%, rgba(239, 200, 120, 0.1), transparent 74%),
+    radial-gradient(ellipse 28% 48% at 82% 70%, rgba(255, 248, 220, 0.07), transparent 72%);
+  filter: blur(42px);
+  opacity: 0.72;
   transform: translateX(-50%);
   animation: ar-haze-drift 18s ease-in-out infinite alternate;
 }
@@ -132,16 +152,16 @@ body.mac-art-race-page .elementor-shortcode {
 
 .ar-runway {
   position: absolute;
-  bottom: -18%;
+  right: -4vw;
+  bottom: -3vh;
   left: 50%;
-  width: min(88vw, 1600px);
-  height: 42vh;
-  border-top: 1px solid rgba(255, 241, 189, 0.2);
-  border-radius: 50% 50% 0 0;
+  width: 108vw;
+  height: 24vh;
   background:
-    radial-gradient(ellipse at 50% 8%, rgba(255, 248, 220, 0.22), rgba(239, 200, 120, 0.08) 36%, rgba(10, 7, 5, 0.48) 68%, rgba(3, 3, 2, 0.9) 100%),
-    repeating-radial-gradient(ellipse at 50% 5%, transparent 0 42px, rgba(255, 241, 189, 0.045) 43px 44px);
-  box-shadow: inset 0 24px 90px rgba(255, 248, 220, 0.07), 0 -12px 50px rgba(239, 200, 120, 0.05);
+    linear-gradient(180deg, transparent 0 16%, rgba(255, 248, 220, 0.025) 42%, rgba(239, 200, 120, 0.045) 64%, rgba(3, 3, 2, 0.74) 100%);
+  filter: blur(10px);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 34%, #000);
+  mask-image: linear-gradient(180deg, transparent, #000 34%, #000);
   transform: translateX(-50%);
 }
 
@@ -896,37 +916,38 @@ body.mac-art-race-page .elementor-shortcode {
 
 .mac-art-race-app.is-light .ar-stage-world {
   background:
-    radial-gradient(ellipse at 50% -14%, rgba(219, 249, 255, 0.44), transparent 42%),
+    radial-gradient(ellipse 62% 20% at 50% 104%, rgba(229, 188, 112, 0.15), transparent 72%),
+    radial-gradient(ellipse at 50% -14%, rgba(219, 249, 255, 0.4), transparent 44%),
     linear-gradient(180deg, #329bb1 0%, #1b819b 31%, #0e647f 54%, #0a536d 65%, #07374f 100%);
 }
 
 .mac-art-race-app.is-light .ar-stage-world::before {
-  top: 51%;
-  right: -8%;
-  bottom: -12%;
-  left: -8%;
+  inset: 64px 0 0;
   background:
-    linear-gradient(180deg, rgba(205, 237, 241, 0.11), transparent 15%),
-    repeating-linear-gradient(92deg, transparent 0 8.6%, rgba(238, 190, 111, 0.055) 8.7% 8.9%, transparent 9% 17.5%),
-    repeating-linear-gradient(180deg, rgba(113, 73, 39, 0.08) 0 1px, transparent 1px 54px),
-    linear-gradient(180deg, rgba(43, 46, 43, 0.15), rgba(20, 25, 25, 0.72));
-  clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%);
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 15%, #000);
-  mask-image: linear-gradient(180deg, transparent, #000 15%, #000);
-  opacity: 0.82;
+    radial-gradient(ellipse 40% 66% at 50% -12%, rgba(222, 250, 255, 0.28), transparent 72%),
+    linear-gradient(90deg, rgba(2, 42, 59, 0.24), transparent 20% 80%, rgba(2, 42, 59, 0.24));
+}
+
+.mac-art-race-app.is-light .ar-stage-world::after {
+  background:
+    radial-gradient(ellipse 11% 32% at 7% 44%, rgba(229, 188, 112, 0.09), transparent 74%),
+    radial-gradient(ellipse 12% 34% at 25% 48%, rgba(211, 245, 251, 0.08), transparent 76%),
+    radial-gradient(ellipse 14% 38% at 50% 50%, rgba(229, 188, 112, 0.1), transparent 76%),
+    radial-gradient(ellipse 12% 34% at 75% 48%, rgba(211, 245, 251, 0.08), transparent 76%),
+    radial-gradient(ellipse 11% 32% at 93% 44%, rgba(229, 188, 112, 0.09), transparent 74%);
 }
 
 .mac-art-race-app.is-light .ar-haze {
   top: auto;
-  bottom: 9vh;
-  width: 88vw;
-  height: 30vh;
+  bottom: 5vh;
+  width: 94vw;
+  height: 22vh;
   background:
-    radial-gradient(ellipse at 26% 54%, rgba(210, 244, 251, 0.15), transparent 39%),
-    radial-gradient(ellipse at 74% 46%, rgba(229, 188, 112, 0.1), transparent 41%),
-    radial-gradient(ellipse at 50% 70%, rgba(119, 187, 200, 0.1), transparent 58%);
-  filter: blur(34px);
-  opacity: 0.54;
+    radial-gradient(ellipse 28% 48% at 18% 70%, rgba(210, 244, 251, 0.09), transparent 72%),
+    radial-gradient(ellipse 34% 52% at 50% 72%, rgba(229, 188, 112, 0.1), transparent 74%),
+    radial-gradient(ellipse 28% 48% at 82% 70%, rgba(210, 244, 251, 0.09), transparent 72%);
+  filter: blur(42px);
+  opacity: 0.58;
 }
 
 .mac-art-race-app.is-light .ar-header {
@@ -962,11 +983,8 @@ body.mac-art-race-page .elementor-shortcode {
 }
 
 .mac-art-race-app.is-light .ar-runway {
-  border-top-color: rgba(229, 188, 112, 0.2);
   background:
-    radial-gradient(ellipse at 50% 8%, rgba(218, 248, 252, 0.2), rgba(113, 72, 42, 0.3) 34%, rgba(43, 25, 15, 0.76) 68%, rgba(20, 25, 25, 0.92) 100%),
-    repeating-radial-gradient(ellipse at 50% 5%, transparent 0 42px, rgba(229, 188, 112, 0.055) 43px 44px);
-  box-shadow: inset 0 24px 90px rgba(211, 245, 251, 0.06), 0 -12px 50px rgba(7, 31, 39, 0.18);
+    linear-gradient(180deg, transparent 0 16%, rgba(211, 245, 251, 0.035) 42%, rgba(229, 188, 112, 0.055) 64%, rgba(3, 35, 49, 0.72) 100%);
 }
 
 .mac-art-race-app.is-light .ar-beam,
