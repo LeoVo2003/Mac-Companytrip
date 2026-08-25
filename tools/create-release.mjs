@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.34";
+const tag = "v1.9.35";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Dựng lại ar-stage-world thành sân khấu gala có cánh gà, mái hình học, backdrop phân mảng và sàn phản quang sáu vị trí.",
-  "- Tăng cỡ tiêu đề, tên đội, điểm, nhãn hạng và chữ trên bục cho màn LED hội trường 3,5 × 6,5 m.",
-  "- Giữ nền không có oval/radar; không đổi spotlight, hai line đỏ–cam và logic công bố.",
+  "- Trả ar-stage-world về đúng bản oval theo ảnh đã duyệt: sàn cong, vòng đồng tâm, haze vàng và viền sân khấu mảnh.",
+  "- Gỡ cánh gà, mái hình học và backdrop Art Deco của bản 1.9.34.",
+  "- Giữ nguyên typography cỡ lớn cho màn LED 3,5 × 6,5 m, spotlight, hai line đỏ–cam và logic công bố.",
 ].join("\n");
 
 let release;
