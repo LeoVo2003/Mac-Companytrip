@@ -1,6 +1,6 @@
 @font-face {
-  font-family: "Fraunces";
-  src: url("fonts/fraunces-vietnamese.woff2") format("woff2-variations");
+  font-family: "Newsreader";
+  src: url("fonts/newsreader-vietnamese.woff2") format("woff2-variations");
   font-display: swap;
   font-style: normal;
   font-weight: 100 900;
@@ -8,8 +8,8 @@
 }
 
 @font-face {
-  font-family: "Fraunces";
-  src: url("fonts/fraunces-latin-ext.woff2") format("woff2-variations");
+  font-family: "Newsreader";
+  src: url("fonts/newsreader-latin-ext.woff2") format("woff2-variations");
   font-display: swap;
   font-style: normal;
   font-weight: 100 900;
@@ -17,8 +17,8 @@
 }
 
 @font-face {
-  font-family: "Fraunces";
-  src: url("fonts/fraunces-latin.woff2") format("woff2-variations");
+  font-family: "Newsreader";
+  src: url("fonts/newsreader-latin.woff2") format("woff2-variations");
   font-display: swap;
   font-style: normal;
   font-weight: 100 900;
@@ -26,8 +26,8 @@
 }
 
 @font-face {
-  font-family: "Manrope";
-  src: url("fonts/manrope-vietnamese.woff2") format("woff2-variations");
+  font-family: "Bricolage Grotesque";
+  src: url("fonts/bricolage-grotesque-vietnamese.woff2") format("woff2-variations");
   font-display: swap;
   font-style: normal;
   font-weight: 200 800;
@@ -35,8 +35,8 @@
 }
 
 @font-face {
-  font-family: "Manrope";
-  src: url("fonts/manrope-latin-ext.woff2") format("woff2-variations");
+  font-family: "Bricolage Grotesque";
+  src: url("fonts/bricolage-grotesque-latin-ext.woff2") format("woff2-variations");
   font-display: swap;
   font-style: normal;
   font-weight: 200 800;
@@ -44,8 +44,8 @@
 }
 
 @font-face {
-  font-family: "Manrope";
-  src: url("fonts/manrope-latin.woff2") format("woff2-variations");
+  font-family: "Bricolage Grotesque";
+  src: url("fonts/bricolage-grotesque-latin.woff2") format("woff2-variations");
   font-display: swap;
   font-style: normal;
   font-weight: 200 800;
@@ -124,8 +124,9 @@ body.mac-results-page .elementor-shortcode {
   inset: 0;
   color: var(--ink);
   background: var(--abyss);
-  font-family: Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Bricolage Grotesque", Avenir, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 16px;
+  font-weight: 400;
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
@@ -250,7 +251,7 @@ body.mac-results-page .elementor-shortcode {
 .mr-compass-labels {
   fill: currentColor;
   stroke: none;
-  font-family: Fraunces, Georgia, serif;
+  font-family: Newsreader, Georgia, serif;
   font-variant-numeric: lining-nums tabular-nums;
   font-feature-settings: "lnum" 1, "tnum" 1;
   font-size: 15px;
@@ -345,7 +346,7 @@ body.mac-results-page .elementor-shortcode {
 
 .mr-event strong {
   color: var(--ink);
-  font-family: Fraunces, Georgia, serif;
+  font-family: Newsreader, Georgia, serif;
   font-variant-numeric: lining-nums tabular-nums;
   font-feature-settings: "lnum" 1, "tnum" 1;
   font-size: clamp(11px, 0.9vw, 16px);
@@ -427,11 +428,11 @@ body.mac-results-page .elementor-shortcode {
   color: rgba(255, 227, 173, 0.72);
 }
 
-/* Fraunces dùng lining figures để hạng và chữ số luôn cùng baseline trên màn chiếu. */
+/* Newsreader dùng lining figures để hạng và chữ số luôn cùng baseline trên màn chiếu. */
 .mr-heading h1 {
   margin: 0;
   color: var(--ink);
-  font-family: Fraunces, Georgia, "Times New Roman", serif;
+  font-family: Newsreader, Georgia, "Times New Roman", serif;
   font-variant-numeric: lining-nums tabular-nums;
   font-feature-settings: "lnum" 1, "tnum" 1;
   font-optical-sizing: auto;
@@ -811,7 +812,7 @@ body.mac-results-page .elementor-shortcode {
 .mr-error strong {
   margin-top: 12px;
   color: var(--ink);
-  font-family: Fraunces, Georgia, serif;
+  font-family: Newsreader, Georgia, serif;
   font-size: 28px;
 }
 

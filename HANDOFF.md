@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.36** (2026-08-25) — cả Kết quả tổng và Kết quả văn nghệ dùng Fraunces cho display cùng lining/tabular figures để số không tụt baseline; Manrope thay Inter cho tên đội/nhãn/nội dung trình chiếu. Hai font variable được bundle local đủ Latin, Latin Extended và Vietnamese, không phụ thuộc Google Fonts. Nền oval v1.9.35 cùng mọi logic công bố giữ nguyên.
+> Phiên bản hiện tại: **v1.9.37** (2026-08-25) — cả Kết quả tổng và Kết quả văn nghệ dùng Newsreader cho display với lining/tabular figures; Bricolage Grotesque thay toàn bộ Manrope/Plus Jakarta Sans và dùng weight nền 400. Hai font variable được bundle local đủ Latin, Latin Extended, Vietnamese; asset/dependency font thử nghiệm đã gỡ. Nền oval v1.9.35 cùng mọi logic công bố giữ nguyên.
 
 ---
 

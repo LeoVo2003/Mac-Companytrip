@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.36";
+const tag = "v1.9.37";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Thay Cormorant Garamond bằng Fraunces trên cả hai màn kết quả; số hạng và điểm dùng lining/tabular figures, không còn tụt baseline.",
-  "- Thay Inter bằng Manrope cho tên đội, nhãn và nội dung trình chiếu để tổng thể mềm và có chất sự kiện hơn.",
-  "- Nhúng local đầy đủ font Latin, Latin Extended và Vietnamese; không phụ thuộc Google Fonts hay mạng hội trường.",
+  "- Thay Fraunces bằng Newsreader cho tiêu đề/hạng/điểm trên cả hai màn; nét thanh hơn và số vẫn thẳng baseline.",
+  "- Dùng Bricolage Grotesque làm sans chính với weight nền 400, thay toàn bộ Manrope và Plus Jakarta Sans.",
+  "- Bundle local đủ Latin, Latin Extended, Vietnamese và gỡ sạch font thử nghiệm không còn dùng.",
 ].join("\n");
 
 let release;

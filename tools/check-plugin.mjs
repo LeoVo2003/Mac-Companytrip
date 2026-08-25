@@ -41,10 +41,10 @@ for (const file of cssFiles) {
 const resultsCss = fs.readFileSync(path.join(pluginRoot, "assets/results.css"), "utf8");
 const artRaceCss = fs.readFileSync(path.join(pluginRoot, "assets/art-race.css"), "utf8");
 for (const stylesheet of [resultsCss, artRaceCss]) {
-  for (const invariant of ['font-family: "Fraunces"', "font-family: Manrope", 'font-feature-settings: "lnum" 1, "tnum" 1']) {
-    if (!stylesheet.includes(invariant)) throw new Error(`Event results must use bundled Fraunces + Manrope typography: ${invariant}`);
+  for (const invariant of ['font-family: "Newsreader"', 'font-family: "Bricolage Grotesque"', 'font-feature-settings: "lnum" 1, "tnum" 1', "font-weight: 400;"]) {
+    if (!stylesheet.includes(invariant)) throw new Error(`Event results must use bundled Newsreader + Bricolage Grotesque typography: ${invariant}`);
   }
-  for (const banned of ["Cormorant Garamond", "fonts.googleapis.com", "font-family: Inter"]) {
+  for (const banned of ["Cormorant Garamond", "Fraunces", "Manrope", "Plus Jakarta Sans", "fonts.googleapis.com", "font-family: Inter"]) {
     if (stylesheet.includes(banned)) throw new Error(`Event results must not retain the replaced font dependency: ${banned}`);
   }
 }
@@ -80,14 +80,14 @@ const required = [
   "assets/fonts/inter-latin.woff2",
   "assets/fonts/inter-vietnamese.woff2",
   "assets/fonts/INTER-LICENSE.txt",
-  "assets/fonts/fraunces-latin.woff2",
-  "assets/fonts/fraunces-latin-ext.woff2",
-  "assets/fonts/fraunces-vietnamese.woff2",
-  "assets/fonts/FRAUNCES-LICENSE.txt",
-  "assets/fonts/manrope-latin.woff2",
-  "assets/fonts/manrope-latin-ext.woff2",
-  "assets/fonts/manrope-vietnamese.woff2",
-  "assets/fonts/MANROPE-LICENSE.txt",
+  "assets/fonts/newsreader-latin.woff2",
+  "assets/fonts/newsreader-latin-ext.woff2",
+  "assets/fonts/newsreader-vietnamese.woff2",
+  "assets/fonts/NEWSREADER-LICENSE.txt",
+  "assets/fonts/bricolage-grotesque-latin.woff2",
+  "assets/fonts/bricolage-grotesque-latin-ext.woff2",
+  "assets/fonts/bricolage-grotesque-vietnamese.woff2",
+  "assets/fonts/BRICOLAGE-GROTESQUE-LICENSE.txt",
   "includes/class-mac-voting-db.php",
   "includes/class-mac-voting-auth.php",
   "includes/class-mac-voting-qr.php",
