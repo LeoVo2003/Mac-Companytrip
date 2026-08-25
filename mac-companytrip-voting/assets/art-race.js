@@ -27,7 +27,7 @@
   function shell(teams) {
     root.innerHTML = `<div class="ar-shell" data-stage="idle">
       <canvas class="ar-pyro" aria-hidden="true"></canvas>
-      <div class="ar-stage-world" aria-hidden="true"><i class="ar-rays"></i><i class="ar-haze"></i><i class="ar-runway"></i></div>
+      <div class="ar-stage-world" aria-hidden="true"><i class="ar-rays"></i><i class="ar-haze"></i></div>
       <div class="ar-curtain" aria-hidden="true"><i class="ar-curtain-left"></i><i class="ar-curtain-right"></i><span></span></div>
       <header class="ar-header">
         <div class="ar-brand"><img src="${esc(logo)}" alt="MAC Marketing"></div>
@@ -139,7 +139,8 @@
       if (!running) return;
       const rect = canvas.getBoundingClientRect();
       context.clearRect(0, 0, rect.width, rect.height);
-      const actives = root.querySelector(".ar-shell.is-decel") ? [] : root.querySelectorAll(".ar-team.is-searching, .ar-team.is-current");
+      // Bụi chỉ bay trong luồng sáng đã khóa (is-current) — tránh hạt lơ lửng giữa trời không đèn.
+      const actives = root.querySelector(".ar-shell.is-decel") ? [] : root.querySelectorAll(".ar-team.is-current");
       if (actives.length) {
         actives.forEach((active) => {
           const host = active.getBoundingClientRect();

@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.24";
+const tag = "v1.9.25";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Ánh sáng thật hơn: khi tìm kiếm chỉ 1 luồng sáng trượt duy nhất; beam/floor-ring chỉ bật khi khóa; spot 92vh khớp luồng khóa; sương mù 0.4; tia quán quân blur+mask mềm; bỏ 2 line cạnh; ẩn footer.",
-  "- Tiêu đề tìm kiếm nhỏ lại; câu mô tả mới \"Ánh sáng đang lướt qua từng mũi thuyền\".",
-  "- Công tắc tone trong admin: tối mặc định / đại dương xanh kiểu đại hải trình.",
+  "- Bỏ runway và sọc đỏ nền: hết line thừa hai bên sân khấu.",
+  "- Hạt bụi chỉ bay trong luồng sáng đã khóa, không lơ lửng khi chưa có đèn.",
+  "- Blur mép cone 12px (lõi 9px): mép vệt sáng tan mềm, hết line trắng cắt cứng.",
 ].join("\n");
 
 let release;
