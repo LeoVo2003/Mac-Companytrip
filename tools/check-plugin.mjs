@@ -455,8 +455,8 @@ if (!artRaceJs.includes("dustMarkup") || !artRaceJs.includes("is-search-active")
   throw new Error("Each art reveal team must own a dust field controlled by the active spotlight state.");
 }
 const spotStyle = artRaceCss.match(/\.ar-spot\s*\{[^}]+\}/s)?.[0] || "";
-if (!spotStyle.includes("radial-gradient") || spotStyle.includes("clip-path")) {
-  throw new Error("Moving spotlight must use a soft edge-free radial beam.");
+if (!spotStyle.includes("radial-gradient") || !spotStyle.includes("clip-path") || !spotStyle.includes("mask-image")) {
+  throw new Error("Moving spotlight must use a masked theatrical cone with softened edges.");
 }
 const titleStyle = artRaceCss.match(/\.ar-title h1\s*\{[^}]+\}/s)?.[0] || "";
 if (!titleStyle.includes("text-shadow: none")) {
@@ -469,8 +469,14 @@ if (!titleKickerStyle.includes("text-shadow: none")) {
 for (const invariant of ["--ocean-deep", "--wood", "--bronze", "Tone biển sáng", "mask-image: linear-gradient(180deg, transparent, #000 15%, #000)"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Missing ocean-voyage stage treatment: ${invariant}`);
 }
-for (const invariant of ["--black: #050403", "rgba(255, 106, 44, 0.7)", "rgba(227, 30, 36, 0.7)", "rgba(5, 4, 3, 0.72)"]) {
+for (const invariant of ["--black: #050403", "rgba(255, 106, 44, 0.58)", "rgba(227, 30, 36, 0.62)", "rgba(5, 4, 3, 0.72)"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Dark spotlight theme must retain its v1.9.26 styling: ${invariant}`);
+}
+for (const invariant of [".ar-team.is-revealed .ar-beam", ".ar-team.is-revealed .ar-dust", "ÁNH SÁNG ĐANG GỌI TÊN", "window.setTimeout(startSpotlightSearch, 3000)"]) {
+  if (!artRaceCss.includes(invariant) && !artRaceJs.includes(invariant)) throw new Error(`Missing persistent revealed-team lighting behavior: ${invariant}`);
+}
+if (artRaceJs.includes("SPOTLIGHT ĐANG TÌM KIẾM")) {
+  throw new Error("Old searching headline must be replaced with the new reveal copy.");
 }
 
 const totalBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);

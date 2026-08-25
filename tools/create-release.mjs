@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.28";
+const tag = "v1.9.29";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Trả dark mode về đúng style v1.9.26; palette xanh đại dương–gỗ–đồng chỉ còn trong tone sáng.",
-  "- Mỗi đội có trường bụi riêng, bật đúng đội đang được spotlight quét hoặc khóa; không còn mắc ở La Bàn.",
-  "- Bỏ text-shadow khỏi dòng SPOTLIGHT ĐANG TÌM KIẾM và tiêu đề tên đội.",
+  "- Các đội đã công bố tiếp tục giữ beam và bụi riêng; đội vừa công bố sáng mạnh hơn, spotlight động chỉ quét đội chưa lộ diện.",
+  "- Đổi lời dẫn tìm kiếm thành ÁNH SÁNG ĐANG GỌI TÊN và giảm khoảng nghỉ sau mỗi lần công bố từ 5 giây xuống 3 giây.",
+  "- Dựng lại beam dạng ánh sáng sân khấu mềm nhiều lớp; thay runway một vệt bằng mặt sàn cong tỏa rộng và haze nhiều điểm tự nhiên hơn.",
 ].join("\n");
 
 let release;

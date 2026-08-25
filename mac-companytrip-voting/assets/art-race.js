@@ -195,9 +195,9 @@
     if (!searchPool().length) return;
     searchActive = true;
     if (state.stage === "ROLLING") {
-      setTitle("SPOTLIGHT ĐANG TÌM KIẾM", "Ai sẽ được gọi tên?", "Ánh sáng đang lướt qua từng mũi thuyền", "Chờ tín hiệu công bố hạng 6");
+      setTitle("ÁNH SÁNG ĐANG GỌI TÊN", "Ai sẽ bước vào tâm điểm?", "Một khoảnh khắc · một cái tên được chọn", "Chờ tín hiệu công bố hạng 6");
     } else {
-      setTitle("SPOTLIGHT TIẾP TỤC TÌM KIẾM", "Ai sẽ được gọi tên tiếp theo?", "Ánh sáng đang lướt qua những đội chưa lộ diện", "Chờ tín hiệu MC");
+      setTitle("ÁNH SÁNG TIẾP TỤC GỌI TÊN", "Tâm điểm tiếp theo thuộc về ai?", "Spotlight đang lướt qua những đội chưa lộ diện", "Chờ tín hiệu MC");
     }
     root.querySelector(".ar-title")?.classList.add("is-soft");
     if (reducedMotion.matches) return;
@@ -286,9 +286,9 @@
     const onLock = () => {
       countUp(currentEl?.querySelector(".ar-team-copy b"), current.score);
       if (champion) shakeStage();
-      // Giữ spotlight khóa đủ lâu cho MC xướng tên, sau ~5s tiếp tục tìm kiếm các đội chưa lộ.
+      // Giữ spotlight khóa 3 giây cho MC xướng tên rồi tiếp tục tìm kiếm các đội chưa lộ.
       if (!champion && searchPool().length && !reducedMotion.matches) {
-        spotlightStartTimer = window.setTimeout(startSpotlightSearch, 5000);
+        spotlightStartTimer = window.setTimeout(startSpotlightSearch, 3000);
       }
     };
     if (needDecel) {

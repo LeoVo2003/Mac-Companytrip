@@ -110,34 +110,38 @@ body.mac-art-race-page .elementor-shortcode {
 
 .ar-haze {
   position: absolute;
-  top: -18%;
+  top: auto;
+  bottom: 9vh;
   left: 50%;
-  width: 34vw;
-  height: 95vh;
-  background: linear-gradient(180deg, rgba(255, 244, 206, 0.24), rgba(239, 200, 120, 0.06) 66%, transparent);
-  clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%);
-  filter: blur(22px);
-  opacity: 0.4;
+  width: 86vw;
+  height: 28vh;
+  background:
+    radial-gradient(ellipse at 28% 54%, rgba(255, 241, 189, 0.12), transparent 38%),
+    radial-gradient(ellipse at 72% 46%, rgba(255, 106, 44, 0.08), transparent 40%),
+    radial-gradient(ellipse at 50% 70%, rgba(239, 200, 120, 0.08), transparent 58%);
+  filter: blur(34px);
+  opacity: 0.58;
   transform: translateX(-50%);
-  animation: ar-haze-drift 24s ease-in-out infinite alternate;
+  animation: ar-haze-drift 18s ease-in-out infinite alternate;
 }
 
 @keyframes ar-haze-drift {
-  from { transform: translateX(-56%) skewX(-1.2deg); }
-  to { transform: translateX(-44%) skewX(1.2deg); }
+  from { transform: translateX(-53%) scaleX(0.96); }
+  to { transform: translateX(-47%) scaleX(1.04); }
 }
 
 .ar-runway {
   position: absolute;
-  bottom: -5%;
+  bottom: -18%;
   left: 50%;
-  width: min(33vw, 600px);
-  height: 48vh;
-  border-right: 2px solid rgba(255, 106, 44, 0.7);
-  border-left: 2px solid rgba(227, 30, 36, 0.7);
-  background: linear-gradient(180deg, rgba(239, 200, 120, 0.12), rgba(10, 7, 5, 0.92));
-  box-shadow: inset 0 0 70px rgba(255, 106, 44, 0.06), 0 0 22px rgba(227, 30, 36, 0.18);
-  clip-path: polygon(37% 0, 63% 0, 100% 100%, 0 100%);
+  width: min(88vw, 1600px);
+  height: 42vh;
+  border-top: 1px solid rgba(239, 200, 120, 0.1);
+  border-radius: 50% 50% 0 0;
+  background:
+    radial-gradient(ellipse at 50% 8%, rgba(255, 241, 189, 0.11), rgba(255, 106, 44, 0.035) 34%, rgba(10, 7, 5, 0.5) 67%, rgba(3, 3, 2, 0.9) 100%),
+    repeating-radial-gradient(ellipse at 50% 5%, transparent 0 42px, rgba(239, 200, 120, 0.025) 43px 44px);
+  box-shadow: inset 0 24px 90px rgba(255, 241, 189, 0.035), 0 -12px 50px rgba(239, 200, 120, 0.025);
   transform: translateX(-50%);
 }
 
@@ -385,38 +389,42 @@ body.mac-art-race-page .elementor-shortcode {
   z-index: 1;
   bottom: 1px;
   left: 50%;
-  width: min(24vw, 360px);
-  height: 92vh;
+  width: min(22vw, 340px);
+  height: 88vh;
   pointer-events: none;
-  background: radial-gradient(ellipse 54% 104% at 50% 0%, rgba(255, 248, 220, 0.86) 0%, rgba(239, 200, 120, 0.24) 38%, rgba(255, 106, 44, 0.05) 62%, transparent 77%);
-  filter: blur(18px);
+  background: radial-gradient(ellipse 48% 112% at 50% 0%, rgba(255, 255, 247, 0.78) 0 3%, rgba(255, 236, 187, 0.3) 24%, rgba(239, 200, 120, 0.11) 52%, rgba(255, 106, 44, 0.025) 68%, transparent 78%);
+  clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0 74%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0 74%, transparent 100%);
+  filter: blur(17px);
   mix-blend-mode: screen;
   opacity: 0;
   transform: translateX(-50%);
   transition: opacity 280ms ease;
 }
 
-/* Lõi sáng khuếch tán, không dùng mép polygon nên chùm sáng không còn hai vệt trắng. */
+/* Lõi sáng hẹp và lớp ngoài tan dần tạo chùm đèn sân khấu có chiều sâu. */
 .ar-beam::before {
   position: absolute;
   inset: 0;
   content: "";
-  background: radial-gradient(ellipse 32% 96% at 50% 0%, rgba(255, 255, 255, 0.82), rgba(255, 241, 189, 0.2) 48%, transparent 74%);
-  filter: blur(22px);
-  opacity: 0.74;
+  background: radial-gradient(ellipse 31% 108% at 50% 0%, rgba(255, 255, 255, 0.88), rgba(255, 241, 189, 0.2) 34%, rgba(239, 200, 120, 0.05) 62%, transparent 75%);
+  clip-path: polygon(42% 0, 58% 0, 88% 100%, 12% 100%);
+  filter: blur(14px);
+  opacity: 0.62;
 }
 
 .ar-beam::after {
   position: absolute;
-  right: 8%;
+  right: 4%;
   bottom: -1%;
-  left: 8%;
-  height: 22%;
+  left: 4%;
+  height: 18%;
   content: "";
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(255, 248, 220, 0.44), rgba(239, 200, 120, 0.14) 48%, transparent 74%);
-  filter: blur(14px);
-  opacity: 0.7;
+  background: radial-gradient(ellipse, rgba(255, 246, 213, 0.54), rgba(239, 200, 120, 0.13) 48%, transparent 75%);
+  filter: blur(16px);
+  opacity: 0.64;
 }
 
 .ar-team.is-pending { opacity: 0.58; }
@@ -431,7 +439,8 @@ body.mac-art-race-page .elementor-shortcode {
   transform: translateY(-10px) scale(1.035);
 }
 
-.ar-team.is-current .ar-beam { opacity: 0.92; }
+.ar-team.is-revealed .ar-beam { opacity: 0.34; }
+.ar-team.is-current .ar-beam { opacity: 0.88; }
 
 .ar-team.is-searching .ar-podium,
 .ar-team.is-current .ar-podium {
@@ -458,7 +467,7 @@ body.mac-art-race-page .elementor-shortcode {
 }
 
 .ar-shell[data-stage="rolling"] .ar-title { animation: ar-title-breathe 2.8s ease-in-out infinite; }
-.ar-shell:not([data-stage="idle"]):not([data-stage="rolling"]) .ar-haze { opacity: 0; }
+.ar-shell:not([data-stage="idle"]):not([data-stage="rolling"]) .ar-haze { opacity: 0.34; }
 
 @keyframes ar-title-breathe {
   50% { opacity: 0.78; transform: scale(0.99); }
@@ -639,18 +648,21 @@ body.mac-art-race-page .elementor-shortcode {
   letter-spacing: 0.02em;
 }
 
-/* Spotlight toàn cục là dải sáng khuếch tán, không có cạnh polygon gây vệt trắng. */
+/* Spotlight động dùng cone mềm, khác lớp haze nền và không tạo hai mép trắng. */
 .ar-spot {
   position: absolute;
   z-index: 2;
   top: auto;
   bottom: 1px;
   left: 0;
-  width: min(24vw, 360px);
-  height: 92vh;
+  width: min(22vw, 340px);
+  height: 88vh;
   pointer-events: none;
-  background: radial-gradient(ellipse 54% 104% at 50% 0%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 241, 189, 0.3) 38%, rgba(239, 200, 120, 0.06) 62%, transparent 77%);
-  filter: blur(19px);
+  background: radial-gradient(ellipse 48% 112% at 50% 0%, rgba(255, 255, 255, 0.8) 0 3%, rgba(255, 240, 203, 0.32) 24%, rgba(239, 200, 120, 0.12) 52%, rgba(255, 106, 44, 0.025) 68%, transparent 78%);
+  clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0 74%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0 74%, transparent 100%);
+  filter: blur(17px);
   mix-blend-mode: screen;
   opacity: 0;
   transition: transform 320ms cubic-bezier(0.3, 0.7, 0.3, 1), opacity 240ms ease;
@@ -662,8 +674,8 @@ body.mac-art-race-page .elementor-shortcode {
   z-index: 2;
   bottom: 1px;
   left: 50%;
-  width: min(24vw, 360px);
-  height: 92vh;
+  width: min(22vw, 340px);
+  height: 88vh;
   overflow: hidden;
   pointer-events: none;
   -webkit-mask-image: radial-gradient(ellipse 54% 104% at 50% 0%, #000 0 68%, transparent 78%);
@@ -687,10 +699,9 @@ body.mac-art-race-page .elementor-shortcode {
   animation: ar-dust-float var(--dust-duration) ease-in-out var(--dust-delay) infinite alternate;
 }
 
+.ar-team.is-revealed .ar-dust { opacity: 0.54; }
 .ar-team.is-searching .ar-dust,
 .ar-team.is-current .ar-dust { opacity: 1; }
-
-.ar-shell.is-search-active .ar-team.is-current:not(.is-searching) .ar-dust { opacity: 0; }
 
 @keyframes ar-dust-float {
   from { transform: translate3d(-3px, 7px, 0) scale(0.72); opacity: 0.34; }
@@ -883,13 +894,16 @@ body.mac-art-race-page .elementor-shortcode {
 }
 
 .mac-art-race-app.is-light .ar-haze {
-  top: 4%;
-  width: 76vw;
-  height: 60vh;
-  background: radial-gradient(ellipse at 50% 22%, rgba(210, 244, 251, 0.14), rgba(119, 187, 200, 0.05) 42%, transparent 73%);
-  clip-path: none;
+  top: auto;
+  bottom: 9vh;
+  width: 88vw;
+  height: 30vh;
+  background:
+    radial-gradient(ellipse at 26% 54%, rgba(210, 244, 251, 0.15), transparent 39%),
+    radial-gradient(ellipse at 74% 46%, rgba(229, 188, 112, 0.1), transparent 41%),
+    radial-gradient(ellipse at 50% 70%, rgba(119, 187, 200, 0.1), transparent 58%);
   filter: blur(34px);
-  opacity: 0.3;
+  opacity: 0.54;
 }
 
 .mac-art-race-app.is-light .ar-header {
@@ -929,23 +943,20 @@ body.mac-art-race-page .elementor-shortcode {
 }
 
 .mac-art-race-app.is-light .ar-runway {
-  border-right-color: rgba(184, 130, 63, 0.72);
-  border-left-color: rgba(184, 130, 63, 0.72);
+  border-top-color: rgba(229, 188, 112, 0.2);
   background:
-    repeating-linear-gradient(180deg, rgba(244, 211, 155, 0.1) 0 2px, transparent 2px 48px),
-    linear-gradient(90deg, rgba(43, 25, 15, 0.94), rgba(113, 72, 42, 0.9) 48%, rgba(43, 25, 15, 0.94));
-  box-shadow: inset 0 0 70px rgba(229, 178, 96, 0.09), 0 0 24px rgba(7, 31, 39, 0.42);
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 13%, #000);
-  mask-image: linear-gradient(180deg, transparent, #000 13%, #000);
+    radial-gradient(ellipse at 50% 8%, rgba(218, 248, 252, 0.2), rgba(113, 72, 42, 0.3) 34%, rgba(43, 25, 15, 0.76) 68%, rgba(20, 25, 25, 0.92) 100%),
+    repeating-radial-gradient(ellipse at 50% 5%, transparent 0 42px, rgba(229, 188, 112, 0.055) 43px 44px);
+  box-shadow: inset 0 24px 90px rgba(211, 245, 251, 0.06), 0 -12px 50px rgba(7, 31, 39, 0.18);
 }
 
 .mac-art-race-app.is-light .ar-beam,
 .mac-art-race-app.is-light .ar-spot {
-  width: min(28vw, 420px);
-  background: radial-gradient(ellipse 54% 104% at 50% 0%, rgba(233, 252, 255, 0.78) 0%, rgba(141, 220, 236, 0.33) 33%, rgba(229, 188, 112, 0.14) 58%, transparent 77%);
+  width: min(24vw, 380px);
+  background: radial-gradient(ellipse 48% 112% at 50% 0%, rgba(241, 254, 255, 0.82) 0 3%, rgba(157, 224, 238, 0.3) 25%, rgba(112, 191, 209, 0.1) 53%, rgba(229, 188, 112, 0.025) 68%, transparent 78%);
 }
 
-.mac-art-race-app.is-light .ar-dust { width: min(28vw, 420px); }
+.mac-art-race-app.is-light .ar-dust { width: min(24vw, 380px); }
 .mac-art-race-app.is-light .ar-dust i {
   background: #d9f5ff;
   box-shadow: 0 0 7px rgba(217, 245, 255, 0.86);
