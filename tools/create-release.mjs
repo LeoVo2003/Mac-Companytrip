@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.27";
+const tag = "v1.9.28";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Spotlight mới dùng radial beam mềm, loại bỏ hai vệt trắng ở mép và chỉ giữ một luồng sáng khi tìm kiếm.",
-  "- Hạt bụi xanh ngọc/đồng đi theo đội đang quét hoặc vừa khóa thay vì đứng riêng tại La Bàn.",
-  "- Dựng lại sân khấu biển–boong tàu liền mạch với palette xanh đại dương, đồng và gỗ; bỏ bóng đỏ khỏi tiêu đề.",
+  "- Trả dark mode về đúng style v1.9.26; palette xanh đại dương–gỗ–đồng chỉ còn trong tone sáng.",
+  "- Mỗi đội có trường bụi riêng, bật đúng đội đang được spotlight quét hoặc khóa; không còn mắc ở La Bàn.",
+  "- Bỏ text-shadow khỏi dòng SPOTLIGHT ĐANG TÌM KIẾM và tiêu đề tên đội.",
 ].join("\n");
 
 let release;

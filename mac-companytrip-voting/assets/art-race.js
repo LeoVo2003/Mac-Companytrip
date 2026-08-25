@@ -8,6 +8,14 @@
   const esc = (value) => String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
   const fmtScore = (score) => Number(score).toLocaleString("vi-VN", { maximumFractionDigits: 1 });
   const rankLabel = (rank) => ({ 1: "QUÁN QUÂN", 2: "HẠNG NHÌ", 3: "HẠNG BA" }[Number(rank)] || `HẠNG ${rank}`);
+  const dustMarkup = () => `<div class="ar-dust" aria-hidden="true">${Array.from({ length: 30 }, (_, index) => {
+    const x = 16 + ((index * 37) % 69);
+    const y = 8 + ((index * 53) % 83);
+    const size = 1 + (index % 4) * 0.55;
+    const delay = -((index % 11) * 0.17);
+    const duration = 1.8 + (index % 7) * 0.19;
+    return `<i style="--dust-x:${x}%;--dust-y:${y}%;--dust-size:${size}px;--dust-delay:${delay}s;--dust-duration:${duration}s"></i>`;
+  }).join("")}</div>`;
 
   let state = null;
   let rosterSignature = "";
@@ -21,7 +29,6 @@
   let spotlightIndex = -1;
   let searchActive = false;
   const decelTimers = [];
-  let dustStop = null;
   let shakeTimer = 0;
 
   function shell(teams) {
@@ -42,9 +49,9 @@
         </div>
         <section class="ar-podiums" aria-label="Sáu vị trí công bố kết quả văn nghệ">
           <div class="ar-spot" data-spot="0"></div>
-          <canvas class="ar-dust" aria-hidden="true"></canvas>
           ${teams.map((team, index) => `<article class="ar-team is-pending" style="--slot:${index}" data-team-id="${team.id}" role="group" aria-label="Đội số ${team.number} ${esc(team.name)}">
             <div class="ar-beam" aria-hidden="true"></div>
+            ${dustMarkup()}
             <div class="ar-team-copy">
               <span class="ar-team-rank">CHỜ CÔNG BỐ</span>
               <strong>${esc(team.name)}</strong>
@@ -60,7 +67,6 @@
       <i class="ar-grain" aria-hidden="true"></i>
       <footer class="ar-footer"><span class="ar-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE · THE SPOTLIGHT</span></div></footer>
     </div>`;
-    startDust();
   }
 
   function setConnection(connected) {
@@ -116,81 +122,6 @@
       .filter(Boolean);
   }
 
-  /* Hạt bụi lơ lửng trong luồng sáng đang active — rẻ nhưng rất "điện ảnh". */
-  function startDust() {
-    if (dustStop) dustStop();
-    const canvas = root.querySelector(".ar-dust");
-    if (!canvas || reducedMotion.matches) return;
-    const context = canvas.getContext("2d");
-    let running = true;
-    const motes = [];
-    const resize = () => {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = Math.max(1, Math.round(rect.width * ratio));
-      canvas.height = Math.max(1, Math.round(rect.height * ratio));
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
-    };
-    resize();
-    const draw = () => {
-      if (!running) return;
-      const rect = canvas.getBoundingClientRect();
-      context.clearRect(0, 0, rect.width, rect.height);
-      // Bụi đi cùng đúng luồng sáng: đội đang được quét hoặc đội vừa khóa kết quả.
-      const actives = [...root.querySelectorAll(".ar-team.is-searching, .ar-team.is-current")];
-      if (actives.length) {
-        const activeSet = new Set(actives);
-        for (let index = motes.length - 1; index >= 0; index -= 1) {
-          if (!activeSet.has(motes[index].owner)) motes.splice(index, 1);
-        }
-        actives.forEach((active) => {
-          const host = active.getBoundingClientRect();
-          const cx = host.left + host.width / 2 - rect.left;
-          let owned = 0;
-          for (const m of motes) if (m.owner === active) owned += 1;
-          while (owned < 22) {
-            motes.push({
-              owner: active,
-              x: cx + (Math.random() - 0.5) * host.width * 0.72,
-              y: rect.height * (0.16 + Math.random() * 0.84),
-              v: 0.14 + Math.random() * 0.34,
-              r: 0.8 + Math.random() * 1.7,
-              tw: Math.random() * Math.PI * 2,
-              drift: (Math.random() - 0.5) * 0.3,
-            });
-            owned += 1;
-          }
-        });
-        for (let index = motes.length - 1; index >= 0; index -= 1) {
-          const m = motes[index];
-          const host = m.owner.getBoundingClientRect();
-          const cx = host.left + host.width / 2 - rect.left;
-          m.y -= m.v;
-          m.x += m.drift;
-          m.tw += 0.06;
-          const half = host.width * (0.12 + 0.46 * (m.y / rect.height));
-          if (m.y < rect.height * 0.1 || Math.abs(m.x - cx) > half) { motes.splice(index, 1); continue; }
-          context.globalAlpha = 0.3 + 0.5 * Math.abs(Math.sin(m.tw));
-          context.fillStyle = Math.sin(m.tw) > 0.2 ? "#d9f5ff" : "#e5bc70";
-          context.beginPath();
-          context.arc(m.x, m.y, m.r, 0, Math.PI * 2);
-          context.fill();
-        }
-        context.globalAlpha = 1;
-      } else if (motes.length) {
-        motes.length = 0;
-      }
-      requestAnimationFrame(draw);
-    };
-    requestAnimationFrame(draw);
-    window.addEventListener("resize", resize);
-    dustStop = () => {
-      running = false;
-      window.removeEventListener("resize", resize);
-      context.clearRect(0, 0, canvas.width, canvas.height);
-    };
-  }
-
   /* Đếm chạy số từ 0 lên điểm thật trong ~0.8s khi lộ diện. */
   function countUp(element, value) {
     if (!element) return;
@@ -231,7 +162,7 @@
     spotlightTimer = 0;
     spotlightIndex = -1;
     searchActive = false;
-    root.querySelector(".ar-shell")?.classList.remove("is-decel", "ar-shake");
+    root.querySelector(".ar-shell")?.classList.remove("is-decel", "ar-shake", "is-search-active");
     aimSpots([]);
     if (pyroStop) pyroStop();
     pyroStop = null;
@@ -270,6 +201,7 @@
     }
     root.querySelector(".ar-title")?.classList.add("is-soft");
     if (reducedMotion.matches) return;
+    root.querySelector(".ar-shell")?.classList.add("is-search-active");
     const jump = () => {
       root.querySelectorAll(".ar-team.is-searching").forEach((element) => element.classList.remove("is-searching"));
       const pool = searchPool();
@@ -290,6 +222,7 @@
     searchActive = false;
     if (reducedMotion.matches || !currentEl) {
       root.querySelectorAll(".ar-team.is-searching").forEach((element) => element.classList.remove("is-searching"));
+      root.querySelector(".ar-shell")?.classList.remove("is-search-active");
       aimSpots([]);
       onLock();
       return;
@@ -313,7 +246,7 @@
       aimSpots([currentEl], 1000);
     }, acc));
     decelTimers.push(window.setTimeout(() => {
-      shellEl.classList.remove("is-decel");
+      shellEl.classList.remove("is-decel", "is-search-active");
       aimSpots([]);
       onLock();
     }, acc + 1050));
@@ -499,5 +432,5 @@
   document.addEventListener("visibilitychange", () => { if (!document.hidden) poll(); });
   poll();
   pollTimer = window.setInterval(() => { if (!document.hidden) poll(); }, 900);
-  window.addEventListener("beforeunload", () => { window.clearInterval(pollTimer); resetEffects(); if (dustStop) dustStop(); });
+  window.addEventListener("beforeunload", () => { window.clearInterval(pollTimer); resetEffects(); });
 })();

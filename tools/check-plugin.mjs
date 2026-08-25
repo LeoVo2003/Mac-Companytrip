@@ -451,8 +451,8 @@ for (const invariant of [".ar-curtain", ".ar-beam", ".ar-team.is-searching", "ma
 if ((artRaceJs.match(/class="ar-spot"/g) || []).length !== 1) {
   throw new Error("Art reveal must render exactly one moving spotlight.");
 }
-if (!artRaceJs.includes('.ar-team.is-searching, .ar-team.is-current') || !artRaceJs.includes("activeSet")) {
-  throw new Error("Art reveal dust must follow the searching or locked spotlight team.");
+if (!artRaceJs.includes("dustMarkup") || !artRaceJs.includes("is-search-active") || !artRaceCss.includes(".ar-team.is-searching .ar-dust") || !artRaceCss.includes("@keyframes ar-dust-float")) {
+  throw new Error("Each art reveal team must own a dust field controlled by the active spotlight state.");
 }
 const spotStyle = artRaceCss.match(/\.ar-spot\s*\{[^}]+\}/s)?.[0] || "";
 if (!spotStyle.includes("radial-gradient") || spotStyle.includes("clip-path")) {
@@ -462,8 +462,15 @@ const titleStyle = artRaceCss.match(/\.ar-title h1\s*\{[^}]+\}/s)?.[0] || "";
 if (!titleStyle.includes("text-shadow: none")) {
   throw new Error("Art reveal title must not use the old red text shadow.");
 }
+const titleKickerStyle = artRaceCss.match(/\.ar-title p\s*\{[^}]+\}/s)?.[0] || "";
+if (!titleKickerStyle.includes("text-shadow: none")) {
+  throw new Error("Art reveal searching headline must not use a text shadow.");
+}
 for (const invariant of ["--ocean-deep", "--wood", "--bronze", "Tone biển sáng", "mask-image: linear-gradient(180deg, transparent, #000 15%, #000)"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Missing ocean-voyage stage treatment: ${invariant}`);
+}
+for (const invariant of ["--black: #050403", "rgba(255, 106, 44, 0.7)", "rgba(227, 30, 36, 0.7)", "rgba(5, 4, 3, 0.72)"]) {
+  if (!artRaceCss.includes(invariant)) throw new Error(`Dark spotlight theme must retain its v1.9.26 styling: ${invariant}`);
 }
 
 const totalBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);
