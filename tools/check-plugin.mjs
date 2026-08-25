@@ -39,6 +39,15 @@ for (const file of cssFiles) {
 }
 
 const resultsCss = fs.readFileSync(path.join(pluginRoot, "assets/results.css"), "utf8");
+const artRaceCss = fs.readFileSync(path.join(pluginRoot, "assets/art-race.css"), "utf8");
+for (const stylesheet of [resultsCss, artRaceCss]) {
+  for (const invariant of ['font-family: "Fraunces"', "font-family: Manrope", 'font-feature-settings: "lnum" 1, "tnum" 1']) {
+    if (!stylesheet.includes(invariant)) throw new Error(`Event results must use bundled Fraunces + Manrope typography: ${invariant}`);
+  }
+  for (const banned of ["Cormorant Garamond", "fonts.googleapis.com", "font-family: Inter"]) {
+    if (stylesheet.includes(banned)) throw new Error(`Event results must not retain the replaced font dependency: ${banned}`);
+  }
+}
 for (const invariant of ["grid-template-rows: minmax(0, 1fr) 64px 40px;", "flex: 0 0 auto;", "margin: 0 0 8px;"]) {
   if (!resultsCss.includes(invariant)) throw new Error(`Podium label must remain in flow above the bar: ${invariant}`);
 }
@@ -71,6 +80,14 @@ const required = [
   "assets/fonts/inter-latin.woff2",
   "assets/fonts/inter-vietnamese.woff2",
   "assets/fonts/INTER-LICENSE.txt",
+  "assets/fonts/fraunces-latin.woff2",
+  "assets/fonts/fraunces-latin-ext.woff2",
+  "assets/fonts/fraunces-vietnamese.woff2",
+  "assets/fonts/FRAUNCES-LICENSE.txt",
+  "assets/fonts/manrope-latin.woff2",
+  "assets/fonts/manrope-latin-ext.woff2",
+  "assets/fonts/manrope-vietnamese.woff2",
+  "assets/fonts/MANROPE-LICENSE.txt",
   "includes/class-mac-voting-db.php",
   "includes/class-mac-voting-auth.php",
   "includes/class-mac-voting-qr.php",
@@ -452,7 +469,6 @@ if (thiduaOfficial([LADDER_CAT([50, 50, 50, 50, 50, 50])], T).result[1] !== 50) 
 // --- Màn The Spotlight văn nghệ: tách trang /ket-qua-tong và /ket-qua-van-nghe ---
 const publicFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-voting-public.php"), "utf8");
 const artRaceJs = fs.readFileSync(path.join(pluginRoot, "assets/art-race.js"), "utf8");
-const artRaceCss = fs.readFileSync(path.join(pluginRoot, "assets/art-race.css"), "utf8");
 for (const invariant of ["mac_companytrip_art_race", "ket-qua-tong", "ket-qua-van-nghe", "mac_companytrip_total_results", "mac_companytrip_art_results"]) {
   if (!publicFile.includes(invariant)) throw new Error(`Missing art-race page wiring in public class: ${invariant}`);
 }

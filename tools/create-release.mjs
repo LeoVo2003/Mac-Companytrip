@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.35";
+const tag = "v1.9.36";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Trả ar-stage-world về đúng bản oval theo ảnh đã duyệt: sàn cong, vòng đồng tâm, haze vàng và viền sân khấu mảnh.",
-  "- Gỡ cánh gà, mái hình học và backdrop Art Deco của bản 1.9.34.",
-  "- Giữ nguyên typography cỡ lớn cho màn LED 3,5 × 6,5 m, spotlight, hai line đỏ–cam và logic công bố.",
+  "- Thay Cormorant Garamond bằng Fraunces trên cả hai màn kết quả; số hạng và điểm dùng lining/tabular figures, không còn tụt baseline.",
+  "- Thay Inter bằng Manrope cho tên đội, nhãn và nội dung trình chiếu để tổng thể mềm và có chất sự kiện hơn.",
+  "- Nhúng local đầy đủ font Latin, Latin Extended và Vietnamese; không phụ thuộc Google Fonts hay mạng hội trường.",
 ].join("\n");
 
 let release;

@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.35
+Stable tag: 1.9.36
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,11 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.9.36 =
+- Thay Cormorant Garamond bằng Fraunces trên cả Kết quả tổng và Kết quả văn nghệ; bật lining/tabular figures để số hạng và điểm luôn nằm đúng baseline.
+- Thay Inter bằng Manrope cho tên đội, nhãn và nội dung trình chiếu để nét chữ mềm, thoáng và bớt cảm giác giao diện hành chính.
+- Nhúng đầy đủ font variable Latin, Latin Extended và Vietnamese cùng license vào plugin; màn chiếu không còn phụ thuộc Google Fonts hoặc kết nối mạng.
 
 = 1.9.35 =
 - Trả `ar-stage-world` về đúng bản oval theo ảnh đã duyệt: sàn cong, vòng đồng tâm, haze vàng và đường viền sân khấu mảnh.
