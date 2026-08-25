@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.31";
+const tag = "v1.9.32";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Sửa công bố đồng điểm theo nhóm hạng thực tế: đội cùng hạng sáng cùng lúc, hạng khuyết tự làm mờ và bỏ qua.",
-  "- Đồng top 1 đi thẳng từ hạng ba tới công bố toàn bộ quán quân, không còn lặp danh hiệu ở nút hạng nhì.",
-  "- Giảm vòng tia xoay quán quân để không làm tối khung hình; thêm hai đèn viền đỏ–cam mới có nguồn và điểm rơi rõ ràng.",
+  "- Trả hai line viền về kiểu sân khấu gốc: đỏ–cam 2px, cao 64%, nghiêng ±10° và tan mềm ở hai đầu.",
+  "- Bỏ đầu đèn/quầng tròn của bản trước để line mảnh và sạch như ảnh tham chiếu.",
+  "- Sau hạng nhì giữ nguyên khung hình, không tự bật spotlight ở ô quán quân; chờ MC bấm công bố trực tiếp.",
 ].join("\n");
 
 let release;

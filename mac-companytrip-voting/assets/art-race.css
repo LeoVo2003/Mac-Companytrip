@@ -145,49 +145,19 @@ body.mac-art-race-page .elementor-shortcode {
   transform: translateX(-50%);
 }
 
-/* Hai đèn viền MAC có đầu đèn và điểm rơi rõ ràng, chỉ dùng để đóng khung sân khấu. */
+/* Hai line đỏ-cam mảnh kiểu sân khấu gốc: chéo dài, đầu/cuối tan mềm. */
 .ar-edge {
   position: absolute;
-  z-index: 1;
-  top: 64px;
-  width: 3px;
-  height: 72vh;
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(255, 241, 189, 0.92), rgba(255, 106, 44, 0.78) 10%, rgba(227, 30, 36, 0.58) 52%, transparent 100%);
-  box-shadow: 0 0 8px rgba(255, 106, 44, 0.7), 0 0 24px rgba(227, 30, 36, 0.3);
-  opacity: 0.52;
-  transform-origin: 50% 0;
+  top: 8%;
+  width: 2px;
+  height: 64%;
+  background: linear-gradient(180deg, transparent, var(--red), var(--orange), transparent);
+  box-shadow: 0 0 15px rgba(227, 30, 36, 0.62);
+  opacity: 0.72;
 }
 
-.ar-edge::before {
-  position: absolute;
-  top: -7px;
-  left: 50%;
-  width: 20px;
-  height: 10px;
-  content: "";
-  border: 1px solid rgba(255, 241, 189, 0.52);
-  border-radius: 999px;
-  background: radial-gradient(circle, #fff8e7 0 18%, #ff6a2c 35%, #e31e24 68%, #24110d 72%);
-  box-shadow: 0 0 18px rgba(255, 106, 44, 0.72);
-  transform: translateX(-50%);
-}
-
-.ar-edge::after {
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  width: 54px;
-  height: 18px;
-  content: "";
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(227, 30, 36, 0.38), rgba(255, 106, 44, 0.12) 44%, transparent 72%);
-  filter: blur(5px);
-  transform: translateX(-50%);
-}
-
-.ar-edge-left { left: 5vw; transform: rotate(-5deg); }
-.ar-edge-right { right: 5vw; transform: rotate(5deg); }
+.ar-edge-left { left: 4vw; transform: rotate(-10deg); }
+.ar-edge-right { right: 4vw; transform: rotate(10deg); }
 
 .ar-header {
   position: relative;
@@ -965,7 +935,7 @@ body.mac-art-race-page .elementor-shortcode {
   background: rgba(5, 61, 82, 0.68);
 }
 
-.mac-art-race-app.is-light .ar-edge { opacity: 0.4; }
+.mac-art-race-app.is-light .ar-edge { opacity: 0.58; }
 
 .mac-art-race-app.is-light .ar-title h1 { color: var(--gold-hot); }
 

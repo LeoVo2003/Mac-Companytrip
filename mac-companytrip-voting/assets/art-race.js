@@ -302,8 +302,9 @@
     const onLock = () => {
       currents.forEach((team, index) => countUp(currentEls[index]?.querySelector(".ar-team-copy b"), team.score));
       if (champion) shakeStage();
-      // Giữ spotlight khóa 3 giây cho MC xướng tên rồi tiếp tục tìm kiếm các đội chưa lộ.
-      if (!champion && searchPool().length && !reducedMotion.matches) {
+      // Các hạng trước giữ 3 giây cho MC xướng tên. Sau hạng nhì chỉ còn quán quân,
+      // giữ nguyên khung hình thay vì bật spotlight ở đúng một ô và làm lộ kết quả.
+      if (!champion && Number(current.rank) !== 2 && searchPool().length && !reducedMotion.matches) {
         spotlightStartTimer = window.setTimeout(startSpotlightSearch, 3000);
       }
     };

@@ -492,7 +492,7 @@ for (const invariant of ["--ocean-deep", "--wood", "--bronze", "Tone biển sán
 for (const invariant of ["--black: #050403", "rgba(255, 106, 44, 0.58)", "linear-gradient(120deg, var(--red), var(--orange))", "rgba(5, 4, 3, 0.72)"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Dark spotlight theme must retain MAC styling: ${invariant}`);
 }
-for (const invariant of [".ar-team.is-revealed .ar-beam { opacity: 0.54; }", ".ar-team.is-revealed .ar-dust", "ÁNH SÁNG ĐANG GỌI TÊN", "window.setTimeout(startSpotlightSearch, 3000)", "#000 0 91%", ".ar-team.is-name-long", ".ar-team.is-name-xlong", ".ar-shell.has-connection-alert .ar-offline-overlay", "failedPolls >= 6"]) {
+for (const invariant of [".ar-team.is-revealed .ar-beam { opacity: 0.54; }", ".ar-team.is-revealed .ar-dust", "ÁNH SÁNG ĐANG GỌI TÊN", "Number(current.rank) !== 2 && searchPool().length", "window.setTimeout(startSpotlightSearch, 3000)", "#000 0 91%", ".ar-team.is-name-long", ".ar-team.is-name-xlong", ".ar-shell.has-connection-alert .ar-offline-overlay", "failedPolls >= 6"]) {
   if (!artRaceCss.includes(invariant) && !artRaceJs.includes(invariant)) throw new Error(`Missing persistent revealed-team lighting behavior: ${invariant}`);
 }
 for (const invariant of [".ma-reveal-actions button.is-skipped:disabled", "opacity: 0.34", ".ar-shell[data-stage=\"final\"] .ar-rays { opacity: 0.34; }", "mix-blend-mode: screen"]) {
@@ -501,8 +501,11 @@ for (const invariant of [".ma-reveal-actions button.is-skipped:disabled", "opaci
 for (const banned of ["class=\"ar-grain\"", ".ar-grain {", "overflow-wrap: anywhere"]) {
   if (artRaceJs.includes(banned) || artRaceCss.includes(banned)) throw new Error(`Projector-only spotlight must omit obsolete visual treatment: ${banned}`);
 }
-for (const invariant of ["ar-edge ar-edge-left", "ar-edge ar-edge-right", ".ar-edge::before", ".ar-edge::after", "transform-origin: 50% 0"]) {
-  if (!artRaceJs.includes(invariant) && !artRaceCss.includes(invariant)) throw new Error(`Missing sourced MAC edge light: ${invariant}`);
+for (const invariant of ["ar-edge ar-edge-left", "ar-edge ar-edge-right", "height: 64%", "rotate(-10deg)", "rotate(10deg)", "linear-gradient(180deg, transparent, var(--red), var(--orange), transparent)"]) {
+  if (!artRaceJs.includes(invariant) && !artRaceCss.includes(invariant)) throw new Error(`Missing original red-orange edge line: ${invariant}`);
+}
+for (const banned of [".ar-edge::before", ".ar-edge::after", "transform-origin: 50% 0"]) {
+  if (artRaceCss.includes(banned)) throw new Error(`Original edge line must not include the redesigned lamp ornaments: ${banned}`);
 }
 if (artRaceJs.includes("SPOTLIGHT ĐANG TÌM KIẾM")) {
   throw new Error("Old searching headline must be replaced with the new reveal copy.");
