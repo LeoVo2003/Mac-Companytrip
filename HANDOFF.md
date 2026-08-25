@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.24** (2026-08-25) — lighting-fix: khi tìm kiếm chỉ 1 luồng sáng trượt duy nhất (.ar-beam/.ar-floor-ring chỉ bật khi khóa), .ar-spot 92vh khớp luồng khóa, sương mù 0.4, tia quán quân blur(26px)+mask tỏa tròn, bỏ 2 line đỏ cạnh sân khấu, ẩn footer; tiêu đề tìm kiếm nhỏ lại + câu mới; công tắc tone admin (tối / đại dương xanh, option mac_voting_art_light_theme, REST /results trả lightTheme). Trước đó v1.9.23: multi-spotlight→1, card tên vàng, nhịp 5s, Cormorant. Trước đó như cũ.
+> Phiên bản hiện tại: **v1.9.25** (2026-08-25) — dọn line thừa: bỏ runway + sọc đỏ nền; bụi chỉ trong luồng sáng đã khóa; blur mép cone 12px (lõi 9px) hết line trắng cắt cứng hai bên vệt sáng. Trước đó v1.9.24: lighting-fix (1 luồng sáng trượt, beam/floor-ring chỉ khi khóa, spot 92vh, sương mù 0.4, tia quán quân blur+mask, ẩn footer) + công tắc tone đại dương. Trước đó như cũ.
 
 ---
 
