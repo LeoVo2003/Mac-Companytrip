@@ -525,7 +525,7 @@ for (const invariant of ["border-top", "border-radius: 50% 50% 0 0", "repeating-
 for (const banned of [".ar-stage-world::after", "@keyframes ar-backdrop-breathe"]) {
   if (artRaceCss.includes(banned)) throw new Error(`Restored oval stage must omit gala-stage treatment: ${banned}`);
 }
-for (const invariant of ["clamp(36px, 4.2vw, 76px)", "clamp(21px, 1.55vw, 30px)", "clamp(34px, 2.7vw, 52px)", "clamp(15px, 1.25vw, 22px)"]) {
+for (const invariant of ["clamp(34px, 3.8vw, 68px)", "clamp(21px, 1.55vw, 30px)", "clamp(34px, 2.7vw, 52px)", "clamp(15px, 1.25vw, 22px)"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Missing large-venue typography scale: ${invariant}`);
 }
 for (const invariant of ["--black: #050403", "rgba(255, 106, 44, 0.58)", "linear-gradient(120deg, var(--red), var(--orange))", "rgba(5, 4, 3, 0.72)"]) {

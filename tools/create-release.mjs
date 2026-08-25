@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.45";
+const tag = "v1.9.46";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- ket-qua-tong: giãn kicker/h1 hết dính chữ; text mới cho TEASE43 (\"Hiện top 4 để tiếp tục\") và TWIST (\"Chặng nước rút Company Trip · ngôi vương chỉ có một\").",
-  "- Màn văn nghệ: lời dẫn tìm kiếm tiếp \"Nhịp tìm kiếm mới · Ai sẽ là cái tên kế tiếp?\".",
+  "- Tiêu đề màn văn nghệ cùng ngôn ngữ ket-qua-tong: kicker ✦ nhỏ, tên 34-68px lh 1.22, điểm 16-26px, khoảng cách 14px hết dính chữ.",
 ].join("\n");
 
 let release;
