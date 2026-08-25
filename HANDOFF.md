@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.25** (2026-08-25) — dọn line thừa: bỏ runway + sọc đỏ nền; bụi chỉ trong luồng sáng đã khóa; blur mép cone 12px (lõi 9px) hết line trắng cắt cứng hai bên vệt sáng. Trước đó v1.9.24: lighting-fix (1 luồng sáng trượt, beam/floor-ring chỉ khi khóa, spot 92vh, sương mù 0.4, tia quán quân blur+mask, ẩn footer) + công tắc tone đại dương. Trước đó như cũ.
+> Phiên bản hiện tại: **v1.9.26** (2026-08-25) — giữ lại 2 line đỏ .ar-edge và runway viền đỏ theo ý user (chỉ bỏ line trắng cắt cứng mép vệt sáng, đã blur mềm). Trước đó v1.9.25: bụi chỉ trong luồng khóa + blur mép cone 12px. Trước đó v1.9.24: lighting-fix + công tắc tone đại dương. Trước đó như cũ.
 
 ---
 

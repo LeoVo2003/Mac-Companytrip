@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.25";
+const tag = "v1.9.26";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Bỏ runway và sọc đỏ nền: hết line thừa hai bên sân khấu.",
-  "- Hạt bụi chỉ bay trong luồng sáng đã khóa, không lơ lửng khi chưa có đèn.",
-  "- Blur mép cone 12px (lõi 9px): mép vệt sáng tan mềm, hết line trắng cắt cứng.",
+  "- Giữ lại 2 line đỏ hai bên sân khấu và runway viền đỏ theo ý thích; chỉ bỏ line trắng cắt cứng ở mép vệt sáng (đã blur mềm).",
 ].join("\n");
 
 let release;

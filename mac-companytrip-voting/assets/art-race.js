@@ -27,7 +27,7 @@
   function shell(teams) {
     root.innerHTML = `<div class="ar-shell" data-stage="idle">
       <canvas class="ar-pyro" aria-hidden="true"></canvas>
-      <div class="ar-stage-world" aria-hidden="true"><i class="ar-rays"></i><i class="ar-haze"></i></div>
+      <div class="ar-stage-world" aria-hidden="true"><i class="ar-rays"></i><i class="ar-haze"></i><i class="ar-runway"></i><i class="ar-edge ar-edge-left"></i><i class="ar-edge ar-edge-right"></i></div>
       <div class="ar-curtain" aria-hidden="true"><i class="ar-curtain-left"></i><i class="ar-curtain-right"></i><span></span></div>
       <header class="ar-header">
         <div class="ar-brand"><img src="${esc(logo)}" alt="MAC Marketing"></div>
