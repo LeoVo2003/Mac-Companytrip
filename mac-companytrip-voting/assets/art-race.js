@@ -209,7 +209,7 @@
     if (state.stage === "ROLLING") {
       setTitle("Ánh sáng đang gọi tên", "Ai sẽ bước vào tâm điểm?", "Một khoảnh khắc · một cái tên được chọn", "Chờ tín hiệu công bố hạng 6");
     } else {
-      setTitle("Ánh sáng tiếp tục gọi tên", "Tâm điểm tiếp theo thuộc về ai?", "Spotlight đang lướt qua những đội chưa lộ diện", "Chờ tín hiệu MC");
+      setTitle("Nhịp tìm kiếm mới", "Ai sẽ là cái tên kế tiếp?", "Spotlight lướt qua những đội chưa lộ diện", "Chờ tín hiệu MC");
     }
     root.querySelector(".ar-title")?.classList.add("is-soft");
     if (reducedMotion.matches) return;

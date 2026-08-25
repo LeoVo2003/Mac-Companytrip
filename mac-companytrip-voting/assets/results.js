@@ -291,7 +291,7 @@
       return;
     }
     if (stage === "TEASE43") {
-      setHeading("TOP 4 ĐANG ĐẾN GẦN", "Ai sẽ bước tiếp?", "Nhấn thêm một nhịp nữa để lộ diện", "Tín hiệu 2 · Nhá hàng");
+      setHeading("Top 4 đang đến gần", "Ai sẽ bước tiếp?", "Hiện top 4 để tiếp tục", "Tín hiệu 2 · Nhá hàng");
       return;
     }
     if (stage === "RANK43") {
@@ -305,7 +305,7 @@
     if (stage === "TWIST") {
       // Trùng điểm top đầu có thể cho nhiều hơn 3 cột cùng tung điểm; copy tự điều chỉnh theo số cột.
       const leaderCount = (state.topTwo || []).length;
-      setHeading("KHOẢNH KHẮC QUYẾT ĐỊNH", "Ai sẽ chạm tay vào cúp?", `${leaderCount} đội dẫn đầu cùng tung điểm — ngôi vương chỉ có một`, "Căng thẳng tột độ");
+      setHeading("Khoảnh khắc quyết định", "Ai sẽ chạm tay vào cúp?", "Chặng nước rút Company Trip · ngôi vương chỉ có một", "Căng thẳng tột độ");
       // Ứng viên leo mượt lên 80% trước, ~1,1s sau mới bắt đầu dao động + tung điểm.
       animationTimer = window.setTimeout(startTwist, 1100);
       return;

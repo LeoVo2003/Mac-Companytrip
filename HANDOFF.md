@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.44** (2026-08-25) — phân cấp lại tiêu đề văn nghệ: search = kicker nhỏ (12-18px) / tên vừa (22-40px) / mô tả nhỏ mờ; reveal = tên 36-76px line-height 1.16 + margin 12px khỏi dính kicker. ket-qua-tong kicker twist: "Company Trip · Chặng về đích". Trước đó v1.9.42-43: title tầng Bricolage 600, bục to, mr-rank thường, twist 50/50-80.
+> Phiên bản hiện tại: **v1.9.45** (2026-08-25) — ket-qua-tong giãn kicker/h1 hết dính chữ; text mới TEASE43 "Hiện top 4 để tiếp tục", TWIST "Chặng nước rút Company Trip · ngôi vương chỉ có một"; màn văn nghệ lời dẫn tìm kiếm tiếp "Nhịp tìm kiếm mới · Ai sẽ là cái tên kế tiếp?". Trước đó v1.9.44: phân cấp title + kicker "Company Trip · Chặng về đích".
 
 ---
 
