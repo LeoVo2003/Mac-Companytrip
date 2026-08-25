@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.33** (2026-08-25) — nền sân khấu công bố chuyển sang phông điện ảnh liền mạch, bỏ oval/radar, vòng lưới và đường chân trời; thay bằng sương thấp cùng phản quang mềm theo từng vị trí đội. Cả dark mode và tone biển sáng dùng cùng ngôn ngữ chiều sâu mới; hai line đỏ–cam và logic spotlight giữ nguyên.
+> Phiên bản hiện tại: **v1.9.34** (2026-08-25) — `ar-stage-world` được dựng lại thành sân khấu gala có cánh gà xếp lớp, mái hình học, backdrop đỏ–đồng phân mảng và sàn phản quang sáu vị trí; không dùng oval/radar. Typography màn công bố được tăng mạnh cho màn LED 3,5 × 6,5 m. Dark mode, tone biển sáng, hai line đỏ–cam và logic spotlight giữ nguyên.
 
 ---
 

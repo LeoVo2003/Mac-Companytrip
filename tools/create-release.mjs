@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.33";
+const tag = "v1.9.34";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Làm lại nền công bố thành phông điện ảnh liền mạch, bỏ oval/radar, vòng lưới và đường chân trời cắt ngang bục.",
-  "- Dùng sương tầng thấp và phản quang mềm theo từng vị trí đội để sân khấu có chiều sâu tự nhiên hơn.",
-  "- Áp dụng cho cả dark mode và tone biển sáng; giữ nguyên line đỏ–cam và logic spotlight hiện tại.",
+  "- Dựng lại ar-stage-world thành sân khấu gala có cánh gà, mái hình học, backdrop phân mảng và sàn phản quang sáu vị trí.",
+  "- Tăng cỡ tiêu đề, tên đội, điểm, nhãn hạng và chữ trên bục cho màn LED hội trường 3,5 × 6,5 m.",
+  "- Giữ nền không có oval/radar; không đổi spotlight, hai line đỏ–cam và logic công bố.",
 ].join("\n");
 
 let release;

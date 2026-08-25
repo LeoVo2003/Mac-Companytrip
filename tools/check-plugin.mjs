@@ -486,15 +486,18 @@ const titleKickerStyle = artRaceCss.match(/\.ar-title p\s*\{[^}]+\}/s)?.[0] || "
 if (!titleKickerStyle.includes("text-shadow: none")) {
   throw new Error("Art reveal searching headline must not use a text shadow.");
 }
-for (const invariant of ["--ocean-deep", "--wood", "--bronze", "Tone biển sáng", "mask-image: linear-gradient(180deg, transparent, #000 34%, #000)"]) {
+for (const invariant of ["--ocean-deep", "--wood", "--bronze", "Tone biển sáng", "mask-image: linear-gradient(180deg, transparent, #000 28%, #000)"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Missing ocean-voyage stage treatment: ${invariant}`);
 }
 const runwayStyle = artRaceCss.match(/\.ar-runway\s*\{[^}]+\}/s)?.[0] || "";
 for (const banned of ["border-top", "border-radius: 50%", "repeating-radial-gradient"]) {
   if (runwayStyle.includes(banned)) throw new Error(`Cinematic stage floor must omit radar treatment: ${banned}`);
 }
-for (const invariant of [".ar-stage-world::after", "height: 28vh", "filter: blur(14px)"]) {
-  if (!artRaceCss.includes(invariant)) throw new Error(`Missing seamless cinematic stage depth: ${invariant}`);
+for (const invariant of [".ar-stage-world::after", "height: 16vh", "clip-path: polygon(0 0, 100% 0, 86% 26%, 14% 26%)", "@keyframes ar-backdrop-breathe", "height: 58vh"]) {
+  if (!artRaceCss.includes(invariant)) throw new Error(`Missing architectural gala-stage treatment: ${invariant}`);
+}
+for (const invariant of ["clamp(42px, 6vw, 104px)", "clamp(21px, 1.55vw, 30px)", "clamp(34px, 2.7vw, 52px)", "clamp(16px, 1.2vw, 21px)"]) {
+  if (!artRaceCss.includes(invariant)) throw new Error(`Missing large-venue typography scale: ${invariant}`);
 }
 for (const invariant of ["--black: #050403", "rgba(255, 106, 44, 0.58)", "linear-gradient(120deg, var(--red), var(--orange))", "rgba(5, 4, 3, 0.72)"]) {
   if (!artRaceCss.includes(invariant)) throw new Error(`Dark spotlight theme must retain MAC styling: ${invariant}`);
