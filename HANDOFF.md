@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.10.0** (2026-08-26) — module Phân xe + HDV theo spec UPDATE_CHECKIN_BUS_HDV_SPEC: bảng buses/bus_members/bus_rollcalls/bus_rollcall_marks; class MAC_Bus (open_first, advance atomic, auto_assign Trạm 1, move/manual/unassigned, roll-call nhiều lượt, save_guide); scanner bỏ chọn team (camera ngay, accordion 6 team, chip ĐANG PHÂN, poll 2,5s, hết WRONG_TEAM); role mac_bus_guide chỉ thấy Check-in + Xe của tôi; tab Phân xe cho Super Admin; permission server-side; engine check-in giữ nguyên. Trước đó v1.9.46: title văn nghệ tầng ✦.
+> Phiên bản hiện tại: **v1.10.1** (2026-08-26) — sửa lỗi HDV không đăng nhập được: save_guide gắn email công ty (hdv.xe1@macusaone.com) + REST admin/login fallback theo username thô cho tài khoản có mac_checkin/mac_bus_rollcall. Trước đó v1.10.0: module Phân xe + HDV + roll-call.
 
 ---
 

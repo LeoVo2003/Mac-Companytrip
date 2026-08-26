@@ -39,6 +39,13 @@ final class MAC_Admin_REST {
         }
         $user = get_user_by('email', $email);
         if (!$user) {
+            // Tài khoản HDV / scanner có thể đăng nhập bằng username thô (vd: hdv.xe1).
+            $by_login = get_user_by('login', sanitize_user($username, true));
+            if ($by_login && (user_can($by_login, MAC_Checkin::CAP) || user_can($by_login, MAC_Bus::CAP_ROLLCALL))) {
+                $user = $by_login;
+            }
+        }
+        if (!$user) {
             MAC_Voting_Auth::failed_login('admin_' . $rate_identity);
             return new WP_Error('invalid_login', 'Sai tài khoản hoặc mật khẩu.', array('status' => 401));
         }

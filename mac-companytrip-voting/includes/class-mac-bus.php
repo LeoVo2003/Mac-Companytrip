@@ -447,15 +447,21 @@ final class MAC_Bus {
         if ($bus_id < 1 || $bus_id > self::BUS_COUNT) {
             return new WP_Error('invalid_bus', 'Xe phụ trách không hợp lệ.', array('status' => 400));
         }
+        // Login dashboard đi theo email công ty: hdv.xe1 => hdv.xe1@macusaone.com.
+        $email = MAC_Voting_DB::normalize_company_email($login . '@' . MAC_Voting_DB::COMPANY_EMAIL_DOMAIN);
         $pass = trim($password) !== '' ? trim($password) : MAC_Voting_DB::DEFAULT_STAFF_PASSWORD;
         $user = get_user_by('login', $login);
+        if (!$user && $email) {
+            $user = get_user_by('email', $email);
+        }
         if ($user) {
-            if (!in_array(self::ROLE, (array) $user->roles, true) && !MAC_Checkin::is_super_user($user)) {
-                $user->set_role(self::ROLE);
-            } elseif (!in_array(self::ROLE, (array) $user->roles, true)) {
+            if (!in_array(self::ROLE, (array) $user->roles, true)) {
                 $user->add_role(self::ROLE);
             }
             wp_set_password($pass, $user->ID);
+            if ($email && strcasecmp((string) $user->user_email, $email) !== 0 && !get_user_by('email', $email)) {
+                wp_update_user(array('ID' => (int) $user->ID, 'user_email' => $email));
+            }
             $old_bus = self::guide_bus_id((int) $user->ID);
             update_user_meta($user->ID, self::BUS_META, $bus_id);
             if ($old_bus !== $bus_id) {
@@ -466,6 +472,7 @@ final class MAC_Bus {
         $display = $name !== '' ? MAC_Voting_DB::title_case($name) : ('HDV Xe ' . $bus_id);
         $user_id = wp_insert_user(array(
             'user_login' => $login,
+            'user_email' => $email ?: ($login . '@' . MAC_Voting_DB::COMPANY_EMAIL_DOMAIN),
             'user_pass' => $pass,
             'display_name' => $display,
             'role' => self::ROLE,
