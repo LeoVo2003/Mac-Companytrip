@@ -13,6 +13,10 @@
   let awardCategoryId = "";
   let awardTeamId = "";
   let overviewTab = "chart";
+  let busManifestId = 0;
+  let busQuery = "";
+  let busFilter = "all";
+  let busSearch = "";
   const remainingSeconds = (closesAt) => Math.max(0, Math.ceil((new Date(String(closesAt).replace(" ", "T") + "Z").getTime() - Date.now()) / 1000));
   const formatRemainingTime = (closesAt) => {
     const seconds = remainingSeconds(closesAt);
@@ -370,7 +374,16 @@
   const statusLabel = (status) => status === "OPEN" ? "Đang mở vote" : status === "CLOSED" ? "Đã đóng" : "Chưa bắt đầu";
   const revealStageLabel = (stage) => ({ IDLE: "Đang chờ", ROLLING: "Spotlight đang tìm kiếm", SIXTH: "Đã công bố hạng 6", FIFTH: "Đã công bố hạng 5", FOURTH: "Đã công bố hạng 4", THIRD: "Đã công bố hạng 3", SECOND: "Đã công bố hạng 2", FINAL: "Đã công bố quán quân" }[stage] || "Đang chờ");
     const totalRevealStageLabel = (stage) => ({ IDLE: "Đang chờ", ROLLING: "Đang tung điểm", RANK65: "Đã lộ diện hạng 6-5", TEASE43: "Đang nhá hàng top 4", RANK43: "Đã lộ diện hạng 4-3", RANK12: "Top 2 đã bước lên", TWIST: "3 đội đang cùng tung điểm", REVEAL3: "Đã lộ diện hạng ba", FINAL: "Đã công bố quán quân" }[stage] || "Đang chờ");
-  function sidebar() { return `<aside class="ma-side"><div class="ma-brand"><img src="${esc(window.MACVotingAdmin.logo)}"><div><strong>Company Trip</strong>${canWrite() ? "" : `<small>Admin · chỉ xem</small>`}</div></div><nav><button data-tab="overview" class="${tab === "overview" ? "active" : ""}">◉ Tổng quan</button><button data-tab="checkin" class="${tab === "checkin" ? "active" : ""}">▣ Check-in</button><button data-tab="games" class="${tab === "games" ? "active" : ""}">◈ Trò chơi lớn</button><button data-tab="art" class="${tab === "art" ? "active" : ""}">♪ Văn nghệ</button><button data-tab="thidua" class="${tab === "thidua" ? "active" : ""}">★ Thi đua</button><button data-tab="data" class="${tab === "data" ? "active" : ""}">▦ Nhân sự & QR</button></nav><div class="ma-side-links"><a href="${esc(window.MACVotingAdmin.checkinUrl)}">↗ Quét QR check-in</a>${canWrite() ? `<a href="${esc(window.MACVotingAdmin.resultsUrl)}" target="_blank" rel="noopener">↗ Màn hình kết quả</a><a href="${esc(window.MACVotingAdmin.voteUrl)}" target="_blank" rel="noopener">↗ Mở trang vote</a><button type="button" id="ma-seed-demo" class="ma-side-secret" title="Chỉ super admin · diễn tập màn hình công bố">⚓ Áp dữ liệu demo</button>` : ""}</div><a class="ma-side-logout" href="${esc(window.MACVotingAdmin.logoutUrl)}">Đăng xuất</a></aside>`; }
+  function sidebar() {
+    const role = window.MACVotingAdmin.role;
+    const nav = role === "guide"
+      ? `<button data-tab="checkin" class="${tab === "checkin" ? "active" : ""}">▣ Check-in</button><button data-tab="mybus" class="${tab === "mybus" ? "active" : ""}">▧ Xe của tôi</button>`
+      : `<button data-tab="overview" class="${tab === "overview" ? "active" : ""}">◉ Tổng quan</button><button data-tab="checkin" class="${tab === "checkin" ? "active" : ""}">▣ Check-in</button>${role === "super" ? `<button data-tab="bus" class="${tab === "bus" ? "active" : ""}">▤ Phân xe</button>` : ""}<button data-tab="games" class="${tab === "games" ? "active" : ""}">◈ Trò chơi lớn</button><button data-tab="art" class="${tab === "art" ? "active" : ""}">♪ Văn nghệ</button><button data-tab="thidua" class="${tab === "thidua" ? "active" : ""}">★ Thi đua</button><button data-tab="data" class="${tab === "data" ? "active" : ""}">▦ Nhân sự & QR</button>`;
+    const links = role === "guide"
+      ? `<a href="${esc(window.MACVotingAdmin.checkinUrl)}">↗ Quét QR check-in</a>`
+      : `<a href="${esc(window.MACVotingAdmin.checkinUrl)}">↗ Quét QR check-in</a>${canWrite() ? `<a href="${esc(window.MACVotingAdmin.resultsUrl)}" target="_blank" rel="noopener">↗ Màn hình kết quả</a><a href="${esc(window.MACVotingAdmin.voteUrl)}" target="_blank" rel="noopener">↗ Mở trang vote</a><button type="button" id="ma-seed-demo" class="ma-side-secret" title="Chỉ super admin · diễn tập màn hình công bố">⚓ Áp dữ liệu demo</button>` : ""}`;
+    return `<aside class="ma-side"><div class="ma-brand"><img src="${esc(window.MACVotingAdmin.logo)}"><div><strong>Company Trip</strong>${role === "guide" ? `<small>HDV · xe của tôi</small>` : canWrite() ? "" : `<small>Admin · chỉ xem</small>`}</div></div><nav>${nav}</nav><div class="ma-side-links">${links}</div><a class="ma-side-logout" href="${esc(window.MACVotingAdmin.logoutUrl)}">Đăng xuất</a></aside>`;
+  }
   function votingGate() {
     const on = !!data.votingEnabled;
     return `<section class="ma-panel ma-gate ${on ? "is-on" : "is-off"}"><header><div><small>VĂN NGHỆ</small><h2>${on ? "Cổng đang bật" : "Cổng đang tắt"}</h2><p>${on ? "QR cá nhân và login username đã được mở." : "Public không thể đăng nhập hoặc chấm điểm, kể cả khi còn cookie cũ."}</p></div><span class="ma-gate-status">${on ? "ĐANG BẬT" : "TẮT"}</span></header>${canWrite() ? `<div style="padding:16px 20px 20px"><button type="button" id="ma-gate" class="${on ? "danger" : "ma-primary"}">${on ? "Tắt cổng văn nghệ" : "Bật cổng chấm điểm"}</button></div>` : ""}</section>`;
@@ -387,13 +400,47 @@
     const progressCheckpoints = boards.map((board) => board.checkpoint);
     const progressTeams = boards[0]?.teams || [];
     const progress = `<section class="ma-panel"><header><div><small>TIẾN ĐỘ</small><h2>Điểm theo tỷ lệ có mặt</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Mỗi team có cửa sổ bằng đúng số phút của trạm kể từ lượt quét đầu tiên; hết giờ cửa sổ khóa.</p></div>${canWrite() ? `<a class="ma-primary" href="${esc(window.MACVotingAdmin.checkinExportUrl)}">↓ Xuất CSV check-in</a>` : ""}</header><div class="ma-board-table"><table><thead><tr><th>Đội</th>${progressCheckpoints.map((item) => `<th>Trạm ${item.id}<small>${esc(item.name)}</small></th>`).join("")}</tr></thead><tbody>${progressTeams.map((team) => `<tr><td><strong>#${team.teamNumber} ${esc(team.teamName)}</strong></td>${boards.map((board) => { const cell = board.teams.find((row) => String(row.teamId) === String(team.teamId)); return `<td class="ma-progress-cell">${cell ? `<strong>${cell.checkedIn}/${cell.eligible}</strong><small>${cell.temporaryPoints || 0}đ</small>` : "—"}</td>`; }).join("")}</tr>`).join("") || `<tr><td colspan="${progressCheckpoints.length + 1}">Chưa có trạm nào.</td></tr>`}</tbody></table></div></section>`;
-    const staffPanel = canWrite() ? `<section class="ma-panel"><header><div><small>BTC</small><h2>Tài khoản Quét QR check-in</h2></div></header><form class="ma-staff-form" id="ma-staff-form"><label>Chọn tài khoản<select id="ma-staff-user">${users.map((user) => `<option value="${user.id}">${esc(user.name)} — ${esc(user.email)}</option>`).join("")}</select></label><div class="ma-staff-teams">${teams.map((team) => `<label><input type="checkbox" name="teamIds" value="${team.id}"> #${team.team_no} ${esc(team.name)}</label>`).join("")}</div><button type="submit" class="ma-primary">Lưu quyền check-in</button><p style="margin:0;color:#667085;font-size:13px">Admin quét được mọi team. BTC thường chỉ được gán 1-2 team.</p></form><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>BTC</th><th>Team được gán</th></tr></thead><tbody>${staff.map((item) => `<tr><td><div class="ma-staff-cell"><strong>${esc(item.name)}</strong><small>${esc(item.email)}${item.isAdmin ? " · Admin" : ""}</small></div></td><td>${item.isAdmin ? "Tất cả team" : (item.teamIds || []).map((id) => { const team = teams.find((row) => String(row.id) === String(id)); return team ? `#${team.team_no} ${team.name}` : id; }).join(", ") || "Chưa gán"}</td></tr>`).join("") || `<tr><td colspan="2">Chưa có tài khoản BTC.</td></tr>`}</tbody></table></div></section>` : "";
+    const guides = data.buses?.guides || [];
+    const accountRows = [
+      ...staff.map((item) => `<tr><td><div class="ma-staff-cell"><strong>${esc(item.name)}</strong><small>${esc(item.email)}</small></div></td><td>${item.isAdmin ? "Super Admin" : "BTC / Hoa tiêu"}</td></tr>`),
+      ...guides.map((item) => `<tr><td><div class="ma-staff-cell"><strong>${esc(item.name)}</strong><small>${esc(item.login)}</small></div></td><td>HDV Xe ${item.busId}</td></tr>`),
+    ].join("");
+    const staffPanel = canWrite() ? `<section class="ma-panel"><header><div><small>SCANNER</small><h2>Tài khoản được phép quét QR</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Mọi tài khoản dưới đây quét được toàn bộ 6 team — không còn giới hạn theo team. Tài khoản HDV tạo trong tab Phân xe.</p></div></header><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Tài khoản</th><th>Loại</th></tr></thead><tbody>${accountRows || `<tr><td colspan="2">Chưa có tài khoản.</td></tr>`}</tbody></table></div></section>` : "";
     const openExemptions = openCheckpoint ? (data.exemptions?.[openCheckpoint.id] || []) : [];
     const exemptCandidates = (data.voters || []).filter((row) => row.status === "ACTIVE" && !openExemptions.some((item) => String(item.voterId) === String(row.id)));
     const normalizedExemptQuery = normalizeHeader(exemptQuery);
     const visibleCandidates = normalizedExemptQuery ? exemptCandidates.filter((row) => normalizeHeader(`${row.full_name} ${row.email || ""} ${row.team_name || ""}`).includes(normalizedExemptQuery)) : exemptCandidates;
     const exemptionPanel = canWrite() && openCheckpoint ? `<section class="ma-panel ma-exemptions"><header><div><small>MIỄN CHECK-IN</small><h2>Trạm ${openCheckpoint.id} · ${esc(openCheckpoint.name)}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Người được miễn không tính vào mẫu số và biến khỏi danh sách "CÒN THIẾU" của các team.</p></div></header><form class="ma-exempt-form" id="ma-exempt-form"><label for="ma-exempt-search">Tìm nhanh<input id="ma-exempt-search" type="search" placeholder="Gõ tên để lọc trong ${exemptCandidates.length} người…" value="${esc(exemptQuery)}" autocomplete="off"></label><label for="ma-exempt-voter">Chọn người<select id="ma-exempt-voter">${visibleCandidates.map((row) => `<option value="${row.id}">${esc(row.full_name)} · #${row.team_no} ${esc(row.team_name)}</option>`).join("") || `<option value="">${normalizedExemptQuery ? "Không tìm thấy ai khớp" : "Không còn ai để miễn"}</option>`}</select></label><label for="ma-exempt-reason">Lý do<input id="ma-exempt-reason" type="text" maxlength="500" placeholder="Ví dụ: được BTC duyệt cho đến muộn" required></label><button type="submit" class="ma-primary" ${exemptCandidates.length ? "" : "disabled"}>Miễn check-in</button></form><div class="ma-board-table"><table><thead><tr><th>Người được miễn</th><th>Lý do</th><th></th></tr></thead><tbody>${openExemptions.map((item) => `<tr><td><strong>${esc(item.fullName)}</strong></td><td>${esc(item.reason || "")}</td><td><button type="button" data-exempt-clear="${item.voterId}" data-exempt-name="${esc(item.fullName)}">Bỏ miễn</button></td></tr>`).join("") || `<tr><td colspan="3">Chưa có ai được miễn ở trạm này.</td></tr>`}</tbody></table></div></section>` : "";
     return `<header class="ma-top"><div><small>CHECK-IN</small><h1>4 trạm Company Trip</h1></div>${topActions()}</header>${scanner}<div class="ma-check-grid">${checkpointCards}</div>${progress}${exemptionPanel}${staffPanel}`;
+  }
+  function busView() {
+    const state = data.buses || { buses: [], unassigned: [], guides: [] };
+    const buses = state.buses || [];
+    if (!busManifestId && buses.length) busManifestId = (buses.find((b) => b.status === "BOARDING") || buses[0]).id;
+    const boarding = buses.find((b) => b.status === "BOARDING") || null;
+    const busStatusLabel = (s) => s === "BOARDING" ? "ĐANG XẾP" : s === "CLOSED" ? "ĐÃ CHỐT" : "CHỜ";
+    const control = `<section class="ma-panel ma-bus-control"><header><div><small>PHÂN XE · TRẠM 1</small><h2>${boarding ? `Đang xếp ${esc(boarding.name)}` : "Chưa mở xe nào"}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Mở/đóng xe chỉ diễn ra trong đợt phân xe Trạm 1. QR quét vào tự rơi vào xe đang mở — server quyết định, không theo browser.</p></div><span class="ma-reveal-status ${boarding ? "rolling" : "idle"}"><i></i>${state.enabled ? (boarding ? "ĐANG PHÂN XE" : "CHỜ MỞ XE 1") : "CHƯA BẬT / ĐÃ HOÀN TẤT"}</span></header><div class="ma-reveal-actions">${boarding ? `<button type="button" class="ma-reveal-start" data-bus-advance="${boarding.id}"><span>${boarding.sortOrder}</span><strong>Chốt ${esc(boarding.name)} → mở xe ${boarding.sortOrder + 1}</strong><small>${boarding.employees} NV QR · ${boarding.staff} BTC/Hoa tiêu</small></button>` : `<button type="button" class="ma-reveal-start" id="ma-bus-open" ${state.enabled ? "" : "disabled"}><span>01</span><strong>Mở Xe 1</strong><small>Bắt đầu nhận người từ QR Trạm 1</small></button>`}</div><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Xe</th><th>NV QR</th><th>BTC</th><th>Tổng</th><th>Trạng thái</th></tr></thead><tbody>${buses.map((b) => `<tr class="${b.id === busManifestId ? "is-selected" : ""}"><td><button type="button" data-bus-manifest="${b.id}"><strong>${esc(b.name)}</strong></button></td><td>${b.employees}</td><td>${b.staff}</td><td><strong>${b.total}</strong></td><td>${busStatusLabel(b.status)}</td></tr>`).join("") || `<tr><td colspan="5">Chưa có dữ liệu xe.</td></tr>`}</tbody></table></div></section>`;
+    const manifestBus = buses.find((b) => b.id === busManifestId) || null;
+    const q = busQuery.trim().toLowerCase();
+    const members = ((manifestBus?.manifest) || []).filter((m) => !q || `${m.name} ${m.teamName || ""}`.toLowerCase().includes(q));
+    const memberRows = members.map((m) => `<tr><td><strong>${esc(m.name)}</strong></td><td>${m.teamNo ? `#${m.teamNo} ${esc(m.teamName)}` : "—"}</td><td>${m.memberType === "EMPLOYEE" ? "NV QR" : m.memberType === "STAFF" ? "BTC/Hoa tiêu" : "Thủ công"}</td><td class="ma-bus-actions">${m.voterId ? `<select data-bus-move="${m.voterId}" aria-label="Chuyển xe ${esc(m.name)}"><option value="">Chuyển xe…</option>${buses.filter((b) => b.id !== busManifestId).map((b) => `<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select>` : ""}<button type="button" class="danger" data-bus-remove="${m.id}" data-bus-remove-name="${esc(m.name)}">×</button></td></tr>`).join("") || `<tr><td colspan="4">${q ? "Không ai khớp tìm kiếm." : "Xe chưa có ai."}</td></tr>`;
+    const manifest = manifestBus ? `<section class="ma-panel"><header><div><small>MANIFEST</small><h2>${esc(manifestBus.name)} · ${manifestBus.total} người</h2></div><input id="ma-bus-query" type="search" placeholder="Tìm tên / team" value="${esc(busQuery)}"></header><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Họ tên</th><th>Team</th><th>Loại</th><th></th></tr></thead><tbody>${memberRows}</tbody></table></div><form class="ma-bus-add" id="ma-bus-add-form"><label>Thêm BTC/Hoa tiêu hoặc người thủ công vào ${esc(manifestBus.name)}<select id="ma-bus-staff">${(data.voters || []).filter((v) => Number(v.team_no) === 7 && v.status === "ACTIVE").map((v) => `<option value="${v.id}">${esc(v.full_name)}</option>`).join("") || `<option value="">Không có BTC/Hoa tiêu</option>`}</select></label><input id="ma-bus-manual" type="text" placeholder="Hoặc gõ tên người ngoài (tùy chọn)"><button type="submit" class="ma-primary">+ Thêm vào xe</button></form></section>` : "";
+    const unassignedRows = (state.unassigned || []).map((u) => `<tr><td><strong>${esc(u.name)}</strong></td><td>#${u.teamNo} ${esc(u.teamName)}</td><td><select data-unassigned-assign="${u.voterId}"><option value="">Gán vào xe…</option>${buses.map((b) => `<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select></td></tr>`).join("") || `<tr><td colspan="3">Không còn ai chờ phân xe.</td></tr>`;
+    const unassigned = `<section class="ma-panel"><header><div><small>CHƯA PHÂN XE · ${(state.unassigned || []).length}</small><h2>Check-in lúc chưa có xe mở / đến trễ</h2></div></header><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Họ tên</th><th>Team</th><th></th></tr></thead><tbody>${unassignedRows}</tbody></table></div></section>`;
+    const guideRows = (state.guides || []).map((g) => `<tr><td><strong>${esc(g.name)}</strong></td><td>${esc(g.login)}</td><td>Xe ${g.busId}</td></tr>`).join("") || `<tr><td colspan="3">Chưa có tài khoản HDV.</td></tr>`;
+    const guides = `<section class="ma-panel"><header><div><small>HDV VIETRAVEL</small><h2>5 tài khoản điểm danh trên xe</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">HDV chỉ thấy Check-in + Xe của tôi; quét QR được mọi team nhưng chỉ điểm danh xe mình.</p></div></header><form class="ma-guide-form" id="ma-guide-form"><label>Tên hiển thị<input name="name" type="text" placeholder="VD: Anh Tuấn Vietravel" required></label><label>Username<input name="login" type="text" placeholder="hdv.xe1" required autocapitalize="none"></label><label>Mật khẩu<input name="password" type="text" placeholder="Để trống = Mac-123"></label><label>Xe phụ trách<select name="busId">${[1, 2, 3, 4, 5].map((n) => `<option value="${n}">Xe ${n}</option>`).join("")}</select></label><button type="submit" class="ma-primary">Lưu tài khoản HDV</button></form><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>HDV</th><th>Đăng nhập</th><th>Xe</th></tr></thead><tbody>${guideRows}</tbody></table></div></section>`;
+    return `<header class="ma-top"><div><small>PHÂN XE</small><h1>Điều phối Xe 1–5 · Trạm 1</h1></div>${topActions()}</header>${control}${manifest}${unassigned}${guides}`;
+  }
+  function myBusView() {
+    const bus = data.myBus;
+    if (!bus) return `<header class="ma-top"><div><small>XE CỦA TÔI</small><h1>Chưa được gán xe</h1></div></header><section class="ma-panel"><p>Nhờ Super Admin gán xe phụ trách cho tài khoản HDV này.</p></section>`;
+    const q = busSearch.trim().toLowerCase();
+    const filtered = (bus.members || []).filter((m) => !q || m.name.toLowerCase().includes(q));
+    const visible = busFilter === "missing" ? filtered.filter((m) => !m.present) : filtered;
+    const employees = visible.filter((m) => m.memberType === "EMPLOYEE");
+    const others = visible.filter((m) => m.memberType !== "EMPLOYEE");
+    const row = (m) => `<li><button type="button" class="ma-roll-row ${m.present ? "is-present" : ""}" data-rollcall-toggle="${m.id}" data-present="${m.present ? "" : "1"}" aria-pressed="${m.present}"><span>${m.present ? "✓" : "○"} ${esc(m.name)}</span><small>${m.teamNo ? `#${m.teamNo}` : m.memberType === "STAFF" ? "BTC" : ""}</small></button></li>`;
+    return `<header class="ma-top"><div><small>XE CỦA TÔI</small><h1>${esc(bus.busName)} · Điểm danh trên xe</h1></div>${topActions()}</header><section class="ma-panel ma-bus-mine"><header><div><small>LƯỢT ${bus.currentSequence || 1}</small><h2>${bus.presentCount} / ${bus.totalCount} đã có mặt</h2></div><button type="button" class="ma-primary" id="ma-rollcall-new">ĐIỂM DANH LƯỢT MỚI</button></header><div class="ma-bus-tools"><input id="ma-bus-search" type="search" placeholder="Tìm tên…" value="${esc(busSearch)}"><div class="ma-bus-filters"><button type="button" class="${busFilter === "all" ? "active" : ""}" data-bus-filter="all">Tất cả</button><button type="button" class="${busFilter === "missing" ? "active" : ""}" data-bus-filter="missing">Chưa có mặt</button></div></div><ul class="ma-roll-list">${employees.map(row).join("") || `<li><p style="margin:0;color:#667085">Không có ai khớp bộ lọc.</p></li>`}</ul>${others.length ? `<p class="ma-roll-divider">BTC / HOA TIÊU / THỦ CÔNG</p><ul class="ma-roll-list">${others.map(row).join("")}</ul>` : ""}<div class="ma-bus-history"><small>LỊCH SỬ LƯỢT ĐIỂM DANH</small><ul>${(bus.history || []).map((h) => `<li>Lượt ${h.sequence} · ${esc(h.createdAt)} · ${h.presentCount}/${bus.totalCount}</li>`).join("") || `<li>Chưa có lượt nào.</li>`}</ul></div></section>`;
   }
   function pointsView() {
     const board = data.totalBoard || { categories: [], teams: [], history: [] };
@@ -512,8 +559,9 @@
   }
   function dataView() { return `<header class="ma-top"><div><small>NHÂN SỰ</small><h1>Nhân sự & QR</h1></div></header>${window.MACVotingAdmin.permalinkWarning ? `<div class="ma-permalink-warning"><strong>URL đẹp chưa được bật</strong><span>Website đang dùng link dạng <code>?page_id=...</code>. Chọn cấu trúc “Tên bài viết” rồi lưu để dùng đường dẫn /cham-diem-van-nghe/.</span><a href="${esc(window.MACVotingAdmin.permalinkSettingsUrl)}">Mở cài đặt Permalink →</a></div>` : ""}${Number(data.stats.missingEmailVoters) ? `<div class="ma-permalink-warning"><strong>${data.stats.missingEmailVoters} nhân sự chưa có email</strong><span>Những người này chưa thể đăng nhập bằng username. Hãy import lại CSV có cột Email để mapping vào dữ liệu cũ.</span><a href="${esc(window.MACVotingAdmin.templateUrl)}">Tải CSV mẫu mới →</a></div>` : ""}${importFeedback ? `<div class="ma-import-success"><span>✓</span><div><strong>${esc(importFeedback.message)}</strong><small>${esc(importFeedback.fileName)} · ${esc(importFeedback.at)} · Tổng hiện có ${data.stats.activeVoters} người được vote</small></div></div>${(importFeedback.staffAccounts || []).length ? `<div class="ma-import-success ma-staff-passwords"><span>!</span><div><strong>Mật khẩu tài khoản BTC — chỉ hiện một lần</strong><ul>${importFeedback.staffAccounts.map((item) => `<li><b>${esc(item.email)}</b> · ${esc(item.password)}</li>`).join("")}</ul></div></div>` : ""}` : ""}${personFeedback ? `<div class="ma-import-success ma-staff-passwords"><span>!</span><div><strong>Tài khoản ${personFeedback.kind === "super" ? "Super admin" : "BTC"} của ${esc(personFeedback.name)} — chỉ hiện một lần</strong><ul><li>Đăng nhập: <b>${esc(personFeedback.login)}</b> · Mật khẩu: <b>${esc(personFeedback.password)}</b></li></ul><small>Dùng tài khoản này đăng nhập trang Máy quét BTC. Muốn đổi team được quét thì vào tab Check-in → Tài khoản máy quét.</small></div></div>` : ""}${canWrite() ? `<div class="ma-data"><section class="ma-panel"><span class="ma-icon">⇧</span><small>IMPORT CSV</small><h2>Danh sách nhân sự</h2><p>Cột bắt buộc: Họ tên, Team, Email. Cột tùy chọn: Vai trò (BTC/Super admin) và Mật khẩu để tạo tài khoản dashboard. Email chấp nhận @macusaone.com, @yesoffice.vn hoặc @macmarketing.vn; username không có @ mặc định thành @macusaone.com.</p><label class="ma-primary">Chọn & xem trước CSV<input id="ma-import" type="file" accept=".csv,text/csv"></label><a href="${esc(window.MACVotingAdmin.templateUrl)}">↓ Tải file mẫu</a></section><section class="ma-panel"><span class="ma-icon">▦</span><small>SAO LƯU & ĐỐI SOÁT</small><h2>Xuất dữ liệu</h2><p>Gồm bảng điểm và chi tiết toàn bộ phiếu hợp lệ/đã hủy.</p><a class="ma-primary" href="${esc(window.MACVotingAdmin.exportUrl)}">↓ Xuất CSV kết quả</a></section></div>` : ""}${personnelQr()}`; }
   function render() {
+    if (window.MACVotingAdmin.role === "guide" && tab !== "checkin" && tab !== "mybus") tab = "checkin";
     root.classList.toggle("is-readonly", !canWrite());
-    root.innerHTML = `<div class="ma-layout">${sidebar()}<main class="ma-content">${tab === "overview" ? pointsView() : tab === "checkin" ? checkinView() : tab === "games" ? gamesView() : tab === "thidua" ? thiduaView() : tab === "art" ? artView() : dataView()}</main></div>`;
+    root.innerHTML = `<div class="ma-layout">${sidebar()}<main class="ma-content">${tab === "overview" ? pointsView() : tab === "checkin" ? checkinView() : tab === "games" ? gamesView() : tab === "thidua" ? thiduaView() : tab === "art" ? artView() : tab === "bus" ? busView() : tab === "mybus" ? myBusView() : dataView()}</main></div>`;
     const sideNav = root.querySelector(".ma-side nav");
     const activeTabButton = sideNav?.querySelector("button.active");
     // Mobile: thanh tab cuộn ngang trong .ma-side (không phải nav) — sau mỗi lần
@@ -807,6 +855,87 @@
       } catch (err) { notify(err.message, true); }
     });
     }
+    root.querySelector("#ma-bus-open")?.addEventListener("click", async (event) => {
+      event.currentTarget.disabled = true;
+      try {
+        const result = await ajax("mac_vote_bus_open");
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) { notify(err.message, true); render(); }
+    });
+    root.querySelectorAll("[data-bus-advance]").forEach((button) => button.addEventListener("click", async () => {
+      try {
+        const result = await ajax("mac_vote_bus_advance", { busId: button.dataset.busAdvance });
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) { notify(err.message, true); }
+    }));
+    root.querySelectorAll("[data-bus-manifest]").forEach((button) => button.addEventListener("click", () => { busManifestId = Number(button.dataset.busManifest); render(); }));
+    root.querySelector("#ma-bus-query")?.addEventListener("input", (event) => { busQuery = event.currentTarget.value; });
+    root.querySelector("#ma-bus-query")?.addEventListener("keydown", (event) => { if (event.key === "Enter") { busQuery = event.currentTarget.value; render(); } });
+    root.querySelectorAll("[data-bus-move]").forEach((select) => select.addEventListener("change", async () => {
+      if (!select.value) return;
+      try {
+        const result = await ajax("mac_vote_bus_move", { voterId: select.dataset.busMove, toBus: select.value });
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) { notify(err.message, true); }
+    }));
+    root.querySelectorAll("[data-bus-remove]").forEach((button) => button.addEventListener("click", async () => {
+      try {
+        const result = await ajax("mac_vote_bus_remove", { memberId: button.dataset.busRemove });
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) { notify(err.message, true); }
+    }));
+    root.querySelectorAll("[data-unassigned-assign]").forEach((select) => select.addEventListener("change", async () => {
+      if (!select.value) return;
+      try {
+        const result = await ajax("mac_vote_bus_assign", { voterId: select.dataset.unassignedAssign, toBus: select.value });
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) { notify(err.message, true); }
+    }));
+    root.querySelector("#ma-bus-add-form")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const manual = event.currentTarget.querySelector("#ma-bus-manual").value.trim();
+      const staffId = event.currentTarget.querySelector("#ma-bus-staff").value;
+      try {
+        const result = manual
+          ? await ajax("mac_vote_bus_add_manual", { busId: busManifestId, manualName: manual })
+          : await ajax("mac_vote_bus_assign", { voterId: staffId, toBus: busManifestId });
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) { notify(err.message, true); }
+    });
+    root.querySelector("#ma-guide-form")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      try {
+        const result = await ajax("mac_vote_guide_save", { name: form.name.value, login: form.login.value, password: form.password.value, busId: form.busId.value });
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) { notify(err.message, true); }
+    });
+    const rollcall = async (values) => {
+      try {
+        const result = await ajax("mac_vote_rollcall", values);
+        data.myBus = result.myBus;
+        render();
+      } catch (err) { notify(err.message, true); }
+    };
+    root.querySelectorAll("[data-rollcall-toggle]").forEach((button) => button.addEventListener("click", () => rollcall({ busId: data.myBus?.busId, operation: "toggle", memberId: button.dataset.rollcallToggle, present: button.dataset.present })));
+    root.querySelector("#ma-rollcall-new")?.addEventListener("click", () => rollcall({ busId: data.myBus?.busId, operation: "new_round" }));
+    root.querySelectorAll("[data-bus-filter]").forEach((button) => button.addEventListener("click", () => { busFilter = button.dataset.busFilter; render(); }));
+    root.querySelector("#ma-bus-search")?.addEventListener("input", (event) => { busSearch = event.currentTarget.value; });
+    root.querySelector("#ma-bus-search")?.addEventListener("keydown", (event) => { if (event.key === "Enter") { busSearch = event.currentTarget.value; render(); } });
     root.querySelector("#ma-people-team")?.addEventListener("change", (event) => { peopleTeam = event.currentTarget.value; render(); });
     root.querySelector("#ma-people-query")?.addEventListener("input", (event) => { peopleQuery = event.currentTarget.value; });
     root.querySelector("#ma-people-query")?.addEventListener("keydown", (event) => { if (event.key === "Enter") { peopleQuery = event.currentTarget.value; render(); } });

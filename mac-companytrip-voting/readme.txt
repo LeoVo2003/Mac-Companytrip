@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.9.46
+Stable tag: 1.10.0
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,13 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.0 =
+- Module Phân xe Trạm 1: 5 xe WAITING/BOARDING/CLOSED, action atomic "Chốt xe N → mở xe N+1", server tự gán QR vào xe đang mở (không tin browser), không có xe mở thì check-in vẫn thành công và vào danh sách CHƯA PHÂN XE.
+- Scanner mới: mở trang quét là camera mở ngay (bỏ bước chọn team), mọi scanner quét full 6 team (bỏ lỗi WRONG_TEAM), accordion danh sách 6 team mặc định đóng, chip "ĐANG PHÂN · XE n", poll đồng bộ 2,5s.
+- Role HDV Vietravel (mac_bus_guide) + meta mac_bus_id: dashboard chỉ còn Check-in + Xe của tôi; điểm danh trên xe nhiều lượt (lượt mới không xóa lịch sử), lọc chưa có mặt, tìm tên; HDV quét QR không bị giới hạn theo xe.
+- Super Admin: tab Phân xe (overview 5 xe, manifest, chuyển xe, thêm BTC/Hoa tiêu/người thủ công, gán người chưa phân xe, tạo 5 tài khoản HDV); toàn bộ permission kiểm tra server-side; audit BUS_* đầy đủ.
+- Bảng mới: buses, bus_members, bus_rollcalls, bus_rollcall_marks (dbDelta idempotent, seed 5 xe). Engine check-in/tính điểm giữ nguyên.
 
 = 1.9.46 =
 - Làm lại tiêu đề màn văn nghệ cùng ngôn ngữ với ket-qua-tong: kicker nhỏ ✦ hai bên, tên đội 34-68px line-height 1.22, dòng điểm 16-26px; khoảng cách 14px giữa các tầng nên "Sao Bắc Cực" không còn dính "Hạng ba" / "127 điểm".

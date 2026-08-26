@@ -15,6 +15,14 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_reveal_total', array(__CLASS__, 'ajax_reveal_total'));
         add_action('wp_ajax_mac_vote_toggle_scores', array(__CLASS__, 'ajax_toggle_scores'));
         add_action('wp_ajax_mac_vote_toggle_art_theme', array(__CLASS__, 'ajax_toggle_art_theme'));
+        add_action('wp_ajax_mac_vote_bus_open', array(__CLASS__, 'ajax_bus_open'));
+        add_action('wp_ajax_mac_vote_bus_advance', array(__CLASS__, 'ajax_bus_advance'));
+        add_action('wp_ajax_mac_vote_bus_move', array(__CLASS__, 'ajax_bus_move'));
+        add_action('wp_ajax_mac_vote_bus_assign', array(__CLASS__, 'ajax_bus_assign'));
+        add_action('wp_ajax_mac_vote_bus_add_manual', array(__CLASS__, 'ajax_bus_add_manual'));
+        add_action('wp_ajax_mac_vote_bus_remove', array(__CLASS__, 'ajax_bus_remove'));
+        add_action('wp_ajax_mac_vote_guide_save', array(__CLASS__, 'ajax_guide_save'));
+        add_action('wp_ajax_mac_vote_rollcall', array(__CLASS__, 'ajax_rollcall'));
         add_action('wp_ajax_mac_vote_team', array(__CLASS__, 'ajax_team'));
         add_action('wp_ajax_mac_vote_swap', array(__CLASS__, 'ajax_swap'));
         add_action('wp_ajax_mac_vote_ballot', array(__CLASS__, 'ajax_ballot'));
@@ -88,7 +96,7 @@ final class MAC_Voting_Admin {
         return array(
             'ajaxUrl'  => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('mac_voting_admin'),
-            'role'     => $is_super ? 'super' : 'admin',
+            'role'     => $is_super ? 'super' : (MAC_Bus::is_guide() ? 'guide' : 'admin'),
             'voteUrl'  => MAC_Voting_DB::vote_page_url(),
             'resultsUrl' => MAC_Voting_DB::results_page_url(),
             'artResultsUrl' => MAC_Voting_DB::art_results_page_url(),
@@ -544,8 +552,111 @@ final class MAC_Voting_Admin {
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'ART_THEME_' . ($light ? 'LIGHT' : 'DARK'), 'reveal', null, array());
         wp_send_json_success(array(
             'message' => $light ? 'Màn văn nghệ chuyển sang tone đại dương.' : 'Màn văn nghệ về tone tối.',
-            'overview' => self::overview(),
+            'overview' => self::overview_payload(),
         ));
+    }
+
+    /* ------------------------- Phân xe (Super Admin) ------------------------- */
+
+    public static function ajax_bus_open(): void {
+        self::guard();
+        $result = MAC_Bus::open_first();
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 409);
+        }
+        wp_send_json_success(array('message' => 'Đã mở xe nhận người từ Trạm 1.', 'overview' => self::overview_payload()));
+    }
+
+    public static function ajax_bus_advance(): void {
+        self::guard();
+        $bus_id = absint($_POST['busId'] ?? 0);
+        $result = MAC_Bus::advance($bus_id);
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 409);
+        }
+        $done = ($result['boardingBusId'] ?? null) === null;
+        wp_send_json_success(array(
+            'message' => $done ? 'Đã chốt xe cuối — hoàn tất phân xe.' : 'Đã chốt xe và mở xe kế tiếp.',
+            'overview' => self::overview_payload(),
+        ));
+    }
+
+    public static function ajax_bus_move(): void {
+        self::guard();
+        $result = MAC_Bus::move_voter(absint($_POST['voterId'] ?? 0), absint($_POST['toBus'] ?? 0));
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 409);
+        }
+        wp_send_json_success(array('message' => 'Đã chuyển xe.', 'overview' => self::overview_payload()));
+    }
+
+    public static function ajax_bus_assign(): void {
+        self::guard();
+        $result = MAC_Bus::assign_voter(absint($_POST['voterId'] ?? 0), absint($_POST['toBus'] ?? 0));
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 409);
+        }
+        wp_send_json_success(array('message' => 'Đã gán vào xe.', 'overview' => self::overview_payload()));
+    }
+
+    public static function ajax_bus_add_manual(): void {
+        self::guard();
+        $result = MAC_Bus::add_manual_person(absint($_POST['busId'] ?? 0), sanitize_text_field(wp_unslash((string) ($_POST['manualName'] ?? ''))));
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 400);
+        }
+        wp_send_json_success(array('message' => 'Đã thêm vào xe.', 'overview' => self::overview_payload()));
+    }
+
+    public static function ajax_bus_remove(): void {
+        self::guard();
+        $result = MAC_Bus::remove_member(absint($_POST['memberId'] ?? 0));
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 404);
+        }
+        wp_send_json_success(array('message' => 'Đã xóa khỏi xe.', 'overview' => self::overview_payload()));
+    }
+
+    public static function ajax_guide_save(): void {
+        self::guard();
+        $result = MAC_Bus::save_guide(
+            sanitize_text_field(wp_unslash((string) ($_POST['name'] ?? ''))),
+            sanitize_text_field(wp_unslash((string) ($_POST['login'] ?? ''))),
+            sanitize_text_field(wp_unslash((string) ($_POST['password'] ?? ''))),
+            absint($_POST['busId'] ?? 0)
+        );
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 400);
+        }
+        wp_send_json_success(array(
+            'message' => ($result['created'] ? 'Đã tạo tài khoản HDV.' : 'Đã cập nhật tài khoản HDV.') . ' Xe ' . (int) $result['busId'] . ' · đăng nhập ' . $result['login'] . ' · mật khẩu ' . $result['password'],
+            'overview' => self::overview_payload(),
+        ));
+    }
+
+    /* ------------------------- Điểm danh trên xe (HDV) ------------------------- */
+
+    public static function ajax_rollcall(): void {
+        check_ajax_referer('mac_voting_admin', 'nonce');
+        $bus_id = absint($_POST['busId'] ?? 0);
+        if (!MAC_Bus::can_rollcall($bus_id)) {
+            wp_send_json_error(array('message' => 'Bạn không có quyền điểm danh xe này.'), 403);
+        }
+        $operation = sanitize_key((string) ($_POST['operation'] ?? 'state'));
+        if ($operation === 'new_round') {
+            $state = MAC_Bus::new_rollcall($bus_id);
+            $message = 'Đã tạo lượt điểm danh mới — lịch sử lượt cũ vẫn giữ.';
+        } elseif ($operation === 'toggle') {
+            $state = MAC_Bus::toggle_mark($bus_id, absint($_POST['memberId'] ?? 0), !empty($_POST['present']));
+            $message = 'Đã cập nhật điểm danh.';
+        } else {
+            $state = MAC_Bus::rollcall_state($bus_id);
+            $message = 'Đã tải lại danh sách xe.';
+        }
+        if (is_wp_error($state)) {
+            wp_send_json_error(array('message' => $state->get_error_message()), 403);
+        }
+        wp_send_json_success(array('message' => $message, 'myBus' => $state));
     }
 
     public static function ajax_reveal_total(): void {
@@ -962,7 +1073,14 @@ final class MAC_Voting_Admin {
     }
 
     private static function overview_payload(): array {
-        return self::overview();
+        $payload = self::overview();
+        // HDV chỉ cần check-in + xe của mình: lột bỏ toàn bộ dữ liệu điểm/phiếu/nhân sự.
+        if (MAC_Bus::is_guide()) {
+            foreach (array('totalBoard', 'results', 'ballots', 'rounds', 'performances', 'games', 'teamPoints', 'voters', 'assignableUsers', 'staff', 'buses', 'artRevealPlan') as $key) {
+                unset($payload[$key]);
+            }
+        }
+        return $payload;
     }
 
     private static function overview(): array {
@@ -1013,6 +1131,8 @@ final class MAC_Voting_Admin {
             'teamPoints' => MAC_Checkin::team_points_board(),
             'totalBoard' => MAC_Points::dashboard(),
             'staff' => MAC_Checkin::staff_assignments(),
+            'buses' => MAC_Checkin::is_super() ? MAC_Bus::admin_state() : null,
+            'myBus' => MAC_Bus::is_guide() ? MAC_Bus::rollcall_state(max(1, MAC_Bus::guide_bus_id(get_current_user_id()))) : null,
             'assignableUsers' => self::assignable_users(),
             'voters' => self::voter_rows(),
             'teams' => $team_rows,

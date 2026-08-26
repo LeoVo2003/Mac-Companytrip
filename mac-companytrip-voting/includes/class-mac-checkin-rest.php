@@ -66,9 +66,7 @@ final class MAC_Checkin_REST {
         if (!$checkpoint_id || !$team_id) {
             return new WP_Error('invalid', 'Thiếu trạm hoặc team.', array('status' => 400));
         }
-        if (!in_array($team_id, MAC_Checkin::allowed_team_ids(), true)) {
-            return new WP_Error('forbidden', 'Bạn không phụ trách team này.', array('status' => 403));
-        }
+        // v1.10.0: mọi scanner đều đọc được progress mọi team — không còn giới hạn theo team gán.
         return rest_ensure_response(MAC_Checkin::team_progress($checkpoint_id, $team_id));
     }
 }

@@ -14,12 +14,9 @@
     const seconds = remainingSeconds(closesAt);
     return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
   };
-  const windowLabel = () => `CỬA SỔ ${windowMinutes}'`;
-  const windowLockedText = () => `Cửa sổ ${windowMinutes} phút đã hết`;
   const backLink = () => `<a class="mc-back" href="${esc(config.dashboard)}">← Quay lại dashboard</a>`;
   let bootstrap = null;
-  let selectedTeamId = null;
-  let view = "teams";
+  let openTeamId = null;
   let windowMinutes = 15;
   let flash = null;
   let scanning = false;
@@ -27,6 +24,7 @@
   let lastScanAt = 0;
   let videoStream = null;
   let raf = 0;
+  let pollTimer = 0;
 
   const request = async (path, options = {}) => {
     const response = await fetch(config.restUrl + path, {
@@ -56,70 +54,93 @@
     try {
       bootstrap = await request("checkin/bootstrap");
       windowMinutes = Number(bootstrap.windowMinutes) > 0 ? Number(bootstrap.windowMinutes) : 15;
-      if (!selectedTeamId && bootstrap.allowedTeams?.length) selectedTeamId = String(bootstrap.allowedTeams[0].teamId);
-      if (selectedTeamId && !bootstrap.allowedTeams?.some((team) => String(team.teamId) === String(selectedTeamId))) {
-        selectedTeamId = bootstrap.allowedTeams?.[0] ? String(bootstrap.allowedTeams[0].teamId) : null;
-      }
       render();
-      if (view === "scanner") await startCamera();
+      if (bootstrap.activeCheckpoint) await startCamera();
+      startPolling();
     } catch (err) {
       root.innerHTML = `<main class="mc-shell"><section class="mc-card"><p class="mc-kicker">CHECK-IN</p><h1>Không mở được camera quét</h1><p class="mc-meta">${esc(err.message)}</p></section></main>`;
     }
   }
 
-  function currentTeam() {
-    return (bootstrap?.allowedTeams || []).find((team) => String(team.teamId) === String(selectedTeamId)) || bootstrap?.allowedTeams?.[0] || null;
+  // Đồng bộ trạng thái xe / tiến độ cho nhiều line quét mà không cần reload.
+  function startPolling() {
+    if (pollTimer) window.clearInterval(pollTimer);
+    pollTimer = window.setInterval(async () => {
+      try {
+        const next = await request("checkin/bootstrap");
+        const hadCheckpoint = !!bootstrap?.activeCheckpoint;
+        bootstrap = next;
+        windowMinutes = Number(bootstrap.windowMinutes) > 0 ? Number(bootstrap.windowMinutes) : 15;
+        if (!hadCheckpoint && bootstrap.activeCheckpoint) {
+          render();
+          await startCamera();
+        } else {
+          updateLive();
+        }
+      } catch {
+        // Giữ nguyên màn hình khi mạng lỗi thoáng qua.
+      }
+    }, 2500);
+  }
+
+  function busChip() {
+    if (!bootstrap?.busAssignmentEnabled) return "";
+    const bus = bootstrap.activeBus;
+    if (!bus) return `<div class="mc-bus-chip idle"><span>PHÂN XE</span><strong>Chưa có xe mở — check-in vẫn ghi nhận</strong></div>`;
+    return `<div class="mc-bus-chip live"><span>ĐANG PHÂN</span><strong>${esc(bus.name)} · ${bus.employeeCount} người</strong></div>`;
   }
 
   function memberRows(team) {
     const rows = [
-      ...(team.checkedInMembers || []).map((member) => ({ ...member, state: "done" })),
       ...(team.missingMembers || []).map((member) => ({ ...member, state: "missing" })),
+      ...(team.checkedInMembers || []).map((member) => ({ ...member, state: "done" })),
       ...(team.exemptedMembers || []).map((member) => ({ ...member, state: "exempt" })),
-    ].sort((a, b) => String(a.fullName).localeCompare(String(b.fullName), "vi"));
-    return rows.map((member) => `<li class="${member.state}"><span>${esc(member.fullName)}</span><small>${member.state === "done" ? "✓ Đã quét" : member.state === "exempt" ? "Miễn" : "Chưa quét"}</small></li>`).join("") || `<li class="missing"><span>Chưa có thành viên</span><small></small></li>`;
+    ];
+    const label = { missing: "Chưa quét", done: "✓ Đã quét", exempt: "Miễn" };
+    return rows.map((member) => `<li class="${member.state}"><span>${esc(member.fullName)}</span><small>${label[member.state]}</small></li>`).join("") || `<li class="missing"><span>Chưa có thành viên</span><small></small></li>`;
   }
 
-  function teamsView(checkpoint) {
+  function accordion() {
     const teams = bootstrap?.allowedTeams || [];
-    return `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing">${backLink()}</header><section class="mc-card"><p class="mc-kicker">CHECK-IN · TRẠM ${checkpoint.id}</p><h1>Chọn team để quét</h1><p class="mc-meta">${esc(checkpoint.name)} · chạm vào một team để mở camera quét và danh sách thành viên.</p><ul class="mc-team-pick">${teams.map((item) => { const ratio = item.eligible ? Math.round((item.checkedIn / item.eligible) * 100) : 0; return `<li><button type="button" data-pick-team="${item.teamId}"><span class="mc-pick-name">#${item.teamNumber} ${esc(item.teamName)}</span><span class="mc-pick-meta"><strong>${item.checkedIn}/${item.eligible}</strong><small>${item.completed ? "Đã đủ" : item.windowLocked ? "Hết giờ" : `${ratio}%`}</small></span></button></li>`; }).join("")}</ul></section></main>`;
+    return `<section class="mc-card mc-list-card"><p class="mc-kicker">DANH SÁCH CHECK-IN</p><ul class="mc-accordion">${teams.map((team) => {
+      const open = String(team.teamId) === String(openTeamId);
+      return `<li class="${open ? "open" : ""}"><button type="button" class="mc-acc-head" data-acc-team="${team.teamId}" aria-expanded="${open}"><span class="mc-acc-name">#${team.teamNumber} ${esc(team.teamName)}</span><strong>${team.checkedIn}/${team.eligible}</strong></button>${open ? `<div class="mc-acc-body"><p class="mc-acc-sub">CHƯA CHECK-IN · ${team.missingMembers?.length || 0}</p><ul class="mc-members">${memberRows(team)}</ul></div>` : ""}</li>`;
+    }).join("") || `<li><p class="mc-meta">Chưa có trạm mở.</p></li>`}</ul></section>`;
   }
 
   function render() {
-    const team = currentTeam();
     const checkpoint = bootstrap?.activeCheckpoint;
     if (!checkpoint) {
       stopCamera();
       root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing">${backLink()}</header><section class="mc-card mc-empty"><p class="mc-kicker">CHECK-IN</p><h1>Chưa có trạm check-in nào đang mở</h1><p class="mc-meta">Đợi admin mở một trạm check-in rồi tải lại trang.</p></section></main>`;
       return;
     }
-    if (!team) {
-      stopCamera();
-      root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing">${backLink()}</header><section class="mc-card mc-empty"><p class="mc-kicker">CHECK-IN</p><h1>Chưa được gán team</h1><p class="mc-meta">Nhờ admin gán team cho tài khoản BTC này.</p></section></main>`;
-      return;
-    }
-    if (view === "teams") {
-      stopCamera();
-      root.innerHTML = teamsView(checkpoint);
-      root.querySelectorAll("[data-pick-team]").forEach((button) => button.addEventListener("click", () => {
-        selectedTeamId = button.dataset.pickTeam;
-        flash = null;
-        view = "scanner";
-        render();
-        startCamera();
-      }));
-      return;
-    }
-    const ratio = team.eligible ? Math.round((team.checkedIn / team.eligible) * 100) : 0;
-    const flashHtml = flash ? `<div class="mc-flash ${flash.type}" role="status">${esc(flash.text)}</div>` : "";
-    const windowHtml = team.windowLocked
-      ? `<div class="mc-window locked"><span>ĐÃ KHÓA</span><strong>${windowLockedText()}</strong></div>`
-      : team.windowClosesAt
-        ? `<div class="mc-window live" data-window-closes="${esc(team.windowClosesAt)}"><span>${windowLabel()}</span><strong>Còn ${remainingClock(team.windowClosesAt)}</strong></div>`
-        : `<div class="mc-window idle"><span>${windowLabel()}</span><strong>Mở ở lượt quét đầu tiên</strong></div>`;
-    const doneHtml = team.completed ? `<div class="mc-done"><span>TEAM ĐÃ ĐỦ</span><strong>${team.checkedIn} / ${team.eligible}</strong><p>Hoàn thành ${esc(team.completedAt || "")}${team.temporaryRank ? ` · Hạng tạm thời #${team.temporaryRank}` : ""}</p></div>` : "";
-    root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing"><button type="button" class="mc-back" id="mc-back-teams">← Chọn team</button></header><section class="mc-card"><p class="mc-kicker">CHECK-IN — TEAM ${team.teamNumber}</p><h1>${esc(team.teamName)}</h1><p class="mc-meta">TRẠM ${checkpoint.id} · ${esc(checkpoint.name)}</p>${windowHtml}<div class="mc-progress"><strong>${team.checkedIn} / ${team.eligible}</strong><div class="mc-bar" aria-hidden="true"><b style="width:${ratio}%"></b></div></div>${flashHtml}${doneHtml}<div class="mc-camera"><video id="mc-video" playsinline muted autoplay></video><canvas id="mc-canvas"></canvas><div class="mc-frame" aria-hidden="true"></div></div><p class="mc-kicker">THÀNH VIÊN · ${team.checkedIn}/${team.eligible}</p><ul class="mc-members">${memberRows(team)}</ul></section></main>`;
-    root.querySelector("#mc-back-teams")?.addEventListener("click", () => { view = "teams"; flash = null; render(); });
+    root.innerHTML = `<main class="mc-shell"><header class="mc-top"><img src="${esc(config.logo)}" alt="MAC Marketing">${backLink()}</header><section class="mc-card"><p class="mc-kicker">CHECK-IN · TRẠM ${checkpoint.id}</p><h1>${esc(checkpoint.name)}</h1><p class="mc-meta">Quét QR mọi team — hệ thống tự nhận diện đội.</p>${busChip()}<div class="mc-flash-slot">${flash ? `<div class="mc-flash ${flash.type}" role="status">${esc(flash.text)}</div>` : ""}</div><div class="mc-camera"><video id="mc-video" playsinline muted autoplay></video><canvas id="mc-canvas"></canvas><div class="mc-frame" aria-hidden="true"></div></div></section>${accordion()}</main>`;
+    root.querySelectorAll("[data-acc-team]").forEach((button) => button.addEventListener("click", () => {
+      const id = button.dataset.accTeam;
+      openTeamId = String(openTeamId) === String(id) ? null : id;
+      refreshAccordion();
+    }));
+  }
+
+  function refreshAccordion() {
+    const slot = root.querySelector(".mc-list-card");
+    if (!slot) return;
+    slot.outerHTML = accordion();
+    root.querySelectorAll("[data-acc-team]").forEach((button) => button.addEventListener("click", () => {
+      const id = button.dataset.accTeam;
+      openTeamId = String(openTeamId) === String(id) ? null : id;
+      refreshAccordion();
+    }));
+  }
+
+  // Cập nhật chip xe + số liệu accordion sau mỗi poll/scan mà không đụng camera.
+  function updateLive() {
+    const chipSlot = root.querySelector(".mc-bus-chip");
+    const chipHtml = busChip();
+    if (chipSlot && chipHtml) chipSlot.outerHTML = chipHtml;
+    else if (!chipSlot && chipHtml) root.querySelector(".mc-meta")?.insertAdjacentHTML("afterend", chipHtml);
+    refreshAccordion();
   }
 
   async function startCamera() {
@@ -146,52 +167,21 @@
         raf = requestAnimationFrame(tick);
       };
       tick();
-    } catch (err) {
-      flash = { type: "err", text: "Không mở được camera. Hãy cấp quyền camera cho trình duyệt." };
-      render();
+    } catch {
+      showFlash("err", "Không mở được camera. Hãy cấp quyền camera cho trình duyệt.");
     }
   }
 
   function applyTeam(progress) {
-    bootstrap.allowedTeams = (bootstrap.allowedTeams || []).map((team) => String(team.teamId) === String(progress.teamId) ? progress : team);
-    selectedTeamId = String(progress.teamId);
-    const team = currentTeam();
-    if (!team) return;
-    const ratio = team.eligible ? Math.round((team.checkedIn / team.eligible) * 100) : 0;
-    const strong = root.querySelector(".mc-progress strong");
-    const bar = root.querySelector(".mc-bar b");
-    const members = root.querySelector(".mc-members");
-    if (strong) strong.textContent = `${team.checkedIn} / ${team.eligible}`;
-    if (bar) bar.style.width = `${ratio}%`;
-    if (members) members.innerHTML = memberRows(team);
-    const windowBox = root.querySelector(".mc-window");
-    if (windowBox) {
-      windowBox.className = `mc-window ${team.windowLocked ? "locked" : team.windowClosesAt ? "live" : "idle"}`;
-      if (team.windowClosesAt) windowBox.dataset.windowCloses = team.windowClosesAt;
-      else delete windowBox.dataset.windowCloses;
-      const label = windowBox.querySelector("span");
-      const value = windowBox.querySelector("strong");
-      if (label && value) {
-        if (team.windowLocked) { label.textContent = "ĐÃ KHÓA"; value.textContent = windowLockedText(); }
-        else if (team.windowClosesAt) { label.textContent = windowLabel(); value.textContent = `Còn ${remainingClock(team.windowClosesAt)}`; }
-        else { label.textContent = windowLabel(); value.textContent = "Mở ở lượt quét đầu tiên"; }
-      }
-    }
+    if (!bootstrap?.allowedTeams) return;
+    bootstrap.allowedTeams = bootstrap.allowedTeams.map((team) => String(team.teamId) === String(progress.teamId) ? progress : team);
+    updateLive();
   }
 
   function showFlash(type, text) {
     flash = { type, text };
-    let box = root.querySelector(".mc-flash");
-    if (!box) {
-      box = document.createElement("div");
-      box.className = "mc-flash";
-      box.setAttribute("role", "status");
-      const camera = root.querySelector(".mc-camera");
-      if (camera) camera.insertAdjacentElement("beforebegin", box);
-      else return;
-    }
-    box.className = `mc-flash ${type}`;
-    box.textContent = text;
+    const slot = root.querySelector(".mc-flash-slot");
+    if (slot) slot.innerHTML = `<div class="mc-flash ${type}" role="status">${esc(text)}</div>`;
   }
 
   async function handleToken(raw) {
@@ -207,34 +197,21 @@
     try {
       const result = await request("checkin/scan", { method: "POST", body: JSON.stringify({ checkpointId: checkpoint.id, token }) });
       applyTeam(result.teamProgress);
-      showFlash("ok", `✓ ${result.voter.fullName} · ${result.teamProgress.checkedIn}/${result.teamProgress.eligible}`);
+      const bus = result.busAssignment;
+      const busLine = bus?.assigned ? ` → ${bus.busName}` : bootstrap?.busAssignmentEnabled ? " · CHƯA PHÂN XE — gặp Điều phối" : "";
+      showFlash("ok", `✓ ${result.voter.fullName} · #${result.voter.teamNumber} ${result.voter.teamName} · ${result.teamProgress.checkedIn}/${result.teamProgress.eligible}${busLine}`);
     } catch (err) {
       const extra = err.payload || {};
       if (extra.teamProgress) applyTeam(extra.teamProgress);
       const locked = extra.code === "WINDOW_LOCKED" || extra.code === "window_locked";
-      const type = locked ? "err" : extra.code === "ALREADY_CHECKED_IN" || extra.code === "already_checked_in" ? "warn" : "err";
-      const scannedNote = extra.scanned ? ` [quét thấy: ${extra.scanned}]` : "";
-      showFlash(type, (locked ? `${windowLockedText()}. ${err.message}` : err.message) + scannedNote);
+      const dup = extra.code === "ALREADY_CHECKED_IN" || extra.code === "already_checked_in";
+      const type = locked ? "err" : dup ? "warn" : "err";
+      const bus = extra.busAssignment;
+      const busLine = bus?.assigned ? ` · ${bus.busName}` : "";
+      showFlash(type, (locked ? `Cửa sổ ${windowMinutes} phút đã hết. ${err.message}` : err.message) + busLine);
     }
   }
 
-  window.addEventListener("pagehide", stopCamera);
-  setInterval(() => {
-    root.querySelectorAll("[data-window-closes]").forEach((box) => {
-      const seconds = remainingSeconds(box.dataset.windowCloses);
-      const value = box.querySelector("strong");
-      if (!value) return;
-      if (seconds <= 0) {
-        box.classList.remove("live");
-        box.classList.add("locked");
-        const label = box.querySelector("span");
-        if (label) label.textContent = "ĐÃ KHÓA";
-        value.textContent = windowLockedText();
-        delete box.dataset.windowCloses;
-      } else {
-        value.textContent = `Còn ${remainingClock(box.dataset.windowCloses)}`;
-      }
-    });
-  }, 1000);
+  window.addEventListener("pagehide", () => { stopCamera(); window.clearInterval(pollTimer); });
   load();
 })();

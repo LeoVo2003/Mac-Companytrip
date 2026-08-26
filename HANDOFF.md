@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.9.46** (2026-08-25) — tiêu đề màn văn nghệ cùng ngôn ngữ ket-qua-tong: kicker nhỏ ✦ hai bên (11-16px, spacing .22em), tên 34-68px lh 1.22, dòng điểm 16-26px, khoảng cách 14px giữa các tầng (hết dính "Sao Bắc Cực"); is-soft giữ kicker ✦, tên 22-40px, mô tả mờ. Trước đó v1.9.45: giãn heading tổng + text TEASE43/TWIST mới.
+> Phiên bản hiện tại: **v1.10.0** (2026-08-26) — module Phân xe + HDV theo spec UPDATE_CHECKIN_BUS_HDV_SPEC: bảng buses/bus_members/bus_rollcalls/bus_rollcall_marks; class MAC_Bus (open_first, advance atomic, auto_assign Trạm 1, move/manual/unassigned, roll-call nhiều lượt, save_guide); scanner bỏ chọn team (camera ngay, accordion 6 team, chip ĐANG PHÂN, poll 2,5s, hết WRONG_TEAM); role mac_bus_guide chỉ thấy Check-in + Xe của tôi; tab Phân xe cho Super Admin; permission server-side; engine check-in giữ nguyên. Trước đó v1.9.46: title văn nghệ tầng ✦.
 
 ---
 

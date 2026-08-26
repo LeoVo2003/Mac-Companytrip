@@ -4255,3 +4255,134 @@ body.mac-admin-public-page .ma-side > a {
     animation: none;
   }
 }
+
+/* v1.10.0 — Phân xe + điểm danh trên xe (mobile-first). */
+.ma-bus-control .ma-reveal-actions { padding: 14px 20px 18px; }
+
+tr.is-selected td { background: rgba(23, 92, 211, 0.06); }
+
+[data-bus-manifest] {
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #175cd3;
+  cursor: pointer;
+}
+
+.ma-bus-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.ma-bus-actions select { max-width: 110px; }
+
+.ma-bus-add,
+.ma-guide-form {
+  display: grid;
+  gap: 10px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid #eaecf0;
+}
+
+@media (min-width: 720px) {
+  .ma-bus-add { grid-template-columns: 1fr 1fr auto; align-items: end; }
+  .ma-guide-form { grid-template-columns: repeat(4, 1fr) auto; align-items: end; }
+}
+
+.ma-bus-add label,
+.ma-guide-form label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475467;
+}
+
+.ma-bus-tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-top: 1px solid #eaecf0;
+}
+
+.ma-bus-tools input[type="search"] { flex: 1; min-width: 140px; }
+
+.ma-bus-filters {
+  display: flex;
+  gap: 6px;
+}
+
+.ma-bus-filters button {
+  border: 1px solid #e4e7ec;
+  border-radius: 999px;
+  background: #f9fafb;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ma-bus-filters button.active {
+  border-color: #175cd3;
+  background: #eff8ff;
+  color: #175cd3;
+}
+
+.ma-roll-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 8px 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.ma-roll-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  font-weight: 600;
+  color: #344054;
+  cursor: pointer;
+}
+
+.ma-roll-row.is-present {
+  border-color: #75e0a7;
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.ma-roll-divider {
+  margin: 12px 16px 4px;
+  color: #98a2b3;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.ma-bus-history {
+  padding: 12px 16px 18px;
+  border-top: 1px solid #eaecf0;
+}
+
+.ma-bus-history small {
+  color: #98a2b3;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.ma-bus-history ul {
+  margin: 6px 0 0;
+  padding-left: 16px;
+  color: #475467;
+  font-size: 13px;
+}

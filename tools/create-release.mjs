@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.9.46";
+const tag = "v1.10.0";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,10 @@ const headers = {
 };
 
 const notes = [
-  "- Tiêu đề màn văn nghệ cùng ngôn ngữ ket-qua-tong: kicker ✦ nhỏ, tên 34-68px lh 1.22, điểm 16-26px, khoảng cách 14px hết dính chữ.",
+  "- Phân xe Trạm 1: chốt xe atomic, server tự gán QR vào xe đang mở, danh sách CHƯA PHÂN XE, manifest + chuyển xe + thêm BTC/thủ công.",
+  "- Scanner: camera mở ngay không chọn team, quét full 6 team, accordion + chip ĐANG PHÂN + poll 2,5s.",
+  "- Role HDV Vietravel: dashboard 2 tab, điểm danh trên xe nhiều lượt không xóa lịch sử.",
+  "- Schema mới: buses / bus_members / bus_rollcalls / bus_rollcall_marks; engine check-in giữ nguyên.",
 ].join("\n");
 
 let release;

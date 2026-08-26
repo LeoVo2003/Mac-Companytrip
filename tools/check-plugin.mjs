@@ -534,6 +534,21 @@ for (const invariant of ["--black: #050403", "rgba(255, 106, 44, 0.58)", "linear
 for (const invariant of [".ar-team.is-revealed .ar-beam { opacity: 0.54; }", ".ar-team.is-revealed .ar-dust", "Ánh sáng đang gọi tên", "Number(current.rank) !== 2 && searchPool().length", "window.setTimeout(startSpotlightSearch, 3000)", "#000 0 91%", ".ar-team.is-name-long", ".ar-team.is-name-xlong", ".ar-shell.has-connection-alert .ar-offline-overlay", "failedPolls >= 6"]) {
   if (!artRaceCss.includes(invariant) && !artRaceJs.includes(invariant)) throw new Error(`Missing persistent revealed-team lighting behavior: ${invariant}`);
 }
+const busPhp = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-bus.php"), "utf8");
+for (const invariant of ["mac_bus_guide", "bus_rollcall_marks", "BUS_MEMBER_MOVED", "can_rollcall", "FIRST_CHECKPOINT_ID"]) {
+  if (!busPhp.includes(invariant)) throw new Error(`Missing bus module behavior: ${invariant}`);
+}
+for (const invariant of ["one_voter_bus", "one_mark (rollcall_id,bus_member_id)", "CREATE TABLE $buses"]) {
+  if (!databaseFile.includes(invariant)) throw new Error(`Missing bus schema: ${invariant}`);
+}
+const checkinJs = fs.readFileSync(path.join(pluginRoot, "assets/checkin.js"), "utf8");
+if (checkinJs.includes("Chọn team để quét")) throw new Error("Scanner must open camera immediately without a team-picking step.");
+for (const invariant of ["busAssignment", "mc-accordion", "busAssignmentEnabled"]) {
+  if (!checkinJs.includes(invariant)) throw new Error(`Missing scanner bus/accordion behavior: ${invariant}`);
+}
+for (const invariant of ["Phân xe", "Xe của tôi", "mac_vote_rollcall", "mac_vote_bus_advance"]) {
+  if (!adminJs.includes(invariant)) throw new Error(`Missing bus admin UI behavior: ${invariant}`);
+}
 for (const invariant of [".ma-reveal-actions button.is-skipped:disabled", "opacity: 0.34", ".ar-shell[data-stage=\"final\"] .ar-rays { opacity: 0.34; }", "mix-blend-mode: screen"]) {
   if (!adminCss.includes(invariant) && !artRaceCss.includes(invariant)) throw new Error(`Missing tied-rank or champion-ray presentation: ${invariant}`);
 }

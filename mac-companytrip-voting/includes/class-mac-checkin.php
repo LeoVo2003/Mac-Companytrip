@@ -11,6 +11,7 @@ final class MAC_Checkin {
     public const SUPER_ROLE = 'mac_companytrip_super_admin';
     public const SUPER_CAP = 'mac_manage_companytrip';
     public const TEAM_META = 'mac_checkin_team_ids';
+    public const FIRST_BUS_CHECKPOINT = 1;
 
     public static function register_roles(): void {
         $admin = get_role('administrator');
@@ -56,16 +57,9 @@ final class MAC_Checkin {
     }
 
     public static function allowed_team_ids(): array {
-        $competing = MAC_Voting_DB::competing_team_ids();
-        if (self::is_admin_scanner()) {
-            return $competing;
-        }
-        $raw = get_user_meta(get_current_user_id(), self::TEAM_META, true);
-        if (!is_array($raw)) {
-            return array();
-        }
-        $assigned = array_values(array_filter(array_map('intval', $raw)));
-        return array_values(array_intersect($assigned, $competing));
+        // v1.10.0: mọi scanner (Super Admin / BTC / HDV) đều quét full 6 team thi đấu;
+        // QR tự xác định team. TEAM_META giữ lại chỉ để tương thích dữ liệu cũ.
+        return MAC_Voting_DB::competing_team_ids();
     }
 
     public static function checkpoints(): array {
@@ -259,18 +253,6 @@ final class MAC_Checkin {
             return new WP_Error('staff_team', 'Tài khoản BTC không check-in như đội thi.', array('status' => 409));
         }
         $team_id = (int) $voter['team_id'];
-        $allowed = self::allowed_team_ids();
-        if (!in_array($team_id, $allowed, true)) {
-            MAC_Voting_DB::audit('STAFF', (string) get_current_user_id(), 'CHECKIN_WRONG_TEAM_ATTEMPT', 'voter', (string) $voter['id'], array(
-                'checkpointId' => $checkpoint_id,
-                'voterTeamId' => $team_id,
-            ));
-            return new WP_Error('wrong_team', $voter['full_name'] . ' thuộc Team ' . (int) $voter['team_no'] . ' ' . $voter['team_name'] . '.', array(
-                'status' => 409,
-                'code' => 'WRONG_TEAM',
-                'voter' => self::public_voter($voter),
-            ));
-        }
         $checkins = MAC_Voting_DB::table('checkins');
         $existing = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $checkins WHERE checkpoint_id=%d AND voter_id=%d",
@@ -287,6 +269,7 @@ final class MAC_Checkin {
                 'voter' => self::public_voter($voter),
                 'scannedAt' => MAC_Voting_DB::hanoi_time($existing['scanned_at']),
                 'teamProgress' => self::team_progress($checkpoint_id, $team_id),
+                'busAssignment' => MAC_Bus::voter_assignment((int) $voter['id']),
             ));
         }
         $now = MAC_Voting_DB::utc_now();
@@ -345,6 +328,8 @@ final class MAC_Checkin {
             'checkpointId' => $checkpoint_id,
             'teamId' => $team_id,
         ));
+        // Chỉ Trạm 1 mới phân xe: server đọc xe đang BOARDING và tự gán, không tin browser.
+        $bus_assignment = (int) $checkpoint_id === self::FIRST_BUS_CHECKPOINT ? MAC_Bus::auto_assign((int) $voter['id']) : null;
         $progress = self::team_progress($checkpoint_id, $team_id);
         return array(
             'voter' => self::public_voter($voter),
@@ -353,6 +338,7 @@ final class MAC_Checkin {
                 'scannedAt' => $now,
             ),
             'teamProgress' => $progress,
+            'busAssignment' => $bus_assignment,
         );
     }
 
@@ -560,6 +546,8 @@ final class MAC_Checkin {
             }
         }
         $user = wp_get_current_user();
+        $boarding = MAC_Bus::boarding_bus();
+        $assignment_enabled = MAC_Bus::assignment_enabled();
         return array(
             'staff' => array(
                 'id' => (int) $user->ID,
@@ -570,6 +558,13 @@ final class MAC_Checkin {
             'windowMinutes' => $checkpoint ? self::checkpoint_duration_minutes($checkpoint) : MAC_Voting_DB::CHECKIN_WINDOW_MINUTES,
             'allowedTeams' => $progress,
             'checkinUrl' => MAC_Voting_DB::checkin_page_url(),
+            'busAssignmentEnabled' => $assignment_enabled,
+            'activeBus' => $assignment_enabled && $boarding ? array(
+                'id' => (int) $boarding['id'],
+                'name' => (string) $boarding['name'],
+                'status' => (string) $boarding['status'],
+                'employeeCount' => MAC_Bus::bus_counts((int) $boarding['id'])['employees'],
+            ) : null,
         );
     }
 

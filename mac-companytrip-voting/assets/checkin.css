@@ -512,3 +512,96 @@ button.mc-back {
   background: #fef3f2;
   border: 1px solid #fecdca;
 }
+
+/* v1.10.0: chip trạng thái phân xe + accordion danh sách 6 team. */
+.mc-bus-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+}
+
+.mc-bus-chip span {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.mc-bus-chip strong {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-bus-chip.live {
+  color: #b54708;
+  background: #fffaeb;
+  border: 1px solid #fedf89;
+}
+
+.mc-bus-chip.idle {
+  color: #475467;
+  background: #f9fafb;
+  border: 1px solid #e4e7ec;
+}
+
+.mc-flash-slot:empty { display: none; }
+
+.mc-list-card { margin-top: 14px; }
+
+.mc-accordion {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.mc-accordion > li {
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.mc-acc-head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 0;
+  background: #f9fafb;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mc-acc-head .mc-acc-name {
+  font-weight: 700;
+  color: #101828;
+}
+
+.mc-acc-head strong {
+  color: #475467;
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-accordion > li.open .mc-acc-head {
+  background: #eff8ff;
+}
+
+.mc-acc-body {
+  padding: 10px 14px 14px;
+  border-top: 1px solid #e4e7ec;
+}
+
+.mc-acc-sub {
+  margin: 0 0 6px;
+  color: #b42318;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}

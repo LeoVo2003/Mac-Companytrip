@@ -15,7 +15,7 @@ final class MAC_Voting_DB {
     public const CHECKIN_MAX_PER_CHECKPOINT = 150;
     public const CHECKIN_WINDOW_MINUTES = 15;
     public const RANK_LADDER = array(50, 40, 30, 20, 10, 0);
-    private const DB_VERSION = '1.7.0';
+    private const DB_VERSION = '1.10.0';
 
     public static function table(string $name): string {
         global $wpdb;
@@ -27,6 +27,7 @@ final class MAC_Voting_DB {
         self::install_schema();
         self::seed_reference_data();
         self::seed_checkpoints();
+        self::seed_buses();
         self::ensure_games();
         MAC_Points::seed_categories();
         self::ensure_vote_page();
@@ -37,6 +38,7 @@ final class MAC_Voting_DB {
             add_option('mac_voting_public_enabled', '0', '', false);
         }
         MAC_Checkin::register_roles();
+        MAC_Bus::register_roles();
         self::register_rewrites();
         update_option('mac_voting_db_version', self::DB_VERSION, false);
         update_option('mac_voting_plugin_version', MAC_VOTING_VERSION, false);
@@ -48,8 +50,10 @@ final class MAC_Voting_DB {
         } else {
             self::ensure_admin_page();
             self::ensure_staff_team();
+            self::seed_buses();
             self::ensure_games();
             self::migrate_split_pages();
+            MAC_Bus::register_roles();
         }
         if (get_option('mac_voting_plugin_version') !== MAC_VOTING_VERSION) {
             if (version_compare((string) get_option('mac_voting_plugin_version', '0'), '1.8.8', '<')) {
@@ -143,6 +147,10 @@ final class MAC_Voting_DB {
         $windows = self::table('checkpoint_windows');
         $exemptions = self::table('exemptions');
         $games = self::table('games');
+        $buses = self::table('buses');
+        $bus_members = self::table('bus_members');
+        $bus_rollcalls = self::table('bus_rollcalls');
+        $bus_marks = self::table('bus_rollcall_marks');
 
         $queries = array(
             "CREATE TABLE $teams (
@@ -333,6 +341,54 @@ final class MAC_Voting_DB {
                 created_at datetime NOT NULL,
                 PRIMARY KEY  (id)
             ) $charset;",
+            "CREATE TABLE $buses (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                name varchar(50) NOT NULL,
+                sort_order tinyint(3) unsigned NOT NULL,
+                status varchar(20) NOT NULL DEFAULT 'WAITING',
+                soft_capacity smallint(5) unsigned NULL,
+                opened_at datetime NULL,
+                closed_at datetime NULL,
+                created_at datetime NOT NULL,
+                updated_at datetime NOT NULL,
+                PRIMARY KEY  (id),
+                UNIQUE KEY sort_order (sort_order)
+            ) $charset;",
+            "CREATE TABLE $bus_members (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                bus_id bigint(20) unsigned NOT NULL,
+                voter_id bigint(20) unsigned NULL,
+                member_type varchar(20) NOT NULL DEFAULT 'EMPLOYEE',
+                manual_name varchar(190) NULL,
+                assigned_source varchar(20) NOT NULL DEFAULT 'MANUAL',
+                assigned_by bigint(20) unsigned NULL,
+                assigned_at datetime NOT NULL,
+                updated_at datetime NOT NULL,
+                PRIMARY KEY  (id),
+                UNIQUE KEY one_voter_bus (voter_id),
+                KEY bus_id (bus_id)
+            ) $charset;",
+            "CREATE TABLE $bus_rollcalls (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                bus_id bigint(20) unsigned NOT NULL,
+                sequence_no int(11) unsigned NOT NULL DEFAULT 1,
+                created_by bigint(20) unsigned NULL,
+                created_at datetime NOT NULL,
+                closed_at datetime NULL,
+                PRIMARY KEY  (id),
+                KEY bus_sequence (bus_id,sequence_no)
+            ) $charset;",
+            "CREATE TABLE $bus_marks (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                rollcall_id bigint(20) unsigned NOT NULL,
+                bus_member_id bigint(20) unsigned NOT NULL,
+                present tinyint(1) NOT NULL DEFAULT 1,
+                marked_by bigint(20) unsigned NULL,
+                marked_at datetime NOT NULL,
+                updated_at datetime NOT NULL,
+                PRIMARY KEY  (id),
+                UNIQUE KEY one_mark (rollcall_id,bus_member_id)
+            ) $charset;",
         );
 
         foreach ($queries as $query) {
@@ -384,6 +440,21 @@ final class MAC_Voting_DB {
             }
         }
         self::ensure_staff_team();
+    }
+
+    private static function seed_buses(): void {
+        global $wpdb;
+        $table = self::table('buses');
+        $now = self::utc_now();
+        for ($number = 1; $number <= 5; $number++) {
+            $wpdb->query($wpdb->prepare(
+                "INSERT IGNORE INTO $table (name,sort_order,status,created_at,updated_at) VALUES (%s,%d,'WAITING',%s,%s)",
+                'Xe ' . $number,
+                $number,
+                $now,
+                $now
+            ));
+        }
     }
 
     private static function seed_checkpoints(): void {
