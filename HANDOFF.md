@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.10.3** (2026-08-26) — form thêm BTC/Hoa tiêu vào xe chọn nhiều người cùng lúc (checkbox list, loop assign server-side); header manifest thẳng hàng (mobile xếp dọc); mobile giữ nút đăng xuất (nav overflow-x, logout flex-fixed). Trước đó v1.10.2: tab 5 xe + BTC pick/roll-call + Premium polish.
+> Phiên bản hiện tại: **v1.10.4** (2026-08-26) — tab xe active bỏ box-shadow. Trước đó v1.10.3: multi-pick BTC vào xe, header manifest thẳng hàng, giữ logout mobile.
 
 ---
 

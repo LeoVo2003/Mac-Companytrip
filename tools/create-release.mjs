@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.3";
+const tag = "v1.10.4";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Thêm BTC/Hoa tiêu vào xe: chọn nhiều người cùng lúc rồi thêm một lần.",
-  "- Header manifest thẳng hàng; mobile xếp dọc.",
-  "- Giữ nút đăng xuất trên điện thoại.",
+  "- Tab xe active bỏ box-shadow, phẳng và sạch hơn.",
 ].join("\n");
 
 let release;

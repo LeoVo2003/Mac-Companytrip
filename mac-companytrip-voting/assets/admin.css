@@ -4321,7 +4321,6 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   border-color: transparent;
   background: var(--grad);
   color: #fff;
-  box-shadow: var(--shadow-grad);
 }
 
 .ma-bus-tabs button.active small { color: rgba(255, 255, 255, 0.82); }
