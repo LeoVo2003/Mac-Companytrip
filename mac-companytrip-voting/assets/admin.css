@@ -4399,13 +4399,21 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 .ma-bus-add {
   display: block;
   padding: 20px 24px 24px;
-  border-top: 2px solid rgba(227, 30, 36, 0.35);
-  background: linear-gradient(180deg, rgba(227, 30, 36, 0.04), rgba(255, 106, 44, 0.07));
+  border-top: 1px solid var(--border);
+  background: transparent;
 }
 
 .ma-bus-add > * + * { margin-top: 12px; }
 
-.ma-bus-add .ma-primary { margin-top: 4px; }
+/* Nút chính tab Phân xe: gradient đỏ–cam trên mọi màn hình. */
+.ma-bus-add .ma-primary,
+#ma-rollcall-new {
+  margin-top: 16px;
+  border: 0;
+  color: #fff;
+  background: var(--grad);
+  box-shadow: var(--shadow-grad);
+}
 
 .ma-guide-form {
   display: grid;

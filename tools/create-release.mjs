@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.7";
+const tag = "v1.10.8";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Khối Thêm vào xe nổi bật (gradient + heading 15px/800), ô tên người ngoài full-width đúng chỗ.",
-  "- Danh sách thêm nhân sự sort theo tên, hiện đủ 6 team.",
-  "- Spacing 24px giữa các khối; nút Điểm danh lượt mới in hoa chữ đầu.",
+  "- Bỏ nền màu khối Thêm vào xe; nút chính gradient đỏ–cam trên desktop; hết dính ô nhập.",
 ].join("\n");
 
 let release;
