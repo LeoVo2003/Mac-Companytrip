@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.10.2** (2026-08-26) — manifest Phân xe có tab đủ 5 xe + roll-call/lịch sử tại chỗ; BTC/Hoa tiêu thêm quyền: vào tab Phân xe, pick người team 7 (kể cả chính mình) vào xe, tick điểm danh mọi xe cùng HDV (can_rollcall mở rộng cho mac_checkin, ajax_bus_assign guard staff + check team 7); mở/chốt xe, chuyển xe, manual, HDV vẫn Super Admin. UI Phân xe polish chuẩn Premium (tab pill gradient, input 44px, token --border/--panel). Trước đó v1.10.1: fix login HDV.
+> Phiên bản hiện tại: **v1.10.3** (2026-08-26) — form thêm BTC/Hoa tiêu vào xe chọn nhiều người cùng lúc (checkbox list, loop assign server-side); header manifest thẳng hàng (mobile xếp dọc); mobile giữ nút đăng xuất (nav overflow-x, logout flex-fixed). Trước đó v1.10.2: tab 5 xe + BTC pick/roll-call + Premium polish.
 
 ---
 

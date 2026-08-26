@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.2";
+const tag = "v1.10.3";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Manifest có tab đủ 5 xe + điểm danh/lịch sử ngay tại chỗ.",
-  "- BTC/Hoa tiêu được pick mình vào xe và tick điểm danh cùng HDV; mở/chốt xe vẫn Super Admin.",
-  "- Polish UI Phân xe theo chuẩn Premium.",
+  "- Thêm BTC/Hoa tiêu vào xe: chọn nhiều người cùng lúc rồi thêm một lần.",
+  "- Header manifest thẳng hàng; mobile xếp dọc.",
+  "- Giữ nút đăng xuất trên điện thoại.",
 ].join("\n");
 
 let release;
