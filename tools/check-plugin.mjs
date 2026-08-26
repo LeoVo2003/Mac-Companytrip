@@ -565,5 +565,86 @@ if (artRaceJs.includes("SPOTLIGHT ĐANG TÌM KIẾM")) {
   throw new Error("Old searching headline must be replaced with the new reveal copy.");
 }
 
+// --- Module Phân xe: port state machine từ MAC_Bus (PHP) để chạy test case thật ---
+const busModel = (teamOf) => {
+  const buses = [1, 2, 3, 4, 5].map((id) => ({ id, status: "WAITING" }));
+  const members = [];
+  let memberSeq = 0;
+  const boarding = () => buses.find((b) => b.status === "BOARDING") || null;
+  const enabled = (checkpoint1Open) => checkpoint1Open && buses.some((b) => b.status !== "CLOSED");
+  return {
+    buses,
+    members,
+    boarding,
+    openFirst() {
+      if (boarding()) return { error: "bus_already_boarding" };
+      if (buses[0].status === "CLOSED") return { error: "bus_done" };
+      buses[0].status = "BOARDING";
+      return { ok: true };
+    },
+    advance(busId) {
+      const current = buses.find((b) => b.id === busId);
+      if (!current) return { error: "not_found" };
+      if (current.status !== "BOARDING") return { error: "invalid_state" };
+      current.status = "CLOSED";
+      const next = buses.find((b) => b.id === busId + 1) || null;
+      if (next) next.status = "BOARDING";
+      return { ok: true, next: next ? next.id : null };
+    },
+    autoAssign(voterId, checkpointId, checkpoint1Open) {
+      if (checkpointId !== 1 || !enabled(checkpoint1Open)) return null;
+      const existing = members.find((m) => m.voterId === voterId);
+      if (existing) return { assigned: true, busId: existing.busId };
+      const bus = boarding();
+      if (!bus) return { assigned: false };
+      members.push({ id: ++memberSeq, busId: bus.id, voterId, memberType: "EMPLOYEE" });
+      return { assigned: true, busId: bus.id };
+    },
+    assign(voterId, busId, actor) {
+      if (actor.role === "btc" && teamOf(voterId) !== 7) return { error: "forbidden_staff_only" };
+      if (members.some((m) => m.voterId === voterId)) return { error: "already_assigned" };
+      members.push({ id: ++memberSeq, busId, voterId, memberType: teamOf(voterId) === 7 ? "STAFF" : "EMPLOYEE" });
+      return { ok: true };
+    },
+    moveMember(memberId, toBus) {
+      const member = members.find((m) => m.id === memberId);
+      if (!member) return { error: "not_found" };
+      member.busId = toBus;
+      return { ok: true };
+    },
+    reset() {
+      buses.forEach((b) => { b.status = "WAITING"; });
+      members.length = 0;
+    },
+    canRollcall(busId, actor) {
+      if (actor.role === "super") return true;
+      if (actor.role === "guide") return actor.busId === busId;
+      if (actor.role === "btc") return true;
+      return false;
+    },
+  };
+};
+const busTeamOf = (voterId) => (voterId >= 700 ? 7 : (voterId % 6) + 1);
+const BUS_CASES = [
+  { name: "BUS-01 mở Xe 1 khi đang WAITING", run: (m) => m.openFirst().ok === true && m.boarding()?.id === 1 },
+  { name: "BUS-02 không mở chồng khi đang có xe BOARDING", run: (m) => { m.openFirst(); return m.openFirst().error === "bus_already_boarding"; } },
+  { name: "BUS-03 chốt xe 1 mở xe 2 atomic, luôn ≤ 1 xe BOARDING", run: (m) => { m.openFirst(); m.advance(1); return m.boarding()?.id === 2 && m.buses[0].status === "CLOSED" && m.buses.filter((b) => b.status === "BOARDING").length === 1; } },
+  { name: "BUS-04 chốt đến xe 5 thì hoàn tất, tắt phân xe", run: (m) => { m.openFirst(); for (let i = 1; i <= 5; i += 1) m.advance(i); return m.boarding() === null && m.buses.every((b) => b.status === "CLOSED") && m.autoAssign(101, 1, true) === null; } },
+  { name: "BUS-05 auto-assign chỉ chạy ở Trạm 1", run: (m) => { m.openFirst(); return m.autoAssign(101, 2, true) === null && m.autoAssign(101, 1, true).assigned === true; } },
+  { name: "BUS-06 Trạm 1 mở nhưng chưa xe nào BOARDING → check-in vẫn ok, unassigned", run: (m) => { const r = m.autoAssign(101, 1, true); return r !== null && r.assigned === false && m.members.length === 0; } },
+  { name: "BUS-07 trạm chưa mở → không phân xe", run: (m) => m.autoAssign(101, 1, false) === null },
+  { name: "BUS-08 quét trùng không tạo member thứ hai", run: (m) => { m.openFirst(); m.autoAssign(101, 1, true); const again = m.autoAssign(101, 1, true); return again.assigned === true && m.members.filter((x) => x.voterId === 101).length === 1; } },
+  { name: "BUS-09 mỗi người chỉ ở một xe", run: (m) => { m.openFirst(); m.autoAssign(102, 1, true); return m.assign(102, 2, { role: "super" }).error === "already_assigned"; } },
+  { name: "BUS-10 thành viên thủ công chuyển xe được", run: (m) => { m.openFirst(); m.assign(701, 1, { role: "btc" }); const id = m.members.find((x) => x.voterId === 701).id; return m.moveMember(id, 3).ok === true && m.members.find((x) => x.id === id).busId === 3; } },
+  { name: "BUS-11 BTC chỉ thêm người team 7, super thêm mọi team", run: (m) => m.assign(101, 1, { role: "btc" }).error === "forbidden_staff_only" && m.assign(701, 1, { role: "btc" }).ok === true && m.assign(101, 1, { role: "super" }).ok === true },
+  { name: "BUS-12 reset đưa 5 xe về WAITING và xóa member", run: (m) => { m.openFirst(); m.autoAssign(101, 1, true); m.reset(); return m.buses.every((b) => b.status === "WAITING") && m.members.length === 0; } },
+  { name: "BUS-13 HDV chỉ điểm danh đúng xe mình", run: (m) => m.canRollcall(2, { role: "guide", busId: 2 }) === true && m.canRollcall(3, { role: "guide", busId: 2 }) === false },
+  { name: "BUS-14 BTC/Super điểm danh mọi xe", run: (m) => m.canRollcall(4, { role: "btc" }) === true && m.canRollcall(5, { role: "super" }) === true },
+  { name: "BUS-15 đổi xe giữa chừng → server gán theo xe đang BOARDING", run: (m) => { m.openFirst(); m.autoAssign(101, 1, true); m.advance(1); return m.autoAssign(102, 1, true).busId === 2; } },
+];
+for (const tc of BUS_CASES) {
+  if (!tc.run(busModel(busTeamOf))) throw new Error(`${tc.name}: failed.`);
+}
+
 const totalBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);
-console.log(`Plugin source OK: ${phpFiles.length} PHP, ${jsFiles.length} JS, ${cssFiles.length} CSS, ${totalBytes} bytes. Tie tests: ${TIE_CASES.length} cases passed.`);
+console.log(`Plugin source OK: ${phpFiles.length} PHP, ${jsFiles.length} JS, ${cssFiles.length} CSS, ${totalBytes} bytes. Tie tests: ${TIE_CASES.length} cases passed. Bus tests: ${BUS_CASES.length} cases passed (${BUS_CASES.map((tc) => tc.name.split(" ")[0]).join(", ")}).`);

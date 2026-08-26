@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.10.9** (2026-08-26) — nút tab Phân xe đồng bộ chuẩn hệ thống (14px/700, 44px, radius 10, bỏ override 12px mobile); khối Thêm vào xe nhịp dọc 24px cho heading/ô tên/nút. Trước đó v1.10.8: bỏ nền màu + nút gradient.
+> Phiên bản hiện tại: **v1.10.10** (2026-08-26) — check-plugin có 15 test case thật có tên BUS-01…BUS-15 (mô phỏng state machine MAC_Bus: open/advance atomic, auto-assign Trạm 1, unassigned, duplicate, 1 người 1 xe, move manual, quyền BTC/HDV/Super, reset) chạy cùng 12 tie case. Trước đó v1.10.9: đồng bộ nút + nhịp 24px.
 
 ---
 
