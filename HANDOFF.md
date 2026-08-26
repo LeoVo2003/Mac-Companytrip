@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.10.6** (2026-08-26) — manifest mobile ẩn cột Team/Loại (chỉ họ tên + tick + chuyển xe + xóa), tablet giữ đủ; #ma-bus-add-form block dọc (> * + * 12px) thay grid; .ma-pick-item flex ngang thắng specificity; #ma-bus-any-query dùng style input 44px. Trước đó v1.10.5: reset + CSV + manual move + one-bus-per-person.
+> Phiên bản hiện tại: **v1.10.7** (2026-08-26) — khối Thêm vào xe nổi bật (gradient đỏ–cam nhạt + viền 2px + heading 15px/800); #ma-bus-manual block full-width dưới khối tìm nhân sự; anyPool sort theo tên (hiện đủ 6 team, slice 60); spacing 24px giữa các khối Phân xe; nút "Điểm danh lượt mới" in hoa chữ đầu. Trước đó v1.10.6: mobile manifest gọn + form block.
 
 ---
 

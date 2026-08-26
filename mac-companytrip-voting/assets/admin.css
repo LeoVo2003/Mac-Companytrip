@@ -4339,6 +4339,19 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   border-top: 1px solid var(--border);
 }
 
+/* Ô tên người ngoài luôn full-width, nằm dưới khối tìm nhân sự. */
+#ma-bus-manual {
+  display: block;
+  width: 100%;
+}
+
+/* Khoảng cách giữa các khối lớn trong tab Phân xe: 24px theo Premium scale. */
+.ma-bus-control + .ma-bus-manifest,
+.ma-bus-manifest + .ma-panel,
+.ma-bus-control + .ma-panel {
+  margin-top: 24px;
+}
+
 .ma-bus-tools input[type="search"],
 .ma-bus-add input[type="search"],
 .ma-bus-add input[type="text"],
@@ -4385,8 +4398,9 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 .ma-bus-add {
   display: block;
-  padding: 16px 20px 20px;
-  border-top: 1px solid var(--border);
+  padding: 20px 24px 24px;
+  border-top: 2px solid rgba(227, 30, 36, 0.35);
+  background: linear-gradient(180deg, rgba(227, 30, 36, 0.04), rgba(255, 106, 44, 0.07));
 }
 
 .ma-bus-add > * + * { margin-top: 12px; }
@@ -4570,9 +4584,10 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 }
 
 .ma-bus-add-head span {
-  color: var(--ink-soft);
-  font-size: 13px;
-  font-weight: 700;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
 }
 
 .ma-bus-add-head small {

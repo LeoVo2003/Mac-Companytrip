@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.6";
+const tag = "v1.10.7";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Manifest mobile gọn: họ tên + tick + chuyển xe + xóa; tablet đủ cột.",
-  "- Form thêm vào xe block dọc, pick item flex ngang, ô tìm thủ công đúng style.",
+  "- Khối Thêm vào xe nổi bật (gradient + heading 15px/800), ô tên người ngoài full-width đúng chỗ.",
+  "- Danh sách thêm nhân sự sort theo tên, hiện đủ 6 team.",
+  "- Spacing 24px giữa các khối; nút Điểm danh lượt mới in hoa chữ đầu.",
 ].join("\n");
 
 let release;
