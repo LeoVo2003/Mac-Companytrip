@@ -4340,6 +4340,7 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 }
 
 .ma-bus-tools input[type="search"],
+.ma-bus-add input[type="search"],
 .ma-bus-add input[type="text"],
 .ma-guide-form input {
   min-height: 44px;
@@ -4382,7 +4383,16 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   box-shadow: 0 0 0 3px rgba(227, 30, 36, 0.12);
 }
 
-.ma-bus-add,
+.ma-bus-add {
+  display: block;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.ma-bus-add > * + * { margin-top: 12px; }
+
+.ma-bus-add .ma-primary { margin-top: 4px; }
+
 .ma-guide-form {
   display: grid;
   gap: 12px;
@@ -4391,17 +4401,22 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 }
 
 @media (min-width: 720px) {
-  .ma-bus-add { grid-template-columns: 1fr 1fr auto; align-items: end; }
   .ma-guide-form { grid-template-columns: repeat(4, 1fr) auto; align-items: end; }
 }
 
-.ma-bus-add label,
 .ma-guide-form label {
   display: grid;
   gap: 6px;
   color: var(--ink-soft);
   font-size: 13px;
   font-weight: 600;
+}
+
+/* Pick item luôn flex ngang: checkbox + tên trên một hàng. */
+.ma-bus-add .ma-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .ma-bus-add .ma-primary,
@@ -4678,8 +4693,17 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
   .ma-bus-tools .ma-primary { min-height: 40px; }
 
-  .ma-bus-manifest .ma-board-table table,
   .ma-bus-control .ma-board-table table { min-width: 520px; }
+
+  /* Manifest mobile: chỉ giữ Họ tên + tick + chuyển xe + xóa. */
+  .ma-bus-manifest .ma-board-table table { min-width: 0; }
+
+  .ma-bus-manifest .ma-board-table th:nth-child(2),
+  .ma-bus-manifest .ma-board-table td:nth-child(2),
+  .ma-bus-manifest .ma-board-table th:nth-child(3),
+  .ma-bus-manifest .ma-board-table td:nth-child(3) {
+    display: none;
+  }
 }
 @media (max-width: 960px) {
   .ma-side nav {
