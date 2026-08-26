@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.1";
+const tag = "v1.10.2";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Sửa lỗi HDV không đăng nhập được: tài khoản HDV có email công ty (hdv.xe1@macusaone.com) + login chấp nhận username thô cho tài khoản có quyền quét/điểm danh.",
+  "- Manifest có tab đủ 5 xe + điểm danh/lịch sử ngay tại chỗ.",
+  "- BTC/Hoa tiêu được pick mình vào xe và tick điểm danh cùng HDV; mở/chốt xe vẫn Super Admin.",
+  "- Polish UI Phân xe theo chuẩn Premium.",
 ].join("\n");
 
 let release;

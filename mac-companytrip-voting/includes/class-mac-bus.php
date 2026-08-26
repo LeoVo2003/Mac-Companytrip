@@ -49,10 +49,21 @@ final class MAC_Bus {
         if (MAC_Checkin::is_super()) {
             return true;
         }
-        if (!current_user_can(self::CAP_ROLLCALL)) {
-            return false;
+        // HDV chỉ điểm danh đúng xe mình; BTC (có quyền quét) được kiểm soát cùng HDV mọi xe.
+        if (self::is_guide()) {
+            return self::guide_bus_id(get_current_user_id()) === $bus_id;
         }
-        return self::guide_bus_id(get_current_user_id()) === $bus_id;
+        return current_user_can(MAC_Checkin::CAP);
+    }
+
+    /** BTC/Hoa tiêu chỉ được tự pick mình (người team 7) vào xe — không đụng nhân viên QR. */
+    public static function voter_is_staff(int $voter_id): bool {
+        global $wpdb;
+        $team_no = (int) $wpdb->get_var($wpdb->prepare(
+            'SELECT t.team_no FROM ' . MAC_Voting_DB::table('voters') . ' v JOIN ' . MAC_Voting_DB::table('teams') . ' t ON t.id=v.team_id WHERE v.id=%d',
+            $voter_id
+        ));
+        return MAC_Voting_DB::is_staff_team_no($team_no);
     }
 
     public static function buses(): array {
@@ -602,6 +613,41 @@ final class MAC_Bus {
         );
     }
 
+    public static function rollcall_summary(int $bus_id): array {
+        global $wpdb;
+        $rollcall = self::current_rollcall($bus_id);
+        $marks = array();
+        if ($rollcall) {
+            $rows = $wpdb->get_results($wpdb->prepare(
+                'SELECT bus_member_id,present FROM ' . MAC_Voting_DB::table('bus_rollcall_marks') . ' WHERE rollcall_id=%d',
+                (int) $rollcall['id']
+            ), ARRAY_A) ?: array();
+            foreach ($rows as $row) {
+                $marks[(int) $row['bus_member_id']] = (int) $row['present'] === 1;
+            }
+        }
+        $history_rows = $wpdb->get_results($wpdb->prepare(
+            'SELECT r.sequence_no,r.created_at,
+                (SELECT COUNT(*) FROM ' . MAC_Voting_DB::table('bus_rollcall_marks') . " m WHERE m.rollcall_id=r.id AND m.present=1) AS present_count
+             FROM " . MAC_Voting_DB::table('bus_rollcalls') . ' r
+             WHERE r.bus_id=%d
+             ORDER BY r.sequence_no DESC',
+            $bus_id
+        ), ARRAY_A) ?: array();
+        return array(
+            'sequence' => $rollcall ? (int) $rollcall['sequence_no'] : 0,
+            'presentCount' => count(array_filter($marks)),
+            'marks' => $marks,
+            'history' => array_map(static function(array $row): array {
+                return array(
+                    'sequence' => (int) $row['sequence_no'],
+                    'createdAt' => MAC_Voting_DB::hanoi_time((string) $row['created_at']),
+                    'presentCount' => (int) $row['present_count'],
+                );
+            }, $history_rows),
+        );
+    }
+
     public static function admin_state(): array {
         $buses = array();
         foreach (self::buses() as $bus) {
@@ -615,6 +661,7 @@ final class MAC_Bus {
                 'staff' => $counts['staff'],
                 'total' => $counts['total'],
                 'manifest' => self::manifest((int) $bus['id']),
+                'rollcall' => self::rollcall_summary((int) $bus['id']),
             );
         }
         $boarding = self::boarding_bus();

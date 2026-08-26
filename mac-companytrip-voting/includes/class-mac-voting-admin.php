@@ -97,6 +97,7 @@ final class MAC_Voting_Admin {
             'ajaxUrl'  => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('mac_voting_admin'),
             'role'     => $is_super ? 'super' : (MAC_Bus::is_guide() ? 'guide' : 'admin'),
+            'busStaff' => current_user_can(MAC_Checkin::CAP),
             'voteUrl'  => MAC_Voting_DB::vote_page_url(),
             'resultsUrl' => MAC_Voting_DB::results_page_url(),
             'artResultsUrl' => MAC_Voting_DB::art_results_page_url(),
@@ -591,8 +592,13 @@ final class MAC_Voting_Admin {
     }
 
     public static function ajax_bus_assign(): void {
-        self::guard();
-        $result = MAC_Bus::assign_voter(absint($_POST['voterId'] ?? 0), absint($_POST['toBus'] ?? 0));
+        self::guard('staff');
+        $voter_id = absint($_POST['voterId'] ?? 0);
+        // BTC/Hoa tiêu chỉ được pick người team 7 (kể cả chính mình) vào xe; nhân viên QR do Super Admin điều phối.
+        if (!MAC_Checkin::is_super() && !MAC_Bus::voter_is_staff($voter_id)) {
+            wp_send_json_error(array('message' => 'BTC chỉ được thêm BTC/Hoa tiêu vào xe. Nhân viên QR do Super Admin điều phối.'), 403);
+        }
+        $result = MAC_Bus::assign_voter($voter_id, absint($_POST['toBus'] ?? 0));
         if (is_wp_error($result)) {
             wp_send_json_error(array('message' => $result->get_error_message()), 409);
         }
@@ -656,7 +662,7 @@ final class MAC_Voting_Admin {
         if (is_wp_error($state)) {
             wp_send_json_error(array('message' => $state->get_error_message()), 403);
         }
-        wp_send_json_success(array('message' => $message, 'myBus' => $state));
+        wp_send_json_success(array('message' => $message, 'myBus' => $state, 'overview' => self::overview_payload()));
     }
 
     public static function ajax_reveal_total(): void {
@@ -1131,7 +1137,7 @@ final class MAC_Voting_Admin {
             'teamPoints' => MAC_Checkin::team_points_board(),
             'totalBoard' => MAC_Points::dashboard(),
             'staff' => MAC_Checkin::staff_assignments(),
-            'buses' => MAC_Checkin::is_super() ? MAC_Bus::admin_state() : null,
+            'buses' => MAC_Checkin::can_scan() ? MAC_Bus::admin_state() : null,
             'myBus' => MAC_Bus::is_guide() ? MAC_Bus::rollcall_state(max(1, MAC_Bus::guide_bus_id(get_current_user_id()))) : null,
             'assignableUsers' => self::assignable_users(),
             'voters' => self::voter_rows(),

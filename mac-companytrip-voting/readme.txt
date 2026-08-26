@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.1
+Stable tag: 1.10.2
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,11 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.2 =
+- Manifest Phân xe có tab đủ 5 xe ngay trong panel (kèm số người), hết cảnh tưởng thiếu xe; kèm lượt điểm danh + lịch sử ngay tại manifest.
+- BTC/Hoa tiêu thêm quyền: vào tab Phân xe, tự pick mình (người team 7) vào xe, tick điểm danh kiểm soát cùng HDV; mở/chốt xe, chuyển xe, người thủ công vẫn chỉ Super Admin.
+- Polish UI Phân xe/roll-call theo chuẩn Premium: spacing 16/20/24, radius 10-12, input/select 44px đồng bộ token, tab xe dạng pill gradient.
 
 = 1.10.1 =
 - Sửa lỗi HDV không đăng nhập được: tài khoản HDV giờ có email công ty (hdv.xe1 → hdv.xe1@macusaone.com) và login dashboard chấp nhận username thô với tài khoản có quyền quét/điểm danh.
