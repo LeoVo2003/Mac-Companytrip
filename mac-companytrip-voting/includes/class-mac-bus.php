@@ -339,6 +339,67 @@ final class MAC_Bus {
         return self::admin_state();
     }
 
+    /** Chuyển xe theo member id — dùng cho cả người thêm thủ công (không có voter_id). */
+    public static function move_member_by_id(int $member_id, int $to_bus_id) {
+        global $wpdb;
+        $row = $wpdb->get_row($wpdb->prepare('SELECT * FROM ' . MAC_Voting_DB::table('bus_members') . ' WHERE id=%d', $member_id), ARRAY_A);
+        if (!$row) {
+            return new WP_Error('not_found', 'Không còn thành viên này.', array('status' => 404));
+        }
+        if ((int) $row['bus_id'] === $to_bus_id) {
+            return self::admin_state();
+        }
+        $to = null;
+        $from_name = '';
+        foreach (self::buses() as $bus) {
+            if ((int) $bus['id'] === $to_bus_id) {
+                $to = $bus;
+            }
+            if ((int) $bus['id'] === (int) $row['bus_id']) {
+                $from_name = (string) $bus['name'];
+            }
+        }
+        if (!$to) {
+            return new WP_Error('not_found', 'Xe đích không tồn tại.', array('status' => 404));
+        }
+        $now = MAC_Voting_DB::utc_now();
+        $wpdb->update(
+            MAC_Voting_DB::table('bus_members'),
+            array('bus_id' => $to_bus_id, 'assigned_source' => 'MOVED', 'assigned_by' => get_current_user_id(), 'updated_at' => $now),
+            array('id' => $member_id),
+            array('%d', '%s', '%d', '%s'),
+            array('%d')
+        );
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'BUS_MEMBER_MOVED', 'bus_member', (string) $member_id, array(
+            'fromBus' => $from_name,
+            'toBus' => $to['name'],
+            'voterId' => $row['voter_id'] !== null ? (int) $row['voter_id'] : null,
+            'manualName' => $row['manual_name'],
+        ));
+        return self::admin_state();
+    }
+
+    /** Danh sách voter_id đã nằm trong một xe — để ẩn khỏi các danh sách chọn thêm ở xe khác. */
+    public static function assigned_voter_ids(): array {
+        global $wpdb;
+        $ids = $wpdb->get_col('SELECT voter_id FROM ' . MAC_Voting_DB::table('bus_members') . ' WHERE voter_id IS NOT NULL');
+        return array_map('intval', $ids ?: array());
+    }
+
+    /** Super Admin: khởi tạo lại toàn bộ đợt phân xe (về WAITING, xóa member + roll-call). */
+    public static function reset_assignment() {
+        global $wpdb;
+        $now = MAC_Voting_DB::utc_now();
+        $wpdb->query('START TRANSACTION');
+        $wpdb->query($wpdb->prepare('UPDATE ' . MAC_Voting_DB::table('buses') . " SET status='WAITING', opened_at=NULL, closed_at=NULL, updated_at=%s", $now));
+        $wpdb->query('DELETE FROM ' . MAC_Voting_DB::table('bus_rollcall_marks'));
+        $wpdb->query('DELETE FROM ' . MAC_Voting_DB::table('bus_rollcalls'));
+        $wpdb->query('DELETE FROM ' . MAC_Voting_DB::table('bus_members'));
+        $wpdb->query('COMMIT');
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'BUS_RESET', 'bus', null, array());
+        return self::admin_state();
+    }
+
     public static function move_voter(int $voter_id, int $to_bus_id) {
         global $wpdb;
         $from = self::voter_assignment($voter_id);

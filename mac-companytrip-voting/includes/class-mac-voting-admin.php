@@ -21,6 +21,7 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_bus_assign', array(__CLASS__, 'ajax_bus_assign'));
         add_action('wp_ajax_mac_vote_bus_add_manual', array(__CLASS__, 'ajax_bus_add_manual'));
         add_action('wp_ajax_mac_vote_bus_remove', array(__CLASS__, 'ajax_bus_remove'));
+        add_action('wp_ajax_mac_vote_bus_reset', array(__CLASS__, 'ajax_bus_reset'));
         add_action('wp_ajax_mac_vote_guide_save', array(__CLASS__, 'ajax_guide_save'));
         add_action('wp_ajax_mac_vote_rollcall', array(__CLASS__, 'ajax_rollcall'));
         add_action('wp_ajax_mac_vote_team', array(__CLASS__, 'ajax_team'));
@@ -584,11 +585,24 @@ final class MAC_Voting_Admin {
 
     public static function ajax_bus_move(): void {
         self::guard();
-        $result = MAC_Bus::move_voter(absint($_POST['voterId'] ?? 0), absint($_POST['toBus'] ?? 0));
+        $to_bus = absint($_POST['toBus'] ?? 0);
+        $member_id = absint($_POST['memberId'] ?? 0);
+        if ($member_id) {
+            // Chuyển theo member — áp dụng cho cả người thêm thủ công.
+            $result = MAC_Bus::move_member_by_id($member_id, $to_bus);
+        } else {
+            $result = MAC_Bus::move_voter(absint($_POST['voterId'] ?? 0), $to_bus);
+        }
         if (is_wp_error($result)) {
             wp_send_json_error(array('message' => $result->get_error_message()), 409);
         }
         wp_send_json_success(array('message' => 'Đã chuyển xe.', 'overview' => self::overview_payload()));
+    }
+
+    public static function ajax_bus_reset(): void {
+        self::guard();
+        $result = MAC_Bus::reset_assignment();
+        wp_send_json_success(array('message' => 'Đã reset đợt phân xe về trạng thái ban đầu.', 'overview' => self::overview_payload()));
     }
 
     public static function ajax_bus_assign(): void {

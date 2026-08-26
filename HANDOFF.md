@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.10.4** (2026-08-26) — tab xe active bỏ box-shadow. Trước đó v1.10.3: multi-pick BTC vào xe, header manifest thẳng hàng, giữ logout mobile.
+> Phiên bản hiện tại: **v1.10.5** (2026-08-26) — Phân xe: Reset phân xe (super, confirm) + Xuất CSV từng xe; move_member_by_id cho manual member; khối tìm kiếm nhân sự bất kỳ thêm thủ công (super); danh sách pick ẩn voter đã có xe (assigned_voter_ids, mỗi người 1 xe); nút xóa 40px rõ; empty-state 12.5px; bỏ margin-right auto header tools + margin-top #ma-rollcall-new; mobile đồng bộ font nút 12px, bảng bus min-width 520px. Trước đó v1.10.4: bỏ box-shadow tab active.
 
 ---
 

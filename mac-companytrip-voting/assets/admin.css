@@ -4537,10 +4537,11 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
-.ma-bus-manifest > header > div { margin-right: auto; }
+#ma-rollcall-new { margin-top: 0; }
 
 @media (max-width: 720px) {
   .ma-bus-manifest > header { align-items: stretch; flex-direction: column; }
@@ -4603,7 +4604,83 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   font-size: 13px;
 }
 
-/* Mobile: nav cuộn ngang nhưng không đẩy mất nút đăng xuất. */
+/* Nút xóa khỏi xe: rõ ràng, chạm thoải mái. */
+.ma-bus-actions .danger {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #fecdca;
+  border-radius: 12px;
+  background: #fef3f2;
+  color: #b42318;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.ma-bus-actions .danger:hover { background: #fee4e2; }
+
+.ma-cell-empty {
+  color: #667085;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+/* Hàng reset phân xe (Super Admin). */
+.ma-bus-extra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 16px;
+}
+
+.ma-bus-extra small { color: #667085; font-size: 12px; }
+
+.ma-bus-ghost,
+.ma-bus-ghost-danger {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ma-bus-ghost {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--ink-soft);
+}
+
+.ma-bus-ghost:hover { border-color: var(--border-strong, #98a2b3); }
+
+.ma-bus-ghost-danger {
+  border: 1px solid #fecdca;
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.ma-bus-ghost-danger:hover { background: #fee4e2; }
+
+/* Mobile: đồng bộ cỡ chữ các nút trong tab Phân xe. */
+@media (max-width: 720px) {
+  .ma-bus-tabs button,
+  .ma-bus-ghost,
+  .ma-bus-ghost-danger,
+  .ma-bus-actions select,
+  .ma-bus-tools .ma-primary {
+    font-size: 12px;
+  }
+
+  .ma-bus-tools .ma-primary { min-height: 40px; }
+
+  .ma-bus-manifest .ma-board-table table,
+  .ma-bus-control .ma-board-table table { min-width: 520px; }
+}
 @media (max-width: 960px) {
   .ma-side nav {
     flex: 1 1 auto;

@@ -15,6 +15,7 @@
   let overviewTab = "chart";
   let busManifestId = 0;
   let busQuery = "";
+  let busAnyQuery = "";
   let busFilter = "all";
   let busSearch = "";
   const remainingSeconds = (closesAt) => Math.max(0, Math.ceil((new Date(String(closesAt).replace(" ", "T") + "Z").getTime() - Date.now()) / 1000));
@@ -419,17 +420,22 @@
     if (!busManifestId && buses.length) busManifestId = (buses.find((b) => b.status === "BOARDING") || buses[0]).id;
     const boarding = buses.find((b) => b.status === "BOARDING") || null;
     const busStatusLabel = (s) => s === "BOARDING" ? "ĐANG XẾP" : s === "CLOSED" ? "ĐÃ CHỐT" : "CHỜ";
-    const control = `<section class="ma-panel ma-bus-control"><header><div><small>PHÂN XE · TRẠM 1</small><h2>${boarding ? `Đang xếp ${esc(boarding.name)}` : "Chưa mở xe nào"}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Mở/đóng xe chỉ diễn ra trong đợt phân xe Trạm 1. QR quét vào tự rơi vào xe đang mở — server quyết định, không theo browser.</p></div><span class="ma-reveal-status ${boarding ? "rolling" : "idle"}"><i></i>${state.enabled ? (boarding ? "ĐANG PHÂN XE" : "CHỜ MỞ XE 1") : "CHƯA BẬT / ĐÃ HOÀN TẤT"}</span></header>${canWrite() ? `<div class="ma-reveal-actions">${boarding ? `<button type="button" class="ma-reveal-start" data-bus-advance="${boarding.id}"><span>${boarding.sortOrder}</span><strong>Chốt ${esc(boarding.name)} → mở xe ${boarding.sortOrder + 1}</strong><small>${boarding.employees} NV QR · ${boarding.staff} BTC/Hoa tiêu</small></button>` : `<button type="button" class="ma-reveal-start" id="ma-bus-open" ${state.enabled ? "" : "disabled"}><span>01</span><strong>Mở Xe 1</strong><small>Bắt đầu nhận người từ QR Trạm 1</small></button>`}</div>` : `<p class="ma-bus-note">Chỉ Super Admin mới mở/chốt xe. BTC · Hoa tiêu xem tiến độ và tự pick mình vào xe ở manifest bên dưới.</p>`}<div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Xe</th><th>NV QR</th><th>BTC</th><th>Tổng</th><th>Trạng thái</th></tr></thead><tbody>${buses.map((b) => `<tr class="${b.id === busManifestId ? "is-selected" : ""}"><td><button type="button" data-bus-manifest="${b.id}"><strong>${esc(b.name)}</strong></button></td><td>${b.employees}</td><td>${b.staff}</td><td><strong>${b.total}</strong></td><td>${busStatusLabel(b.status)}</td></tr>`).join("") || `<tr><td colspan="5">Chưa có dữ liệu xe.</td></tr>`}</tbody></table></div></section>`;
+    const control = `<section class="ma-panel ma-bus-control"><header><div><small>PHÂN XE · TRẠM 1</small><h2>${boarding ? `Đang xếp ${esc(boarding.name)}` : "Chưa mở xe nào"}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Mở/đóng xe chỉ diễn ra trong đợt phân xe Trạm 1. QR quét vào tự rơi vào xe đang mở — server quyết định, không theo browser.</p></div><span class="ma-reveal-status ${boarding ? "rolling" : "idle"}"><i></i>${state.enabled ? (boarding ? "ĐANG PHÂN XE" : "CHỜ MỞ XE 1") : "CHƯA BẬT / ĐÃ HOÀN TẤT"}</span></header>${canWrite() ? `<div class="ma-reveal-actions">${boarding ? `<button type="button" class="ma-reveal-start" data-bus-advance="${boarding.id}"><span>${boarding.sortOrder}</span><strong>Chốt ${esc(boarding.name)} → mở xe ${boarding.sortOrder + 1}</strong><small>${boarding.employees} NV QR · ${boarding.staff} BTC/Hoa tiêu</small></button>` : `<button type="button" class="ma-reveal-start" id="ma-bus-open" ${state.enabled ? "" : "disabled"}><span>01</span><strong>Mở Xe 1</strong><small>Bắt đầu nhận người từ QR Trạm 1</small></button>`}</div><div class="ma-bus-extra"><button type="button" id="ma-bus-reset" class="ma-bus-ghost-danger">⟲ Reset phân xe</button><small>Xóa toàn bộ phân xe + lượt điểm danh, đưa 5 xe về CHỜ. Chỉ Super Admin.</small></div>` : `<p class="ma-bus-note">Chỉ Super Admin mới mở/chốt xe. BTC · Hoa tiêu xem tiến độ và tự pick mình vào xe ở manifest bên dưới.</p>`}<div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Xe</th><th>NV QR</th><th>BTC</th><th>Tổng</th><th>Trạng thái</th></tr></thead><tbody>${buses.map((b) => `<tr class="${b.id === busManifestId ? "is-selected" : ""}"><td><button type="button" data-bus-manifest="${b.id}"><strong>${esc(b.name)}</strong></button></td><td>${b.employees}</td><td>${b.staff}</td><td><strong>${b.total}</strong></td><td>${busStatusLabel(b.status)}</td></tr>`).join("") || `<tr><td colspan="5">Chưa có dữ liệu xe.</td></tr>`}</tbody></table></div></section>`;
     const manifestBus = buses.find((b) => b.id === busManifestId) || null;
     const busStaff = !!window.MACVotingAdmin.busStaff;
     const roll = manifestBus?.rollcall || { sequence: 0, presentCount: 0, marks: {}, history: [] };
     const staffPool = (data.voters || []).filter((v) => Number(v.team_no) === 7 && v.status === "ACTIVE");
-    const pickHtml = staffPool.map((v) => `<label class="ma-pick-item"><input type="checkbox" name="staffIds" value="${v.id}"> ${esc(v.full_name)}</label>`).join("") || `<p class="ma-pick-empty">Không có BTC/Hoa tiêu.</p>`;
+    const assignedIds = new Set();
+    buses.forEach((b) => (b.manifest || []).forEach((m) => { if (m.voterId) assignedIds.add(Number(m.voterId)); }));
+    const staffPick = staffPool.filter((v) => !assignedIds.has(Number(v.id)));
+    const pickHtml = staffPick.map((v) => `<label class="ma-pick-item"><input type="checkbox" name="staffIds" value="${v.id}"> ${esc(v.full_name)}</label>`).join("") || `<p class="ma-pick-empty">Không còn BTC/Hoa tiêu chờ thêm.</p>`;
+    const anyQueryNorm = busAnyQuery.trim().toLowerCase();
+    const anyPool = canWrite() ? (data.voters || []).filter((v) => v.status === "ACTIVE" && !assignedIds.has(Number(v.id)) && (!anyQueryNorm || `${v.full_name} ${v.team_name || ""}`.toLowerCase().includes(anyQueryNorm))).slice(0, 40) : [];
     const q = busQuery.trim().toLowerCase();
     const members = ((manifestBus?.manifest) || []).filter((m) => !q || `${m.name} ${m.teamName || ""}`.toLowerCase().includes(q));
-    const memberRows = members.map((m) => `<tr><td><strong>${esc(m.name)}</strong></td><td>${m.teamNo ? `#${m.teamNo} ${esc(m.teamName)}` : "—"}</td><td>${m.memberType === "EMPLOYEE" ? "NV QR" : m.memberType === "STAFF" ? "BTC/Hoa tiêu" : "Thủ công"}</td><td class="ma-bus-actions">${busStaff ? `<button type="button" class="ma-roll-mini ${roll.marks[m.id] ? "is-present" : ""}" data-rollcall-toggle="${m.id}" data-bus="${busManifestId}" data-present="${roll.marks[m.id] ? "" : "1"}" aria-pressed="${!!roll.marks[m.id]}" title="Điểm danh">${roll.marks[m.id] ? "✓" : "○"}</button>` : ""}${canWrite() && m.voterId ? `<select data-bus-move="${m.voterId}" aria-label="Chuyển xe ${esc(m.name)}"><option value="">Chuyển xe…</option>${buses.filter((b) => b.id !== busManifestId).map((b) => `<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select>` : ""}${canWrite() ? `<button type="button" class="danger" data-bus-remove="${m.id}" data-bus-remove-name="${esc(m.name)}">×</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="4">${q ? "Không ai khớp tìm kiếm." : "Xe chưa có ai."}</td></tr>`;
-    const manifest = manifestBus ? `<section class="ma-panel ma-bus-manifest"><div class="ma-bus-tabs" role="tablist" aria-label="Chọn xe">${buses.map((b) => `<button type="button" role="tab" data-bus-manifest="${b.id}" class="${b.id === busManifestId ? "active" : ""}" aria-selected="${b.id === busManifestId}"><strong>${esc(b.name)}</strong><small>${b.total}</small></button>`).join("")}</div><header><div><small>MANIFEST · LƯỢT ${roll.sequence || "—"}</small><h2>${esc(manifestBus.name)} · ${roll.presentCount}/${manifestBus.total} có mặt</h2></div><div class="ma-bus-tools"><input id="ma-bus-query" type="search" placeholder="Tìm tên / team" value="${esc(busQuery)}">${busStaff ? `<button type="button" class="ma-primary" id="ma-rollcall-new" data-bus="${busManifestId}">ĐIỂM DANH LƯỢT MỚI</button>` : ""}</div></header><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Họ tên</th><th>Team</th><th>Loại</th><th></th></tr></thead><tbody>${memberRows}</tbody></table></div>${busStaff && roll.history.length ? `<div class="ma-bus-history"><small>LỊCH SỬ LƯỢT ĐIỂM DANH</small><ul>${roll.history.map((h) => `<li>Lượt ${h.sequence} · ${esc(h.createdAt)} · ${h.presentCount}/${manifestBus.total}</li>`).join("")}</ul></div>` : ""}${busStaff ? `<form class="ma-bus-add" id="ma-bus-add-form"><div class="ma-bus-add-head"><span>Thêm BTC/Hoa tiêu vào ${esc(manifestBus.name)}</span><small>Chọn nhiều người cùng lúc rồi bấm thêm</small></div><div class="ma-bus-pick">${pickHtml}</div>${canWrite() ? `<input id="ma-bus-manual" type="text" placeholder="Hoặc gõ tên người ngoài (tùy chọn)">` : ""}<button type="submit" class="ma-primary">+ Thêm vào xe</button></form>` : ""}</section>` : "";
-    const unassignedRows = (state.unassigned || []).map((u) => `<tr><td><strong>${esc(u.name)}</strong></td><td>#${u.teamNo} ${esc(u.teamName)}</td><td><select data-unassigned-assign="${u.voterId}"><option value="">Gán vào xe…</option>${buses.map((b) => `<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select></td></tr>`).join("") || `<tr><td colspan="3">Không còn ai chờ phân xe.</td></tr>`;
+    const memberRows = members.map((m) => `<tr><td><strong>${esc(m.name)}</strong></td><td>${m.teamNo ? `#${m.teamNo} ${esc(m.teamName)}` : "—"}</td><td>${m.memberType === "EMPLOYEE" ? "NV QR" : m.memberType === "STAFF" ? "BTC/Hoa tiêu" : "Thủ công"}</td><td class="ma-bus-actions">${busStaff ? `<button type="button" class="ma-roll-mini ${roll.marks[m.id] ? "is-present" : ""}" data-rollcall-toggle="${m.id}" data-bus="${busManifestId}" data-present="${roll.marks[m.id] ? "" : "1"}" aria-pressed="${!!roll.marks[m.id]}" title="Điểm danh">${roll.marks[m.id] ? "✓" : "○"}</button>` : ""}${canWrite() ? `<select data-bus-move-member="${m.id}" aria-label="Chuyển xe ${esc(m.name)}"><option value="">Chuyển xe…</option>${buses.filter((b) => b.id !== busManifestId).map((b) => `<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select><button type="button" class="danger ma-bus-remove" data-bus-remove="${m.id}" data-bus-remove-name="${esc(m.name)}" aria-label="Xóa ${esc(m.name)} khỏi xe">×</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="4" class="ma-cell-empty">${q ? "Không ai khớp tìm kiếm." : "Xe chưa có ai."}</td></tr>`;
+    const manifest = manifestBus ? `<section class="ma-panel ma-bus-manifest"><div class="ma-bus-tabs" role="tablist" aria-label="Chọn xe">${buses.map((b) => `<button type="button" role="tab" data-bus-manifest="${b.id}" class="${b.id === busManifestId ? "active" : ""}" aria-selected="${b.id === busManifestId}"><strong>${esc(b.name)}</strong><small>${b.total}</small></button>`).join("")}</div><header><div><small>MANIFEST · LƯỢT ${roll.sequence || "—"}</small><h2>${esc(manifestBus.name)} · ${roll.presentCount}/${manifestBus.total} có mặt</h2></div><div class="ma-bus-tools"><input id="ma-bus-query" type="search" placeholder="Tìm tên / team" value="${esc(busQuery)}"><button type="button" id="ma-bus-csv" class="ma-bus-ghost">↓ Xuất CSV</button>${busStaff ? `<button type="button" class="ma-primary" id="ma-rollcall-new" data-bus="${busManifestId}">ĐIỂM DANH LƯỢT MỚI</button>` : ""}</div></header><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Họ tên</th><th>Team</th><th>Loại</th><th></th></tr></thead><tbody>${memberRows}</tbody></table></div>${busStaff && roll.history.length ? `<div class="ma-bus-history"><small>LỊCH SỬ LƯỢT ĐIỂM DANH</small><ul>${roll.history.map((h) => `<li>Lượt ${h.sequence} · ${esc(h.createdAt)} · ${h.presentCount}/${manifestBus.total}</li>`).join("")}</ul></div>` : ""}${busStaff ? `<form class="ma-bus-add" id="ma-bus-add-form"><div class="ma-bus-add-head"><span>Thêm BTC/Hoa tiêu vào ${esc(manifestBus.name)}</span><small>Chọn nhiều người cùng lúc rồi bấm thêm — người đã ở xe khác sẽ không xuất hiện</small></div><div class="ma-bus-pick">${pickHtml}</div>${canWrite() ? `<div class="ma-bus-add-head"><span>Thêm nhân sự bất kỳ</span><small>Tìm tên, tick rồi thêm; mỗi người chỉ ở một xe</small></div><input id="ma-bus-any-query" type="search" placeholder="Tìm tên để thêm thủ công…" value="${esc(busAnyQuery)}"><div class="ma-bus-pick">${anyPool.map((v) => `<label class="ma-pick-item"><input type="checkbox" name="anyIds" value="${v.id}"> ${esc(v.full_name)} <small>#${v.team_no}</small></label>`).join("") || `<p class="ma-pick-empty">Gõ tên để tìm người chưa ở xe nào.</p>`}</div><input id="ma-bus-manual" type="text" placeholder="Hoặc gõ tên người ngoài (tùy chọn)">` : ""}<button type="submit" class="ma-primary">+ Thêm vào xe</button></form>` : ""}</section>` : "";
+    const unassignedRows = (state.unassigned || []).map((u) => `<tr><td><strong>${esc(u.name)}</strong></td><td>#${u.teamNo} ${esc(u.teamName)}</td><td><select data-unassigned-assign="${u.voterId}"><option value="">Gán vào xe…</option>${buses.map((b) => `<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select></td></tr>`).join("") || `<tr><td colspan="3" class="ma-cell-empty">Không còn ai chờ phân xe.</td></tr>`;
     const unassigned = `<section class="ma-panel"><header><div><small>CHƯA PHÂN XE · ${(state.unassigned || []).length}</small><h2>Check-in lúc chưa có xe mở / đến trễ</h2></div></header><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Họ tên</th><th>Team</th><th></th></tr></thead><tbody>${unassignedRows}</tbody></table></div></section>`;
     const guideRows = (state.guides || []).map((g) => `<tr><td><strong>${esc(g.name)}</strong></td><td>${esc(g.login)}</td><td>Xe ${g.busId}</td></tr>`).join("") || `<tr><td colspan="3">Chưa có tài khoản HDV.</td></tr>`;
     const guides = `<section class="ma-panel"><header><div><small>HDV VIETRAVEL</small><h2>5 tài khoản điểm danh trên xe</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">HDV chỉ thấy Check-in + Xe của tôi; quét QR được mọi team nhưng chỉ điểm danh xe mình.</p></div></header><form class="ma-guide-form" id="ma-guide-form"><label>Tên hiển thị<input name="name" type="text" placeholder="VD: Anh Tuấn Vietravel" required></label><label>Username<input name="login" type="text" placeholder="hdv.xe1" required autocapitalize="none"></label><label>Mật khẩu<input name="password" type="text" placeholder="Để trống = Mac-123"></label><label>Xe phụ trách<select name="busId">${[1, 2, 3, 4, 5].map((n) => `<option value="${n}">Xe ${n}</option>`).join("")}</select></label><button type="submit" class="ma-primary">Lưu tài khoản HDV</button></form><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>HDV</th><th>Đăng nhập</th><th>Xe</th></tr></thead><tbody>${guideRows}</tbody></table></div></section>`;
@@ -879,15 +885,40 @@
     root.querySelectorAll("[data-bus-manifest]").forEach((button) => button.addEventListener("click", () => { busManifestId = Number(button.dataset.busManifest); render(); }));
     root.querySelector("#ma-bus-query")?.addEventListener("input", (event) => { busQuery = event.currentTarget.value; });
     root.querySelector("#ma-bus-query")?.addEventListener("keydown", (event) => { if (event.key === "Enter") { busQuery = event.currentTarget.value; render(); } });
-    root.querySelectorAll("[data-bus-move]").forEach((select) => select.addEventListener("change", async () => {
+    root.querySelectorAll("[data-bus-move-member]").forEach((select) => select.addEventListener("change", async () => {
       if (!select.value) return;
       try {
-        const result = await ajax("mac_vote_bus_move", { voterId: select.dataset.busMove, toBus: select.value });
+        const result = await ajax("mac_vote_bus_move", { memberId: select.dataset.busMoveMember, toBus: select.value });
         data = result.overview;
         render();
         notify(result.message);
       } catch (err) { notify(err.message, true); }
     }));
+    root.querySelector("#ma-bus-reset")?.addEventListener("click", async () => {
+      const ok = await confirmDialog({ title: "Reset đợt phân xe?", message: "Toàn bộ danh sách xe, người đã gán và lượt điểm danh trên xe sẽ bị xóa, 5 xe về trạng thái CHỜ. Check-in và điểm thi đấu không bị ảnh hưởng.", confirmLabel: "Reset phân xe", danger: true });
+      if (!ok) return;
+      try {
+        const result = await ajax("mac_vote_bus_reset");
+        data = result.overview;
+        busManifestId = 0;
+        render();
+        notify(result.message);
+      } catch (err) { notify(err.message, true); }
+    });
+    root.querySelector("#ma-bus-csv")?.addEventListener("click", () => {
+      const bus = ((data.buses || {}).buses || []).find((b) => b.id === busManifestId);
+      if (!bus) return;
+      const rows = [["Họ tên", "Team", "Loại", "Nguồn"], ...(bus.manifest || []).map((m) => [m.name, m.teamNo ? `#${m.teamNo} ${m.teamName || ""}` : "", m.memberType === "EMPLOYEE" ? "NV QR" : m.memberType === "STAFF" ? "BTC/Hoa tiêu" : "Thủ công", m.source])];
+      const csv = "\uFEFF" + rows.map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+      link.download = `manifest-${String(bus.name).replace(/\s+/g, "-").toLowerCase()}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      notify(`Đã xuất CSV ${bus.name}.`);
+    });
+    root.querySelector("#ma-bus-any-query")?.addEventListener("input", (event) => { busAnyQuery = event.currentTarget.value; });
+    root.querySelector("#ma-bus-any-query")?.addEventListener("keydown", (event) => { if (event.key === "Enter") { busAnyQuery = event.currentTarget.value; render(); } });
     root.querySelectorAll("[data-bus-remove]").forEach((button) => button.addEventListener("click", async () => {
       try {
         const result = await ajax("mac_vote_bus_remove", { memberId: button.dataset.busRemove });
@@ -910,13 +941,14 @@
       const form = event.currentTarget;
       const manual = form.querySelector("#ma-bus-manual")?.value.trim() || "";
       const picked = Array.from(form.querySelectorAll("input[name='staffIds']:checked")).map((input) => input.value);
-      if (!picked.length && !manual) {
+      const anyPicked = Array.from(form.querySelectorAll("input[name='anyIds']:checked")).map((input) => input.value);
+      if (!picked.length && !anyPicked.length && !manual) {
         notify("Chọn ít nhất một người hoặc gõ tên.", true);
         return;
       }
       try {
         let added = 0;
-        for (const voterId of picked) {
+        for (const voterId of [...picked, ...anyPicked]) {
           await ajax("mac_vote_bus_assign", { voterId, toBus: busManifestId });
           added += 1;
         }
