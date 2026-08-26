@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.10.8** (2026-08-26) — khối Thêm vào xe bỏ nền màu (chỉ viền ngăn); nút "+ Thêm vào xe" + "Điểm danh lượt mới" gradient đỏ–cam (var(--grad)) trên desktop; margin-top 16px hết dính ô nhập. Trước đó v1.10.7: heading to, any-list đủ 6 team, spacing 24px.
+> Phiên bản hiện tại: **v1.10.9** (2026-08-26) — nút tab Phân xe đồng bộ chuẩn hệ thống (14px/700, 44px, radius 10, bỏ override 12px mobile); khối Thêm vào xe nhịp dọc 24px cho heading/ô tên/nút. Trước đó v1.10.8: bỏ nền màu + nút gradient.
 
 ---
 

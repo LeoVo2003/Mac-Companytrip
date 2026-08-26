@@ -4303,7 +4303,7 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   border-radius: 999px;
   background: var(--panel);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--ink-soft);
   cursor: pointer;
@@ -4405,10 +4405,14 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 .ma-bus-add > * + * { margin-top: 12px; }
 
+/* Nhịp dọc khối thêm: heading / ô tên / nút cách nhau 24px. */
+.ma-bus-add .ma-bus-add-head,
+#ma-bus-manual,
+.ma-bus-add .ma-primary { margin-top: 24px; }
+
 /* Nút chính tab Phân xe: gradient đỏ–cam trên mọi màn hình. */
 .ma-bus-add .ma-primary,
 #ma-rollcall-new {
-  margin-top: 16px;
   border: 0;
   color: #fff;
   background: var(--grad);
@@ -4461,8 +4465,8 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   appearance: none;
   -webkit-appearance: none;
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--ink-soft);
 }
 
@@ -4678,11 +4682,11 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 .ma-bus-ghost,
 .ma-bus-ghost-danger {
-  min-height: 40px;
-  padding: 0 14px;
+  min-height: 44px;
+  padding: 0 15px;
   border-radius: 10px;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
@@ -4704,18 +4708,8 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 .ma-bus-ghost-danger:hover { background: #fee4e2; }
 
-/* Mobile: đồng bộ cỡ chữ các nút trong tab Phân xe. */
+/* Mobile: bảng bus gọn, nút giữ font 14px đồng bộ toàn hệ thống. */
 @media (max-width: 720px) {
-  .ma-bus-tabs button,
-  .ma-bus-ghost,
-  .ma-bus-ghost-danger,
-  .ma-bus-actions select,
-  .ma-bus-tools .ma-primary {
-    font-size: 12px;
-  }
-
-  .ma-bus-tools .ma-primary { min-height: 40px; }
-
   .ma-bus-control .ma-board-table table { min-width: 520px; }
 
   /* Manifest mobile: chỉ giữ Họ tên + tick + chuyển xe + xóa. */

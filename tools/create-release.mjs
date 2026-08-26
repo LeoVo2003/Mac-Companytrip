@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.8";
+const tag = "v1.10.9";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Bỏ nền màu khối Thêm vào xe; nút chính gradient đỏ–cam trên desktop; hết dính ô nhập.",
+  "- Nút Phân xe đồng bộ font 14px/700 + 44px như các page khác.",
+  "- Khối Thêm vào xe: heading / ô tên / nút cùng margin-top 24px.",
 ].join("\n");
 
 let release;

@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.8
+Stable tag: 1.10.9
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.9 =
+- Nút tab Phân xe đồng bộ chuẩn nút toàn hệ thống: 14px/700, min-height 44px, radius 10 (bỏ override 12px mobile).
+- Nhịp dọc khối Thêm vào xe: heading, ô tên người ngoài và nút "+ Thêm vào xe" cùng margin-top 24px.
 
 = 1.10.8 =
 - Khối Thêm vào xe bỏ nền màu, chỉ còn viền ngăn; nút "+ Thêm vào xe" và "Điểm danh lượt mới" dùng gradient đỏ–cam trên desktop giống mobile; nút cách ô nhập 16px hết dính.
