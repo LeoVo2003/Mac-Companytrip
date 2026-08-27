@@ -119,6 +119,10 @@ final class MAC_Voting_Admin {
         if ($level === 'staff' && self::can_access_dashboard()) {
             return;
         }
+        // operator: Super Admin + BTC/Hoa tiêu (không gồm HDV) — chấm thi đua, xếp game.
+        if ($level === 'operator' && self::can_access_dashboard() && !MAC_Bus::is_guide()) {
+            return;
+        }
         if ($level === 'super' && MAC_Checkin::is_super()) {
             return;
         }
@@ -155,6 +159,7 @@ final class MAC_Voting_Admin {
         MAC_Points::reset_history();
         $wpdb->query('COMMIT');
         MAC_Voting_DB::set_reveal_state('IDLE');
+        MAC_Bus::reset_assignment();
 
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'EVENT_RESET', 'event', null, array(
             'deletedBallots' => (int) $deleted_ballots,
@@ -663,6 +668,9 @@ final class MAC_Voting_Admin {
             wp_send_json_error(array('message' => 'Bạn không có quyền điểm danh xe này.'), 403);
         }
         $operation = sanitize_key((string) ($_POST['operation'] ?? 'state'));
+        if ($operation === 'new_round' && !MAC_Checkin::is_super() && !current_user_can(MAC_Bus::CAP_ROLLCALL)) {
+            wp_send_json_error(array('message' => 'Chỉ HDV và Super Admin được tạo lượt điểm danh mới.'), 403);
+        }
         if ($operation === 'new_round') {
             $state = MAC_Bus::new_rollcall($bus_id);
             $message = 'Đã tạo lượt điểm danh mới — lịch sử lượt cũ vẫn giữ.';
@@ -1504,7 +1512,7 @@ final class MAC_Voting_Admin {
     }
 
     public static function ajax_points(): void {
-        self::guard();
+        self::guard('operator');
         $operation = sanitize_key($_POST['operation'] ?? '');
         if ($operation === 'add') {
             $result = MAC_Points::add_category(sanitize_text_field(wp_unslash($_POST['name'] ?? '')));
@@ -1549,7 +1557,7 @@ final class MAC_Voting_Admin {
     }
 
     public static function ajax_games(): void {
-        self::guard();
+        self::guard('operator');
         $operation = sanitize_key($_POST['operation'] ?? 'rank');
         if ($operation !== 'rank') {
             wp_send_json_error(array('message' => 'Thao tác không hợp lệ.'), 400);
@@ -1667,9 +1675,13 @@ final class MAC_Voting_Admin {
         global $wpdb;
         self::csv_headers('ket-qua-companytrip.csv');
         $out = fopen('php://output', 'wb'); fwrite($out, "\xEF\xBB\xBF");
+        $overview = self::overview();
+
+        // 1) Văn nghệ
+        fputcsv($out, array('VĂN NGHỆ · KẾT QUẢ BẦU CHỌN'));
         fputcsv($out, array('Hạng','Team','Số phiếu','Điểm trung bình','Phong cách','Dàn dựng','Đồng đội'));
         $previous_score = null; $current_rank = 0;
-        foreach (self::overview()['results'] as $index => $row) {
+        foreach ($overview['results'] as $index => $row) {
             if ($row['average_score'] === null) {
                 $display_rank = '—';
             } else {
@@ -1680,7 +1692,112 @@ final class MAC_Voting_Admin {
         }
         fputcsv($out, array()); fputcsv($out, array('CHI TIẾT PHIẾU'));
         fputcsv($out, array('Người chấm','Team người chấm','Tiết mục','Tổng điểm','Trạng thái','Thời gian'));
-        foreach (self::overview()['ballots'] as $row) fputcsv($out, array($row['full_name'],$row['voter_team'],$row['performance_team'],$row['total_score'],$row['status'],$row['created_at']));
+        foreach ($overview['ballots'] as $row) fputcsv($out, array($row['full_name'],$row['voter_team'],$row['performance_team'],$row['total_score'],$row['status'],$row['created_at']));
+
+        // 2) Tổng điểm 4 mặt trận
+        fputcsv($out, array()); fputcsv($out, array('TỔNG ĐIỂM · 4 MẶT TRẬN'));
+        fputcsv($out, array('Hạng','Team','Check-in','Trò chơi','Văn nghệ','Thi đua','Tổng'));
+        foreach (($overview['totalBoard']['teams'] ?? array()) as $row) {
+            fputcsv($out, array($row['rank'] ?? '—', $row['teamName'], $row['checkin'], $row['games'], $row['vote'], $row['thidua'], $row['total']));
+        }
+
+        // 3) Check-in từng trạm
+        fputcsv($out, array()); fputcsv($out, array('CHECK-IN TỪNG TRẠM'));
+        fputcsv($out, array('Trạm','Team','Họ tên','Email','Trạng thái','Scanned at','Người quét'));
+        $checkpoints = MAC_Voting_DB::table('checkpoints');
+        $checkins = MAC_Voting_DB::table('checkins');
+        $voters = MAC_Voting_DB::table('voters');
+        $teams = MAC_Voting_DB::table('teams');
+        $rows = $wpdb->get_results("SELECT c.name AS checkpoint_name,t.team_no,t.name AS team_name,v.full_name,v.email,
+                CASE WHEN i.id IS NULL THEN 'Chưa check-in' ELSE 'Đã check-in' END AS checkin_status,
+                i.scanned_at,i.scanned_by
+            FROM $voters v
+            JOIN $teams t ON t.id=v.team_id
+            CROSS JOIN $checkpoints c
+            LEFT JOIN $checkins i ON i.voter_id=v.id AND i.checkpoint_id=c.id
+            WHERE v.status='ACTIVE'
+            ORDER BY c.id,t.team_no,v.full_name", ARRAY_A) ?: array();
+        foreach ($rows as $row) {
+            $scanned_by = '';
+            if (!empty($row['scanned_by'])) {
+                $user = get_userdata((int) $row['scanned_by']);
+                $scanned_by = $user ? $user->display_name : (string) $row['scanned_by'];
+            }
+            fputcsv($out, array($row['checkpoint_name'], '#' . $row['team_no'] . ' ' . $row['team_name'], $row['full_name'], $row['email'], $row['checkin_status'], $row['scanned_at'] ?? '', $scanned_by));
+        }
+
+        // 4) Miễn check-in
+        fputcsv($out, array()); fputcsv($out, array('MIỄN CHECK-IN'));
+        fputcsv($out, array('Trạm','Họ tên','Lý do'));
+        foreach (MAC_Checkin::checkpoints() as $cp) {
+            foreach (MAC_Checkin::exemptions((int) $cp['id']) as $ex) {
+                fputcsv($out, array('Trạm ' . $cp['id'] . ' ' . $cp['name'], $ex['fullName'], $ex['reason']));
+            }
+        }
+
+        // 5) Trò chơi lớn
+        fputcsv($out, array()); fputcsv($out, array('TRÒ CHƠI LỚN'));
+        fputcsv($out, array('Game','Team','Hạng','Điểm'));
+        $game_names = array();
+        foreach (MAC_Games::games() as $g) $game_names[(int) $g['id']] = $g['name'];
+        foreach ((MAC_Games::board() ?? array()) as $row) {
+            foreach (($row['cells'] ?? array()) as $cell) {
+                fputcsv($out, array($game_names[(int) $cell['gameId']] ?? ('Game ' . $cell['gameId']), $row['teamName'], $cell['rank'] ?: 'Chưa xếp', $cell['points']));
+            }
+        }
+
+        // 6) Thi đua
+        fputcsv($out, array()); fputcsv($out, array('THI ĐUA'));
+        fputcsv($out, array('Hạng mục','Team','Hạng','Điểm','Được tính'));
+        foreach (($overview['totalBoard']['categories'] ?? array()) as $cat) {
+            foreach (($overview['totalBoard']['teams'] ?? array()) as $team) {
+                $cell = null;
+                foreach (($team['cells'] ?? array()) as $c) { if ((string) ($c['categoryId'] ?? '') === (string) $cat['id']) { $cell = $c; break; } }
+                $ladder = array(50, 40, 30, 20, 10, 0);
+                $cell_rank = 0;
+                if ($cell && $cell['hasScore']) { $pos = array_search((int) $cell['points'], $ladder, true); $cell_rank = $pos === false ? 0 : $pos + 1; }
+                fputcsv($out, array($cat['name'], $team['teamName'], $cell_rank ? ('Hạng ' . $cell_rank) : 'Không tham gia', $cell['points'] ?? 0, ($cat['isComplete'] ?? false) ? 'Có' : 'Không'));
+            }
+        }
+
+        // 7) Phân xe
+        $bus_state = MAC_Bus::admin_state();
+        fputcsv($out, array()); fputcsv($out, array('PHÂN XE'));
+        fputcsv($out, array('Xe','Trạng thái','NV QR','BTC/Hoa tiêu + thủ công','Tổng'));
+        foreach ($bus_state['buses'] as $bus) fputcsv($out, array($bus['name'], $bus['status'], $bus['employees'], $bus['staff'], $bus['total']));
+        fputcsv($out, array()); fputcsv($out, array('MANIFEST TỪNG XE'));
+        fputcsv($out, array('Xe','Họ tên','Team','Loại','Nguồn'));
+        foreach ($bus_state['buses'] as $bus) {
+            foreach (($bus['manifest'] ?? array()) as $m) {
+                fputcsv($out, array($bus['name'], $m['name'], $m['teamNo'] ? ('#' . $m['teamNo'] . ' ' . $m['teamName']) : '—', $m['memberType'], $m['source']));
+            }
+        }
+        fputcsv($out, array()); fputcsv($out, array('CHƯA PHÂN XE'));
+        fputcsv($out, array('Họ tên','Team'));
+        foreach (($bus_state['unassigned'] ?? array()) as $u) fputcsv($out, array($u['name'], '#' . $u['teamNo'] . ' ' . $u['teamName']));
+
+        // 8) Điểm danh trên xe
+        fputcsv($out, array()); fputcsv($out, array('ĐIỂM DANH TRÊN XE'));
+        fputcsv($out, array('Xe','Lượt','Thời gian','Họ tên','Có mặt'));
+        $rollcalls = $wpdb->get_results("SELECT r.id,r.bus_id,r.sequence_no,r.created_at,b.name AS bus_name,
+                m2.manual_name,v.full_name,m.present
+            FROM " . MAC_Voting_DB::table('bus_rollcalls') . " r
+            JOIN " . MAC_Voting_DB::table('buses') . ' b ON b.id=r.bus_id
+            LEFT JOIN ' . MAC_Voting_DB::table('bus_rollcall_marks') . " m ON m.rollcall_id=r.id
+            LEFT JOIN " . MAC_Voting_DB::table('bus_members') . ' m2 ON m2.id=m.bus_member_id
+            LEFT JOIN ' . MAC_Voting_DB::table('voters') . " v ON v.id=m2.voter_id
+            ORDER BY r.bus_id,r.sequence_no,v.full_name,m2.manual_name", ARRAY_A) ?: array();
+        foreach ($rollcalls as $row) {
+            if ($row['full_name'] === null && $row['manual_name'] === null) continue;
+            fputcsv($out, array($row['bus_name'], 'Lượt ' . $row['sequence_no'], $row['created_at'], MAC_Voting_DB::title_case((string) ($row['full_name'] ?? $row['manual_name'])), $row['present'] ? '✓' : '○'));
+        }
+
+        // 9) Nhân sự
+        fputcsv($out, array()); fputcsv($out, array('NHÂN SỰ'));
+        fputcsv($out, array('Họ tên','Team','Email','Mã NV','Trạng thái'));
+        $people = $wpdb->get_results("SELECT v.full_name,t.team_no,t.name AS team_name,v.email,v.employee_code,v.status
+            FROM $voters v JOIN $teams t ON t.id=v.team_id ORDER BY t.team_no,v.full_name", ARRAY_A) ?: array();
+        foreach ($people as $row) fputcsv($out, array($row['full_name'], '#' . $row['team_no'] . ' ' . $row['team_name'], $row['email'], $row['employee_code'], $row['status']));
         fclose($out); exit;
     }
 

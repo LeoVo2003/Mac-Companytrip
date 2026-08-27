@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.10";
+const tag = "v1.10.11";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Thêm 15 test case thật có tên (BUS-01…BUS-15) cho module Phân xe trong npm run check.",
+  "- UI mobile: login hết tràn, logout luôn hiện, accordion check-in theme-proof, bảng 12px, spacing 24px.",
+  "- Phân quyền rõ theo vai trò; Điểm danh lượt mới chỉ HDV + Super Admin.",
+  "- Reset sự kiện kèm reset phân xe; xuất CSV đối soát toàn bộ dữ liệu.",
 ].join("\n");
 
 let release;

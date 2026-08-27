@@ -3318,6 +3318,12 @@
 /* --------------------------------------------------------------------------
    18. Đăng nhập dashboard (.ma-login + #ma-admin-login)
    -------------------------------------------------------------------------- */
+.ma-login *,
+.ma-login *::before,
+.ma-login *::after {
+  box-sizing: border-box;
+}
+
 .ma-login {
   --r: #e31e24;
   --o: #ff6a2c;
@@ -3450,6 +3456,34 @@
 .ma-side-logout {
   min-height: 44px;
   margin-top: 8px;
+}
+
+/* Mobile: logout luôn hiện, không bị nav đẩy trôi. */
+@media (max-width: 960px) {
+  .ma-side {
+    gap: 8px;
+  }
+
+  .ma-side-logout {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    margin: 0 0 0 auto;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 560px) {
+  .ma-login {
+    width: calc(100% - 24px);
+    margin: 16px auto;
+    padding: 24px 16px;
+  }
 }
 
 /* Theme-proof cho form đăng nhập dựng trong trang theme (shortcode). */
@@ -3723,7 +3757,7 @@ body.mac-admin-public-page .ma-people-table th,
 body.mac-admin-public-page .ma-people-table td {
   border-color: #e4e7ec !important;
   color: #111827 !important;
-  font-size: 13px !important;
+  font-size: 12px !important;
 }
 
 /* Ô nhập liệu. */
@@ -3928,7 +3962,7 @@ body.mac-admin-public-page .ma-side > a {
   }
 
   .ma-thidua-summary .ma-thidua-summary-copy {
-    padding: 12px 14px 14px;
+    padding: 12px 20px 20px;
   }
 
   .ma-award-cat-row .ma-thidua-cat-chip {
@@ -4403,7 +4437,7 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   background: transparent;
 }
 
-.ma-bus-add > * + * { margin-top: 12px; }
+.ma-bus-add > * + * { margin-top: 24px; }
 
 /* Nhịp dọc khối thêm: heading / ô tên / nút cách nhau 24px. */
 .ma-bus-add .ma-bus-add-head,

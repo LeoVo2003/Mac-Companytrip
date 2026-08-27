@@ -579,6 +579,27 @@ button.mc-back {
   cursor: pointer;
 }
 
+/* v1.10.11 — theme-proof: button của theme không được phá vỡ accordion. */
+#mac-checkin-app button.mc-acc-head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 0;
+  background: #f9fafb;
+  color: #101828;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+#mac-checkin-app .mc-accordion > li.open button.mc-acc-head { background: #eff8ff; }
+
 .mc-acc-head .mc-acc-name {
   font-weight: 700;
   color: #101828;

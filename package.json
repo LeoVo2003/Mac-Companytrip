@@ -1,6 +1,6 @@
 {
   "name": "mac-companytrip-wordpress-plugin",
-  "version": "1.10.10",
+  "version": "1.10.11",
   "private": true,
   "type": "module",
   "scripts": {

@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.10
+Stable tag: 1.10.11
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,12 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.11 =
+- UI: login mobile hết tràn ô mật khẩu + form giữa; logout luôn hiện trên mobile; accordion check-in theme-proof; bảng public 12px; spacing 24px khối thêm xe; padding thi đua mobile đều 20px.
+- Phân quyền rõ: BTC chấm thi đua + xếp game (guard operator); ẩn nút văn nghệ/tổng kết/nhân sự/phân xe/checkin khi không đủ quyền; "Điểm danh lượt mới" chỉ HDV + Super Admin (chặn cả server).
+- Đặt lại sự kiện giờ reset luôn đợt phân xe.
+- Xuất CSV đối soát đầy đủ: văn nghệ + phiếu, tổng 4 mặt trận, check-in từng trạm, miễn check-in, game, thi đua, phân xe + manifest + chưa phân xe, điểm danh trên xe, nhân sự.
 
 = 1.10.10 =
 - check-plugin: thêm 15 test case thật có tên (BUS-01…BUS-15) cho module Phân xe — mô phỏng state machine đúng luật PHP: mở/chốt xe atomic, auto-assign chỉ Trạm 1, unassigned khi chưa xe mở, duplicate, mỗi người 1 xe, quyền BTC/HDV/Super, reset.

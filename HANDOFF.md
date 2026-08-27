@@ -1,7 +1,7 @@
 # HANDOFF — MAC Company Trip Voting Plugin
 
 > Tài liệu bàn giao toàn bộ ngữ cảnh project để một AI/dev khác có thể tiếp tục làm việc ngay.
-> Phiên bản hiện tại: **v1.10.10** (2026-08-26) — check-plugin có 15 test case thật có tên BUS-01…BUS-15 (mô phỏng state machine MAC_Bus: open/advance atomic, auto-assign Trạm 1, unassigned, duplicate, 1 người 1 xe, move manual, quyền BTC/HDV/Super, reset) chạy cùng 12 tie case. Trước đó v1.10.9: đồng bộ nút + nhịp 24px.
+> Phiên bản hiện tại: **v1.10.11** (2026-08-27) — UI mobile (login hết tràn + form giữa, logout luôn hiện, accordion check-in theme-proof, bảng public 12px, spacing 24px khối thêm xe, padding thi đua 20px); phân quyền rõ: guard 'operator' (Super+BTC) cho thi đua+games, ẩn nút văn nghệ/tổng kết/nhân sự theo quyền, new-round chỉ HDV+Super (server chặn); reset sự kiện kèm reset phân xe; export CSV đầy đủ 9 khối dữ liệu. Trước đó v1.10.10: 15 bus test case có tên.
 
 ---
 
