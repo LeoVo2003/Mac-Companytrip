@@ -396,6 +396,7 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mr-heading::after {
+  order: 3;
   width: clamp(110px, 12vw, 190px);
   height: 1px;
   margin-top: 14px;
@@ -406,7 +407,7 @@ body.mac-results-page .elementor-shortcode {
 .mr-heading p {
   margin: 0 0 10px;
   color: var(--brass-light);
-  font-size: clamp(9px, 0.66vw, 12px);
+  font-size: clamp(12px, 0.95vw, 17px);
   font-weight: 800;
   letter-spacing: 0.22em;
 }
@@ -429,7 +430,7 @@ body.mac-results-page .elementor-shortcode {
   font-style: normal;
   font-variant-numeric: lining-nums tabular-nums;
   font-feature-settings: "lnum" 1, "tnum" 1;
-  font-size: clamp(34px, 4vw, 70px);
+  font-size: clamp(38px, 4.4vw, 78px);
   font-weight: 500;
   line-height: 1.18;
   letter-spacing: -0.025em;
@@ -440,7 +441,7 @@ body.mac-results-page .elementor-shortcode {
 .mr-heading > span {
   margin-top: 9px;
   color: var(--muted);
-  font-size: clamp(10px, 0.82vw, 14px);
+  font-size: clamp(13px, 1.1vw, 19px);
   letter-spacing: 0.03em;
 }
 
@@ -449,22 +450,20 @@ body.mac-results-page .elementor-shortcode {
   display: none;
 }
 
-/* Câu chốt chỉ xuất hiện sau quán quân, tách hẳn khỏi mô tả điểm để không va vào biểu đồ. */
+/* Câu chốt nằm ngay dưới desc trong khối heading, chỉ hiện sau nhịp quán quân. */
 .mr-closing {
-  position: absolute;
-  z-index: 7;
-  bottom: clamp(16px, 3.1vh, 44px);
-  left: 50%;
+  order: 2;
+  margin-top: clamp(10px, 1.5vh, 20px);
   width: min(92vw, 680px);
   color: var(--brass-highlight);
   font-family: "Bricolage Grotesque", Avenir, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: clamp(10px, 1vw, 16px);
+  font-size: clamp(12px, 1.15vw, 20px);
   font-weight: 700;
   letter-spacing: 0.18em;
   line-height: 1.45;
   text-align: center;
   text-shadow: 0 0 24px rgba(255, 207, 125, 0.42);
-  transform: translate(-50%, 10px);
+  transform: translateY(10px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 560ms ease 540ms, transform 560ms ease 540ms;
@@ -785,7 +784,7 @@ body.mac-results-page .elementor-shortcode {
 }
 
 .mr-shell[data-stage="final"] .mr-closing {
-  transform: translate(-50%, 0);
+  transform: translateY(0);
   opacity: 1;
 }
 

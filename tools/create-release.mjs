@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.12";
+const tag = "v1.10.13";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Nút reset riêng từng tab (Check-in / Phân xe / Trò chơi lớn / Văn nghệ / Thi đua); Đặt lại sự kiện chỉ dành cho Super Admin.",
-  "- Phân xe: khối thêm người giãn nhịp 12/24px, lưới tick thoáng, nút đồng chuẩn 44px · 14px · 700.",
-  "- Màn tổng kết thêm nhịp công bố á quân + câu chốt ONE DIRECTION ĐỒNG HƯỚNG VƯƠN XA; lời dẫn màn văn nghệ theo kịch bản MC.",
+  "- ket-qua-tong: trùng điểm không còn làm lộ hạng khuyết sai tiêu đề; cột khuyến khích giữ nguyên khi bước lộ hạng không có đội mới.",
+  "- Gom bước 5-6: công bố hạng nhì tự nhảy quán quân + pháo hoa + câu chốt; bỏ nút công bố quán quân riêng.",
+  "- Câu chốt nằm ngay dưới desc; chữ mr-heading (kicker/desc/tiêu đề) to hơn.",
 ].join("\n");
 
 let release;

@@ -798,7 +798,7 @@ final class MAC_Voting_Admin {
             'RANK12' => 'Hai đội dẫn đầu đã bước lên cùng mốc 6 ô.',
             'TWIST' => 'Ba đội dẫn đầu đang cùng tung điểm bám đuổi.',
             'REVEAL3' => 'Đã lộ diện hạng ba · hai đội còn lại tiếp tục tung điểm.',
-            'SECOND' => 'Đã công bố á quân Company Trip.',
+            'SECOND' => 'Đã công bố á quân và quán quân Company Trip.',
             'FINAL' => 'Đã công bố quán quân Company Trip.',
         );
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'RESULTS_TOTAL_REVEAL_' . $next, 'reveal', (string) $state['revision'], array(
