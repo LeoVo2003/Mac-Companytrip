@@ -20,7 +20,8 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_toggle_scores', array(__CLASS__, 'ajax_toggle_scores'));
         add_action('wp_ajax_mac_vote_toggle_art_theme', array(__CLASS__, 'ajax_toggle_art_theme'));
         add_action('wp_ajax_mac_vote_bus_open', array(__CLASS__, 'ajax_bus_open'));
-        add_action('wp_ajax_mac_vote_bus_advance', array(__CLASS__, 'ajax_bus_advance'));
+        add_action('wp_ajax_mac_vote_bus_close', array(__CLASS__, 'ajax_bus_close'));
+        add_action('wp_ajax_mac_vote_bus_capacity', array(__CLASS__, 'ajax_bus_capacity'));
         add_action('wp_ajax_mac_vote_bus_move', array(__CLASS__, 'ajax_bus_move'));
         add_action('wp_ajax_mac_vote_bus_assign', array(__CLASS__, 'ajax_bus_assign'));
         add_action('wp_ajax_mac_vote_bus_add_manual', array(__CLASS__, 'ajax_bus_add_manual'));
@@ -634,25 +635,29 @@ final class MAC_Voting_Admin {
 
     public static function ajax_bus_open(): void {
         self::guard();
-        $result = MAC_Bus::open_first();
+        $result = MAC_Bus::open_bus(absint($_POST['busId'] ?? 0));
         if (is_wp_error($result)) {
             wp_send_json_error(array('message' => $result->get_error_message()), 409);
         }
-        wp_send_json_success(array('message' => 'Đã mở xe nhận người từ Trạm 1.', 'overview' => self::overview_payload()));
+        wp_send_json_success(array('message' => 'Đã mở xe theo thao tác thủ công.', 'overview' => self::overview_payload()));
     }
 
-    public static function ajax_bus_advance(): void {
+    public static function ajax_bus_close(): void {
         self::guard();
-        $bus_id = absint($_POST['busId'] ?? 0);
-        $result = MAC_Bus::advance($bus_id);
+        $result = MAC_Bus::close_bus(absint($_POST['busId'] ?? 0));
         if (is_wp_error($result)) {
             wp_send_json_error(array('message' => $result->get_error_message()), 409);
         }
-        $done = ($result['boardingBusId'] ?? null) === null;
-        wp_send_json_success(array(
-            'message' => $done ? 'Đã chốt xe cuối — hoàn tất phân xe.' : 'Đã chốt xe và mở xe kế tiếp.',
-            'overview' => self::overview_payload(),
-        ));
+        wp_send_json_success(array('message' => 'Đã chốt xe thủ công — xe kế trong hàng chờ sẽ tự mở.', 'overview' => self::overview_payload()));
+    }
+
+    public static function ajax_bus_capacity(): void {
+        self::guard();
+        $result = MAC_Bus::save_capacity(absint($_POST['busId'] ?? 0), absint($_POST['capacity'] ?? 0));
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 409);
+        }
+        wp_send_json_success(array('message' => 'Đã cập nhật sức chứa tối đa của xe.', 'overview' => self::overview_payload()));
     }
 
     public static function ajax_bus_move(): void {

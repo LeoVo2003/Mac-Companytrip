@@ -433,9 +433,9 @@
     const boarding = buses.find((b) => b.status === "BOARDING") || null;
     const busStatusLabel = (s) => s === "BOARDING" ? "ĐANG XẾP" : s === "CLOSED" ? "ĐÃ CHỐT" : "CHỜ";
     const control = `<section class="ma-panel ma-bus-control">
-      <header><div><small>PHÂN XE · TRẠM 1</small><h2>${boarding ? `Đang xếp ${esc(boarding.name)}` : "Chưa mở xe nào"}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Mở/đóng xe chỉ diễn ra trong đợt phân xe Trạm 1. QR quét vào tự rơi vào xe đang mở — server quyết định, không theo browser.</p></div><span class="ma-reveal-status ${boarding ? "rolling" : "idle"}"><i></i>${state.enabled ? (boarding ? "ĐANG PHÂN XE" : "CHỜ MỞ XE 1") : "CHƯA BẬT / ĐÃ HOÀN TẤT"}</span></header>
-      ${canWrite() ? `<div class="ma-reveal-actions">${boarding ? `<button type="button" class="ma-reveal-start" data-bus-advance="${boarding.id}"><span>${boarding.sortOrder}</span><strong>Chốt ${esc(boarding.name)} → mở xe ${boarding.sortOrder + 1}</strong><small>${boarding.employees} NV QR · ${boarding.staff} BTC/Hoa tiêu</small></button>` : `<button type="button" class="ma-reveal-start" id="ma-bus-open" ${state.enabled ? "" : "disabled"}><span>01</span><strong>Mở Xe 1</strong><small>Bắt đầu nhận người từ QR Trạm 1</small></button>`}</div>` : `<p class="ma-bus-note">Chỉ Super Admin mới mở/chốt xe. BTC · Hoa tiêu xem tiến độ và tự pick mình vào xe ở manifest bên dưới.</p>`}
-      <div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Xe</th><th>NV QR</th><th>BTC</th><th>Tổng</th><th>Trạng thái</th></tr></thead><tbody>${buses.map((b) => `<tr class="${b.id === busManifestId ? "is-selected" : ""}"><td><button type="button" data-bus-manifest="${b.id}"><strong>${esc(b.name)}</strong></button></td><td>${b.employees}</td><td>${b.staff}</td><td><strong>${b.total}</strong></td><td>${busStatusLabel(b.status)}</td></tr>`).join("") || `<tr><td colspan="5">Chưa có dữ liệu xe.</td></tr>`}</tbody></table></div>
+      <header><div><small>PHÂN XE · TRẠM 1</small><h2>${boarding ? `Đang xếp ${esc(boarding.name)} · ${boarding.total}/${boarding.capacity} chỗ` : "Chờ lượt quét Trạm 1 đầu tiên"}</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Mỗi xe có sức chứa tối đa riêng: đủ số là xe tự chốt, người tiếp theo rơi vào xe kế tiếp — không cần bấm mở/đóng. Super Admin vẫn đóng/mở từng xe thủ công khi cần.</p></div><span class="ma-reveal-status ${boarding ? "rolling" : "idle"}"><i></i>${state.enabled ? (boarding ? "ĐANG PHÂN XE" : "CHỜ QUÉT ĐẦU TIÊN") : "CHƯA BẬT / ĐÃ HOÀN TẤT"}</span></header>
+      ${canWrite() ? "" : `<p class="ma-bus-note">Xe tự chốt khi đầy sức chứa. BTC · Hoa tiêu xem tiến độ và tự pick mình vào xe ở manifest bên dưới.</p>`}
+      <div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Xe</th><th>NV QR</th><th>BTC</th><th>Tổng</th><th>Sức chứa</th><th>Trạng thái</th>${canWrite() ? "<th>Thao tác</th>" : ""}</tr></thead><tbody>${buses.map((b) => `<tr class="${b.id === busManifestId ? "is-selected" : ""}"><td><button type="button" data-bus-manifest="${b.id}"><strong>${esc(b.name)}</strong></button></td><td>${b.employees}</td><td>${b.staff}</td><td><strong>${b.total}</strong><small class="ma-cell-sub">/${b.capacity}</small></td><td>${canWrite() ? `<input type="number" min="1" max="500" value="${b.capacity}" data-bus-capacity="${b.id}" aria-label="Sức chứa tối đa ${esc(b.name)}">` : b.capacity}</td><td>${busStatusLabel(b.status)}</td>${canWrite() ? `<td class="ma-bus-actions">${b.status === "BOARDING" ? `<button type="button" class="ma-bus-ghost-danger" data-bus-close="${b.id}">Đóng xe</button>` : `<button type="button" class="ma-bus-ghost" data-bus-open="${b.id}">${b.status === "CLOSED" ? "Mở lại" : "Mở xe"}</button>`}</td>` : ""}</tr>`).join("") || `<tr><td colspan="${canWrite() ? 7 : 6}">Chưa có dữ liệu xe.</td></tr>`}</tbody></table></div>
     </section>`;
     const manifestBus = buses.find((b) => b.id === busManifestId) || null;
     const busStaff = !!window.MACVotingAdmin.busStaff;
@@ -902,18 +902,28 @@
       } catch (err) { notify(err.message, true); }
     });
     }
-    root.querySelector("#ma-bus-open")?.addEventListener("click", async (event) => {
-      event.currentTarget.disabled = true;
+    root.querySelectorAll("[data-bus-capacity]").forEach((input) => input.addEventListener("change", async () => {
+      const capacity = Math.max(1, Math.min(500, Number(input.value) || 0));
+      input.disabled = true;
       try {
-        const result = await ajax("mac_vote_bus_open");
+        const result = await ajax("mac_vote_bus_capacity", { busId: input.dataset.busCapacity, capacity });
         data = result.overview;
         render();
         notify(result.message);
-      } catch (err) { notify(err.message, true); render(); }
-    });
-    root.querySelectorAll("[data-bus-advance]").forEach((button) => button.addEventListener("click", async () => {
+      } catch (err) { input.disabled = false; notify(err.message, true); }
+    }));
+    root.querySelectorAll("[data-bus-close]").forEach((button) => button.addEventListener("click", async () => {
+      if (!(await confirmDialog({ title: "Chốt xe thủ công?", message: "Xe dừng nhận người từ QR Trạm 1 kể cả khi chưa đầy sức chứa; xe kế trong hàng chờ sẽ tự mở.", confirmLabel: "Đóng xe", danger: true }))) return;
       try {
-        const result = await ajax("mac_vote_bus_advance", { busId: button.dataset.busAdvance });
+        const result = await ajax("mac_vote_bus_close", { busId: button.dataset.busClose });
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) { notify(err.message, true); }
+    }));
+    root.querySelectorAll("[data-bus-open]").forEach((button) => button.addEventListener("click", async () => {
+      try {
+        const result = await ajax("mac_vote_bus_open", { busId: button.dataset.busOpen });
         data = result.overview;
         render();
         notify(result.message);

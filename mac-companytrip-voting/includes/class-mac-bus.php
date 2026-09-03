@@ -72,6 +72,7 @@ final class MAC_Bus {
         foreach ($rows as &$row) {
             $row['id'] = (int) $row['id'];
             $row['sort_order'] = (int) $row['sort_order'];
+            $row['capacity'] = (int) $row['capacity'];
         }
         unset($row);
         return $rows;
@@ -118,81 +119,165 @@ final class MAC_Bus {
         return array('employees' => $employees, 'staff' => $staff, 'total' => $employees + $staff);
     }
 
-    public static function open_first() {
+    /**
+     * Nhịp tự động của đợt phân xe: xe nào (BOARDING hoặc WAITING) chạm sức chứa tối đa
+     * sẽ tự chốt; nếu không còn xe nào nhận người thì mở xe WAITING đầu tiên.
+     * Super Admin vẫn đóng/mở từng xe thủ công bằng close_bus/open_bus khi cần.
+     */
+    public static function sync_boarding(): void {
+        if (!self::assignment_enabled()) {
+            return;
+        }
         global $wpdb;
-        if (self::boarding_bus()) {
-            return new WP_Error('bus_already_boarding', 'Đã có một xe đang nhận người.', array('status' => 409));
-        }
-        $first = $wpdb->get_row($wpdb->prepare(
-            'SELECT * FROM ' . MAC_Voting_DB::table('buses') . ' WHERE sort_order=%d',
-            1
-        ), ARRAY_A);
-        if (!$first) {
-            return new WP_Error('not_found', 'Chưa có dữ liệu xe.', array('status' => 404));
-        }
-        if ($first['status'] === 'CLOSED') {
-            return new WP_Error('bus_done', 'Đợt phân xe đã hoàn tất.', array('status' => 409));
-        }
-        $wpdb->update(
-            MAC_Voting_DB::table('buses'),
-            array('status' => 'BOARDING', 'opened_at' => MAC_Voting_DB::utc_now(), 'updated_at' => MAC_Voting_DB::utc_now()),
-            array('id' => (int) $first['id']),
-            array('%s', '%s', '%s'),
-            array('%d')
-        );
-        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'BUS_OPENED', 'bus', (string) $first['id'], array('busName' => $first['name']));
-        return self::admin_state();
-    }
-
-    /** Một action atomic: chốt xe hiện tại và mở xe kế tiếp (hoặc hoàn tất nếu là xe cuối). */
-    public static function advance(int $bus_id) {
-        global $wpdb;
-        $buses = self::buses();
-        $current = null;
-        $next = null;
-        foreach ($buses as $index => $bus) {
-            if ((int) $bus['id'] === $bus_id) {
-                $current = $bus;
-                $next = $buses[$index + 1] ?? null;
+        $now = MAC_Voting_DB::utc_now();
+        foreach (self::buses() as $bus) {
+            if ($bus['status'] === 'CLOSED') {
+                continue;
+            }
+            $capacity = max(1, $bus['capacity']);
+            if (self::bus_counts($bus['id'])['total'] >= $capacity) {
+                $wpdb->update(
+                    MAC_Voting_DB::table('buses'),
+                    array('status' => 'CLOSED', 'closed_at' => $now, 'updated_at' => $now),
+                    array('id' => $bus['id']),
+                    array('%s', '%s', '%s'),
+                    array('%d')
+                );
+                MAC_Voting_DB::audit('SYSTEM', (string) get_current_user_id(), 'BUS_AUTO_CLOSED', 'bus', (string) $bus['id'], array('busName' => $bus['name'], 'capacity' => $capacity));
             }
         }
-        if (!$current) {
+        if (!self::boarding_bus()) {
+            self::open_first_waiting();
+        }
+    }
+
+    /** Mở xe WAITING đầu tiên — thay nút "Mở Xe 1" cũ: lượt quét/headline dashboard tự kích hoạt. */
+    private static function open_first_waiting(): void {
+        global $wpdb;
+        foreach (self::buses() as $bus) {
+            if ($bus['status'] !== 'WAITING') {
+                continue;
+            }
+            $wpdb->update(
+                MAC_Voting_DB::table('buses'),
+                array('status' => 'BOARDING', 'opened_at' => MAC_Voting_DB::utc_now(), 'updated_at' => MAC_Voting_DB::utc_now()),
+                array('id' => $bus['id']),
+                array('%s', '%s', '%s'),
+                array('%d')
+            );
+            MAC_Voting_DB::audit('SYSTEM', (string) get_current_user_id(), 'BUS_AUTO_OPENED', 'bus', (string) $bus['id'], array('busName' => $bus['name']));
+            return;
+        }
+    }
+
+    /** Super Admin chốt sớm một xe (kể cả chưa đầy); xe kế trong hàng WAITING sẽ tự mở. */
+    public static function close_bus(int $bus_id) {
+        global $wpdb;
+        $bus = null;
+        foreach (self::buses() as $row) {
+            if ((int) $row['id'] === $bus_id) {
+                $bus = $row;
+            }
+        }
+        if (!$bus) {
             return new WP_Error('not_found', 'Xe không tồn tại.', array('status' => 404));
         }
-        if ($current['status'] !== 'BOARDING') {
-            return new WP_Error('invalid_state', 'Chỉ chốt được xe đang nhận người.', array('status' => 409));
+        if ($bus['status'] === 'CLOSED') {
+            return self::admin_state();
         }
         $now = MAC_Voting_DB::utc_now();
-        $wpdb->query('START TRANSACTION');
-        $closed = $wpdb->update(
+        $wpdb->update(
             MAC_Voting_DB::table('buses'),
             array('status' => 'CLOSED', 'closed_at' => $now, 'updated_at' => $now),
             array('id' => $bus_id),
             array('%s', '%s', '%s'),
             array('%d')
         );
-        if ($closed === false) {
-            $wpdb->query('ROLLBACK');
-            return new WP_Error('db_error', 'Không chốt được xe.', array('status' => 500));
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'BUS_CLOSED_MANUAL', 'bus', (string) $bus_id, array('busName' => $bus['name']));
+        return self::admin_state();
+    }
+
+    /**
+     * Super Admin mở xe thủ công: xe WAITING thành BOARDING (xe đang BOARDING khác trả về
+     * hàng WAITING); xe CLOSED trở lại hàng WAITING để chờ mở.
+     */
+    public static function open_bus(int $bus_id) {
+        global $wpdb;
+        $bus = null;
+        foreach (self::buses() as $row) {
+            if ((int) $row['id'] === $bus_id) {
+                $bus = $row;
+            }
         }
-        if ($next) {
+        if (!$bus) {
+            return new WP_Error('not_found', 'Xe không tồn tại.', array('status' => 404));
+        }
+        $now = MAC_Voting_DB::utc_now();
+        if ($bus['status'] === 'WAITING') {
+            $current = self::boarding_bus();
+            $wpdb->query('START TRANSACTION');
+            if ($current && (int) $current['id'] !== $bus_id) {
+                $wpdb->update(
+                    MAC_Voting_DB::table('buses'),
+                    array('status' => 'WAITING', 'updated_at' => $now),
+                    array('id' => (int) $current['id']),
+                    array('%s', '%s'),
+                    array('%d')
+                );
+            }
             $opened = $wpdb->update(
                 MAC_Voting_DB::table('buses'),
                 array('status' => 'BOARDING', 'opened_at' => $now, 'updated_at' => $now),
-                array('id' => (int) $next['id']),
+                array('id' => $bus_id),
                 array('%s', '%s', '%s'),
                 array('%d')
             );
             if ($opened === false) {
                 $wpdb->query('ROLLBACK');
-                return new WP_Error('db_error', 'Không mở được xe kế tiếp.', array('status' => 500));
+                return new WP_Error('db_error', 'Không mở được xe.', array('status' => 500));
+            }
+            $wpdb->query('COMMIT');
+            MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'BUS_OPENED_MANUAL', 'bus', (string) $bus_id, array(
+                'busName' => $bus['name'],
+                'swappedFrom' => $current && (int) $current['id'] !== $bus_id ? $current['name'] : null,
+            ));
+            return self::admin_state();
+        }
+        if ($bus['status'] === 'CLOSED') {
+            $wpdb->update(
+                MAC_Voting_DB::table('buses'),
+                array('status' => 'WAITING', 'opened_at' => null, 'closed_at' => null, 'updated_at' => $now),
+                array('id' => $bus_id),
+                array('%s', '%s', '%s', '%s'),
+                array('%d')
+            );
+            MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'BUS_REOPENED', 'bus', (string) $bus_id, array('busName' => $bus['name']));
+            return self::admin_state();
+        }
+        return self::admin_state();
+    }
+
+    /** Super Admin đặt sức chứa tối đa từng xe; chạm ngưỡng là xe tự chốt theo sync_boarding. */
+    public static function save_capacity(int $bus_id, int $capacity) {
+        global $wpdb;
+        $capacity = max(1, min(500, $capacity));
+        $bus = null;
+        foreach (self::buses() as $row) {
+            if ((int) $row['id'] === $bus_id) {
+                $bus = $row;
             }
         }
-        $wpdb->query('COMMIT');
-        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'BUS_ADVANCED', 'bus', (string) $bus_id, array(
-            'closedBus' => $current['name'],
-            'openedBus' => $next ? $next['name'] : null,
-        ));
+        if (!$bus) {
+            return new WP_Error('not_found', 'Xe không tồn tại.', array('status' => 404));
+        }
+        $wpdb->update(
+            MAC_Voting_DB::table('buses'),
+            array('capacity' => $capacity, 'updated_at' => MAC_Voting_DB::utc_now()),
+            array('id' => $bus_id),
+            array('%d', '%s'),
+            array('%d')
+        );
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'BUS_CAPACITY_SET', 'bus', (string) $bus_id, array('busName' => $bus['name'], 'capacity' => $capacity));
         return self::admin_state();
     }
 
@@ -226,6 +311,8 @@ final class MAC_Bus {
         if ($existing) {
             return $existing;
         }
+        // Đồng bộ trước khi chọn xe: xe đầy đã chốt tự chuyển sang xe kế đang chờ.
+        self::sync_boarding();
         $bus = self::boarding_bus();
         if (!$bus) {
             return array('assigned' => false, 'reason' => 'NO_BUS_BOARDING');
@@ -250,6 +337,8 @@ final class MAC_Bus {
             return self::voter_assignment($voter_id) ?: array('assigned' => false, 'reason' => 'DB_ERROR');
         }
         MAC_Voting_DB::audit('SYSTEM', (string) get_current_user_id(), 'BUS_MEMBER_ASSIGNED', 'voter', (string) $voter_id, array('busId' => (int) $bus['id'], 'busName' => $bus['name']));
+        // Đủ sức chứa thì chốt xe này và mở xe kế cho người tiếp theo.
+        self::sync_boarding();
         return array(
             'assigned' => true,
             'busId' => (int) $bus['id'],
@@ -710,6 +799,8 @@ final class MAC_Bus {
     }
 
     public static function admin_state(): array {
+        // Mọi payload phân xe đều đi qua sync: xe đầy tự chốt, thiếu xe nhận thì tự mở.
+        self::sync_boarding();
         $buses = array();
         foreach (self::buses() as $bus) {
             $counts = self::bus_counts((int) $bus['id']);
@@ -718,6 +809,7 @@ final class MAC_Bus {
                 'name' => (string) $bus['name'],
                 'sortOrder' => (int) $bus['sort_order'],
                 'status' => (string) $bus['status'],
+                'capacity' => (int) $bus['capacity'],
                 'employees' => $counts['employees'],
                 'staff' => $counts['staff'],
                 'total' => $counts['total'],

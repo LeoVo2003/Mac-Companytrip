@@ -546,7 +546,7 @@ if (checkinJs.includes("Chọn team để quét")) throw new Error("Scanner must
 for (const invariant of ["busAssignment", "mc-accordion", "busAssignmentEnabled"]) {
   if (!checkinJs.includes(invariant)) throw new Error(`Missing scanner bus/accordion behavior: ${invariant}`);
 }
-for (const invariant of ["Phân xe", "Xe của tôi", "mac_vote_rollcall", "mac_vote_bus_advance"]) {
+for (const invariant of ["Phân xe", "Xe của tôi", "mac_vote_rollcall", "mac_vote_bus_capacity", "mac_vote_bus_close"]) {
   if (!adminJs.includes(invariant)) throw new Error(`Missing bus admin UI behavior: ${invariant}`);
 }
 for (const invariant of [".ma-reveal-actions button.is-skipped:disabled", "opacity: 0.34", ".ar-shell[data-stage=\"final\"] .ar-rays { opacity: 0.34; }", "mix-blend-mode: screen"]) {
@@ -566,50 +566,86 @@ if (artRaceJs.includes("SPOTLIGHT ĐANG TÌM KIẾM")) {
 }
 
 // --- Module Phân xe: port state machine từ MAC_Bus (PHP) để chạy test case thật ---
+const busFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-bus.php"), "utf8");
+for (const invariant of ["function sync_boarding", "function save_capacity", "function close_bus", "function open_bus", "'capacity' => (int) $bus['capacity']"]) {
+  if (!busFile.includes(invariant)) throw new Error(`Missing bus capacity or auto-advance invariant: ${invariant}`);
+}
+for (const invariant of ["mac_vote_bus_capacity", "data-bus-capacity", "data-bus-close", "data-bus-open"]) {
+  if (!adminJs.includes(invariant)) throw new Error(`Missing bus capacity input or manual open/close UI: ${invariant}`);
+}
+if (adminJs.includes("mac_vote_bus_advance")) throw new Error("Legacy manual advance action must stay removed from the admin UI.");
+if (!databaseFile.includes("capacity smallint(5) unsigned NOT NULL DEFAULT 40")) throw new Error("Buses table must carry a per-bus capacity column.");
 const busModel = (teamOf) => {
-  const buses = [1, 2, 3, 4, 5].map((id) => ({ id, status: "WAITING" }));
+  const buses = [1, 2, 3, 4, 5].map((id) => ({ id, status: "WAITING", capacity: 2 }));
   const members = [];
   let memberSeq = 0;
   const boarding = () => buses.find((b) => b.status === "BOARDING") || null;
   const enabled = (checkpoint1Open) => checkpoint1Open && buses.some((b) => b.status !== "CLOSED");
+  const count = (busId) => members.filter((m) => m.busId === busId).length;
+  // sync_boarding (PHP): xe chạm sức chứa tự chốt; không còn xe nhận thì mở xe WAITING đầu tiên.
+  const sync = (checkpoint1Open) => {
+    if (!enabled(checkpoint1Open)) return;
+    buses.forEach((b) => { if (b.status !== "CLOSED" && count(b.id) >= b.capacity) b.status = "CLOSED"; });
+    if (!boarding()) {
+      const first = buses.find((b) => b.status === "WAITING");
+      if (first) first.status = "BOARDING";
+    }
+  };
   return {
     buses,
     members,
     boarding,
-    openFirst() {
-      if (boarding()) return { error: "bus_already_boarding" };
-      if (buses[0].status === "CLOSED") return { error: "bus_done" };
-      buses[0].status = "BOARDING";
+    sync,
+    setCapacity(busId, capacity, checkpoint1Open) {
+      const bus = buses.find((b) => b.id === busId);
+      if (!bus) return { error: "not_found" };
+      bus.capacity = Math.max(1, Math.min(500, capacity));
+      sync(checkpoint1Open);
       return { ok: true };
     },
-    advance(busId) {
-      const current = buses.find((b) => b.id === busId);
-      if (!current) return { error: "not_found" };
-      if (current.status !== "BOARDING") return { error: "invalid_state" };
-      current.status = "CLOSED";
-      const next = buses.find((b) => b.id === busId + 1) || null;
-      if (next) next.status = "BOARDING";
-      return { ok: true, next: next ? next.id : null };
+    closeBus(busId, checkpoint1Open) {
+      const bus = buses.find((b) => b.id === busId);
+      if (!bus) return { error: "not_found" };
+      if (bus.status !== "CLOSED") bus.status = "CLOSED";
+      sync(checkpoint1Open);
+      return { ok: true };
+    },
+    openBus(busId, checkpoint1Open) {
+      const bus = buses.find((b) => b.id === busId);
+      if (!bus) return { error: "not_found" };
+      if (bus.status === "WAITING") {
+        const current = boarding();
+        if (current && current.id !== busId) current.status = "WAITING";
+        bus.status = "BOARDING";
+      } else if (bus.status === "CLOSED") {
+        bus.status = "WAITING";
+      }
+      sync(checkpoint1Open);
+      return { ok: true };
     },
     autoAssign(voterId, checkpointId, checkpoint1Open) {
       if (checkpointId !== 1 || !enabled(checkpoint1Open)) return null;
       const existing = members.find((m) => m.voterId === voterId);
       if (existing) return { assigned: true, busId: existing.busId };
+      sync(checkpoint1Open);
       const bus = boarding();
       if (!bus) return { assigned: false };
       members.push({ id: ++memberSeq, busId: bus.id, voterId, memberType: "EMPLOYEE" });
+      sync(checkpoint1Open);
       return { assigned: true, busId: bus.id };
     },
-    assign(voterId, busId, actor) {
+    assign(voterId, busId, actor, checkpoint1Open = true) {
       if (actor.role === "btc" && teamOf(voterId) !== 7) return { error: "forbidden_staff_only" };
       if (members.some((m) => m.voterId === voterId)) return { error: "already_assigned" };
       members.push({ id: ++memberSeq, busId, voterId, memberType: teamOf(voterId) === 7 ? "STAFF" : "EMPLOYEE" });
+      sync(checkpoint1Open);
       return { ok: true };
     },
-    moveMember(memberId, toBus) {
+    moveMember(memberId, toBus, checkpoint1Open = true) {
       const member = members.find((m) => m.id === memberId);
       if (!member) return { error: "not_found" };
       member.busId = toBus;
+      sync(checkpoint1Open);
       return { ok: true };
     },
     reset() {
@@ -626,21 +662,22 @@ const busModel = (teamOf) => {
 };
 const busTeamOf = (voterId) => (voterId >= 700 ? 7 : (voterId % 6) + 1);
 const BUS_CASES = [
-  { name: "BUS-01 mở Xe 1 khi đang WAITING", run: (m) => m.openFirst().ok === true && m.boarding()?.id === 1 },
-  { name: "BUS-02 không mở chồng khi đang có xe BOARDING", run: (m) => { m.openFirst(); return m.openFirst().error === "bus_already_boarding"; } },
-  { name: "BUS-03 chốt xe 1 mở xe 2 atomic, luôn ≤ 1 xe BOARDING", run: (m) => { m.openFirst(); m.advance(1); return m.boarding()?.id === 2 && m.buses[0].status === "CLOSED" && m.buses.filter((b) => b.status === "BOARDING").length === 1; } },
-  { name: "BUS-04 chốt đến xe 5 thì hoàn tất, tắt phân xe", run: (m) => { m.openFirst(); for (let i = 1; i <= 5; i += 1) m.advance(i); return m.boarding() === null && m.buses.every((b) => b.status === "CLOSED") && m.autoAssign(101, 1, true) === null; } },
-  { name: "BUS-05 auto-assign chỉ chạy ở Trạm 1", run: (m) => { m.openFirst(); return m.autoAssign(101, 2, true) === null && m.autoAssign(101, 1, true).assigned === true; } },
-  { name: "BUS-06 Trạm 1 mở nhưng chưa xe nào BOARDING → check-in vẫn ok, unassigned", run: (m) => { const r = m.autoAssign(101, 1, true); return r !== null && r.assigned === false && m.members.length === 0; } },
-  { name: "BUS-07 trạm chưa mở → không phân xe", run: (m) => m.autoAssign(101, 1, false) === null },
-  { name: "BUS-08 quét trùng không tạo member thứ hai", run: (m) => { m.openFirst(); m.autoAssign(101, 1, true); const again = m.autoAssign(101, 1, true); return again.assigned === true && m.members.filter((x) => x.voterId === 101).length === 1; } },
-  { name: "BUS-09 mỗi người chỉ ở một xe", run: (m) => { m.openFirst(); m.autoAssign(102, 1, true); return m.assign(102, 2, { role: "super" }).error === "already_assigned"; } },
-  { name: "BUS-10 thành viên thủ công chuyển xe được", run: (m) => { m.openFirst(); m.assign(701, 1, { role: "btc" }); const id = m.members.find((x) => x.voterId === 701).id; return m.moveMember(id, 3).ok === true && m.members.find((x) => x.id === id).busId === 3; } },
-  { name: "BUS-11 BTC chỉ thêm người team 7, super thêm mọi team", run: (m) => m.assign(101, 1, { role: "btc" }).error === "forbidden_staff_only" && m.assign(701, 1, { role: "btc" }).ok === true && m.assign(101, 1, { role: "super" }).ok === true },
-  { name: "BUS-12 reset đưa 5 xe về WAITING và xóa member", run: (m) => { m.openFirst(); m.autoAssign(101, 1, true); m.reset(); return m.buses.every((b) => b.status === "WAITING") && m.members.length === 0; } },
+  { name: "BUS-01 lượt quét đầu tiên tự mở Xe 1", run: (m) => { const r = m.autoAssign(101, 1, true); return r.assigned === true && r.busId === 1 && m.buses[0].status === "BOARDING"; } },
+  { name: "BUS-02 đủ sức chứa tự chốt xe và mở xe kế", run: (m) => { m.autoAssign(101, 1, true); m.autoAssign(102, 1, true); return m.buses[0].status === "CLOSED" && m.boarding()?.id === 2; } },
+  { name: "BUS-03 người tiếp theo rơi vào xe kế", run: (m) => { m.autoAssign(101, 1, true); m.autoAssign(102, 1, true); return m.autoAssign(103, 1, true).busId === 2; } },
+  { name: "BUS-04 chốt đến xe 5 thì hoàn tất, tắt phân xe", run: (m) => { for (let i = 1; i <= 5; i += 1) m.setCapacity(i, 1, true); for (let v = 101; v <= 105; v += 1) m.autoAssign(v, 1, true); return m.buses.every((b) => b.status === "CLOSED") && m.autoAssign(106, 1, true) === null; } },
+  { name: "BUS-05 auto-assign chỉ chạy ở Trạm 1", run: (m) => m.autoAssign(101, 2, true) === null && m.autoAssign(101, 1, true).assigned === true },
+  { name: "BUS-06 trạm chưa mở → không phân xe, không tự mở xe", run: (m) => m.autoAssign(101, 1, false) === null && m.buses.every((b) => b.status === "WAITING") },
+  { name: "BUS-07 quét trùng không tạo member thứ hai", run: (m) => { m.autoAssign(101, 1, true); const again = m.autoAssign(101, 1, true); return again.assigned === true && m.members.filter((x) => x.voterId === 101).length === 1; } },
+  { name: "BUS-08 mỗi người chỉ ở một xe", run: (m) => { m.autoAssign(102, 1, true); return m.assign(102, 2, { role: "super" }).error === "already_assigned"; } },
+  { name: "BUS-09 thêm thủ công cũng đếm vào sức chứa", run: (m) => { m.autoAssign(101, 1, true); m.assign(701, 1, { role: "super" }); return m.buses[0].status === "CLOSED" && m.boarding()?.id === 2; } },
+  { name: "BUS-10 thành viên thủ công chuyển xe được", run: (m) => { m.autoAssign(101, 1, true); const id = m.members.find((x) => x.voterId === 101).id; return m.moveMember(id, 3).ok === true && m.members.find((x) => x.id === id).busId === 3; } },
+  { name: "BUS-11 BTC chỉ thêm người team 7, super thêm mọi team", run: (m) => m.assign(101, 1, { role: "btc" }).error === "forbidden_staff_only" && m.assign(701, 1, { role: "btc" }).ok === true && m.assign(102, 2, { role: "super" }).ok === true },
+  { name: "BUS-12 reset đưa 5 xe về WAITING và xóa member", run: (m) => { m.autoAssign(101, 1, true); m.reset(); return m.buses.every((b) => b.status === "WAITING") && m.members.length === 0; } },
   { name: "BUS-13 HDV chỉ điểm danh đúng xe mình", run: (m) => m.canRollcall(2, { role: "guide", busId: 2 }) === true && m.canRollcall(3, { role: "guide", busId: 2 }) === false },
   { name: "BUS-14 BTC/Super điểm danh mọi xe", run: (m) => m.canRollcall(4, { role: "btc" }) === true && m.canRollcall(5, { role: "super" }) === true },
-  { name: "BUS-15 đổi xe giữa chừng → server gán theo xe đang BOARDING", run: (m) => { m.openFirst(); m.autoAssign(101, 1, true); m.advance(1); return m.autoAssign(102, 1, true).busId === 2; } },
+  { name: "BUS-15 đóng/mở xe thủ công: chốt sớm tự mở xe kế, mở xe khác trả xe đang nhận về hàng chờ", run: (m) => { m.autoAssign(101, 1, true); m.closeBus(1, true); const closed = m.buses[0].status === "CLOSED" && m.boarding()?.id === 2; m.openBus(3, true); return closed && m.boarding()?.id === 3 && m.buses[1].status === "WAITING"; } },
+  { name: "BUS-16 hạ sức chứa giữa chừng → xe đầy tự chốt", run: (m) => { m.setCapacity(1, 5, true); m.autoAssign(101, 1, true); m.autoAssign(102, 1, true); const still = m.buses[0].status === "BOARDING"; m.setCapacity(1, 2, true); return still && m.buses[0].status === "CLOSED" && m.boarding()?.id === 2; } },
 ];
 for (const tc of BUS_CASES) {
   if (!tc.run(busModel(busTeamOf))) throw new Error(`${tc.name}: failed.`);

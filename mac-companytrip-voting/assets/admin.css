@@ -4765,6 +4765,28 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 .ma-bus-ghost-danger:hover { background: #fee4e2; }
 
+/* Ô sức chứa tối đa mỗi xe: gọn trong ô bảng nhưng vẫn chạm thoải mái 44px. */
+.ma-bus-control input[type="number"] {
+  width: 76px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ma-bus-control input[type="number"]:focus {
+  border-color: var(--border-strong, #98a2b3);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(227, 30, 36, 0.12);
+}
+
 /* Mobile: bảng bus gọn, nút giữ font 14px đồng bộ toàn hệ thống. */
 @media (max-width: 720px) {
   .ma-bus-control .ma-board-table table { min-width: 520px; }

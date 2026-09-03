@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.14";
+const tag = "v1.10.15";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- ket-qua-tong: bước 05 công bố hạng nhì giờ lộ á quân + quán quân cùng một nhịp, không còn delay ~5s.",
-  "- Badge quán quân, pháo hoa và câu chốt ONE DIRECTION ĐỒNG HƯỚNG VƯƠN XA chốt luôn trong bước 05.",
+  "- Phân xe: sức chứa tối đa từng xe — đủ số tự chốt, người kế tiếp qua xe kế, không cần bấm mở/đóng.",
+  "- Super Admin vẫn đóng/mở/mở lại từng xe thủ công khi cần; lượt quét đầu tiên tự mở Xe 1.",
+  "- check-plugin: 16 test case Phân xe đồng bộ luật mới.",
 ].join("\n");
 
 let release;
