@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.20";
+const tag = "v1.10.21";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Reader XLSX: đọc zip entry không phân biệt hoa/thường, chịu cell thiếu thuộc tính r, tự chọn sheet có dữ liệu.",
-  "- Dò hàng tiêu đề trong 25 dòng đầu.",
+  "- Reader XLSX: zip entry không phân biệt hoa/thường, cell thiếu thuộc tính r, tự chọn sheet có dữ liệu; dò tiêu đề 25 dòng.",
+  "- Bản 1.10.21 thay 1.10.20 (1.10.20 chưa qua check-plugin).",
 ].join("\n");
 
 let release;

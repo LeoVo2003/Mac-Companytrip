@@ -22,7 +22,8 @@ final class MAC_XLSX {
         $entries = array();
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $entry_name = $zip->getNameIndex($i);
-            if ($entry_name === false || substr($entry_name, -1) === '/') continue;
+            if ($entry_name === false) continue;
+            if (substr($entry_name, -1) === '/') continue;
             $entries[strtolower($entry_name)] = $entry_name;
         }
         $get = static function(string $want) use ($zip, $entries) {
