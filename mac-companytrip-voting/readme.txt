@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.17
+Stable tag: 1.10.18
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -71,6 +71,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.18 =
+- Khớp đúng header XLSX thực tế: STT | HỌ & TÊN | NĂM SINH | GIỚI TÍNH | CCCD | SĐT | LOẠI PHÒNG | Phòng | Team | Email | Note | Đi Xe (STT tự bỏ qua, Note vẫn là cột gộp nhóm người thân).
+- Preview import hiện đủ tới cột Note + Đi Xe (bảng cuộn ngang) để kiểm tra nhóm gộp trước khi xác nhận.
 
 = 1.10.17 =
 - Thêm cột ĐI XE tùy chọn khi import: ghi "Không" cho người chỉ đi chơi chung — vẫn có QR check-in + vote văn nghệ nhưng bỏ qua auto-assign Trạm 1, không nằm trong danh sách chưa phân xe và không xuất hiện trong bất kỳ export xe nào (kể cả Tổng danh sách 5 xe gửi resort).

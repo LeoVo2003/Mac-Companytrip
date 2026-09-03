@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.17";
+const tag = "v1.10.18";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Cột ĐI XE khi import: \"Không\" = chỉ đi chơi chung, vẫn có QR nhưng không phân xe.",
-  "- Người không đi xe tự động vắng mặt khỏi mọi export xe, kể cả file tổng gửi resort.",
+  "- Khớp header XLSX thực tế 12 cột (STT…Đi Xe); Note vẫn là cột gộp nhóm người thân.",
+  "- Preview import hiện đủ cột Note + Đi Xe để kiểm tra nhóm gộp trước khi xác nhận.",
 ].join("\n");
 
 let release;
