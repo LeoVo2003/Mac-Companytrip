@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.18";
+const tag = "v1.10.19";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Khớp header XLSX thực tế 12 cột (STT…Đi Xe); Note vẫn là cột gộp nhóm người thân.",
-  "- Preview import hiện đủ cột Note + Đi Xe để kiểm tra nhóm gộp trước khi xác nhận.",
+  "- Import chịu file thực tế: tự dò hàng tiêu đề, bỏ dòng placeholder, nhóm người thân không cần người chính đứng đầu.",
+  "- Email không còn bắt buộc với người chính (vẫn có QR + check-in).",
 ].join("\n");
 
 let release;

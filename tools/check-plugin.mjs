@@ -206,7 +206,7 @@ const publicCss = fs.readFileSync(path.join(pluginRoot, "assets/public.css"), "u
 for (const invariant of [".mv-team-tabs", ".mv-star", ".mv-star.is-active i"]) {
   if (!publicCss.includes(invariant)) throw new Error(`Missing team selection or star score styles: ${invariant}`);
 }
-for (const invariant of ["MAC_XLSX::read_first_sheet", "'citizen_id' => array('cccd'", "'note' => array('note','ghi chu')", "is_family_note", "primary_voter_id", "export_all_buses_xlsx", "'ho & ten'", "'di xe'", "'loai phong'"]) {
+for (const invariant of ["MAC_XLSX::read_first_sheet", "'citizen_id' => array('cccd'", "'note' => array('note','ghi chu')", "is_family_note", "primary_voter_id", "export_all_buses_xlsx", "'ho & ten'", "'di xe'", "'loai phong'", "Không tìm thấy hàng tiêu đề", "pending_companions", "group_primary"]) {
   if (!adminFile.includes(invariant)) throw new Error(`Missing XLSX personnel flow: ${invariant}`);
 }
 for (const invariant of ["Chỉ chấp nhận file XLSX", "nhóm người thân", "allBusesExportUrl", "Xuất tổng 5 xe"]) {

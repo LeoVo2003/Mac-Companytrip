@@ -1017,9 +1017,6 @@ final class MAC_Voting_Admin {
         $workbook = MAC_XLSX::read_first_sheet((string) $_FILES['file']['tmp_name']);
         if (is_wp_error($workbook)) wp_send_json_error(array('message' => $workbook->get_error_message()), 400);
         $source_rows = $workbook['rows'] ?? array();
-        $header = $source_rows[1] ?? array();
-        if (!$header) wp_send_json_error(array('message' => 'File XLSX rỗng.'), 400);
-        $headers = array_map(static function($value): string { return MAC_Voting_DB::normalize_name((string) $value); }, $header);
         $aliases = array(
             'name' => array('ho & ten','ho ten','ten','full name'), 'employee' => array('ma nv','ma nhan vien','employee code'),
             'team' => array('team','doi'), 'email' => array('email','mail','email cong ty'), 'status' => array('trang thai','status'),
@@ -1030,6 +1027,29 @@ final class MAC_Voting_Admin {
             'note' => array('note','ghi chu'),
             'bus_rider' => array('di xe','xe','bus','phuong tien'),
         );
+        // File thực tế có thể có dòng trống / dòng tiêu đề phụ trước hàng tiêu đề thật:
+        // quét 10 dòng đầu, chọn dòng khớp nhiều alias nhất (ưu tiên dòng có HỌ & TÊN).
+        $header_row = 0;
+        $headers = array();
+        $best_score = 0;
+        foreach ($source_rows as $candidate_index => $candidate_row) {
+            if ((int) $candidate_index > 10) break;
+            $normalized_row = array_map(static function($value): string { return MAC_Voting_DB::normalize_name((string) $value); }, $candidate_row);
+            $hits = 0;
+            foreach ($aliases as $alias_names) { if (array_intersect($alias_names, $normalized_row)) $hits++; }
+            $has_name_column = in_array('ho & ten', $normalized_row, true) || in_array('ho ten', $normalized_row, true);
+            $score = $hits + ($has_name_column ? 100 : 0);
+            if ($hits >= 3 && $score > $best_score) {
+                $best_score = $score;
+                $header_row = (int) $candidate_index;
+                $headers = $normalized_row;
+            }
+            if ($has_name_column && $hits >= 3) break;
+        }
+        if (!$header_row) {
+            wp_send_json_error(array('message' => 'Không tìm thấy hàng tiêu đề (HỌ & TÊN, TEAM, EMAIL…) trong 10 dòng đầu của sheet đầu tiên.'), 400);
+        }
+        $header = $source_rows[$header_row];
         $columns = array();
         foreach ($aliases as $key => $names) {
             foreach ($names as $name) {
@@ -1047,43 +1067,65 @@ final class MAC_Voting_Admin {
         $voters = MAC_Voting_DB::table('voters');
         $teams = $wpdb->get_results("SELECT * FROM $teams_table ORDER BY team_no", ARRAY_A);
         $inserted = 0; $updated = 0; $companions = 0; $non_bus = 0; $line = 1; $errors = array(); $identity_rows = array(); $pending_staff = array();
-        $preview_rows = array(); $family_groups = array(); $room_groups = array(); $last_primary = null;
+        $preview_rows = array(); $room_groups = array();
+        // Pass 1: dựng nhóm người thân theo ô NOTE gộp — người chính có thể nằm giữa nhóm.
+        $family_groups = array();
+        $invalid_groups = array();
+        foreach ($source_rows as $pre_index => $pre_cells) {
+            if ((int) $pre_index <= $header_row) continue;
+            $pre_note = sanitize_text_field($pre_cells[$columns['note']] ?? '');
+            if (!self::is_family_note($pre_note)) continue;
+            $pre_ref = self::xlsx_merge_ref($workbook['merges'] ?? array(), (int) $pre_index, $columns['note'] + 1);
+            if ($pre_ref === '') continue;
+            if (!isset($family_groups[$pre_ref])) $family_groups[$pre_ref] = array('lines' => array(), 'primaries' => array());
+            $family_groups[$pre_ref]['lines'][] = (int) $pre_index;
+            $pre_team = trim((string) ($pre_cells[$columns['team']] ?? ''));
+            $pre_email = trim((string) ($pre_cells[$columns['email']] ?? ''));
+            if ($pre_team !== '' && $pre_email !== '') $family_groups[$pre_ref]['primaries'][] = (int) $pre_index;
+        }
+        foreach ($family_groups as $pre_ref => $group_info) {
+            $primary_count = count($group_info['primaries']);
+            if ($primary_count === 1) continue;
+            $invalid_groups[$pre_ref] = true;
+            $span = min($group_info['lines']) . '–' . max($group_info['lines']);
+            $errors[] = $primary_count === 0
+                ? "Dòng $span: nhóm NOTE gộp \"Người thân\" không có người chính (cần đúng 1 dòng có Team + Email)"
+                : "Dòng $span: nhóm NOTE gộp có $primary_count người chính (cần đúng 1 dòng có Team + Email)";
+        }
+        $group_primary = array();
+        $group_companion_count = array();
+        $pending_companions = array();
         $wpdb->query('START TRANSACTION');
         foreach ($source_rows as $sheet_row => $row) {
-            if ((int) $sheet_row === 1) continue;
+            if ((int) $sheet_row <= $header_row) continue;
             $line = (int) $sheet_row;
             if (!array_filter($row, static function($value): bool { return trim((string) $value) !== ''; })) continue;
             $name = sanitize_text_field($row[$columns['name']] ?? '');
             $team_value = sanitize_text_field($row[$columns['team']] ?? '');
             $email_value = sanitize_text_field($row[$columns['email']] ?? '');
             $note = sanitize_text_field($row[$columns['note']] ?? '');
+            if ($name === '' && $email_value === '') continue; // dòng placeholder sót lại từ ô gộp phòng
             $note_merge = self::xlsx_merge_ref($workbook['merges'] ?? array(), $line, $columns['note'] + 1);
+            $in_family_group = $note_merge !== '' && isset($family_groups[$note_merge]);
             $is_companion = $team_value === '' && $email_value === '';
-            $same_family_merge = $last_primary && $note_merge !== '' && $note_merge === $last_primary['noteMerge'];
-            $allowed_companion = $last_primary && $last_primary['acceptsCompanions'] && $same_family_merge;
-            if ($is_companion && !$allowed_companion) {
+            if ($is_companion && !$in_family_group) {
                 $errors[] = "Dòng $line: thiếu Team/Email nhưng không nằm trong ô NOTE gộp \"Người thân\"";
                 continue;
-            }
-            if (!$is_companion && $same_family_merge) {
-                $errors[] = "Dòng $line: nhóm NOTE gộp chỉ được có một người chính có Team và Email";
-                continue;
-            }
-            if (!$is_companion && $last_primary && $last_primary['acceptsCompanions'] && (int) $last_primary['companionCount'] === 0) {
-                $errors[] = 'Dòng ' . (int) $last_primary['line'] . ': NOTE Người thân chưa gộp với dòng người đi kèm';
             }
             if (!$is_companion && self::is_family_note($note) && $note_merge === '') {
                 $errors[] = "Dòng $line: NOTE Người thân phải được gộp theo chiều dọc với người đi kèm";
             }
-            $email = $is_companion ? null : MAC_Voting_DB::normalize_company_email($email_value);
-            $team = null;
+            if (count($preview_rows) < 100) $preview_rows[] = array_values(array_map('strval', $row));
             if ($is_companion) {
-                $team = $last_primary['team'];
-            } else {
-                foreach ($teams as $candidate) {
-                    if (MAC_Voting_DB::normalize_name($team_value) === MAC_Voting_DB::normalize_name($candidate['name']) || preg_match('/#?\s*' . (int) $candidate['team_no'] . '\b/', $team_value)) {
-                        $team = $candidate; break;
-                    }
+                if ($name === '') { $errors[] = "Dòng $line: người đi kèm thiếu họ tên"; continue; }
+                $pending_companions[] = array('line' => $line, 'row' => $row, 'group' => $note_merge);
+                continue;
+            }
+            $email = MAC_Voting_DB::normalize_company_email($email_value);
+            $team = null;
+            foreach ($teams as $candidate) {
+                if (MAC_Voting_DB::normalize_name($team_value) === MAC_Voting_DB::normalize_name($candidate['name']) || preg_match('/#?\s*' . (int) $candidate['team_no'] . '\b/', $team_value)) {
+                    $team = $candidate; break;
                 }
             }
             $role_text = isset($columns['role']) ? (string) ($row[$columns['role']] ?? '') : '';
@@ -1092,32 +1134,28 @@ final class MAC_Voting_Admin {
             if (!$staff_kind && $team && MAC_Voting_DB::is_staff_team_no((int) $team['team_no'])) {
                 $staff_kind = 'btc';
             }
-            if ($staff_kind && !$is_companion) {
+            if ($staff_kind) {
                 $staff_team_id = MAC_Voting_DB::staff_team_id();
                 $team = array('id' => $staff_team_id, 'team_no' => MAC_Voting_DB::STAFF_TEAM_NO, 'name' => MAC_Voting_DB::STAFF_TEAM_NAME);
             }
             $row_issues = array();
             if (!$name) $row_issues[] = 'thiếu họ tên';
             if (!$team) $row_issues[] = 'team không hợp lệ: ' . ($team_value ?: '(trống)');
-            if (!$is_companion && !$email) $row_issues[] = 'email phải thuộc @macusaone.com, @yesoffice.vn hoặc @macmarketing.vn';
+            if ($email_value !== '' && $email === '') $row_issues[] = 'email phải thuộc @macusaone.com, @yesoffice.vn hoặc @macmarketing.vn';
             if ($row_issues) { $errors[] = "Dòng $line: " . implode(', ', $row_issues); continue; }
             $employee = isset($columns['employee']) ? sanitize_text_field($row[$columns['employee']] ?? '') : '';
             if (!$employee && preg_match('/^\s*((?:NVG?|MAC)[-\s]?\d+)\s*-/iu', $name, $employee_match)) $employee = $employee_match[1];
             $status_text = isset($columns['status']) ? MAC_Voting_DB::normalize_name((string) ($row[$columns['status']] ?? '')) : 'hoat dong';
-            $status = $is_companion ? 'COMPANION' : (in_array($status_text, array('inactive','khong','khong hoat dong','0','false'), true) ? 'INACTIVE' : 'ACTIVE');
+            $status = in_array($status_text, array('inactive','khong','khong hoat dong','0','false'), true) ? 'INACTIVE' : 'ACTIVE';
             $employee = $employee ? strtoupper($employee) : '';
-            $primary_id = $is_companion ? (int) $last_primary['id'] : 0;
-            $email_existing_id = $email ? (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $voters WHERE email=%s", $email)) : 0;
+            $email_existing_id = $email !== '' ? (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $voters WHERE email=%s", $email)) : 0;
             $employee_existing_id = $employee ? (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $voters WHERE employee_code=%s", $employee)) : 0;
             if ($email_existing_id && $employee_existing_id && $email_existing_id !== $employee_existing_id) {
                 $errors[] = "Dòng $line: email và Mã NV đang thuộc hai nhân sự khác nhau";
                 continue;
             }
             $existing_id = $email_existing_id ?: $employee_existing_id;
-            if ($is_companion && !$dry_run && $primary_id) {
-                $existing_id = (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $voters WHERE primary_voter_id=%d AND search_name=%s ORDER BY id LIMIT 1", $primary_id, MAC_Voting_DB::normalize_name($name)));
-            }
-            if (!$is_companion && !$existing_id && !$employee) {
+            if (!$existing_id && !$employee) {
                 $matches = $wpdb->get_col($wpdb->prepare(
                     "SELECT id FROM $voters WHERE search_name=%s AND team_id=%d ORDER BY id",
                     MAC_Voting_DB::normalize_name($name),
@@ -1130,13 +1168,13 @@ final class MAC_Voting_Admin {
                     continue;
                 }
             }
-            $identity_key = $is_companion ? ('companion:' . ($primary_id ?: $line) . ':' . MAC_Voting_DB::normalize_name($name)) : (string) $email;
+            $identity_key = $email !== '' ? $email : ('row:' . $line);
             if (isset($identity_rows[$identity_key])) {
                 $errors[] = "Dòng $line trùng email với dòng " . $identity_rows[$identity_key];
                 continue;
             }
             $identity_rows[$identity_key] = $line;
-            $conflicting_id = $email ? (int) $wpdb->get_var($wpdb->prepare(
+            $conflicting_id = $email !== '' ? (int) $wpdb->get_var($wpdb->prepare(
                 "SELECT id FROM $voters WHERE email=%s AND id!=%d LIMIT 1",
                 $email,
                 $existing_id
@@ -1145,7 +1183,7 @@ final class MAC_Voting_Admin {
                 $errors[] = "Dòng $line: email đã thuộc một nhân sự khác trong hệ thống";
                 continue;
             }
-            if ($staff_kind && !$is_companion) {
+            if ($staff_kind) {
                 $pending_staff[] = array('name' => $name, 'email' => $email, 'password' => $password_text, 'kind' => $staff_kind);
             }
             $room_type = sanitize_text_field($row[$columns['room_type']] ?? '');
@@ -1162,52 +1200,109 @@ final class MAC_Voting_Admin {
             if ($bus_rider === 0) $non_bus++;
             $data = array(
                 'full_name' => self::format_import_name($name, $employee), 'search_name' => MAC_Voting_DB::normalize_name($name),
-                'employee_code' => $employee ?: null, 'email' => $email, 'team_id' => (int) $team['id'],
+                'employee_code' => $employee ?: null, 'email' => $email !== '' ? $email : null, 'team_id' => (int) $team['id'],
                 'birth_year' => sanitize_text_field($row[$columns['birth_year']] ?? ''),
                 'gender' => sanitize_text_field($row[$columns['gender']] ?? ''),
                 'citizen_id' => sanitize_text_field($row[$columns['citizen_id']] ?? ''),
                 'phone' => sanitize_text_field($row[$columns['phone']] ?? ''),
                 'room_type' => $room_type, 'room_no' => $room_no, 'room_group' => $room_group ?: null,
-                'note' => $is_companion ? ('Đi kèm ' . $last_primary['name']) : $note,
-                'primary_voter_id' => $is_companion && $primary_id ? $primary_id : null,
-                'bus_rider' => $is_companion ? 1 : $bus_rider,
-                'import_order' => max(0, $line - 2),
+                'note' => $note,
+                'primary_voter_id' => null,
+                'bus_rider' => $bus_rider,
+                'import_order' => max(0, $line - $header_row - 1),
                 'phone_last4_hash' => '', 'status' => $status, 'updated_at' => MAC_Voting_DB::utc_now(),
             );
-            if (count($preview_rows) < 100) $preview_rows[] = array_values(array_map('strval', $row));
             if ($dry_run) {
                 if ($existing_id) $updated++;
                 else $inserted++;
-                if ($is_companion) { $companions++; $last_primary['companionCount']++; }
-                else {
-                    $accepts = self::is_family_note($note);
-                    $last_primary = array('id' => 0, 'team' => $team, 'name' => $name, 'line' => $line, 'noteMerge' => $note_merge, 'acceptsCompanions' => $accepts, 'companionCount' => 0);
-                    if ($accepts) $family_groups[$note_merge] = true;
+            } else {
+                if ($existing_id) {
+                    $saved = $wpdb->update($voters, $data, array('id' => $existing_id));
+                    if ($saved === false) { $errors[] = "Dòng $line không lưu được: " . ($wpdb->last_error ?: 'lỗi database'); continue; }
+                    $updated++;
+                } else {
+                    $data['created_at'] = MAC_Voting_DB::utc_now();
+                    $saved = $wpdb->insert($voters, $data);
+                    if ($saved === false) { $errors[] = "Dòng $line không lưu được: " . ($wpdb->last_error ?: 'lỗi database'); continue; }
+                    $inserted++;
+                    $existing_id = (int) $wpdb->insert_id;
                 }
-                continue;
-            }
-            if ($existing_id) {
-                $saved = $wpdb->update($voters, $data, array('id' => $existing_id));
-                if ($saved === false) $errors[] = "Dòng $line không lưu được: " . ($wpdb->last_error ?: 'lỗi database');
-                else $updated++;
-            } else {
-                $data['created_at'] = MAC_Voting_DB::utc_now();
-                $saved = $wpdb->insert($voters, $data);
-                if ($saved === false) $errors[] = "Dòng $line không lưu được: " . ($wpdb->last_error ?: 'lỗi database');
-                else { $inserted++; $existing_id = (int) $wpdb->insert_id; }
-            }
-            if ($is_companion) {
-                $companions++;
-                $last_primary['companionCount']++;
-            } else {
                 $wpdb->query($wpdb->prepare("UPDATE $voters SET status='INACTIVE',updated_at=%s WHERE primary_voter_id=%d AND status='COMPANION'", MAC_Voting_DB::utc_now(), $existing_id));
-                $accepts = self::is_family_note($note);
-                $last_primary = array('id' => $existing_id, 'team' => $team, 'name' => $name, 'line' => $line, 'noteMerge' => $note_merge, 'acceptsCompanions' => $accepts, 'companionCount' => 0);
-                if ($accepts) $family_groups[$note_merge] = true;
+            }
+            if ($in_family_group) {
+                $group_primary[$note_merge] = array('id' => (int) $existing_id, 'team_id' => (int) $team['id'], 'name' => $name);
             }
         }
-        if ($last_primary && $last_primary['acceptsCompanions'] && (int) $last_primary['companionCount'] === 0) {
-            $errors[] = 'Dòng ' . (int) $last_primary['line'] . ': NOTE Người thân chưa gộp với dòng người đi kèm';
+        // Pass 2: nối người đi kèm vào người chính cùng nhóm NOTE (đứng trước hay giữa nhóm đều được).
+        foreach ($pending_companions as $pc) {
+            $pc_line = $pc['line'];
+            $pc_row = $pc['row'];
+            $pc_group = $pc['group'];
+            if (isset($invalid_groups[$pc_group])) continue;
+            $primary = $group_primary[$pc_group] ?? null;
+            if (!$primary) {
+                $errors[] = "Dòng $pc_line: nhóm người thân không có người chính hợp lệ (người chính cần Team + Email hợp lệ)";
+                continue;
+            }
+            $cname = sanitize_text_field($pc_row[$columns['name']] ?? '');
+            $c_search = MAC_Voting_DB::normalize_name($cname);
+            $c_existing = 0;
+            if (!$dry_run && (int) $primary['id'] > 0) {
+                $c_existing = (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $voters WHERE primary_voter_id=%d AND search_name=%s ORDER BY id LIMIT 1", $primary['id'], $c_search));
+            }
+            $c_identity = 'companion:' . ($primary['id'] ?: $pc_group) . ':' . $c_search;
+            if (isset($identity_rows[$c_identity])) {
+                $errors[] = "Dòng $pc_line trùng người đi kèm với dòng " . $identity_rows[$c_identity];
+                continue;
+            }
+            $identity_rows[$c_identity] = $pc_line;
+            $c_room_type = sanitize_text_field($pc_row[$columns['room_type']] ?? '');
+            $c_room_no = sanitize_text_field($pc_row[$columns['room']] ?? '');
+            $c_room_merge = self::xlsx_merge_ref($workbook['merges'] ?? array(), $pc_line, $columns['room'] + 1);
+            $c_room_group = $c_room_merge !== '' ? ('merge:' . $c_room_merge) : ($c_room_no !== '' ? ('room:' . MAC_Voting_DB::normalize_name($c_room_type) . ':' . MAC_Voting_DB::normalize_name($c_room_no)) : '');
+            if ($c_room_group !== '') $room_groups[$c_room_group] = (int) ($room_groups[$c_room_group] ?? 0) + 1;
+            $c_data = array(
+                'full_name' => self::format_import_name($cname, ''), 'search_name' => $c_search,
+                'employee_code' => null, 'email' => null, 'team_id' => (int) $primary['team_id'],
+                'birth_year' => sanitize_text_field($pc_row[$columns['birth_year']] ?? ''),
+                'gender' => sanitize_text_field($pc_row[$columns['gender']] ?? ''),
+                'citizen_id' => sanitize_text_field($pc_row[$columns['citizen_id']] ?? ''),
+                'phone' => sanitize_text_field($pc_row[$columns['phone']] ?? ''),
+                'room_type' => $c_room_type, 'room_no' => $c_room_no, 'room_group' => $c_room_group ?: null,
+                'note' => 'Đi kèm ' . $primary['name'],
+                'primary_voter_id' => (int) $primary['id'] ?: null,
+                'bus_rider' => 1,
+                'import_order' => max(0, $pc_line - $header_row - 1),
+                'phone_last4_hash' => '', 'status' => 'COMPANION', 'updated_at' => MAC_Voting_DB::utc_now(),
+            );
+            if ($dry_run) {
+                if ($c_existing) $updated++; else $inserted++;
+                $companions++;
+                $group_companion_count[$pc_group] = (int) ($group_companion_count[$pc_group] ?? 0) + 1;
+                continue;
+            }
+            if ($c_existing) {
+                $saved = $wpdb->update($voters, $c_data, array('id' => $c_existing));
+                if ($saved === false) { $errors[] = "Dòng $pc_line không lưu được: " . ($wpdb->last_error ?: 'lỗi database'); continue; }
+                $updated++;
+            } else {
+                $c_data['created_at'] = MAC_Voting_DB::utc_now();
+                $saved = $wpdb->insert($voters, $c_data);
+                if ($saved === false) { $errors[] = "Dòng $pc_line không lưu được: " . ($wpdb->last_error ?: 'lỗi database'); continue; }
+                $inserted++;
+            }
+            $companions++;
+            $group_companion_count[$pc_group] = (int) ($group_companion_count[$pc_group] ?? 0) + 1;
+        }
+        foreach ($family_groups as $ref => $group_info) {
+            if (isset($invalid_groups[$ref])) continue;
+            if (count($group_info['primaries']) === 1 && (int) ($group_companion_count[$ref] ?? 0) === 0) {
+                $errors[] = 'Dòng ' . $group_info['primaries'][0] . ': NOTE Người thân chưa gộp với dòng người đi kèm nào';
+            }
+        }
+        $family_group_count = 0;
+        foreach ($family_groups as $ref => $group_info) {
+            if (count($group_info['primaries']) === 1 && (int) ($group_companion_count[$ref] ?? 0) > 0) $family_group_count++;
         }
         if ($errors) {
             $wpdb->query('ROLLBACK');
@@ -1221,7 +1316,7 @@ final class MAC_Voting_Admin {
                 'updated' => $updated,
                 'companions' => $companions,
                 'nonBusRiders' => $non_bus,
-                'familyGroups' => count($family_groups),
+                'familyGroups' => $family_group_count,
                 'roomGroups' => count(array_filter($room_groups, static function($count): bool { return (int) $count > 1; })),
                 'headers' => array_values(array_map('strval', $header)),
                 'previewRows' => $preview_rows,
