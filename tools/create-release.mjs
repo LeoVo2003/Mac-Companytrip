@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.16";
+const tag = "v1.10.17";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Import/export XLSX: ô gộp Người thân / Phòng, CCCD+SĐT text, preview thống kê nhóm.",
-  "- 1 QR = cả nhóm người thân vào cùng xe, không tách nhóm, không vượt sức chứa.",
-  "- Export tên tiếng Việt: từng xe, tổng 5 xe (merge + tô màu chung phòng), kết quả, check-in, mẫu.",
+  "- Cột ĐI XE khi import: \"Không\" = chỉ đi chơi chung, vẫn có QR nhưng không phân xe.",
+  "- Người không đi xe tự động vắng mặt khỏi mọi export xe, kể cả file tổng gửi resort.",
 ].join("\n");
 
 let release;

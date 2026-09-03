@@ -314,7 +314,7 @@ final class MAC_Bus {
         $primary_id = (int) $wpdb->get_var($wpdb->prepare("SELECT COALESCE(primary_voter_id,id) FROM $voters WHERE id=%d", $voter_id));
         if (!$primary_id) return array();
         return $wpdb->get_results($wpdb->prepare(
-            "SELECT id,full_name,status,primary_voter_id FROM $voters WHERE id=%d OR (primary_voter_id=%d AND status='COMPANION') ORDER BY CASE WHEN id=%d THEN 0 ELSE 1 END,import_order,id",
+            "SELECT id,full_name,status,primary_voter_id,bus_rider FROM $voters WHERE id=%d OR (primary_voter_id=%d AND status='COMPANION') ORDER BY CASE WHEN id=%d THEN 0 ELSE 1 END,import_order,id",
             $primary_id,
             $primary_id,
             $primary_id
@@ -333,6 +333,11 @@ final class MAC_Bus {
         $party = self::party_voters($voter_id);
         if (!$party) return array('assigned' => false, 'reason' => 'VOTER_NOT_FOUND');
         $party_size = count($party);
+        // Người đánh dấu KHÔNG đi xe (cột ĐI XE = "Không" khi import): chỉ dùng QR check-in/vote,
+        // không rơi vào xe nào nên cũng không xuất hiện trong export gửi resort.
+        if ((int) ($party[0]['bus_rider'] ?? 1) === 0) {
+            return array('assigned' => false, 'reason' => 'NOT_BUS_RIDER', 'partySize' => $party_size);
+        }
         // Đồng bộ trước khi chọn xe: xe đầy đã chốt tự chuyển sang xe kế đang chờ.
         self::sync_boarding();
         $bus = self::boarding_bus();
@@ -682,7 +687,7 @@ final class MAC_Bus {
              JOIN ' . MAC_Voting_DB::table('voters') . ' v ON v.id=c.voter_id
              JOIN ' . MAC_Voting_DB::table('teams') . ' t ON t.id=v.team_id
              LEFT JOIN ' . MAC_Voting_DB::table('bus_members') . ' m ON m.voter_id=v.id
-             WHERE c.checkpoint_id=%d AND m.id IS NULL
+             WHERE c.checkpoint_id=%d AND m.id IS NULL AND v.bus_rider=1
              ORDER BY v.full_name',
             self::FIRST_CHECKPOINT_ID
         ), ARRAY_A) ?: array();

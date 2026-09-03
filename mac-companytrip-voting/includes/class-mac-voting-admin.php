@@ -1028,6 +1028,7 @@ final class MAC_Voting_Admin {
             'citizen_id' => array('cccd','cmnd','can cuoc cong dan'), 'phone' => array('sdt','so dien thoai','dien thoai','phone'),
             'room_type' => array('loai phong','room type'), 'room' => array('phong','so phong','room'),
             'note' => array('note','ghi chu'),
+            'bus_rider' => array('di xe','xe','bus','phuong tien'),
         );
         $columns = array();
         foreach ($aliases as $key => $names) {
@@ -1045,7 +1046,7 @@ final class MAC_Voting_Admin {
         $teams_table = MAC_Voting_DB::table('teams');
         $voters = MAC_Voting_DB::table('voters');
         $teams = $wpdb->get_results("SELECT * FROM $teams_table ORDER BY team_no", ARRAY_A);
-        $inserted = 0; $updated = 0; $companions = 0; $line = 1; $errors = array(); $identity_rows = array(); $pending_staff = array();
+        $inserted = 0; $updated = 0; $companions = 0; $non_bus = 0; $line = 1; $errors = array(); $identity_rows = array(); $pending_staff = array();
         $preview_rows = array(); $family_groups = array(); $room_groups = array(); $last_primary = null;
         $wpdb->query('START TRANSACTION');
         foreach ($source_rows as $sheet_row => $row) {
@@ -1152,6 +1153,13 @@ final class MAC_Voting_Admin {
             $room_merge = self::xlsx_merge_ref($workbook['merges'] ?? array(), $line, $columns['room'] + 1);
             $room_group = $room_merge !== '' ? ('merge:' . $room_merge) : ($room_no !== '' ? ('room:' . MAC_Voting_DB::normalize_name($room_type) . ':' . MAC_Voting_DB::normalize_name($room_no)) : '');
             if ($room_group !== '') $room_groups[$room_group] = (int) ($room_groups[$room_group] ?? 0) + 1;
+            // Cột ĐI XE tùy chọn: để trống = đi xe; ghi "Không" = chỉ đi chơi chung, không phân xe.
+            $bus_rider = 1;
+            if (isset($columns['bus_rider'])) {
+                $rider_value = MAC_Voting_DB::normalize_name((string) ($row[$columns['bus_rider']] ?? ''));
+                if (in_array($rider_value, array('khong', 'ko', 'k', 'no', '0', 'false', 'khong di', 'khong di xe'), true)) $bus_rider = 0;
+            }
+            if ($bus_rider === 0) $non_bus++;
             $data = array(
                 'full_name' => self::format_import_name($name, $employee), 'search_name' => MAC_Voting_DB::normalize_name($name),
                 'employee_code' => $employee ?: null, 'email' => $email, 'team_id' => (int) $team['id'],
@@ -1162,6 +1170,7 @@ final class MAC_Voting_Admin {
                 'room_type' => $room_type, 'room_no' => $room_no, 'room_group' => $room_group ?: null,
                 'note' => $is_companion ? ('Đi kèm ' . $last_primary['name']) : $note,
                 'primary_voter_id' => $is_companion && $primary_id ? $primary_id : null,
+                'bus_rider' => $is_companion ? 1 : $bus_rider,
                 'import_order' => max(0, $line - 2),
                 'phone_last4_hash' => '', 'status' => $status, 'updated_at' => MAC_Voting_DB::utc_now(),
             );
@@ -1211,6 +1220,7 @@ final class MAC_Voting_Admin {
                 'inserted' => $inserted,
                 'updated' => $updated,
                 'companions' => $companions,
+                'nonBusRiders' => $non_bus,
                 'familyGroups' => count($family_groups),
                 'roomGroups' => count(array_filter($room_groups, static function($count): bool { return (int) $count > 1; })),
                 'headers' => array_values(array_map('strval', $header)),
@@ -1836,15 +1846,16 @@ final class MAC_Voting_Admin {
         MAC_XLSX::output('Mẫu import nhân sự.xlsx', array(array(
             'name' => 'Nhân sự',
             'rows' => array(
-                array('HỌ & TÊN','NĂM SINH','GIỚI TÍNH','CCCD','SĐT','LOẠI PHÒNG','PHÒNG','TEAM','EMAIL','NOTE'),
-                array('NV-177 - Lý Tư Đình','1997','Nữ','','','Triple','34','HẢI ĐỒ','bambinette.ly@macusaone.com','Người thân'),
-                array('Lý Cẩm Uy','2016','Nam','','','','','','',''),
-                array('NV-059 - Nguyễn Ngô Minh Huy','1995','Nam','','','Twin','33','SAO BẮC CỰC','huy.nguyen@macusaone.com',''),
-                array('NV-083 - Tạ Thanh Tú','1995','Nam','','','','','ĐÈN HIỆU','tu.ta@macusaone.com',''),
+                array('HỌ & TÊN','NĂM SINH','GIỚI TÍNH','CCCD','SĐT','LOẠI PHÒNG','PHÒNG','TEAM','EMAIL','NOTE','ĐI XE'),
+                array('NV-177 - Lý Tư Đình','1997','Nữ','','','Triple','34','HẢI ĐỒ','bambinette.ly@macusaone.com','Người thân',''),
+                array('Lý Cẩm Uy','2016','Nam','','','','','','','',''),
+                array('NV-059 - Nguyễn Ngô Minh Huy','1995','Nam','','','Twin','33','SAO BẮC CỰC','huy.nguyen@macusaone.com','',''),
+                array('NV-083 - Tạ Thanh Tú','1995','Nam','','','','','ĐÈN HIỆU','tu.ta@macusaone.com','',''),
+                array('NV-099 - Trần Đi Chơi','1990','Nam','','','','','HẢI ĐỒ','choi.tran@macusaone.com','','Không'),
             ),
             'merges' => array(array(2, 6, 3, 6), array(2, 7, 3, 7), array(2, 10, 3, 10), array(4, 6, 5, 6), array(4, 7, 5, 7)),
             'rowStyles' => array(2 => 2, 3 => 2, 4 => 3, 5 => 3),
-            'widths' => array(34, 12, 12, 18, 16, 16, 12, 20, 32, 20),
+            'widths' => array(34, 12, 12, 18, 16, 16, 12, 20, 32, 20, 10),
             'autoFilter' => true,
         )));
     }

@@ -15,7 +15,7 @@ final class MAC_Voting_DB {
     public const CHECKIN_MAX_PER_CHECKPOINT = 150;
     public const CHECKIN_WINDOW_MINUTES = 15;
     public const RANK_LADDER = array(50, 40, 30, 20, 10, 0);
-    private const DB_VERSION = '1.10.16';
+    private const DB_VERSION = '1.10.17';
 
     public static function table(string $name): string {
         global $wpdb;
@@ -178,6 +178,7 @@ final class MAC_Voting_DB {
                 note varchar(255) NULL,
                 primary_voter_id bigint(20) unsigned NULL,
                 import_order int(11) unsigned NOT NULL DEFAULT 0,
+                bus_rider tinyint(1) NOT NULL DEFAULT 1,
                 team_id bigint(20) unsigned NOT NULL,
                 phone_last4_hash char(64) NULL,
                 qr_version smallint(5) unsigned NOT NULL DEFAULT 1,

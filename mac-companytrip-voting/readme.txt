@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.16
+Stable tag: 1.10.17
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -28,6 +28,8 @@ Tải XLSX mẫu trong trang Nhân sự & dữ liệu. Các cột bắt buộc:
 - Note
 
 Gộp ô Note ghi "Người thân" theo chiều dọc để ghép người có QR với các dòng người đi kèm. Gộp ô Phòng/Loại phòng để nhận diện nhóm chung phòng. Người đi kèm để trống Team và Email, không được cấp QR.
+
+Cột tùy chọn ĐI XE: để trống = đi xe bus như mọi người; ghi "Không" = chỉ đi chơi chung (vẫn có QR check-in + vote văn nghệ nhưng không phân xe, không xuất hiện trong file export gửi resort).
 
 Email có thể ghi đầy đủ hoặc chỉ username. Hệ thống chấp nhận @macusaone.com, @yesoffice.vn và @macmarketing.vn; khi chỉ ghi username, mặc định là @macusaone.com.
 
@@ -69,6 +71,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.17 =
+- Thêm cột ĐI XE tùy chọn khi import: ghi "Không" cho người chỉ đi chơi chung — vẫn có QR check-in + vote văn nghệ nhưng bỏ qua auto-assign Trạm 1, không nằm trong danh sách chưa phân xe và không xuất hiện trong bất kỳ export xe nào (kể cả Tổng danh sách 5 xe gửi resort).
+- Preview import thêm thống kê số người không đi xe; máy quét hiện dòng "KHÔNG ĐI XE theo danh sách" khi quét nhóm người này.
 
 = 1.10.16 =
 - Import/export chuyển hẳn sang XLSX: đọc ô gộp (NOTE "Người thân", PHÒNG), giữ CCCD/SĐT dạng text, preview thống kê người đi kèm / nhóm người thân / nhóm chung phòng; mẫu import là XLSX.

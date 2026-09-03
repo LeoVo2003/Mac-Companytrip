@@ -199,7 +199,7 @@
       applyTeam(result.teamProgress);
       const bus = result.busAssignment;
       const partyLine = Number(bus?.partySize || 0) > 1 ? ` · nhóm ${bus.partySize} người` : "";
-      const busLine = bus?.assigned ? ` → ${bus.busName}${partyLine}` : bootstrap?.busAssignmentEnabled ? (bus?.reason === "NO_ROOM_FOR_PARTY" ? ` · KHÔNG ĐỦ CHỖ CHO NHÓM ${bus.partySize} NGƯỜI` : " · CHƯA PHÂN XE — gặp Điều phối") : "";
+      const busLine = bus?.assigned ? ` → ${bus.busName}${partyLine}` : bootstrap?.busAssignmentEnabled ? (bus?.reason === "NO_ROOM_FOR_PARTY" ? ` · KHÔNG ĐỦ CHỖ CHO NHÓM ${bus.partySize} NGƯỜI` : bus?.reason === "NOT_BUS_RIDER" ? " · KHÔNG ĐI XE theo danh sách" : " · CHƯA PHÂN XE — gặp Điều phối") : "";
       showFlash("ok", `✓ ${result.voter.fullName} · #${result.voter.teamNumber} ${result.voter.teamName} · ${result.teamProgress.checkedIn}/${result.teamProgress.eligible}${busLine}`);
     } catch (err) {
       const extra = err.payload || {};

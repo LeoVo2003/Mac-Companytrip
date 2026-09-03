@@ -163,7 +163,7 @@ const gamesFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-game
 for (const invariant of ["one_valid_ballot", "email varchar(190) NULL", "UNIQUE KEY email", "qr_version", "revote_grants", "audit", "table('checkpoints')", "one_checkin", "table('thidua_rounds')", "table('checkpoint_windows')", "table('exemptions')", "table('games')"]) {
   if (!databaseFile.includes(invariant)) throw new Error(`Missing database invariant: ${invariant}`);
 }
-for (const invariant of ["birth_year varchar(10) NULL", "citizen_id varchar(30) NULL", "room_group varchar(100) NULL", "primary_voter_id bigint(20) unsigned NULL", "import_order int(11) unsigned NOT NULL DEFAULT 0"]) {
+for (const invariant of ["birth_year varchar(10) NULL", "citizen_id varchar(30) NULL", "room_group varchar(100) NULL", "primary_voter_id bigint(20) unsigned NULL", "import_order int(11) unsigned NOT NULL DEFAULT 0", "bus_rider tinyint(1) NOT NULL DEFAULT 1"]) {
   if (!databaseFile.includes(invariant)) throw new Error(`Missing XLSX personnel field: ${invariant}`);
 }
 for (const invariant of ["CHECKIN_MAX_PER_CHECKPOINT = 150", "CHECKIN_WINDOW_MINUTES = 15", "RANK_LADDER = array(50, 40, 30, 20, 10, 0)"]) {
@@ -574,6 +574,12 @@ if (artRaceJs.includes("SPOTLIGHT ĐANG TÌM KIẾM")) {
 
 // --- Module Phân xe: port state machine từ MAC_Bus (PHP) để chạy test case thật ---
 const busFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-bus.php"), "utf8");
+for (const invariant of ["NOT_BUS_RIDER", "bus_rider"]) {
+  if (!busFile.includes(invariant)) throw new Error(`Missing non-bus-rider handling in MAC_Bus: ${invariant}`);
+}
+if (!adminFile.includes("'nonBusRiders'") || !checkinJs.includes("NOT_BUS_RIDER")) {
+  throw new Error("Non-bus-rider flag must surface in import preview and scanner feedback.");
+}
 for (const invariant of ["function sync_boarding", "function save_capacity", "function close_bus", "function open_bus", "'capacity' => (int) $bus['capacity']"]) {
   if (!busFile.includes(invariant)) throw new Error(`Missing bus capacity or auto-advance invariant: ${invariant}`);
 }
@@ -582,7 +588,7 @@ for (const invariant of ["mac_vote_bus_capacity", "data-bus-capacity", "data-bus
 }
 if (adminJs.includes("mac_vote_bus_advance")) throw new Error("Legacy manual advance action must stay removed from the admin UI.");
 if (!databaseFile.includes("capacity smallint(5) unsigned NOT NULL DEFAULT 40")) throw new Error("Buses table must carry a per-bus capacity column.");
-const busModel = (teamOf, partyMap = {}) => {
+const busModel = (teamOf, partyMap = {}, nonRiders = new Set()) => {
   const buses = [1, 2, 3, 4, 5].map((id) => ({ id, status: "WAITING", capacity: 2 }));
   const members = [];
   let memberSeq = 0;
@@ -651,6 +657,7 @@ const busModel = (teamOf, partyMap = {}) => {
       if (checkpointId !== 1 || !enabled(checkpoint1Open)) return null;
       const existing = members.find((m) => m.voterId === voterId);
       if (existing) return { assigned: true, busId: existing.busId };
+      if (nonRiders.has(voterId)) return { assigned: false, reason: "NOT_BUS_RIDER", partySize: partyOf(voterId).length };
       sync(checkpoint1Open);
       const party = partyOf(voterId);
       const found = findPartyTarget(party.length);
@@ -719,10 +726,11 @@ const BUS_CASES = [
   { name: "BUS-20 xe còn 1 chỗ, nhóm 2 → không tách nhóm, cả nhóm sang xe kế", run: (m) => { m.autoAssign(101, 1, true); const r = m.autoAssign(102, 1, true); return r.busId === 2 && m.members.filter((x) => [102, 903].includes(x.voterId)).every((x) => x.busId === 2) && m.buses[0].status === "CLOSED"; }, parties: { 102: [102, 903] } },
   { name: "BUS-21 không xe nào đủ chỗ cho nhóm → báo lỗi, không chốt xe oan", run: (m) => { buses_all_one(m); const r = m.autoAssign(102, 1, true); return r !== null && r.assigned === false && r.reason === "NO_ROOM_FOR_PARTY" && m.buses[0].status === "BOARDING" && m.members.length === 0; }, parties: { 102: [102, 903] } },
   { name: "BUS-22 move người chính kéo cả nhóm đi theo", run: (m) => { m.setCapacity(1, 3, true); m.setCapacity(3, 3, true); m.autoAssign(102, 1, true); const r = m.moveVoter(102, 3); return r.ok === true && r.moved === 2 && m.members.filter((x) => [102, 903].includes(x.voterId)).every((x) => x.busId === 3); }, parties: { 102: [102, 903] } },
+  { name: "BUS-23 người KHÔNG đi xe: quét QR vẫn ok nhưng không rơi vào xe nào", run: (m) => { const r = m.autoAssign(105, 1, true); return r.assigned === false && r.reason === "NOT_BUS_RIDER" && m.members.length === 0 && m.buses.every((b) => b.status === "WAITING"); }, nonRiders: [105] },
 ];
 const buses_all_one = (m) => m.buses.forEach((b) => { b.capacity = 1; });
 for (const tc of BUS_CASES) {
-  if (!tc.run(busModel(busTeamOf, tc.parties || {}))) throw new Error(`${tc.name}: failed.`);
+  if (!tc.run(busModel(busTeamOf, tc.parties || {}, new Set(tc.nonRiders || [])))) throw new Error(`${tc.name}: failed.`);
 }
 
 const totalBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);
