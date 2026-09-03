@@ -4305,6 +4305,9 @@ body.mac-admin-public-page .ma-side > a {
 tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 [data-bus-manifest] {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   padding: 8px 12px;
   border: 0;
   border-radius: 10px;
@@ -4331,7 +4334,7 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   flex: 0 0 auto;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -4373,7 +4376,8 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   border-top: 1px solid var(--border);
 }
 
-/* Ô tên người ngoài luôn full-width, nằm dưới khối tìm nhân sự. */
+/* Hai ô tìm/thêm người luôn full-width, không làm lệch nhịp trong form. */
+#ma-bus-any-query,
 #ma-bus-manual {
   display: block;
   width: 100%;
@@ -4431,26 +4435,31 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 }
 
 .ma-bus-add {
-  display: block;
-  padding: 20px 24px 24px;
+  display: grid;
+  gap: 24px;
+  padding: 24px;
   border-top: 1px solid var(--border);
   background: transparent;
 }
 
-.ma-bus-add > * + * { margin-top: 24px; }
-
-/* Nhịp dọc khối thêm: heading / ô tên / nút cách nhau 24px. */
-.ma-bus-add .ma-bus-add-head,
-#ma-bus-manual,
-.ma-bus-add .ma-primary { margin-top: 24px; }
+/* Mỗi nhóm thêm người: tiêu đề dính khối với ô tìm + danh sách tick (12px),
+   các nhóm cách nhau 24px theo nhịp Premium của form cha. */
+.ma-bus-add-group {
+  display: grid;
+  gap: 12px;
+}
 
 /* Nút chính tab Phân xe: gradient đỏ–cam trên mọi màn hình. */
 .ma-bus-add .ma-primary,
 #ma-rollcall-new {
+  min-height: 44px;
+  padding: 0 15px;
   border: 0;
   color: #fff;
   background: var(--grad);
   box-shadow: var(--shadow-grad);
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .ma-guide-form {
@@ -4482,6 +4491,8 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 .ma-bus-add .ma-primary,
 .ma-guide-form .ma-primary { margin-top: 0; }
 
+.ma-bus-add .ma-primary { justify-self: start; }
+
 .ma-bus-actions {
   display: flex;
   gap: 6px;
@@ -4491,7 +4502,7 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 .ma-bus-actions select {
   max-width: 116px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 28px 0 10px;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -4506,8 +4517,8 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 /* Nút tick điểm danh nhanh trong manifest. */
 .ma-roll-mini {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--panel);
@@ -4530,13 +4541,13 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 }
 
 .ma-bus-filters button {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--panel);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--ink-soft);
   cursor: pointer;
@@ -4643,11 +4654,11 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 .ma-bus-pick {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 6px;
-  max-height: 220px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 10px;
+  max-height: 264px;
   overflow-y: auto;
-  padding: 10px;
+  padding: 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--soft, #fafafc);
@@ -4655,17 +4666,40 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 .ma-pick-item {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
-  min-height: 40px;
-  padding: 0 10px;
-  border-radius: 10px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
   background: var(--panel);
   border: 1px solid var(--border);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--ink-soft);
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+}
+
+/* Số team đẩy về cuối hàng để cột #thẳng hàng, không dính sát tên người. */
+.ma-pick-item small {
+  margin-left: auto;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ma-pick-item:hover {
+  border-color: var(--brand-border);
+  background: var(--brand-softer);
+}
+
+.ma-pick-item:focus-within,
+.ma-pick-item:has(input:checked) {
+  border-color: var(--r);
+  background: var(--brand-soft);
+  box-shadow: 0 0 0 3px rgba(227, 30, 36, 0.1);
+  color: var(--ink);
 }
 
 .ma-pick-item input {
@@ -4682,8 +4716,8 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 /* Nút xóa khỏi xe: rõ ràng, chạm thoải mái. */
 .ma-bus-actions .danger {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 1px solid #fecdca;
   border-radius: 12px;
   background: #fef3f2;
@@ -4702,17 +4736,6 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   font-size: 12.5px;
   font-weight: 500;
 }
-
-/* Hàng reset phân xe (Super Admin). */
-.ma-bus-extra {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  padding: 0 20px 16px;
-}
-
-.ma-bus-extra small { color: #667085; font-size: 12px; }
 
 .ma-bus-ghost,
 .ma-bus-ghost-danger {
@@ -4745,6 +4768,10 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 /* Mobile: bảng bus gọn, nút giữ font 14px đồng bộ toàn hệ thống. */
 @media (max-width: 720px) {
   .ma-bus-control .ma-board-table table { min-width: 520px; }
+
+  .ma-bus-add { padding: 16px; }
+
+  .ma-bus-add .ma-primary { width: 100%; }
 
   /* Manifest mobile: chỉ giữ Họ tên + tick + chuyển xe + xóa. */
   .ma-bus-manifest .ma-board-table table { min-width: 0; }

@@ -218,8 +218,8 @@ for (const invariant of ["art_reveal_plan", "'nextStage' => $next_stage", "'rank
 for (const invariant of ["revealRankButton", "is-skipped", "Đội đồng điểm được công bố cùng lúc"] ) {
   if (!adminJs.includes(invariant)) throw new Error(`Missing tied-rank reveal admin UI: ${invariant}`);
 }
-if (!resultsJs.includes('["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST", "REVEAL3", "FINAL"].includes(state.stage)')) {
-  throw new Error("Total reveal must render from seven explicit admin stages without an automatic timer.");
+if (!resultsJs.includes('["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST", "REVEAL3", "SECOND", "FINAL"].includes(state.stage)')) {
+  throw new Error("Total reveal must render from eight explicit admin stages without an automatic timer.");
 }
 for (const invariant of ["RANK65: { 6: 8, 5: 8 }", "TEASE43: { 6: 8, 5: 8 }", "RANK43: { 6: 8, 5: 8, 4: 8 }", "TWIST: { 6: 5, 5: 5, 4: 5 }", "REVEAL3: { 6: 3, 5: 3, 4: 3, 3: 5 }", "FINAL: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6.5, 1: 8.5 }", "KHUYẾN KHÍCH"]) {
   if (!resultsJs.includes(invariant)) throw new Error(`Missing total reveal ladder invariant: ${invariant}`);
@@ -245,7 +245,7 @@ if (!adminJs.includes('["reveal", "Công bố"]') || !adminJs.includes("Bàn đi
 if (!adminFile.includes("dashboard()['teams']") || !restFile.includes("dashboard()['teams']")) {
   throw new Error("Total reveal snapshot must read the teams slice of the dashboard board.");
 }
-for (const invariant of ["'RANK65' => 'TEASE43'", "'TEASE43' => 'RANK43'", "'RANK12' => 'TWIST'", "'TWIST' => 'REVEAL3'", "'REVEAL3' => 'FINAL'", "RESULTS_TOTAL_REVEAL_"]) {
+for (const invariant of ["'RANK65' => 'TEASE43'", "'TEASE43' => 'RANK43'", "'RANK43' => 'TWIST'", "'TWIST' => 'REVEAL3'", "'REVEAL3' => 'SECOND'", "'SECOND' => 'FINAL'", "'RANK12' => 'TWIST'", "RESULTS_TOTAL_REVEAL_"]) {
   if (!adminFile.includes(invariant)) throw new Error(`Missing total reveal admin transition: ${invariant}`);
 }
 if (!restFile.includes("/results-total") || !restFile.includes("function results_total")) {

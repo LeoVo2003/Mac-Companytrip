@@ -197,7 +197,7 @@ final class MAC_Voting_REST {
         unset($row);
         // Thang lộ hạng đếm theo SỐ ĐỘI TỪ DƯỚI LÊN thay vì ngưỡng hạng cứng, để trùng điểm
         // không làm lép bước nào: RANK65 lộ 2 đội cuối, RANK43 lộ 3 đội cuối (chỉ hạng 4-5-6,
-        // hạng 3 dành cho bước sau cú twist), FINAL lộ hết.
+        // hạng 3 dành cho bước sau cú twist), SECOND lộ hạng nhì, FINAL lộ quán quân.
         // Nhóm trùng điểm vắt ngang mép nhóm sẽ được lộ cùng cụm (vd hạng 4-4-4 lộ cùng bước hạng 5-6).
         $revealed_from_bottom = array(
             'RANK65' => 2,
@@ -206,6 +206,7 @@ final class MAC_Voting_REST {
             'RANK12' => 4,
             'TWIST' => 3,
             'REVEAL3' => 4,
+            'SECOND' => 5,
             'FINAL' => count($rows),
         )[$state['stage']] ?? 0;
         $threshold_total = null;
@@ -214,7 +215,8 @@ final class MAC_Voting_REST {
             $threshold_total = (int) $rows[$threshold_index]['total'];
         }
         // Quy tắc trùng điểm + kịch bản twist: hạng chỉ lộ từ bước chỉ định — bước 02 chỉ lộ hạng 4-5-6,
-        // TWIST giấu cả top 3 (3 đội cùng tung điểm), REVEAL3 cho hạng 3 về bến, FINAL mới lộ hạng 1-2.
+        // TWIST giấu cả top 3 (3 đội cùng tung điểm), REVEAL3 cho hạng 3 về bến,
+        // SECOND lộ hạng nhì và FINAL mới lộ quán quân.
         $protect_rank = array(
             'RANK65' => 3,
             'TEASE43' => 3,
@@ -222,9 +224,10 @@ final class MAC_Voting_REST {
             'RANK12' => 3,
             'TWIST' => 4,
             'REVEAL3' => 3,
+            'SECOND' => 2,
             'FINAL' => 1,
         )[$state['stage']] ?? PHP_INT_MAX;
-        $candidate_max_rank = $state['stage'] === 'TWIST' ? 3 : 2;
+        $candidate_max_rank = $state['stage'] === 'TWIST' ? 3 : ($state['stage'] === 'SECOND' ? 1 : 2);
         $top_two = array();
         $public_teams = array_map(static function(array $row) use ($threshold_total, $protect_rank, $candidate_max_rank, &$top_two): array {
             if ((int) $row['rank'] <= $candidate_max_rank) {

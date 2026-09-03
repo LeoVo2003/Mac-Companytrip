@@ -19,12 +19,13 @@
     RANK12: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6, 1: 6 },
     TWIST: { 6: 5, 5: 5, 4: 5 },
     REVEAL3: { 6: 3, 5: 3, 4: 3, 3: 5 },
+    SECOND: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6.5 },
     FINAL: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6.5, 1: 8.5 },
   };
   // Badge gắn ngay khi lộ: hạng 5-6 nhận HẠNG KHUYẾN KHÍCH ở bước 1, hạng 4 ở bước 2;
-  // hạng 3 chờ bước "Hiện top 3" (REVEAL3); hạng 2-1 chỉ gắn badge ở FINAL để giữ cú twist.
-  const STAGE_ORDER = { RANK65: 1, TEASE43: 1, RANK43: 2, RANK12: 3, TWIST: 3, REVEAL3: 4, FINAL: 5 };
-  const BADGE_FROM = { 6: 1, 5: 1, 4: 2, 3: 4, 2: 5, 1: 5 };
+  // Hạng 3 chờ bước REVEAL3; hạng nhì và quán quân lộ ở hai nhịp tách biệt.
+  const STAGE_ORDER = { RANK65: 1, TEASE43: 1, RANK43: 2, RANK12: 3, TWIST: 3, REVEAL3: 4, SECOND: 5, FINAL: 6 };
+  const BADGE_FROM = { 6: 1, 5: 1, 4: 2, 3: 4, 2: 5, 1: 6 };
   const badgeFor = (stage, rank) => (STAGE_ORDER[stage] ?? 0) >= (BADGE_FROM[rank] ?? 9);
 
   let state = null;
@@ -42,7 +43,7 @@
   let pyroTimer = 0;
 
   function shell(teams) {
-    root.innerHTML = `<div class="mr-shell" data-stage="idle"><canvas class="mr-pyro" aria-hidden="true"></canvas><div class="mr-seascape" aria-hidden="true"><i class="mr-sun"></i><i class="mr-wake"></i></div><div class="mr-compass" aria-hidden="true"><svg viewBox="0 0 400 400" role="presentation"><circle cx="200" cy="200" r="176"/><circle cx="200" cy="200" r="154"/><circle cx="200" cy="200" r="118"/><path class="mr-compass-cross" d="M200 24v352M24 200h352M76 76l248 248M324 76 76 324"/><path class="mr-compass-rose" d="M200 48l22 130 130 22-130 22-22 130-22-130-130-22 130-22z"/><path class="mr-compass-minor" d="M200 84l12 104 104 12-104 12-12 104-12-104-104-12 104-12z"/><g class="mr-compass-labels"><text x="200" y="18">N</text><text x="386" y="206">E</text><text x="200" y="397">S</text><text x="14" y="206">W</text><text x="327" y="67">NE</text><text x="337" y="345">SE</text><text x="63" y="345">SW</text><text x="62" y="67">NW</text></g></svg><i class="mr-needle"></i></div><header class="mr-header"><div class="mr-brand-lockup"><img src="${esc(logo)}" alt="MAC Marketing"></div><div class="mr-event"><span>COMPANY TRIP - One Direction</span><strong>TỔNG KẾT COMPANY TRIP</strong></div><div class="mr-connection" role="status"><i></i><span>Đang đồng bộ</span></div></header><main><div class="mr-heading" aria-live="polite"><p>KẾT QUẢ CHUNG CUỘC</p><h1>Khoảnh khắc đang đến gần</h1><span></span></div><section class="mr-chart" aria-label="Biểu đồ tổng điểm của 6 đội">${teams.map((team) => `<article class="mr-team" data-team-id="${team.id}" role="group" aria-label="Team số ${team.number} ${esc(team.name)}"><div class="mr-score"><span>—</span><small>ĐIỂM</small></div><div class="mr-column"><div class="mr-rank" hidden></div><div class="mr-bar"><span></span><i></i></div><div class="mr-base"></div></div><div class="mr-team-name"><strong>${esc(team.name)}</strong></div></article>`).join("")}</section></main><footer class="mr-footer"><span class="mr-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE RESULT</span></div></footer></div>`;
+    root.innerHTML = `<div class="mr-shell" data-stage="idle"><canvas class="mr-pyro" aria-hidden="true"></canvas><div class="mr-seascape" aria-hidden="true"><i class="mr-sun"></i><i class="mr-wake"></i></div><div class="mr-compass" aria-hidden="true"><svg viewBox="0 0 400 400" role="presentation"><circle cx="200" cy="200" r="176"/><circle cx="200" cy="200" r="154"/><circle cx="200" cy="200" r="118"/><path class="mr-compass-cross" d="M200 24v352M24 200h352M76 76l248 248M324 76 76 324"/><path class="mr-compass-rose" d="M200 48l22 130 130 22-130 22-22 130-22-130-130-22 130-22z"/><path class="mr-compass-minor" d="M200 84l12 104 104 12-104 12-12 104-12-104-104-12 104-12z"/><g class="mr-compass-labels"><text x="200" y="18">N</text><text x="386" y="206">E</text><text x="200" y="397">S</text><text x="14" y="206">W</text><text x="327" y="67">NE</text><text x="337" y="345">SE</text><text x="63" y="345">SW</text><text x="62" y="67">NW</text></g></svg><i class="mr-needle"></i></div><header class="mr-header"><div class="mr-brand-lockup"><img src="${esc(logo)}" alt="MAC Marketing"></div><div class="mr-event"><span>COMPANY TRIP - One Direction</span><strong>TỔNG KẾT COMPANY TRIP</strong></div><div class="mr-connection" role="status"><i></i><span>Đang đồng bộ</span></div></header><main><div class="mr-heading" aria-live="polite"><p>One Direction</p><h1>Chặng về đích</h1><span>6 đội · 1 hành trình · cùng hướng về vị trí dẫn đầu</span></div><div class="mr-closing" aria-live="polite">ONE DIRECTION<br>ĐỒNG HƯỚNG VƯƠN XA</div><section class="mr-chart" aria-label="Biểu đồ tổng điểm của 6 đội">${teams.map((team) => `<article class="mr-team" data-team-id="${team.id}" role="group" aria-label="Team số ${team.number} ${esc(team.name)}"><div class="mr-score"><span>—</span><small>ĐIỂM</small></div><div class="mr-column"><div class="mr-rank" hidden></div><div class="mr-bar"><span></span><i></i></div><div class="mr-base"></div></div><div class="mr-team-name"><strong>${esc(team.name)}</strong></div></article>`).join("")}</section></main><footer class="mr-footer"><span class="mr-stage-copy">Sẵn sàng công bố</span><div><i></i><span>LIVE RESULT</span></div></footer></div>`;
   }
 
   function setConnection(connected) {
@@ -94,7 +95,7 @@
   function renderIdle() {
     revealedIds.clear();
     heroIds = new Set();
-    setHeading("KẾT QUẢ CHUNG CUỘC", "Khoảnh khắc đang đến gần", "", "Sẵn sàng công bố");
+    setHeading("One Direction", "Chặng về đích", "6 đội · 1 hành trình · cùng hướng về vị trí dẫn đầu", "Sẵn sàng công bố");
     state.teams.forEach((team, index) => {
       const element = teamElement(team.id);
       clearTeamState(element);
@@ -106,7 +107,7 @@
   function renderRolling() {
     revealedIds.clear();
     heroIds = new Set();
-    setHeading("Company Trip · Chặng về đích", "Ai sẽ chạm đỉnh?", "6 đội · 4 chặng đường · 1 ngôi vương duy nhất", "Đang tung điểm trực tiếp");
+    setHeading("Kết quả chung cuộc", "Ai sẽ được gọi tên trước?", "Hành trình đang dần xác định những vị trí đầu tiên", "Đang tung điểm trực tiếp");
     const waves = state.teams.map((team, index) => {
       const column = teamElement(team.id)?.querySelector(".mr-column");
       // Vạch xuất phát 122px quy đổi sang % theo chiều cao cột thật để kéo mượt, không giật.
@@ -221,9 +222,9 @@
     const champions = revealedAtRank(1);
     const names = champions.map((team) => team.name);
     const title = names.length ? names.join(" · ") : "Kết quả chung cuộc";
-    const scoreLine = champions.length === 1 && !state.scoresHidden ? ` · ${formatTotal(champions[0].score)} điểm` : "";
-    const description = names.length ? `CHÚC MỪNG ${names.join(" · ").toUpperCase()}${scoreLine} · Nhà vô địch Company Trip` : "Đã hoàn tất công bố";
-    setHeading("QUÁN QUÂN COMPANY TRIP", title, description, "Kết quả chung cuộc");
+    const scoreLine = champions.length === 1 && !state.scoresHidden ? `${formatTotal(champions[0].score)} điểm · ` : "";
+    const description = names.length ? `${scoreLine}Nhà vô địch của hành trình One Direction` : "Đã hoàn tất công bố";
+    setHeading("Quán quân Company Trip", title, description, "ONE DIRECTION ĐỒNG HƯỚNG VƯƠN XA");
     if (pyroRevision !== state.revision && !reducedMotion.matches) {
       pyroRevision = state.revision;
       // Pháo hoa chờ thêm 3s để cột quán quân leo trọn lên đỉnh và MC xướng tên xong mới bắn.
@@ -261,10 +262,10 @@
         // tránh lỗi hiện điểm lại sau FINAL vẫn thấy •••.
         scoreText = formatTotal(team.score);
         if (badgeFor(stage, team.rank)) badgeText = rankLabel(team.rank);
-      } else if (stage === "RANK12" || stage === "TWIST" || stage === "REVEAL3") {
-        // Ứng viên (TWIST: hạng 1-3, REVEAL3: hạng 1-2) leo lên mốc dao động nhưng giấu hạng +
+      } else if (stage === "RANK12" || stage === "TWIST" || stage === "REVEAL3" || stage === "SECOND") {
+        // Ứng viên (TWIST: hạng 1-3, REVEAL3: hạng 1-2, SECOND: chỉ quán quân) leo lên mốc dao động nhưng giấu hạng +
         // điểm thật — số sẽ được vòng lặp twist tung liên tục.
-        level = stage === "REVEAL3" ? 70 : stage === "RANK12" ? 60 : 65;
+        level = stage === "REVEAL3" ? 70 : stage === "SECOND" ? 78 : stage === "RANK12" ? 60 : 65;
         scoreText = "•••";
       } else {
         // Chưa lộ: cột về vạch xuất phát 122px để nhóm được lộ nổi bật hẳn.
@@ -284,18 +285,18 @@
     });
 
     state.teams.forEach((team) => { if (team.rank !== null) revealedIds.add(team.id); });
-    const celebrate = newlyRevealed.length ? `Xin chúc mừng ${teamNames(newlyRevealed)}` : "Kết quả đang được chốt";
+    const celebrate = newlyRevealed.length ? `Chúc mừng ${teamNames(newlyRevealed)}` : "Kết quả đang được chốt";
 
     if (stage === "RANK65") {
-      setHeading(rankHeadline(newlyRevealed) || "KẾT QUẢ ĐANG CHỐT", "Những cái tên đầu tiên lộ diện", celebrate, "Tín hiệu 1 · Đã chốt");
+      setHeading(rankHeadline(newlyRevealed) || "Hạng 6 & Hạng 5", "Những đội đầu tiên lộ diện", celebrate, "Tín hiệu 1 · Đã chốt");
       return;
     }
     if (stage === "TEASE43") {
-      setHeading("Top 4 đang đến gần", "Ai sẽ bước tiếp?", "Hiện top 4 để tiếp tục", "Tín hiệu 2 · Nhá hàng");
+      setHeading("Top 4 đang đến gần", "Ai sẽ tiếp tục tiến bước?", "Những cái tên nổi bật đang dần xuất hiện", "Tín hiệu 2 · Nhá hàng");
       return;
     }
     if (stage === "RANK43") {
-      setHeading(rankHeadline(newlyRevealed) || "KẾT QUẢ ĐANG CHỐT", "Top giữa đã gọi tên ai?", celebrate, "Tín hiệu 2 · Đã chốt");
+      setHeading(rankHeadline(newlyRevealed) || "Hạng 4", "Một vị trí đã được xác định", celebrate, "Tín hiệu 2 · Đã chốt");
       return;
     }
     if (stage === "RANK12") {
@@ -305,14 +306,22 @@
     if (stage === "TWIST") {
       // Trùng điểm top đầu có thể cho nhiều hơn 3 cột cùng tung điểm; copy tự điều chỉnh theo số cột.
       const leaderCount = (state.topTwo || []).length;
-      setHeading("Khoảnh khắc quyết định", "Ai sẽ chạm tay vào cúp?", "Chặng nước rút Company Trip · ngôi vương chỉ có một", "Căng thẳng tột độ");
+      setHeading("Khoảnh khắc quyết định", "Ai sẽ chạm gần hơn tới đích đến?", "Chỉ còn lại những đội xuất sắc nhất trên hành trình này", "Căng thẳng tột độ");
       // Ứng viên leo mượt lên 80% trước, ~1,1s sau mới bắt đầu dao động + tung điểm.
       animationTimer = window.setTimeout(startTwist, 1100);
       return;
     }
     if (stage === "REVEAL3") {
-      setHeading(rankHeadline(newlyRevealed) || "HẠNG BA", "Gương mặt tiếp theo lộ diện", celebrate, "Tín hiệu 4 · Đã chốt");
+      setHeading(rankHeadline(newlyRevealed) || "Hạng 3", "Top 3 đã gọi tên", celebrate, "Tín hiệu 4 · Đã chốt");
       // Hạng 3 về bến; hạng 1-2 tiếp tục tung điểm — khởi động lại vòng dao động với nhóm ứng viên mới.
+      animationTimer = window.setTimeout(startTwist, 350);
+      return;
+    }
+    if (stage === "SECOND") {
+      const runnersUp = newlyRevealed.length ? newlyRevealed : revealedAtRank(2);
+      const runnerTitle = teamNames(runnersUp) || "Á quân";
+      const runnerScore = runnersUp.length === 1 && !state.scoresHidden ? `${formatTotal(runnersUp[0].score)} điểm · ` : "";
+      setHeading("Á quân Company Trip", runnerTitle, `${runnerScore}Chỉ cách đích đến một bước`, "Tín hiệu 5 · Đã chốt");
       animationTimer = window.setTimeout(startTwist, 350);
       return;
     }
@@ -339,7 +348,7 @@
     stopStageAnimation();
     root.querySelector(".mr-shell").dataset.stage = state.stage.toLowerCase();
     if (state.stage === "ROLLING") renderRolling();
-    else if (["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST", "REVEAL3", "FINAL"].includes(state.stage)) renderLadder(state.stage);
+    else if (["RANK65", "TEASE43", "RANK43", "RANK12", "TWIST", "REVEAL3", "SECOND", "FINAL"].includes(state.stage)) renderLadder(state.stage);
     else renderIdle();
   }
 

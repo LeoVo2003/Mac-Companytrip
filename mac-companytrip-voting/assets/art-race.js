@@ -207,7 +207,7 @@
     if (!searchPool().length) return;
     searchActive = true;
     if (state.stage === "ROLLING") {
-      setTitle("Ánh sáng đang gọi tên", "Ai sẽ bước vào tâm điểm?", "Một khoảnh khắc · một cái tên được chọn", "Chờ tín hiệu công bố hạng 6");
+      setTitle("Ánh sáng đang gọi tên", "Ai sẽ bước vào tâm điểm?", "Tiết mục nào sẽ là cái tên đầu tiên lộ diện?", "Chờ tín hiệu công bố hạng 6");
     } else {
       setTitle("Nhịp tìm kiếm mới", "Ai sẽ là cái tên kế tiếp?", "Spotlight lướt qua những đội chưa lộ diện", "Chờ tín hiệu MC");
     }
@@ -292,14 +292,16 @@
     const tied = currents.length > 1;
     const names = currents.map((team) => team.name).join(" · ");
     // Chuẩn UI từng tầng: kicker nhỏ → tên đội lớn → dòng điểm; Bricolage 600, không in hoa toàn bộ.
-    const rankSoft = (rank) => ({ 1: "Quán quân", 2: "Hạng nhì", 3: "Hạng ba" }[Number(rank)] || `Hạng ${rank}`);
+    const rankSoft = (rank) => ({ 1: "Quán quân", 2: "Hạng nhì", 3: "Hạng 3" }[Number(rank)] || `Hạng ${rank}`);
     const kickerNormal = tied
       ? (champion ? "Đồng quán quân" : `Đồng ${rankSoft(current.rank).toLowerCase()}`)
       : (champion ? "Quán quân văn nghệ" : rankSoft(current.rank));
     setTitle(
       kickerNormal,
       tied ? names : current.name,
-      current.score !== null ? `${fmtScore(current.score)} điểm` : "",
+      champion
+        ? `Chúc mừng ${tied ? names : current.name}${current.score !== null && !tied ? ` · ${fmtScore(current.score)} điểm` : ""}`
+        : (current.score !== null ? `${fmtScore(current.score)} điểm` : ""),
       champion ? "Kết quả chung cuộc" : `Đã công bố ${rankSoft(current.rank).toLowerCase()}`
     );
 

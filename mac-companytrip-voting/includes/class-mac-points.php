@@ -445,14 +445,14 @@ final class MAC_Points {
         return $user ? $user->display_name : ('User #' . $id);
     }
 
-    public static function reset_awards(): void {
+    public static function reset_awards(): bool {
         global $wpdb;
         $points = MAC_Voting_DB::table('team_points');
-        $wpdb->query($wpdb->prepare(
+        return $wpdb->query($wpdb->prepare(
             "DELETE FROM $points WHERE source_type IN (%s,%s)",
             self::SOURCE,
             self::LEGACY_SOURCE
-        ));
+        )) !== false;
     }
 
     public static function reset_history(): void {

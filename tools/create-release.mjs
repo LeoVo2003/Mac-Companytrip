@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.11";
+const tag = "v1.10.12";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- UI mobile: login hết tràn, logout luôn hiện, accordion check-in theme-proof, bảng 12px, spacing 24px.",
-  "- Phân quyền rõ theo vai trò; Điểm danh lượt mới chỉ HDV + Super Admin.",
-  "- Reset sự kiện kèm reset phân xe; xuất CSV đối soát toàn bộ dữ liệu.",
+  "- Nút reset riêng từng tab (Check-in / Phân xe / Trò chơi lớn / Văn nghệ / Thi đua); Đặt lại sự kiện chỉ dành cho Super Admin.",
+  "- Phân xe: khối thêm người giãn nhịp 12/24px, lưới tick thoáng, nút đồng chuẩn 44px · 14px · 700.",
+  "- Màn tổng kết thêm nhịp công bố á quân + câu chốt ONE DIRECTION ĐỒNG HƯỚNG VƯƠN XA; lời dẫn màn văn nghệ theo kịch bản MC.",
 ].join("\n");
 
 let release;

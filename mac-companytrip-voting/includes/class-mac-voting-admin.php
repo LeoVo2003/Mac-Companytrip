@@ -10,6 +10,10 @@ final class MAC_Voting_Admin {
         add_action('admin_enqueue_scripts', array(__CLASS__, 'assets'));
         add_action('wp_ajax_mac_vote_overview', array(__CLASS__, 'ajax_overview'));
         add_action('wp_ajax_mac_vote_reset_event', array(__CLASS__, 'ajax_reset_event'));
+        add_action('wp_ajax_mac_vote_reset_checkin', array(__CLASS__, 'ajax_reset_checkin'));
+        add_action('wp_ajax_mac_vote_reset_art', array(__CLASS__, 'ajax_reset_art'));
+        add_action('wp_ajax_mac_vote_reset_games', array(__CLASS__, 'ajax_reset_games'));
+        add_action('wp_ajax_mac_vote_reset_thidua', array(__CLASS__, 'ajax_reset_thidua'));
         add_action('wp_ajax_mac_vote_round', array(__CLASS__, 'ajax_round'));
         add_action('wp_ajax_mac_vote_reveal', array(__CLASS__, 'ajax_reveal'));
         add_action('wp_ajax_mac_vote_reveal_total', array(__CLASS__, 'ajax_reveal_total'));
@@ -142,29 +146,24 @@ final class MAC_Voting_Admin {
         }
 
         global $wpdb;
-        $rounds = MAC_Voting_DB::table('rounds');
-        $ballots = MAC_Voting_DB::table('ballots');
-        $grants = MAC_Voting_DB::table('revote_grants');
-
         $wpdb->query('START TRANSACTION');
-        $reset_rounds = $wpdb->query("UPDATE $rounds SET status='DRAFT', opened_at=NULL, closes_at=NULL, closed_at=NULL");
-        $deleted_grants = $wpdb->query("DELETE FROM $grants");
-        $deleted_ballots = $wpdb->query("DELETE FROM $ballots");
-        if (in_array(false, array($reset_rounds, $deleted_grants, $deleted_ballots), true)) {
+        $art = self::reset_art_data();
+        $checkin = MAC_Checkin::reset_checkin_data();
+        $games = MAC_Games::reset_ranks();
+        $thidua = MAC_Points::reset_awards();
+        if (is_wp_error($art) || !$checkin || !$games || !$thidua) {
             $wpdb->query('ROLLBACK');
             wp_send_json_error(array('message' => 'Không thể đặt lại sự kiện. Dữ liệu chưa bị thay đổi.'), 500);
         }
-        MAC_Checkin::reset_event_data();
-        MAC_Points::reset_awards();
         MAC_Points::reset_history();
         $wpdb->query('COMMIT');
-        MAC_Voting_DB::set_reveal_state('IDLE');
+        self::reset_total_presentation();
         MAC_Bus::reset_assignment();
 
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'EVENT_RESET', 'event', null, array(
-            'deletedBallots' => (int) $deleted_ballots,
-            'deletedRevoteGrants' => (int) $deleted_grants,
-            'resetRounds' => (int) $reset_rounds,
+            'deletedBallots' => (int) $art['deletedBallots'],
+            'deletedRevoteGrants' => (int) $art['deletedRevoteGrants'],
+            'resetRounds' => (int) $art['resetRounds'],
             'keptVoters' => true,
             'keptSchedule' => true,
             'keptQr' => true,
@@ -173,6 +172,74 @@ final class MAC_Voting_Admin {
             'message' => 'Đã đặt lại sự kiện. Phiếu, check-in, điểm hạng mục và lịch sử cộng điểm đã về trạng thái ban đầu.',
             'overview' => self::overview(),
         ));
+    }
+
+    /** Reset duy nhất cho module Văn nghệ; luôn giữ nhân sự, team và lịch biểu diễn. */
+    private static function reset_art_data() {
+        global $wpdb;
+        $rounds = MAC_Voting_DB::table('rounds');
+        $ballots = MAC_Voting_DB::table('ballots');
+        $grants = MAC_Voting_DB::table('revote_grants');
+        $reset_rounds = $wpdb->query("UPDATE $rounds SET status='DRAFT', opened_at=NULL, closes_at=NULL, closed_at=NULL");
+        $deleted_grants = $wpdb->query("DELETE FROM $grants");
+        $deleted_ballots = $wpdb->query("DELETE FROM $ballots");
+        if (in_array(false, array($reset_rounds, $deleted_grants, $deleted_ballots), true)) {
+            return new WP_Error('art_reset_failed', 'Không thể đặt lại dữ liệu Văn nghệ.');
+        }
+        MAC_Voting_DB::set_voting_enabled(false);
+        MAC_Voting_DB::set_reveal_state('IDLE');
+        return array(
+            'resetRounds' => (int) $reset_rounds,
+            'deletedBallots' => (int) $deleted_ballots,
+            'deletedRevoteGrants' => (int) $deleted_grants,
+        );
+    }
+
+    /** Mọi thay đổi dữ liệu điểm đều phải đưa màn tổng kết về trạng thái chờ, tránh hiện snapshot cũ. */
+    private static function reset_total_presentation(): void {
+        MAC_Voting_DB::set_total_reveal_state('IDLE');
+        MAC_Voting_DB::set_scores_hidden(false);
+    }
+
+    public static function ajax_reset_checkin(): void {
+        self::guard();
+        if (!MAC_Checkin::reset_checkin_data()) {
+            wp_send_json_error(array('message' => 'Không thể đặt lại Check-in.'), 500);
+        }
+        self::reset_total_presentation();
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'CHECKIN_RESET', 'checkin', null, array());
+        wp_send_json_success(array('message' => 'Đã đặt lại Check-in. Trạm, lượt quét, miễn check-in và điểm Check-in đã được xóa.', 'overview' => self::overview()));
+    }
+
+    public static function ajax_reset_art(): void {
+        self::guard();
+        $result = self::reset_art_data();
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 500);
+        }
+        self::reset_total_presentation();
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'ART_RESET', 'art', null, $result);
+        wp_send_json_success(array('message' => 'Đã đặt lại Văn nghệ. Phiếu và quyền vote lại đã được xóa; lịch biểu diễn vẫn giữ nguyên.', 'overview' => self::overview()));
+    }
+
+    public static function ajax_reset_games(): void {
+        self::guard();
+        if (!MAC_Games::reset_ranks()) {
+            wp_send_json_error(array('message' => 'Không thể đặt lại điểm Trò chơi lớn.'), 500);
+        }
+        self::reset_total_presentation();
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'GAMES_RESET', 'games', null, array());
+        wp_send_json_success(array('message' => 'Đã đặt lại điểm Trò chơi lớn. Ba game vẫn được giữ nguyên.', 'overview' => self::overview()));
+    }
+
+    public static function ajax_reset_thidua(): void {
+        self::guard();
+        if (!MAC_Points::reset_awards()) {
+            wp_send_json_error(array('message' => 'Không thể đặt lại điểm Thi đua.'), 500);
+        }
+        self::reset_total_presentation();
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'THIDUA_RESET', 'thidua', null, array());
+        wp_send_json_success(array('message' => 'Đã đặt lại điểm Thi đua. Các hạng mục vẫn được giữ nguyên.', 'overview' => self::overview()));
     }
 
     /**
@@ -690,7 +757,7 @@ final class MAC_Voting_Admin {
     public static function ajax_reveal_total(): void {
         self::guard();
         $next = strtoupper(sanitize_text_field(wp_unslash($_POST['stage'] ?? '')));
-        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'TEASE43', 'RANK43', 'RANK12', 'TWIST', 'REVEAL3', 'FINAL');
+        $allowed = array('IDLE', 'ROLLING', 'RANK65', 'TEASE43', 'RANK43', 'RANK12', 'TWIST', 'REVEAL3', 'SECOND', 'FINAL');
         if (!in_array($next, $allowed, true)) {
             wp_send_json_error(array('message' => 'Trạng thái công bố không hợp lệ.'), 400);
         }
@@ -702,7 +769,8 @@ final class MAC_Voting_Admin {
             'TEASE43' => 'RANK43',
             'RANK43' => 'TWIST',
             'TWIST' => 'REVEAL3',
-            'REVEAL3' => 'FINAL',
+            'REVEAL3' => 'SECOND',
+            'SECOND' => 'FINAL',
             // RANK12 giữ làm trạng thái legacy (bản cũ): vẫn cho tiến lên TWIST nếu dashboard còn kẹt ở step này.
             'RANK12' => 'TWIST',
         );
@@ -730,6 +798,7 @@ final class MAC_Voting_Admin {
             'RANK12' => 'Hai đội dẫn đầu đã bước lên cùng mốc 6 ô.',
             'TWIST' => 'Ba đội dẫn đầu đang cùng tung điểm bám đuổi.',
             'REVEAL3' => 'Đã lộ diện hạng ba · hai đội còn lại tiếp tục tung điểm.',
+            'SECOND' => 'Đã công bố á quân Company Trip.',
             'FINAL' => 'Đã công bố quán quân Company Trip.',
         );
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'RESULTS_TOTAL_REVEAL_' . $next, 'reveal', (string) $state['revision'], array(

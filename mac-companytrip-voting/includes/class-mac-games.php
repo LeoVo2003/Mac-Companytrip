@@ -135,4 +135,13 @@ final class MAC_Games {
         }
         return $board;
     }
+
+    /** Xóa hạng/điểm của 3 game, giữ nguyên danh sách game để chấm lại nhanh. */
+    public static function reset_ranks(): bool {
+        global $wpdb;
+        return $wpdb->query($wpdb->prepare(
+            "DELETE FROM " . MAC_Voting_DB::table('team_points') . " WHERE source_type=%s",
+            self::SOURCE
+        )) !== false;
+    }
 }

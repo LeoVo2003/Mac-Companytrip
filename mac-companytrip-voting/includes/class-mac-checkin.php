@@ -661,7 +661,8 @@ final class MAC_Checkin {
         );
     }
 
-    public static function reset_event_data(): void {
+    /** Chỉ xóa dữ liệu của module Check-in; không đụng game, thi đua, văn nghệ hay phân xe. */
+    public static function reset_checkin_data(): bool {
         global $wpdb;
         $checkpoints = MAC_Voting_DB::table('checkpoints');
         $checkins = MAC_Voting_DB::table('checkins');
@@ -669,18 +670,20 @@ final class MAC_Checkin {
         $points = MAC_Voting_DB::table('team_points');
         $windows = MAC_Voting_DB::table('checkpoint_windows');
         $exemptions = MAC_Voting_DB::table('exemptions');
-        $wpdb->query("UPDATE $checkpoints SET status='DRAFT', opened_at=NULL, closes_at=NULL, closed_at=NULL, finalized_at=NULL");
-        $wpdb->query("DELETE FROM $checkins");
-        $wpdb->query("DELETE FROM $results");
-        $wpdb->query("DELETE FROM $windows");
-        $wpdb->query("DELETE FROM $exemptions");
-        $wpdb->query($wpdb->prepare(
-            "DELETE FROM $points WHERE source_type IN (%s,%s,%s,%s)",
-            'CHECKIN',
-            'GAME',
-            'THIDUA',
-            'CATEGORY'
-        ));
+        $queries = array(
+            $wpdb->query("UPDATE $checkpoints SET status='DRAFT', opened_at=NULL, closes_at=NULL, closed_at=NULL, finalized_at=NULL"),
+            $wpdb->query("DELETE FROM $checkins"),
+            $wpdb->query("DELETE FROM $results"),
+            $wpdb->query("DELETE FROM $windows"),
+            $wpdb->query("DELETE FROM $exemptions"),
+            $wpdb->query($wpdb->prepare("DELETE FROM $points WHERE source_type=%s", 'CHECKIN')),
+        );
+        return !in_array(false, $queries, true);
+    }
+
+    /** @deprecated Use reset_checkin_data() for module-scoped reset. */
+    public static function reset_event_data(): void {
+        self::reset_checkin_data();
         MAC_Voting_DB::set_voting_enabled(false);
     }
 

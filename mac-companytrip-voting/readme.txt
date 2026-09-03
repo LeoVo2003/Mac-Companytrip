@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.11
+Stable tag: 1.10.12
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -67,6 +67,13 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.12 =
+- Mỗi tab Check-in / Phân xe / Trò chơi lớn / Văn nghệ / Thi đua có nút reset riêng từng module; "Đặt lại sự kiện" chỉ hiện và nhấn được bởi Super Admin.
+- Phân xe: khối thêm người tách nhóm rõ nhịp (12px trong nhóm, 24px giữa các nhóm), lưới tick thoáng hơn (gap 10px, padding 14px, cao 264px), ô tick 44px chữ 14px, số team đẩy về cuối hàng; toàn bộ nút tab Phân xe đồng chuẩn 44px · 14px · 700.
+- /ket-qua-tong/: thêm nhịp SECOND công bố á quân riêng trước quán quân; câu chốt "ONE DIRECTION ĐỒNG HƯỚNG VƯƠN XA" hiện sau reveal quán quân; desc quán quân "Nhà vô địch của hành trình One Direction".
+- /ket-qua-van-nghe/: lời dẫn spotlight theo đúng kịch bản MC (mở màn, nhịp tìm đầu tiên, nhịp tìm kế tiếp, công bố từng hạng, quán quân).
+- check-plugin: đồng bộ luồng công bố tổng kết 8 bước (thêm SECOND) và transition server mới.
 
 = 1.10.11 =
 - UI: login mobile hết tràn ô mật khẩu + form giữa; logout luôn hiện trên mobile; accordion check-in theme-proof; bảng public 12px; spacing 24px khối thêm xe; padding thi đua mobile đều 20px.
