@@ -1033,7 +1033,7 @@ final class MAC_Voting_Admin {
         $headers = array();
         $best_score = 0;
         foreach ($source_rows as $candidate_index => $candidate_row) {
-            if ((int) $candidate_index > 10) break;
+            if ((int) $candidate_index > 25) break;
             $normalized_row = array_map(static function($value): string { return MAC_Voting_DB::normalize_name((string) $value); }, $candidate_row);
             $hits = 0;
             foreach ($aliases as $alias_names) { if (array_intersect($alias_names, $normalized_row)) $hits++; }
@@ -1047,7 +1047,7 @@ final class MAC_Voting_Admin {
             if ($has_name_column && $hits >= 3) break;
         }
         if (!$header_row) {
-            wp_send_json_error(array('message' => 'Không tìm thấy hàng tiêu đề (HỌ & TÊN, TEAM, EMAIL…) trong 10 dòng đầu của sheet đầu tiên.'), 400);
+            wp_send_json_error(array('message' => 'Không tìm thấy hàng tiêu đề (HỌ & TÊN, TEAM, EMAIL…) trong 25 dòng đầu của sheet đầu tiên.'), 400);
         }
         $header = $source_rows[$header_row];
         $columns = array();

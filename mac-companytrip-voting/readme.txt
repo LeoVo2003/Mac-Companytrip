@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.19
+Stable tag: 1.10.20
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -71,6 +71,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.20 =
+- Reader XLSX cứng cáp hơn: đọc zip entry không phân biệt hoa/thường (hết lỗi mọi ô chữ thành rỗng với file Excel/WPS ghi "SharedStrings.xml" khác hoa thường), chịu cell không có thuộc tính r, thử lần lượt các sheet tới sheet có dữ liệu.
+- Vùng dò hàng tiêu đề mở rộng lên 25 dòng đầu.
 
 = 1.10.19 =
 - Import chịu file thực tế: tự dò hàng tiêu đề trong 10 dòng đầu (hết lỗi "thiếu cột" khi có dòng trống/tiêu đề phụ trước header); bỏ qua dòng placeholder sót từ ô gộp phòng.

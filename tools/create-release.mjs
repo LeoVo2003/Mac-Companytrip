@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.19";
+const tag = "v1.10.20";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Import chịu file thực tế: tự dò hàng tiêu đề, bỏ dòng placeholder, nhóm người thân không cần người chính đứng đầu.",
-  "- Email không còn bắt buộc với người chính (vẫn có QR + check-in).",
+  "- Reader XLSX: đọc zip entry không phân biệt hoa/thường, chịu cell thiếu thuộc tính r, tự chọn sheet có dữ liệu.",
+  "- Dò hàng tiêu đề trong 25 dòng đầu.",
 ].join("\n");
 
 let release;

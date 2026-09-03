@@ -17,78 +17,37 @@ final class MAC_XLSX {
         if ($zip->open($path) !== true) {
             return new WP_Error('invalid_xlsx', 'Không mở được file XLSX.');
         }
-        $shared = self::shared_strings($zip);
-        $sheet_path = self::first_sheet_path($zip);
-        $xml_text = $sheet_path ? $zip->getFromName($sheet_path) : false;
-        if ($xml_text === false) {
-            $zip->close();
-            return new WP_Error('invalid_xlsx', 'File XLSX không có worksheet hợp lệ.');
+        // Bản đồ tên entry không phân biệt HOA/thường: Excel/WPS/Google Sheets có bản ghi
+        // "xl/SharedStrings.xml" khác hoa thường, đọc đúng tên sẽ hụt sharedStrings khiến mọi ô chữ thành rỗng.
+        $entries = array();
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $entry_name = $zip->getNameIndex($i);
+            if ($entry_name === false || substr($entry_name, -1) === '/') continue;
+            $entries[strtolower($entry_name)] = $entry_name;
         }
-        $xml = self::xml((string) $xml_text);
-        if (!$xml) {
-            $zip->close();
-            return new WP_Error('invalid_xlsx', 'Worksheet trong XLSX không hợp lệ.');
-        }
-        $xml->registerXPathNamespace('x', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
-        $cells = array();
-        $max_row = 0;
-        $max_col = 0;
-        foreach ($xml->xpath('//x:sheetData/x:row/x:c') ?: array() as $cell) {
-            $attributes = $cell->attributes();
-            $reference = (string) ($attributes['r'] ?? '');
-            if (!preg_match('/^([A-Z]+)(\d+)$/', $reference, $match)) {
-                continue;
+        $get = static function(string $want) use ($zip, $entries) {
+            $actual = $entries[strtolower($want)] ?? null;
+            if ($actual === null) return false;
+            return $zip->getFromName($actual);
+        };
+        $shared = self::shared_strings($get);
+        $result = null;
+        foreach (self::sheet_paths($zip, $get, $entries) as $sheet_path) {
+            $xml_text = $zip->getFromName($sheet_path);
+            if ($xml_text === false) continue;
+            $parsed = self::parse_sheet((string) $xml_text, $shared);
+            if (is_wp_error($parsed)) continue;
+            if (self::sheet_has_content($parsed)) {
+                $result = $parsed;
+                break;
             }
-            $col = self::column_number($match[1]);
-            $row = (int) $match[2];
-            $type = (string) ($attributes['t'] ?? '');
-            $value = '';
-            if ($type === 'inlineStr') {
-                $parts = $cell->xpath('.//x:is//x:t') ?: array();
-                foreach ($parts as $part) $value .= (string) $part;
-            } else {
-                $raw = isset($cell->v) ? (string) $cell->v : '';
-                $value = $type === 's' ? (string) ($shared[(int) $raw] ?? '') : $raw;
-            }
-            $cells[$row][$col] = $value;
-            $max_row = max($max_row, $row);
-            $max_col = max($max_col, $col);
-        }
-        $merges = array();
-        foreach ($xml->xpath('//x:mergeCells/x:mergeCell') ?: array() as $merge) {
-            $reference = (string) ($merge->attributes()['ref'] ?? '');
-            if (!preg_match('/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/', $reference, $match)) {
-                continue;
-            }
-            $range = array(
-                'startCol' => self::column_number($match[1]),
-                'startRow' => (int) $match[2],
-                'endCol' => self::column_number($match[3]),
-                'endRow' => (int) $match[4],
-                'ref' => $reference,
-            );
-            $merges[] = $range;
-            $value = (string) ($cells[$range['startRow']][$range['startCol']] ?? '');
-            for ($row = $range['startRow']; $row <= $range['endRow']; $row++) {
-                for ($col = $range['startCol']; $col <= $range['endCol']; $col++) {
-                    if (!isset($cells[$row][$col]) || $cells[$row][$col] === '') {
-                        $cells[$row][$col] = $value;
-                    }
-                }
-            }
-            $max_row = max($max_row, $range['endRow']);
-            $max_col = max($max_col, $range['endCol']);
+            if ($result === null) $result = $parsed;
         }
         $zip->close();
-        $rows = array();
-        for ($row = 1; $row <= $max_row; $row++) {
-            $values = array();
-            for ($col = 1; $col <= $max_col; $col++) {
-                $values[] = (string) ($cells[$row][$col] ?? '');
-            }
-            $rows[$row] = $values;
+        if ($result === null) {
+            return new WP_Error('invalid_xlsx', 'File XLSX không có worksheet hợp lệ.');
         }
-        return array('rows' => $rows, 'merges' => $merges, 'maxCol' => $max_col, 'maxRow' => $max_row);
+        return $result;
     }
 
     public static function output(string $filename, array $sheets): void {
@@ -133,8 +92,8 @@ final class MAC_XLSX {
         return $xml;
     }
 
-    private static function shared_strings(ZipArchive $zip): array {
-        $text = $zip->getFromName('xl/sharedStrings.xml');
+    private static function shared_strings(callable $get): array {
+        $text = $get('xl/sharedStrings.xml');
         if ($text === false) return array();
         $xml = self::xml((string) $text);
         if (!$xml) return array();
@@ -148,29 +107,131 @@ final class MAC_XLSX {
         return $values;
     }
 
-    private static function first_sheet_path(ZipArchive $zip): string {
-        $workbook_text = $zip->getFromName('xl/workbook.xml');
-        $rels_text = $zip->getFromName('xl/_rels/workbook.xml.rels');
-        if ($workbook_text === false) return 'xl/worksheets/sheet1.xml';
-        if ($rels_text === false) return 'xl/worksheets/sheet1.xml';
-        $workbook = self::xml((string) $workbook_text);
-        $rels = self::xml((string) $rels_text);
-        if (!$workbook || !$rels) return 'xl/worksheets/sheet1.xml';
-        $workbook->registerXPathNamespace('x', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
-        $workbook->registerXPathNamespace('r', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships');
-        $sheets = $workbook->xpath('//x:sheets/x:sheet') ?: array();
-        if (!$sheets) return 'xl/worksheets/sheet1.xml';
-        $attributes = $sheets[0]->attributes('http://schemas.openxmlformats.org/officeDocument/2006/relationships');
-        $relationship_id = (string) ($attributes['id'] ?? '');
-        $relationships = $rels->children('http://schemas.openxmlformats.org/package/2006/relationships');
-        foreach ($relationships->Relationship as $relationship) {
-            $attr = $relationship->attributes();
-            if ((string) ($attr['Id'] ?? '') !== $relationship_id) continue;
-            $target = ltrim(str_replace('\\', '/', (string) ($attr['Target'] ?? 'worksheets/sheet1.xml')), '/');
-            $target = preg_replace('#^\.\./#', '', $target);
-            return strpos($target, 'xl/') === 0 ? $target : 'xl/' . ltrim($target, '/');
+    /** Danh sách đường dẫn worksheet theo đúng thứ tự tab trong workbook. */
+    private static function sheet_paths(ZipArchive $zip, callable $get, array $entries): array {
+        $paths = array();
+        $workbook_text = $get('xl/workbook.xml');
+        $rels_text = $get('xl/_rels/workbook.xml.rels');
+        if ($workbook_text !== false && $rels_text !== false) {
+            $workbook = self::xml((string) $workbook_text);
+            $rels = self::xml((string) $rels_text);
+            if ($workbook && $rels) {
+                $workbook->registerXPathNamespace('x', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
+                $workbook->registerXPathNamespace('r', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships');
+                $rel_targets = array();
+                foreach ($rels->children('http://schemas.openxmlformats.org/package/2006/relationships')->Relationship as $relationship) {
+                    $attr = $relationship->attributes();
+                    $rel_targets[(string) ($attr['Id'] ?? '')] = (string) ($attr['Target'] ?? '');
+                }
+                foreach ($workbook->xpath('//x:sheets/x:sheet') ?: array() as $sheet) {
+                    $attributes = $sheet->attributes('http://schemas.openxmlformats.org/officeDocument/2006/relationships');
+                    $target = $rel_targets[(string) ($attributes['id'] ?? '')] ?? '';
+                    if ($target === '') continue;
+                    $target = ltrim(str_replace('\\', '/', $target), '/');
+                    $target = preg_replace('#^\.\./#', '', $target);
+                    $target = strpos($target, 'xl/') === 0 ? $target : 'xl/' . ltrim($target, '/');
+                    // Khớp lại theo bản đồ entry để chịu khác biệt hoa/thường.
+                    $actual = $entries[strtolower($target)] ?? null;
+                    if ($actual !== null) $paths[] = $actual;
+                }
+            }
         }
-        return 'xl/worksheets/sheet1.xml';
+        if (!$paths) {
+            $fallback = array();
+            foreach ($entries as $lower => $actual) {
+                if (preg_match('#^xl/worksheets/sheet(\d+)\.xml$#', $lower, $match)) $fallback[(int) $match[1]] = $actual;
+            }
+            ksort($fallback);
+            $paths = array_values($fallback);
+        }
+        return $paths;
+    }
+
+    /** Parse một worksheet: chịu cell thiếu thuộc tính r (suy ra theo thứ tự) và mọi kiểu giá trị. */
+    private static function parse_sheet(string $xml_text, array $shared) {
+        $xml = self::xml($xml_text);
+        if (!$xml) {
+            return new WP_Error('invalid_xlsx', 'Worksheet trong XLSX không hợp lệ.');
+        }
+        $xml->registerXPathNamespace('x', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
+        $cells = array();
+        $max_row = 0;
+        $max_col = 0;
+        $row_cursor = 0;
+        foreach ($xml->xpath('//x:sheetData/x:row') ?: array() as $row_node) {
+            $row_attrs = $row_node->attributes();
+            $row_ref = (int) ($row_attrs['r'] ?? 0);
+            $row = $row_ref > 0 ? $row_ref : $row_cursor + 1;
+            $row_cursor = max($row_cursor, $row);
+            $col_cursor = 0;
+            foreach ($row_node->xpath('x:c') ?: array() as $cell) {
+                $attributes = $cell->attributes();
+                $reference = (string) ($attributes['r'] ?? '');
+                if (preg_match('/^([A-Z]+)(\d+)$/i', $reference, $match)) {
+                    $col = self::column_number(strtoupper($match[1]));
+                    $row = (int) $match[2];
+                    $row_cursor = max($row_cursor, $row);
+                } else {
+                    $col = $col_cursor + 1;
+                }
+                $col_cursor = max($col_cursor, $col);
+                $type = (string) ($attributes['t'] ?? '');
+                $value = '';
+                if ($type === 'inlineStr') {
+                    $parts = $cell->xpath('.//x:is//x:t') ?: array();
+                    foreach ($parts as $part) $value .= (string) $part;
+                } else {
+                    $raw = isset($cell->v) ? (string) $cell->v : '';
+                    $value = $type === 's' ? (string) ($shared[(int) $raw] ?? '') : $raw;
+                }
+                $cells[$row][$col] = $value;
+                $max_row = max($max_row, $row);
+                $max_col = max($max_col, $col);
+            }
+        }
+        $merges = array();
+        foreach ($xml->xpath('//x:mergeCells/x:mergeCell') ?: array() as $merge) {
+            $reference = (string) ($merge->attributes()['ref'] ?? '');
+            if (!preg_match('/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/i', $reference, $match)) {
+                continue;
+            }
+            $range = array(
+                'startCol' => self::column_number(strtoupper($match[1])),
+                'startRow' => (int) $match[2],
+                'endCol' => self::column_number(strtoupper($match[3])),
+                'endRow' => (int) $match[4],
+                'ref' => strtoupper($reference),
+            );
+            $merges[] = $range;
+            $value = (string) ($cells[$range['startRow']][$range['startCol']] ?? '');
+            for ($row = $range['startRow']; $row <= $range['endRow']; $row++) {
+                for ($col = $range['startCol']; $col <= $range['endCol']; $col++) {
+                    if (!isset($cells[$row][$col]) || $cells[$row][$col] === '') {
+                        $cells[$row][$col] = $value;
+                    }
+                }
+            }
+            $max_row = max($max_row, $range['endRow']);
+            $max_col = max($max_col, $range['endCol']);
+        }
+        $rows = array();
+        for ($row = 1; $row <= $max_row; $row++) {
+            $values = array();
+            for ($col = 1; $col <= $max_col; $col++) {
+                $values[] = (string) ($cells[$row][$col] ?? '');
+            }
+            $rows[$row] = $values;
+        }
+        return array('rows' => $rows, 'merges' => $merges, 'maxCol' => $max_col, 'maxRow' => $max_row);
+    }
+
+    private static function sheet_has_content(array $parsed): bool {
+        foreach (array_slice($parsed['rows'] ?? array(), 0, 40, true) as $row) {
+            foreach ($row as $value) {
+                if (trim((string) $value) !== '') return true;
+            }
+        }
+        return false;
     }
 
     private static function column_number(string $letters): int {
