@@ -110,13 +110,15 @@ final class MAC_Bus {
         $row = $wpdb->get_row($wpdb->prepare(
             "SELECT
                 SUM(CASE WHEN member_type='EMPLOYEE' THEN 1 ELSE 0 END) AS employees,
+                SUM(CASE WHEN member_type='COMPANION' THEN 1 ELSE 0 END) AS companions,
                 SUM(CASE WHEN member_type<>'EMPLOYEE' THEN 1 ELSE 0 END) AS staff
              FROM " . MAC_Voting_DB::table('bus_members') . ' WHERE bus_id=%d',
             $bus_id
         ), ARRAY_A);
         $employees = (int) ($row['employees'] ?? 0);
-        $staff = (int) ($row['staff'] ?? 0);
-        return array('employees' => $employees, 'staff' => $staff, 'total' => $employees + $staff);
+        $companions = (int) ($row['companions'] ?? 0);
+        $staff = max(0, (int) ($row['staff'] ?? 0) - $companions);
+        return array('employees' => $employees, 'companions' => $companions, 'staff' => $staff, 'total' => $employees + $companions + $staff);
     }
 
     /**
@@ -293,13 +295,30 @@ final class MAC_Bus {
         if (!$row) {
             return null;
         }
+        $party = self::party_voters($voter_id);
         return array(
             'assigned' => true,
             'busId' => (int) $row['bus_id'],
             'busName' => (string) $row['bus_name'],
             'busNo' => (int) $row['bus_no'],
             'source' => (string) $row['assigned_source'],
+            'partySize' => count($party),
+            'companions' => array_values(array_map(static function(array $member): string { return (string) $member['full_name']; }, array_filter($party, static function(array $member) use ($voter_id): bool { return (int) $member['id'] !== $voter_id; }))),
         );
+    }
+
+    /** Người có QR và toàn bộ người đi kèm được xem là một nhóm không tách xe. */
+    public static function party_voters(int $voter_id): array {
+        global $wpdb;
+        $voters = MAC_Voting_DB::table('voters');
+        $primary_id = (int) $wpdb->get_var($wpdb->prepare("SELECT COALESCE(primary_voter_id,id) FROM $voters WHERE id=%d", $voter_id));
+        if (!$primary_id) return array();
+        return $wpdb->get_results($wpdb->prepare(
+            "SELECT id,full_name,status,primary_voter_id FROM $voters WHERE id=%d OR (primary_voter_id=%d AND status='COMPANION') ORDER BY CASE WHEN id=%d THEN 0 ELSE 1 END,import_order,id",
+            $primary_id,
+            $primary_id,
+            $primary_id
+        ), ARRAY_A) ?: array();
     }
 
     /** Server tự gán xe đang BOARDING khi check-in Trạm 1; không bao giờ làm hỏng lượt check-in. */
@@ -311,6 +330,9 @@ final class MAC_Bus {
         if ($existing) {
             return $existing;
         }
+        $party = self::party_voters($voter_id);
+        if (!$party) return array('assigned' => false, 'reason' => 'VOTER_NOT_FOUND');
+        $party_size = count($party);
         // Đồng bộ trước khi chọn xe: xe đầy đã chốt tự chuyển sang xe kế đang chờ.
         self::sync_boarding();
         $bus = self::boarding_bus();
@@ -319,24 +341,72 @@ final class MAC_Bus {
         }
         global $wpdb;
         $now = MAC_Voting_DB::utc_now();
-        $inserted = $wpdb->insert(
-            MAC_Voting_DB::table('bus_members'),
-            array(
-                'bus_id' => (int) $bus['id'],
-                'voter_id' => $voter_id,
-                'member_type' => 'EMPLOYEE',
-                'manual_name' => null,
-                'assigned_source' => 'CHECKIN',
-                'assigned_by' => get_current_user_id(),
-                'assigned_at' => $now,
-                'updated_at' => $now,
-            ),
-            array('%d', '%d', '%s', '%s', '%s', '%d', '%s', '%s')
-        );
-        if (!$inserted) {
+        // Tìm xe đầu tiên (từ xe đang nhận trở đi) chứa TRỌN nhóm — nhóm không bao giờ bị tách.
+        // Các xe lướt qua vì thiếu chỗ sẽ chốt; nếu không xe nào đủ chỗ thì giữ nguyên trạng thái
+        // (chỗ lẻ còn lại vẫn dành cho người quét riêng) và báo lỗi rõ ràng.
+        $target = null;
+        $skipped = array();
+        foreach (self::buses() as $candidate) {
+            if ($candidate['status'] === 'CLOSED' || (int) $candidate['sort_order'] < (int) $bus['sort_order']) {
+                continue;
+            }
+            $current_total = self::bus_counts((int) $candidate['id'])['total'];
+            if ($current_total + $party_size <= (int) $candidate['capacity']) {
+                $target = $candidate;
+                break;
+            }
+            $skipped[] = $candidate;
+        }
+        if (!$target) {
+            return array('assigned' => false, 'reason' => 'NO_ROOM_FOR_PARTY', 'partySize' => $party_size);
+        }
+        foreach ($skipped as $skip) {
+            $remaining = max(0, (int) $skip['capacity'] - self::bus_counts((int) $skip['id'])['total']);
+            $wpdb->update(
+                MAC_Voting_DB::table('buses'),
+                array('status' => 'CLOSED', 'closed_at' => $now, 'updated_at' => $now),
+                array('id' => (int) $skip['id']),
+                array('%s', '%s', '%s'),
+                array('%d')
+            );
+            MAC_Voting_DB::audit('SYSTEM', (string) get_current_user_id(), 'BUS_CLOSED_FOR_PARTY', 'bus', (string) $skip['id'], array('partySize' => $party_size, 'remainingSeats' => $remaining));
+        }
+        if ($target['status'] !== 'BOARDING') {
+            $wpdb->update(
+                MAC_Voting_DB::table('buses'),
+                array('status' => 'BOARDING', 'opened_at' => $now, 'updated_at' => $now),
+                array('id' => (int) $target['id']),
+                array('%s', '%s', '%s'),
+                array('%d')
+            );
+        }
+        $bus = $target;
+        $wpdb->query('START TRANSACTION');
+        $added = 0;
+        foreach ($party as $member) {
+            $inserted = $wpdb->insert(
+                MAC_Voting_DB::table('bus_members'),
+                array(
+                    'bus_id' => (int) $bus['id'],
+                    'voter_id' => (int) $member['id'],
+                    'member_type' => (int) $member['id'] === $voter_id ? 'EMPLOYEE' : 'COMPANION',
+                    'manual_name' => null,
+                    'assigned_source' => 'CHECKIN',
+                    'assigned_by' => get_current_user_id(),
+                    'assigned_at' => $now,
+                    'updated_at' => $now,
+                ),
+                array('%d', '%d', '%s', '%s', '%s', '%d', '%s', '%s')
+            );
+            if ($inserted) $added++;
+        }
+        if ($added !== $party_size) {
+            $wpdb->query('ROLLBACK');
             return self::voter_assignment($voter_id) ?: array('assigned' => false, 'reason' => 'DB_ERROR');
         }
-        MAC_Voting_DB::audit('SYSTEM', (string) get_current_user_id(), 'BUS_MEMBER_ASSIGNED', 'voter', (string) $voter_id, array('busId' => (int) $bus['id'], 'busName' => $bus['name']));
+        $wpdb->query('COMMIT');
+        $companion_names = array_values(array_map(static function(array $member): string { return MAC_Voting_DB::title_case((string) $member['full_name']); }, array_slice($party, 1)));
+        MAC_Voting_DB::audit('SYSTEM', (string) get_current_user_id(), 'BUS_PARTY_ASSIGNED', 'voter', (string) $voter_id, array('busId' => (int) $bus['id'], 'busName' => $bus['name'], 'partySize' => $party_size, 'companions' => $companion_names));
         // Đủ sức chứa thì chốt xe này và mở xe kế cho người tiếp theo.
         self::sync_boarding();
         return array(
@@ -345,6 +415,8 @@ final class MAC_Bus {
             'busName' => (string) $bus['name'],
             'busNo' => (int) $bus['sort_order'],
             'source' => 'CHECKIN',
+            'partySize' => $party_size,
+            'companions' => $companion_names,
         );
     }
 
@@ -376,21 +448,31 @@ final class MAC_Bus {
             }
             return self::move_voter($voter_id, $bus_id);
         }
-        $wpdb->insert(
-            MAC_Voting_DB::table('bus_members'),
-            array(
-                'bus_id' => $bus_id,
-                'voter_id' => $voter_id,
-                'member_type' => $type,
-                'manual_name' => null,
-                'assigned_source' => $source,
-                'assigned_by' => get_current_user_id(),
-                'assigned_at' => $now,
-                'updated_at' => $now,
-            ),
-            array('%d', '%d', '%s', '%s', '%s', '%d', '%s', '%s')
-        );
-        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), $type === 'STAFF' ? 'BUS_MEMBER_MANUAL_ADDED' : 'BUS_MEMBER_ASSIGNED', 'voter', (string) $voter_id, array('busId' => $bus_id, 'busName' => $bus['name']));
+        $party = $type === 'STAFF' ? array($voter) : self::party_voters($voter_id);
+        $wpdb->query('START TRANSACTION');
+        foreach ($party as $member) {
+            $member_type = $type === 'STAFF' ? 'STAFF' : ((int) $member['id'] === $voter_id ? 'EMPLOYEE' : 'COMPANION');
+            $saved = $wpdb->insert(
+                MAC_Voting_DB::table('bus_members'),
+                array(
+                    'bus_id' => $bus_id,
+                    'voter_id' => (int) $member['id'],
+                    'member_type' => $member_type,
+                    'manual_name' => null,
+                    'assigned_source' => $source,
+                    'assigned_by' => get_current_user_id(),
+                    'assigned_at' => $now,
+                    'updated_at' => $now,
+                ),
+                array('%d', '%d', '%s', '%s', '%s', '%d', '%s', '%s')
+            );
+            if (!$saved) {
+                $wpdb->query('ROLLBACK');
+                return new WP_Error('db_error', 'Không thể gán trọn nhóm vào xe.', array('status' => 500));
+            }
+        }
+        $wpdb->query('COMMIT');
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), $type === 'STAFF' ? 'BUS_MEMBER_MANUAL_ADDED' : 'BUS_PARTY_ASSIGNED', 'voter', (string) $voter_id, array('busId' => $bus_id, 'busName' => $bus['name'], 'partySize' => count($party)));
         return self::admin_state();
     }
 
@@ -434,6 +516,9 @@ final class MAC_Bus {
         $row = $wpdb->get_row($wpdb->prepare('SELECT * FROM ' . MAC_Voting_DB::table('bus_members') . ' WHERE id=%d', $member_id), ARRAY_A);
         if (!$row) {
             return new WP_Error('not_found', 'Không còn thành viên này.', array('status' => 404));
+        }
+        if ($row['voter_id'] !== null) {
+            return self::move_voter((int) $row['voter_id'], $to_bus_id);
         }
         if ((int) $row['bus_id'] === $to_bus_id) {
             return self::admin_state();
@@ -508,16 +593,19 @@ final class MAC_Bus {
             return new WP_Error('not_found', 'Xe đích không tồn tại.', array('status' => 404));
         }
         $now = MAC_Voting_DB::utc_now();
-        $wpdb->update(
-            MAC_Voting_DB::table('bus_members'),
-            array('bus_id' => $to_bus_id, 'assigned_source' => 'MOVED', 'assigned_by' => get_current_user_id(), 'updated_at' => $now),
-            array('voter_id' => $voter_id),
-            array('%d', '%s', '%d', '%s'),
-            array('%d')
-        );
+        $party_ids = array_map('intval', array_column(self::party_voters($voter_id), 'id'));
+        if (!$party_ids) $party_ids = array($voter_id);
+        $wpdb->query($wpdb->prepare(
+            'UPDATE ' . MAC_Voting_DB::table('bus_members') . ' SET bus_id=%d,assigned_source=%s,assigned_by=%d,updated_at=%s WHERE voter_id IN (' . implode(',', $party_ids) . ')',
+            $to_bus_id,
+            'MOVED',
+            get_current_user_id(),
+            $now
+        ));
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'BUS_MEMBER_MOVED', 'voter', (string) $voter_id, array(
             'fromBus' => $from['busName'],
             'toBus' => $to['name'],
+            'partySize' => count($party_ids),
         ));
         return self::admin_state();
     }
@@ -528,11 +616,22 @@ final class MAC_Bus {
         if (!$row) {
             return new WP_Error('not_found', 'Không còn thành viên này.', array('status' => 404));
         }
-        $wpdb->delete(MAC_Voting_DB::table('bus_members'), array('id' => $member_id), array('%d'));
+        $removed_count = 1;
+        if ($row['voter_id'] !== null) {
+            $party_ids = array_map('intval', array_column(self::party_voters((int) $row['voter_id']), 'id'));
+            if ($party_ids) {
+                $removed_count = (int) $wpdb->query('DELETE FROM ' . MAC_Voting_DB::table('bus_members') . ' WHERE voter_id IN (' . implode(',', $party_ids) . ')');
+            } else {
+                $wpdb->delete(MAC_Voting_DB::table('bus_members'), array('id' => $member_id), array('%d'));
+            }
+        } else {
+            $wpdb->delete(MAC_Voting_DB::table('bus_members'), array('id' => $member_id), array('%d'));
+        }
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'BUS_MEMBER_REMOVED', 'bus_member', (string) $member_id, array(
             'busId' => (int) $row['bus_id'],
             'voterId' => $row['voter_id'] !== null ? (int) $row['voter_id'] : null,
             'manualName' => $row['manual_name'],
+            'removedCount' => $removed_count,
         ));
         return self::admin_state();
     }
@@ -540,7 +639,7 @@ final class MAC_Bus {
     public static function manifest(int $bus_id): array {
         global $wpdb;
         $rows = $wpdb->get_results($wpdb->prepare(
-            'SELECT m.id,m.voter_id,m.member_type,m.manual_name,m.assigned_source,v.full_name,t.team_no,t.name AS team_name
+            'SELECT m.id,m.voter_id,m.member_type,m.manual_name,m.assigned_source,v.full_name,v.birth_year,v.gender,v.citizen_id,v.phone,v.room_type,v.room_no,v.room_group,v.email,v.note,v.primary_voter_id,v.import_order,t.team_no,t.name AS team_name
              FROM ' . MAC_Voting_DB::table('bus_members') . ' m
              LEFT JOIN ' . MAC_Voting_DB::table('voters') . ' v ON v.id=m.voter_id
              LEFT JOIN ' . MAC_Voting_DB::table('teams') . ' t ON t.id=v.team_id
@@ -558,6 +657,17 @@ final class MAC_Bus {
                 'source' => (string) $row['assigned_source'],
                 'teamNo' => $row['team_no'] !== null ? (int) $row['team_no'] : null,
                 'teamName' => $row['team_name'],
+                'birthYear' => (string) ($row['birth_year'] ?? ''),
+                'gender' => (string) ($row['gender'] ?? ''),
+                'citizenId' => (string) ($row['citizen_id'] ?? ''),
+                'phone' => (string) ($row['phone'] ?? ''),
+                'roomType' => (string) ($row['room_type'] ?? ''),
+                'roomNo' => (string) ($row['room_no'] ?? ''),
+                'roomGroup' => (string) ($row['room_group'] ?? ''),
+                'email' => (string) ($row['email'] ?? ''),
+                'note' => (string) ($row['note'] ?? ''),
+                'primaryVoterId' => $row['primary_voter_id'] !== null ? (int) $row['primary_voter_id'] : null,
+                'importOrder' => $row['import_order'] !== null ? (int) $row['import_order'] : null,
             );
         }
         return $items;
@@ -811,6 +921,7 @@ final class MAC_Bus {
                 'status' => (string) $bus['status'],
                 'capacity' => (int) $bus['capacity'],
                 'employees' => $counts['employees'],
+                'companions' => $counts['companions'],
                 'staff' => $counts['staff'],
                 'total' => $counts['total'],
                 'manifest' => self::manifest((int) $bus['id']),

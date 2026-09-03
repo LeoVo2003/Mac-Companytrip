@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.15
+Stable tag: 1.10.16
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -19,13 +19,15 @@ Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh ho
 
 == Import nhân sự ==
 
-Tải CSV mẫu trong trang Nhân sự & dữ liệu. Các cột bắt buộc:
+Tải XLSX mẫu trong trang Nhân sự & dữ liệu. Các cột bắt buộc:
 
-- Họ tên
+- Họ & Tên, Năm sinh, Giới tính, CCCD, SĐT
+- Loại phòng, Phòng
 - Team
 - Email
+- Note
 
-Cột tùy chọn: Mã NV, Trạng thái, Vai trò, Mật khẩu. File phải lưu dạng CSV UTF-8.
+Gộp ô Note ghi "Người thân" theo chiều dọc để ghép người có QR với các dòng người đi kèm. Gộp ô Phòng/Loại phòng để nhận diện nhóm chung phòng. Người đi kèm để trống Team và Email, không được cấp QR.
 
 Email có thể ghi đầy đủ hoặc chỉ username. Hệ thống chấp nhận @macusaone.com, @yesoffice.vn và @macmarketing.vn; khi chỉ ghi username, mặc định là @macusaone.com.
 
@@ -67,6 +69,13 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.16 =
+- Import/export chuyển hẳn sang XLSX: đọc ô gộp (NOTE "Người thân", PHÒNG), giữ CCCD/SĐT dạng text, preview thống kê người đi kèm / nhóm người thân / nhóm chung phòng; mẫu import là XLSX.
+- Nhóm người thân đi cùng một QR: quét 1 QR thêm cả nhóm vào CÙNG xe (1 QR = group_size chỗ), không tách nhóm giữa hai xe, xe thiếu chỗ thì chốt và chuyển cả nhóm sang xe kế, xe cuối thiếu chỗ báo lỗi rõ ràng.
+- Move/xóa người chính kéo cả nhóm; người đi kèm không có QR riêng (chặn tạo/gửi QR); đếm người thật trên xe (NV QR + người đi kèm + BTC).
+- Export XLSX tên tiếng Việt: Danh sách Xe N, Tổng danh sách 5 xe (chỉ người đã lên xe, merge + tô màu nhóm chung phòng theo intersection), Kết quả Company Trip, Check-in Company Trip, Mẫu import nhân sự.
+- DB upgrade tự thêm cột nhân sự mới không cần deactivate; check-plugin thêm 6 test nhóm gia đình (BUS-17…BUS-22).
 
 = 1.10.15 =
 - Phân xe theo sức chứa tối đa từng xe (ô nhập riêng, mặc định 40 chỗ): đủ số là xe tự chốt, người tiếp theo rơi vào xe kế tiếp — không cần bấm mở/đóng; lượt quét Trạm 1 đầu tiên tự mở Xe 1.

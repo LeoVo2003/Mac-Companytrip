@@ -4739,6 +4739,9 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 .ma-bus-ghost,
 .ma-bus-ghost-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 44px;
   padding: 0 15px;
   border-radius: 10px;
@@ -4747,6 +4750,7 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   font-weight: 700;
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
 }
 
 .ma-bus-ghost {
@@ -4756,6 +4760,23 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 }
 
 .ma-bus-ghost:hover { border-color: var(--border-strong, #98a2b3); }
+
+.ma-bus-export-all {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.ma-bus-ghost.is-disabled {
+  pointer-events: none;
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.ma-bus-ghost:focus-visible {
+  outline: 3px solid rgba(227, 30, 36, 0.2);
+  outline-offset: 2px;
+}
 
 .ma-bus-ghost-danger {
   border: 1px solid #fecdca;
@@ -4789,7 +4810,9 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 
 /* Mobile: bảng bus gọn, nút giữ font 14px đồng bộ toàn hệ thống. */
 @media (max-width: 720px) {
-  .ma-bus-control .ma-board-table table { min-width: 520px; }
+  .ma-bus-control .ma-board-table table { min-width: 720px; }
+
+  .ma-bus-export-all { justify-items: stretch; width: 100%; }
 
   .ma-bus-add { padding: 16px; }
 

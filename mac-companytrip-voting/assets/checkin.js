@@ -87,7 +87,7 @@
     if (!bootstrap?.busAssignmentEnabled) return "";
     const bus = bootstrap.activeBus;
     if (!bus) return `<div class="mc-bus-chip idle"><span>PHÂN XE</span><strong>Chưa có xe mở — check-in vẫn ghi nhận</strong></div>`;
-    return `<div class="mc-bus-chip live"><span>ĐANG PHÂN</span><strong>${esc(bus.name)} · ${bus.employeeCount} người</strong></div>`;
+    return `<div class="mc-bus-chip live"><span>ĐANG PHÂN</span><strong>${esc(bus.name)} · ${bus.totalCount ?? bus.employeeCount} người</strong></div>`;
   }
 
   function memberRows(team) {
@@ -198,7 +198,8 @@
       const result = await request("checkin/scan", { method: "POST", body: JSON.stringify({ checkpointId: checkpoint.id, token }) });
       applyTeam(result.teamProgress);
       const bus = result.busAssignment;
-      const busLine = bus?.assigned ? ` → ${bus.busName}` : bootstrap?.busAssignmentEnabled ? " · CHƯA PHÂN XE — gặp Điều phối" : "";
+      const partyLine = Number(bus?.partySize || 0) > 1 ? ` · nhóm ${bus.partySize} người` : "";
+      const busLine = bus?.assigned ? ` → ${bus.busName}${partyLine}` : bootstrap?.busAssignmentEnabled ? (bus?.reason === "NO_ROOM_FOR_PARTY" ? ` · KHÔNG ĐỦ CHỖ CHO NHÓM ${bus.partySize} NGƯỜI` : " · CHƯA PHÂN XE — gặp Điều phối") : "";
       showFlash("ok", `✓ ${result.voter.fullName} · #${result.voter.teamNumber} ${result.voter.teamName} · ${result.teamProgress.checkedIn}/${result.teamProgress.eligible}${busLine}`);
     } catch (err) {
       const extra = err.payload || {};

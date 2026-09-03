@@ -564,6 +564,8 @@ final class MAC_Checkin {
                 'name' => (string) $boarding['name'],
                 'status' => (string) $boarding['status'],
                 'employeeCount' => MAC_Bus::bus_counts((int) $boarding['id'])['employees'],
+                'companionCount' => MAC_Bus::bus_counts((int) $boarding['id'])['companions'],
+                'totalCount' => MAC_Bus::bus_counts((int) $boarding['id'])['total'],
             ) : null,
         );
     }

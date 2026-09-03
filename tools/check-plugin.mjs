@@ -102,6 +102,7 @@ const required = [
   "assets/fonts/bricolage-grotesque-vietnamese.woff2",
   "assets/fonts/BRICOLAGE-GROTESQUE-LICENSE.txt",
   "includes/class-mac-voting-db.php",
+  "includes/class-mac-xlsx.php",
   "includes/class-mac-voting-auth.php",
   "includes/class-mac-voting-qr.php",
   "includes/class-mac-checkin.php",
@@ -162,6 +163,9 @@ const gamesFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-game
 for (const invariant of ["one_valid_ballot", "email varchar(190) NULL", "UNIQUE KEY email", "qr_version", "revote_grants", "audit", "table('checkpoints')", "one_checkin", "table('thidua_rounds')", "table('checkpoint_windows')", "table('exemptions')", "table('games')"]) {
   if (!databaseFile.includes(invariant)) throw new Error(`Missing database invariant: ${invariant}`);
 }
+for (const invariant of ["birth_year varchar(10) NULL", "citizen_id varchar(30) NULL", "room_group varchar(100) NULL", "primary_voter_id bigint(20) unsigned NULL", "import_order int(11) unsigned NOT NULL DEFAULT 0"]) {
+  if (!databaseFile.includes(invariant)) throw new Error(`Missing XLSX personnel field: ${invariant}`);
+}
 for (const invariant of ["CHECKIN_MAX_PER_CHECKPOINT = 150", "CHECKIN_WINDOW_MINUTES = 15", "RANK_LADDER = array(50, 40, 30, 20, 10, 0)"]) {
   if (!databaseFile.includes(invariant)) throw new Error(`Missing scoring constant invariant: ${invariant}`);
 }
@@ -202,8 +206,11 @@ const publicCss = fs.readFileSync(path.join(pluginRoot, "assets/public.css"), "u
 for (const invariant of [".mv-team-tabs", ".mv-star", ".mv-star.is-active i"]) {
   if (!publicCss.includes(invariant)) throw new Error(`Missing team selection or star score styles: ${invariant}`);
 }
-for (const invariant of ['["Email", ["email", "mail", "email cong ty"]]', "email phải thuộc @macusaone.com, @yesoffice.vn hoặc @macmarketing.vn", "macmarketing\\.vn"]) {
-  if (!adminJs.includes(invariant)) throw new Error(`Missing email CSV validation: ${invariant}`);
+for (const invariant of ["MAC_XLSX::read_first_sheet", "'citizen_id' => array('cccd'", "'note' => array('note','ghi chu')", "is_family_note", "primary_voter_id", "export_all_buses_xlsx"]) {
+  if (!adminFile.includes(invariant)) throw new Error(`Missing XLSX personnel flow: ${invariant}`);
+}
+for (const invariant of ["Chỉ chấp nhận file XLSX", "nhóm người thân", "allBusesExportUrl", "Xuất tổng 5 xe"]) {
+  if (!adminJs.includes(invariant)) throw new Error(`Missing XLSX admin UI: ${invariant}`);
 }
 for (const invariant of ["Bạn không thể chấm tiết mục của team mình", "status='VALID'", "active_key", "round_status"]) {
   if (!restFile.includes(invariant)) throw new Error(`Missing vote protection: ${invariant}`);
@@ -288,15 +295,15 @@ if (!adminLoginJs.includes("ma-login-form") || !mainFile.includes("MAC_Admin_RES
   throw new Error("Public admin login must be wired outside wp-admin.");
 }
 if (!adminFile.includes("csv_staff_kind") || !adminFile.includes("ensure_staff_user")) {
-  throw new Error("CSV import must create BTC and super-admin staff accounts.");
+  throw new Error("XLSX import must preserve optional BTC and super-admin staff account creation.");
 }
 for (const invariant of ["SUPER_ROLE", "SUPER_CAP", "add_role(self::SUPER_ROLE"]) {
   if (!checkinFile.includes(invariant)) {
-    throw new Error(`Missing CSV super-admin role invariant: ${invariant}`);
+    throw new Error(`Missing XLSX super-admin role invariant: ${invariant}`);
   }
 }
 if (checkinFile.includes("$user->set_role('administrator')")) {
-  throw new Error("CSV super admin must not be promoted to the WordPress administrator role.");
+  throw new Error("XLSX super admin must not be promoted to the WordPress administrator role.");
 }
 
 const unexpected = relativeFiles.filter((file) => /(^|\/)(node_modules|src|dist|\.git)(\/|$)/.test(file));
@@ -575,13 +582,14 @@ for (const invariant of ["mac_vote_bus_capacity", "data-bus-capacity", "data-bus
 }
 if (adminJs.includes("mac_vote_bus_advance")) throw new Error("Legacy manual advance action must stay removed from the admin UI.");
 if (!databaseFile.includes("capacity smallint(5) unsigned NOT NULL DEFAULT 40")) throw new Error("Buses table must carry a per-bus capacity column.");
-const busModel = (teamOf) => {
+const busModel = (teamOf, partyMap = {}) => {
   const buses = [1, 2, 3, 4, 5].map((id) => ({ id, status: "WAITING", capacity: 2 }));
   const members = [];
   let memberSeq = 0;
   const boarding = () => buses.find((b) => b.status === "BOARDING") || null;
   const enabled = (checkpoint1Open) => checkpoint1Open && buses.some((b) => b.status !== "CLOSED");
   const count = (busId) => members.filter((m) => m.busId === busId).length;
+  const partyOf = (voterId) => partyMap[voterId] || [voterId];
   // sync_boarding (PHP): xe chạm sức chứa tự chốt; không còn xe nhận thì mở xe WAITING đầu tiên.
   const sync = (checkpoint1Open) => {
     if (!enabled(checkpoint1Open)) return;
@@ -590,6 +598,22 @@ const busModel = (teamOf) => {
       const first = buses.find((b) => b.status === "WAITING");
       if (first) first.status = "BOARDING";
     }
+  };
+  // Pre-scan giống PHP: tìm xe chứa TRỌN nhóm, xe lướt qua vì thiếu chỗ thì chốt; không xe nào đủ thì giữ nguyên.
+  const findPartyTarget = (partySize) => {
+    const bus = boarding();
+    if (!bus) return null;
+    let target = null;
+    const skipped = [];
+    buses.forEach((candidate) => {
+      if (candidate.status === "CLOSED" || candidate.id < bus.id || target) return;
+      if (count(candidate.id) + partySize <= candidate.capacity) { target = candidate; return; }
+      skipped.push(candidate);
+    });
+    if (!target) return { target: null, skipped: [] };
+    skipped.forEach((b) => { b.status = "CLOSED"; });
+    if (target.status !== "BOARDING") target.status = "BOARDING";
+    return { target, skipped };
   };
   return {
     buses,
@@ -628,16 +652,27 @@ const busModel = (teamOf) => {
       const existing = members.find((m) => m.voterId === voterId);
       if (existing) return { assigned: true, busId: existing.busId };
       sync(checkpoint1Open);
-      const bus = boarding();
-      if (!bus) return { assigned: false };
-      members.push({ id: ++memberSeq, busId: bus.id, voterId, memberType: "EMPLOYEE" });
+      const party = partyOf(voterId);
+      const found = findPartyTarget(party.length);
+      if (!found || !found.target) return { assigned: false, reason: found ? "NO_ROOM_FOR_PARTY" : "NO_BUS_BOARDING", partySize: party.length };
+      party.forEach((id, index) => members.push({ id: ++memberSeq, busId: found.target.id, voterId: id, memberType: index === 0 ? "EMPLOYEE" : "COMPANION" }));
       sync(checkpoint1Open);
-      return { assigned: true, busId: bus.id };
+      return { assigned: true, busId: found.target.id, partySize: party.length };
+    },
+    moveVoter(voterId, toBus, checkpoint1Open = true) {
+      const party = partyOf(voterId);
+      const touched = members.filter((m) => party.includes(m.voterId));
+      if (!touched.length) return { error: "not_assigned" };
+      touched.forEach((m) => { m.busId = toBus; });
+      sync(checkpoint1Open);
+      return { ok: true, moved: touched.length };
     },
     assign(voterId, busId, actor, checkpoint1Open = true) {
       if (actor.role === "btc" && teamOf(voterId) !== 7) return { error: "forbidden_staff_only" };
       if (members.some((m) => m.voterId === voterId)) return { error: "already_assigned" };
-      members.push({ id: ++memberSeq, busId, voterId, memberType: teamOf(voterId) === 7 ? "STAFF" : "EMPLOYEE" });
+      const isStaff = teamOf(voterId) === 7;
+      const party = isStaff ? [voterId] : partyOf(voterId);
+      party.forEach((id, index) => members.push({ id: ++memberSeq, busId, voterId: id, memberType: isStaff ? "STAFF" : (index === 0 ? "EMPLOYEE" : "COMPANION") }));
       sync(checkpoint1Open);
       return { ok: true };
     },
@@ -678,9 +713,16 @@ const BUS_CASES = [
   { name: "BUS-14 BTC/Super điểm danh mọi xe", run: (m) => m.canRollcall(4, { role: "btc" }) === true && m.canRollcall(5, { role: "super" }) === true },
   { name: "BUS-15 đóng/mở xe thủ công: chốt sớm tự mở xe kế, mở xe khác trả xe đang nhận về hàng chờ", run: (m) => { m.autoAssign(101, 1, true); m.closeBus(1, true); const closed = m.buses[0].status === "CLOSED" && m.boarding()?.id === 2; m.openBus(3, true); return closed && m.boarding()?.id === 3 && m.buses[1].status === "WAITING"; } },
   { name: "BUS-16 hạ sức chứa giữa chừng → xe đầy tự chốt", run: (m) => { m.setCapacity(1, 5, true); m.autoAssign(101, 1, true); m.autoAssign(102, 1, true); const still = m.buses[0].status === "BOARDING"; m.setCapacity(1, 2, true); return still && m.buses[0].status === "CLOSED" && m.boarding()?.id === 2; } },
+  { name: "BUS-17 nhóm 2 người: quét 1 QR thêm đủ 2 vào cùng xe", run: (m) => { const r = m.autoAssign(102, 1, true); return r.assigned === true && r.partySize === 2 && m.members.filter((x) => x.busId === r.busId).length === 2; }, parties: { 102: [102, 903] } },
+  { name: "BUS-18 nhóm 3 người: quét 1 QR thêm đủ 3", run: (m) => { m.buses.forEach((b) => { b.capacity = 3; }); const r = m.autoAssign(101, 1, true); return r.partySize === 3 && m.members.filter((x) => x.busId === r.busId).length === 3; }, parties: { 101: [101, 901, 902] } },
+  { name: "BUS-19 sức chứa đúng bằng nhóm → vào thành công", run: (m) => { const r = m.autoAssign(102, 1, true); return r.assigned === true && m.members.filter((x) => x.busId === r.busId).length === 2 && m.buses[0].status === "CLOSED"; }, parties: { 102: [102, 903] } },
+  { name: "BUS-20 xe còn 1 chỗ, nhóm 2 → không tách nhóm, cả nhóm sang xe kế", run: (m) => { m.autoAssign(101, 1, true); const r = m.autoAssign(102, 1, true); return r.busId === 2 && m.members.filter((x) => [102, 903].includes(x.voterId)).every((x) => x.busId === 2) && m.buses[0].status === "CLOSED"; }, parties: { 102: [102, 903] } },
+  { name: "BUS-21 không xe nào đủ chỗ cho nhóm → báo lỗi, không chốt xe oan", run: (m) => { buses_all_one(m); const r = m.autoAssign(102, 1, true); return r !== null && r.assigned === false && r.reason === "NO_ROOM_FOR_PARTY" && m.buses[0].status === "BOARDING" && m.members.length === 0; }, parties: { 102: [102, 903] } },
+  { name: "BUS-22 move người chính kéo cả nhóm đi theo", run: (m) => { m.setCapacity(1, 3, true); m.setCapacity(3, 3, true); m.autoAssign(102, 1, true); const r = m.moveVoter(102, 3); return r.ok === true && r.moved === 2 && m.members.filter((x) => [102, 903].includes(x.voterId)).every((x) => x.busId === 3); }, parties: { 102: [102, 903] } },
 ];
+const buses_all_one = (m) => m.buses.forEach((b) => { b.capacity = 1; });
 for (const tc of BUS_CASES) {
-  if (!tc.run(busModel(busTeamOf))) throw new Error(`${tc.name}: failed.`);
+  if (!tc.run(busModel(busTeamOf, tc.parties || {}))) throw new Error(`${tc.name}: failed.`);
 }
 
 const totalBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);

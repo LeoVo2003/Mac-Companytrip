@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.15";
+const tag = "v1.10.16";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,9 @@ const headers = {
 };
 
 const notes = [
-  "- Phân xe: sức chứa tối đa từng xe — đủ số tự chốt, người kế tiếp qua xe kế, không cần bấm mở/đóng.",
-  "- Super Admin vẫn đóng/mở/mở lại từng xe thủ công khi cần; lượt quét đầu tiên tự mở Xe 1.",
-  "- check-plugin: 16 test case Phân xe đồng bộ luật mới.",
+  "- Import/export XLSX: ô gộp Người thân / Phòng, CCCD+SĐT text, preview thống kê nhóm.",
+  "- 1 QR = cả nhóm người thân vào cùng xe, không tách nhóm, không vượt sức chứa.",
+  "- Export tên tiếng Việt: từng xe, tổng 5 xe (merge + tô màu chung phòng), kết quả, check-in, mẫu.",
 ].join("\n");
 
 let release;

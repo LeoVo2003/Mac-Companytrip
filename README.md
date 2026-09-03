@@ -13,7 +13,7 @@ Từ bản 1.5.0, WordPress tự kéo bản mới từ GitHub Releases. Cursor k
 5. Plugin tự tạo trang chấm điểm `[mac_companytrip_vote]`, trang công bố `[mac_companytrip_results]` và trang check-in `[mac_companytrip_checkin]`.
 6. Nếu WordPress đang trả link dạng `?page_id=...`, vào **Settings → Permalinks**, chọn **Post name / Tên bài viết** rồi lưu để dùng `/cham-diem-van-nghe/` và `/company-trip-checkin/`.
 7. Vào menu **MAC Company Trip** trong WP Admin.
-8. Tải CSV mẫu, điền nhân sự rồi import.
+8. Tải XLSX mẫu, điền nhân sự rồi import.
 9. Đổi tên/thêm team nếu cần, xếp 6 team biểu diễn vào 6 slot rồi mở từng lượt.
 10. Vào **Nhân sự & QR** để xem QR cá nhân và gửi email cho từng người/team.
 11. Gán tài khoản BTC ở tab **Check-in**, rồi mở `/company-trip-checkin/` trên điện thoại để quét.
@@ -21,7 +21,7 @@ Từ bản 1.5.0, WordPress tự kéo bản mới từ GitHub Releases. Cursor k
 
 ## Dữ liệu import
 
-CSV UTF-8 gồm `Họ tên, Mã NV, Team, Email, Trạng thái`. Ba cột bắt buộc là Họ tên, Team, Email. Email có thể ghi đầy đủ hoặc chỉ username; hệ thống luôn chuẩn hóa về tên miền `@macusaone.com`.
+XLSX gồm `Họ & Tên, Năm sinh, Giới tính, CCCD, SĐT, Loại phòng, Phòng, Team, Email, Note`. Gộp ô Note ghi `Người thân` cho người có QR và các dòng người đi kèm; gộp ô Phòng cho nhóm chung phòng. Email có thể ghi đầy đủ hoặc chỉ username.
 
 ## Phase 1
 
@@ -34,7 +34,7 @@ CSV UTF-8 gồm `Họ tên, Mã NV, Team, Email, Trạng thái`. Ba cột bắt 
 - Chặn team mình ở server và unique index chống vote trùng.
 - Trung bình trên số phiếu hợp lệ; phiếu rỗng là “Chưa có lượt vote”.
 - Hủy phiếu và cấp vote lại riêng, luôn có audit log.
-- Xuất CSV kết quả và chi tiết phiếu.
+- Xuất XLSX kết quả và chi tiết phiếu.
 
 ## Phase 2
 

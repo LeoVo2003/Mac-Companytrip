@@ -15,7 +15,7 @@ final class MAC_Voting_DB {
     public const CHECKIN_MAX_PER_CHECKPOINT = 150;
     public const CHECKIN_WINDOW_MINUTES = 15;
     public const RANK_LADDER = array(50, 40, 30, 20, 10, 0);
-    private const DB_VERSION = '1.10.15';
+    private const DB_VERSION = '1.10.16';
 
     public static function table(string $name): string {
         global $wpdb;
@@ -168,6 +168,16 @@ final class MAC_Voting_DB {
                 search_name varchar(190) NOT NULL,
                 employee_code varchar(100) NULL,
                 email varchar(190) NULL,
+                birth_year varchar(10) NULL,
+                gender varchar(30) NULL,
+                citizen_id varchar(30) NULL,
+                phone varchar(30) NULL,
+                room_type varchar(100) NULL,
+                room_no varchar(50) NULL,
+                room_group varchar(100) NULL,
+                note varchar(255) NULL,
+                primary_voter_id bigint(20) unsigned NULL,
+                import_order int(11) unsigned NOT NULL DEFAULT 0,
                 team_id bigint(20) unsigned NOT NULL,
                 phone_last4_hash char(64) NULL,
                 qr_version smallint(5) unsigned NOT NULL DEFAULT 1,
@@ -178,6 +188,8 @@ final class MAC_Voting_DB {
                 UNIQUE KEY employee_code (employee_code),
                 UNIQUE KEY email (email),
                 KEY search_name (search_name),
+                KEY primary_voter_id (primary_voter_id),
+                KEY room_group (room_group),
                 KEY team_status (team_id,status)
             ) $charset;",
             "CREATE TABLE $performances (

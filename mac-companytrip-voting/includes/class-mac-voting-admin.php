@@ -42,9 +42,11 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_games', array(__CLASS__, 'ajax_games'));
         add_action('wp_ajax_mac_vote_exemption', array(__CLASS__, 'ajax_exemption'));
         add_action('wp_ajax_mac_vote_seed_demo', array(__CLASS__, 'ajax_seed_demo'));
-        add_action('admin_post_mac_vote_export', array(__CLASS__, 'export_csv'));
-        add_action('admin_post_mac_vote_template', array(__CLASS__, 'template_csv'));
-        add_action('admin_post_mac_vote_export_checkin', array(__CLASS__, 'export_checkin_csv'));
+        add_action('admin_post_mac_vote_export', array(__CLASS__, 'export_results_xlsx'));
+        add_action('admin_post_mac_vote_template', array(__CLASS__, 'template_xlsx'));
+        add_action('admin_post_mac_vote_export_checkin', array(__CLASS__, 'export_checkin_xlsx'));
+        add_action('admin_post_mac_vote_export_bus', array(__CLASS__, 'export_bus_xlsx'));
+        add_action('admin_post_mac_vote_export_all_buses', array(__CLASS__, 'export_all_buses_xlsx'));
     }
 
     public static function menu(): void {
@@ -114,6 +116,8 @@ final class MAC_Voting_Admin {
             'exportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export'), 'mac_vote_export'),
             'checkinExportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export_checkin'), 'mac_vote_export_checkin'),
             'templateUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_template'), 'mac_vote_template'),
+            'busExportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export_bus'), 'mac_vote_export_bus'),
+            'allBusesExportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export_all_buses'), 'mac_vote_export_all_buses'),
             'permalinkWarning' => get_option('permalink_structure') === '',
             'permalinkSettingsUrl' => admin_url('options-permalink.php'),
         );
@@ -1006,21 +1010,24 @@ final class MAC_Voting_Admin {
         self::guard();
         $dry_run = !empty($_POST['dryRun']);
         if ((int) ($_FILES['file']['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) wp_send_json_error(array('message' => 'WordPress không nhận được file upload. Mã lỗi: ' . (int) $_FILES['file']['error']), 400);
-        if (empty($_FILES['file']['tmp_name'])) wp_send_json_error(array('message' => 'Vui lòng chọn file CSV.'), 400);
+        if (empty($_FILES['file']['tmp_name'])) wp_send_json_error(array('message' => 'Vui lòng chọn file XLSX.'), 400);
         if ((int) $_FILES['file']['size'] > 5 * MB_IN_BYTES) wp_send_json_error(array('message' => 'File không được lớn hơn 5 MB.'), 400);
-        $handle = fopen($_FILES['file']['tmp_name'], 'rb');
-        if (!$handle) wp_send_json_error(array('message' => 'Không thể đọc file.'), 400);
-        $first_line = (string) fgets($handle);
-        $delimiter = substr_count($first_line, ';') > substr_count($first_line, ',') ? ';' : ',';
-        rewind($handle);
-        $header = fgetcsv($handle, 0, $delimiter, '"', '');
-        if (!$header) wp_send_json_error(array('message' => 'File CSV rỗng.'), 400);
-        if (isset($header[0])) $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', (string) $header[0]);
+        $filename = sanitize_file_name((string) ($_FILES['file']['name'] ?? ''));
+        if (strtolower(pathinfo($filename, PATHINFO_EXTENSION)) !== 'xlsx') wp_send_json_error(array('message' => 'Chỉ chấp nhận file XLSX.'), 400);
+        $workbook = MAC_XLSX::read_first_sheet((string) $_FILES['file']['tmp_name']);
+        if (is_wp_error($workbook)) wp_send_json_error(array('message' => $workbook->get_error_message()), 400);
+        $source_rows = $workbook['rows'] ?? array();
+        $header = $source_rows[1] ?? array();
+        if (!$header) wp_send_json_error(array('message' => 'File XLSX rỗng.'), 400);
         $headers = array_map(static function($value): string { return MAC_Voting_DB::normalize_name((string) $value); }, $header);
         $aliases = array(
-            'name' => array('ho ten','ten','full name'), 'employee' => array('ma nv','ma nhan vien','employee code'),
+            'name' => array('ho & ten','ho ten','ten','full name'), 'employee' => array('ma nv','ma nhan vien','employee code'),
             'team' => array('team','doi'), 'email' => array('email','mail','email cong ty'), 'status' => array('trang thai','status'),
             'role' => array('vai tro','role','btc','chuc vu'), 'password' => array('mat khau','password','pass'),
+            'birth_year' => array('nam sinh','year of birth','birth year'), 'gender' => array('gioi tinh','gender'),
+            'citizen_id' => array('cccd','cmnd','can cuoc cong dan'), 'phone' => array('sdt','so dien thoai','dien thoai','phone'),
+            'room_type' => array('loai phong','room type'), 'room' => array('phong','so phong','room'),
+            'note' => array('note','ghi chu'),
         );
         $columns = array();
         foreach ($aliases as $key => $names) {
@@ -1029,25 +1036,53 @@ final class MAC_Voting_Admin {
                 if ($index !== false) { $columns[$key] = $index; break; }
             }
         }
-        if (!isset($columns['name'], $columns['team'], $columns['email'])) wp_send_json_error(array('message' => 'CSV phải có cột Họ tên, Team, Email.'), 400);
+        $required = array('name' => 'HỌ & TÊN', 'birth_year' => 'NĂM SINH', 'gender' => 'GIỚI TÍNH', 'citizen_id' => 'CCCD', 'phone' => 'SĐT', 'room_type' => 'LOẠI PHÒNG', 'room' => 'PHÒNG', 'team' => 'TEAM', 'email' => 'EMAIL', 'note' => 'NOTE');
+        $missing = array();
+        foreach ($required as $key => $label) if (!isset($columns[$key])) $missing[] = $label;
+        if ($missing) wp_send_json_error(array('message' => 'XLSX thiếu cột: ' . implode(', ', $missing) . '.'), 400);
 
         global $wpdb;
         $teams_table = MAC_Voting_DB::table('teams');
         $voters = MAC_Voting_DB::table('voters');
         $teams = $wpdb->get_results("SELECT * FROM $teams_table ORDER BY team_no", ARRAY_A);
-        $inserted = 0; $updated = 0; $line = 1; $errors = array(); $identity_rows = array(); $pending_staff = array();
+        $inserted = 0; $updated = 0; $companions = 0; $line = 1; $errors = array(); $identity_rows = array(); $pending_staff = array();
+        $preview_rows = array(); $family_groups = array(); $room_groups = array(); $last_primary = null;
         $wpdb->query('START TRANSACTION');
-        while (($row = fgetcsv($handle, 0, $delimiter, '"', '')) !== false) {
-            $line++;
+        foreach ($source_rows as $sheet_row => $row) {
+            if ((int) $sheet_row === 1) continue;
+            $line = (int) $sheet_row;
+            if (!array_filter($row, static function($value): bool { return trim((string) $value) !== ''; })) continue;
             $name = sanitize_text_field($row[$columns['name']] ?? '');
             $team_value = sanitize_text_field($row[$columns['team']] ?? '');
             $email_value = sanitize_text_field($row[$columns['email']] ?? '');
-            $email = MAC_Voting_DB::normalize_company_email($email_value);
-            if (!$name && !$team_value && !$email_value) continue;
+            $note = sanitize_text_field($row[$columns['note']] ?? '');
+            $note_merge = self::xlsx_merge_ref($workbook['merges'] ?? array(), $line, $columns['note'] + 1);
+            $is_companion = $team_value === '' && $email_value === '';
+            $same_family_merge = $last_primary && $note_merge !== '' && $note_merge === $last_primary['noteMerge'];
+            $allowed_companion = $last_primary && $last_primary['acceptsCompanions'] && $same_family_merge;
+            if ($is_companion && !$allowed_companion) {
+                $errors[] = "Dòng $line: thiếu Team/Email nhưng không nằm trong ô NOTE gộp \"Người thân\"";
+                continue;
+            }
+            if (!$is_companion && $same_family_merge) {
+                $errors[] = "Dòng $line: nhóm NOTE gộp chỉ được có một người chính có Team và Email";
+                continue;
+            }
+            if (!$is_companion && $last_primary && $last_primary['acceptsCompanions'] && (int) $last_primary['companionCount'] === 0) {
+                $errors[] = 'Dòng ' . (int) $last_primary['line'] . ': NOTE Người thân chưa gộp với dòng người đi kèm';
+            }
+            if (!$is_companion && self::is_family_note($note) && $note_merge === '') {
+                $errors[] = "Dòng $line: NOTE Người thân phải được gộp theo chiều dọc với người đi kèm";
+            }
+            $email = $is_companion ? null : MAC_Voting_DB::normalize_company_email($email_value);
             $team = null;
-            foreach ($teams as $candidate) {
-                if (MAC_Voting_DB::normalize_name($team_value) === MAC_Voting_DB::normalize_name($candidate['name']) || preg_match('/#?\s*' . (int) $candidate['team_no'] . '\b/', $team_value)) {
-                    $team = $candidate; break;
+            if ($is_companion) {
+                $team = $last_primary['team'];
+            } else {
+                foreach ($teams as $candidate) {
+                    if (MAC_Voting_DB::normalize_name($team_value) === MAC_Voting_DB::normalize_name($candidate['name']) || preg_match('/#?\s*' . (int) $candidate['team_no'] . '\b/', $team_value)) {
+                        $team = $candidate; break;
+                    }
                 }
             }
             $role_text = isset($columns['role']) ? (string) ($row[$columns['role']] ?? '') : '';
@@ -1056,27 +1091,32 @@ final class MAC_Voting_Admin {
             if (!$staff_kind && $team && MAC_Voting_DB::is_staff_team_no((int) $team['team_no'])) {
                 $staff_kind = 'btc';
             }
-            if ($staff_kind) {
+            if ($staff_kind && !$is_companion) {
                 $staff_team_id = MAC_Voting_DB::staff_team_id();
                 $team = array('id' => $staff_team_id, 'team_no' => MAC_Voting_DB::STAFF_TEAM_NO, 'name' => MAC_Voting_DB::STAFF_TEAM_NAME);
             }
             $row_issues = array();
             if (!$name) $row_issues[] = 'thiếu họ tên';
             if (!$team) $row_issues[] = 'team không hợp lệ: ' . ($team_value ?: '(trống)');
-            if (!$email) $row_issues[] = 'email phải thuộc @macusaone.com, @yesoffice.vn hoặc @macmarketing.vn';
+            if (!$is_companion && !$email) $row_issues[] = 'email phải thuộc @macusaone.com, @yesoffice.vn hoặc @macmarketing.vn';
             if ($row_issues) { $errors[] = "Dòng $line: " . implode(', ', $row_issues); continue; }
             $employee = isset($columns['employee']) ? sanitize_text_field($row[$columns['employee']] ?? '') : '';
+            if (!$employee && preg_match('/^\s*((?:NVG?|MAC)[-\s]?\d+)\s*-/iu', $name, $employee_match)) $employee = $employee_match[1];
             $status_text = isset($columns['status']) ? MAC_Voting_DB::normalize_name((string) ($row[$columns['status']] ?? '')) : 'hoat dong';
-            $status = in_array($status_text, array('inactive','khong','khong hoat dong','0','false'), true) ? 'INACTIVE' : 'ACTIVE';
+            $status = $is_companion ? 'COMPANION' : (in_array($status_text, array('inactive','khong','khong hoat dong','0','false'), true) ? 'INACTIVE' : 'ACTIVE');
             $employee = $employee ? strtoupper($employee) : '';
-            $email_existing_id = (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $voters WHERE email=%s", $email));
+            $primary_id = $is_companion ? (int) $last_primary['id'] : 0;
+            $email_existing_id = $email ? (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $voters WHERE email=%s", $email)) : 0;
             $employee_existing_id = $employee ? (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $voters WHERE employee_code=%s", $employee)) : 0;
             if ($email_existing_id && $employee_existing_id && $email_existing_id !== $employee_existing_id) {
                 $errors[] = "Dòng $line: email và Mã NV đang thuộc hai nhân sự khác nhau";
                 continue;
             }
             $existing_id = $email_existing_id ?: $employee_existing_id;
-            if (!$existing_id && !$employee) {
+            if ($is_companion && !$dry_run && $primary_id) {
+                $existing_id = (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM $voters WHERE primary_voter_id=%d AND search_name=%s ORDER BY id LIMIT 1", $primary_id, MAC_Voting_DB::normalize_name($name)));
+            }
+            if (!$is_companion && !$existing_id && !$employee) {
                 $matches = $wpdb->get_col($wpdb->prepare(
                     "SELECT id FROM $voters WHERE search_name=%s AND team_id=%d ORDER BY id",
                     MAC_Voting_DB::normalize_name($name),
@@ -1089,32 +1129,52 @@ final class MAC_Voting_Admin {
                     continue;
                 }
             }
-            $identity_key = $email;
+            $identity_key = $is_companion ? ('companion:' . ($primary_id ?: $line) . ':' . MAC_Voting_DB::normalize_name($name)) : (string) $email;
             if (isset($identity_rows[$identity_key])) {
                 $errors[] = "Dòng $line trùng email với dòng " . $identity_rows[$identity_key];
                 continue;
             }
             $identity_rows[$identity_key] = $line;
-            $conflicting_id = (int) $wpdb->get_var($wpdb->prepare(
+            $conflicting_id = $email ? (int) $wpdb->get_var($wpdb->prepare(
                 "SELECT id FROM $voters WHERE email=%s AND id!=%d LIMIT 1",
                 $email,
                 $existing_id
-            ));
+            )) : 0;
             if ($conflicting_id) {
                 $errors[] = "Dòng $line: email đã thuộc một nhân sự khác trong hệ thống";
                 continue;
             }
-            if ($staff_kind) {
+            if ($staff_kind && !$is_companion) {
                 $pending_staff[] = array('name' => $name, 'email' => $email, 'password' => $password_text, 'kind' => $staff_kind);
             }
+            $room_type = sanitize_text_field($row[$columns['room_type']] ?? '');
+            $room_no = sanitize_text_field($row[$columns['room']] ?? '');
+            $room_merge = self::xlsx_merge_ref($workbook['merges'] ?? array(), $line, $columns['room'] + 1);
+            $room_group = $room_merge !== '' ? ('merge:' . $room_merge) : ($room_no !== '' ? ('room:' . MAC_Voting_DB::normalize_name($room_type) . ':' . MAC_Voting_DB::normalize_name($room_no)) : '');
+            if ($room_group !== '') $room_groups[$room_group] = (int) ($room_groups[$room_group] ?? 0) + 1;
             $data = array(
-                'full_name' => MAC_Voting_DB::title_case($name), 'search_name' => MAC_Voting_DB::normalize_name($name),
+                'full_name' => self::format_import_name($name, $employee), 'search_name' => MAC_Voting_DB::normalize_name($name),
                 'employee_code' => $employee ?: null, 'email' => $email, 'team_id' => (int) $team['id'],
+                'birth_year' => sanitize_text_field($row[$columns['birth_year']] ?? ''),
+                'gender' => sanitize_text_field($row[$columns['gender']] ?? ''),
+                'citizen_id' => sanitize_text_field($row[$columns['citizen_id']] ?? ''),
+                'phone' => sanitize_text_field($row[$columns['phone']] ?? ''),
+                'room_type' => $room_type, 'room_no' => $room_no, 'room_group' => $room_group ?: null,
+                'note' => $is_companion ? ('Đi kèm ' . $last_primary['name']) : $note,
+                'primary_voter_id' => $is_companion && $primary_id ? $primary_id : null,
+                'import_order' => max(0, $line - 2),
                 'phone_last4_hash' => '', 'status' => $status, 'updated_at' => MAC_Voting_DB::utc_now(),
             );
+            if (count($preview_rows) < 100) $preview_rows[] = array_values(array_map('strval', $row));
             if ($dry_run) {
                 if ($existing_id) $updated++;
                 else $inserted++;
+                if ($is_companion) { $companions++; $last_primary['companionCount']++; }
+                else {
+                    $accepts = self::is_family_note($note);
+                    $last_primary = array('id' => 0, 'team' => $team, 'name' => $name, 'line' => $line, 'noteMerge' => $note_merge, 'acceptsCompanions' => $accepts, 'companionCount' => 0);
+                    if ($accepts) $family_groups[$note_merge] = true;
+                }
                 continue;
             }
             if ($existing_id) {
@@ -1125,10 +1185,21 @@ final class MAC_Voting_Admin {
                 $data['created_at'] = MAC_Voting_DB::utc_now();
                 $saved = $wpdb->insert($voters, $data);
                 if ($saved === false) $errors[] = "Dòng $line không lưu được: " . ($wpdb->last_error ?: 'lỗi database');
-                else $inserted++;
+                else { $inserted++; $existing_id = (int) $wpdb->insert_id; }
+            }
+            if ($is_companion) {
+                $companions++;
+                $last_primary['companionCount']++;
+            } else {
+                $wpdb->query($wpdb->prepare("UPDATE $voters SET status='INACTIVE',updated_at=%s WHERE primary_voter_id=%d AND status='COMPANION'", MAC_Voting_DB::utc_now(), $existing_id));
+                $accepts = self::is_family_note($note);
+                $last_primary = array('id' => $existing_id, 'team' => $team, 'name' => $name, 'line' => $line, 'noteMerge' => $note_merge, 'acceptsCompanions' => $accepts, 'companionCount' => 0);
+                if ($accepts) $family_groups[$note_merge] = true;
             }
         }
-        fclose($handle);
+        if ($last_primary && $last_primary['acceptsCompanions'] && (int) $last_primary['companionCount'] === 0) {
+            $errors[] = 'Dòng ' . (int) $last_primary['line'] . ': NOTE Người thân chưa gộp với dòng người đi kèm';
+        }
         if ($errors) {
             $wpdb->query('ROLLBACK');
             wp_send_json_error(array('message' => implode('; ', array_slice($errors, 0, 8))), 400);
@@ -1139,6 +1210,11 @@ final class MAC_Voting_Admin {
                 'message' => "Server đã kiểm tra đủ " . ($inserted + $updated) . " người: $inserted mới, $updated sẽ cập nhật. Chưa có dữ liệu nào được ghi.",
                 'inserted' => $inserted,
                 'updated' => $updated,
+                'companions' => $companions,
+                'familyGroups' => count($family_groups),
+                'roomGroups' => count(array_filter($room_groups, static function($count): bool { return (int) $count > 1; })),
+                'headers' => array_values(array_map('strval', $header)),
+                'previewRows' => $preview_rows,
             ));
         }
         $collision = $wpdb->get_row("SELECT MIN(full_name) AS full_name,email,COUNT(*) AS total FROM $voters WHERE status='ACTIVE' AND email IS NOT NULL GROUP BY email HAVING COUNT(*)>1 LIMIT 1", ARRAY_A);
@@ -1160,7 +1236,7 @@ final class MAC_Voting_Admin {
             }
         }
         MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'VOTERS_IMPORTED', 'voter', null, array('inserted' => $inserted, 'updated' => $updated, 'staff' => count($pending_staff)));
-        $message = "Đã import: $inserted mới, $updated cập nhật.";
+        $message = "Đã import: $inserted mới, $updated cập nhật; $companions người đi kèm.";
         if ($pending_staff) {
             $message .= ' Đã cấp tài khoản Super admin/BTC cho ' . count($pending_staff) . ' người.';
         }
@@ -1172,6 +1248,31 @@ final class MAC_Voting_Admin {
             'overview' => self::overview(),
             'staffAccounts' => $staff_accounts,
         ));
+    }
+
+    private static function xlsx_merge_ref(array $merges, int $row, int $col): string {
+        foreach ($merges as $merge) {
+            if ($row >= (int) $merge['startRow'] && $row <= (int) $merge['endRow'] && $col >= (int) $merge['startCol'] && $col <= (int) $merge['endCol']) {
+                return (string) $merge['ref'];
+            }
+        }
+        return '';
+    }
+
+    private static function is_family_note(string $note): bool {
+        $value = MAC_Voting_DB::normalize_name($note);
+        foreach (array('nguoi than', 'nguoi di kem', 'di kem', 'di cung', 'nguoi yeu') as $marker) {
+            if (strpos($value, $marker) !== false) return true;
+        }
+        return (bool) preg_match('/(?:^|\s)(cha|me|bo|vo|chong|con)(?:\s|$)/u', $value);
+    }
+
+    private static function format_import_name(string $name, string $employee): string {
+        $display = MAC_Voting_DB::title_case($name);
+        if ($employee !== '' && preg_match('/^\s*[^\s]+\s*-/u', $display, $match)) {
+            $display = strtoupper((string) $match[0]) . ltrim(mb_substr($display, mb_strlen((string) $match[0], 'UTF-8'), null, 'UTF-8'));
+        }
+        return $display;
     }
 
     private static function overview_payload(): array {
@@ -1256,10 +1357,11 @@ final class MAC_Voting_Admin {
         global $wpdb;
         $voters = MAC_Voting_DB::table('voters');
         $teams = MAC_Voting_DB::table('teams');
-        $rows = $wpdb->get_results("SELECT v.id,v.full_name,v.email,v.employee_code,v.status,v.qr_version,t.id AS team_id,t.name AS team_name,t.team_no
+        $rows = $wpdb->get_results("SELECT v.id,v.full_name,v.email,v.employee_code,v.status,v.qr_version,v.birth_year,v.gender,v.citizen_id,v.phone,v.room_type,v.room_no,v.room_group,v.note,v.primary_voter_id,t.id AS team_id,t.name AS team_name,t.team_no
             FROM $voters v JOIN $teams t ON t.id=v.team_id ORDER BY t.team_no,v.full_name", ARRAY_A) ?: array();
         foreach ($rows as &$row) {
             $row['id'] = (int) $row['id'];
+            $row['primary_voter_id'] = $row['primary_voter_id'] !== null ? (int) $row['primary_voter_id'] : null;
             $row['full_name'] = MAC_Voting_DB::title_case((string) $row['full_name']);
             $row['qrUrl'] = MAC_Voting_QR::url_for_voter((int) $row['id'], (int) $row['qr_version']);
         }
@@ -1369,6 +1471,9 @@ final class MAC_Voting_Admin {
         $voter = $wpdb->get_row($wpdb->prepare("SELECT * FROM $voters WHERE id=%d", $voter_id), ARRAY_A);
         if (!$voter) {
             wp_send_json_error(array('message' => 'Không tìm thấy nhân sự.'), 404);
+        }
+        if (($voter['status'] ?? '') === 'COMPANION') {
+            wp_send_json_error(array('message' => 'Người đi kèm không có QR riêng — quét QR của người chính để đưa cả nhóm vào xe.'), 400);
         }
         if ($operation === 'regenerate') {
             $version = MAC_Voting_QR::regenerate($voter_id);
@@ -1726,34 +1831,33 @@ final class MAC_Voting_Admin {
         return true;
     }
 
-    public static function template_csv(): void {
+    public static function template_xlsx(): void {
         if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_template')) wp_die('Không có quyền.');
-        self::csv_headers('mau-import-nhan-su.csv');
-        $out = fopen('php://output', 'wb'); fwrite($out, "\xEF\xBB\xBF");
-        fputcsv($out, array('Họ tên','Mã NV','Team','Email','Trạng thái','Vai trò','Mật khẩu'));
-        fputcsv($out, array('Nguyễn Văn A','MAC001','#1 La Bàn','nguyenvana@macusaone.com','Hoạt động','',''));
-        fputcsv($out, array('Trần Thị B','MAC002','#1 La Bàn','tranthib','Hoạt động','',''));
-        fputcsv($out, array('Lê Văn C','MAC003','#2 Hải Đồ','levanc@macusaone.com','Hoạt động','',''));
-        fputcsv($out, array('Phạm Thị D','MAC004','#3 Đèn Hiệu','phamthid','Hoạt động','',''));
-        fputcsv($out, array('Hoàng Văn E','MAC005','#4 Viking','hoangvane@macusaone.com','Hoạt động','',''));
-        fputcsv($out, array('Vũ Thị F','MAC006','#5 Sao Bắc Cực','vuthif','Hoạt động','',''));
-        fputcsv($out, array('Đặng Văn G','MAC007','#6 Hải Đăng','dangvang@macusaone.com','Hoạt động','',''));
-        fputcsv($out, array('Ngô Thị H','MAC008','#2 Hải Đồ','ngothih','Không hoạt động','',''));
-        fputcsv($out, array('Trần Văn BTC','MAC100','#7 Hoa tiêu','tranvanbtc','Hoạt động','BTC',''));
-        fputcsv($out, array('Lê Thị Super','MAC101','#7 Hoa tiêu','lethisuper@macmarketing.vn','Hoạt động','Super admin',''));
-        fclose($out); exit;
+        MAC_XLSX::output('Mẫu import nhân sự.xlsx', array(array(
+            'name' => 'Nhân sự',
+            'rows' => array(
+                array('HỌ & TÊN','NĂM SINH','GIỚI TÍNH','CCCD','SĐT','LOẠI PHÒNG','PHÒNG','TEAM','EMAIL','NOTE'),
+                array('NV-177 - Lý Tư Đình','1997','Nữ','','','Triple','34','HẢI ĐỒ','bambinette.ly@macusaone.com','Người thân'),
+                array('Lý Cẩm Uy','2016','Nam','','','','','','',''),
+                array('NV-059 - Nguyễn Ngô Minh Huy','1995','Nam','','','Twin','33','SAO BẮC CỰC','huy.nguyen@macusaone.com',''),
+                array('NV-083 - Tạ Thanh Tú','1995','Nam','','','','','ĐÈN HIỆU','tu.ta@macusaone.com',''),
+            ),
+            'merges' => array(array(2, 6, 3, 6), array(2, 7, 3, 7), array(2, 10, 3, 10), array(4, 6, 5, 6), array(4, 7, 5, 7)),
+            'rowStyles' => array(2 => 2, 3 => 2, 4 => 3, 5 => 3),
+            'widths' => array(34, 12, 12, 18, 16, 16, 12, 20, 32, 20),
+            'autoFilter' => true,
+        )));
     }
 
-    public static function export_csv(): void {
+    public static function export_results_xlsx(): void {
         if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export')) wp_die('Không có quyền.');
         global $wpdb;
-        self::csv_headers('ket-qua-companytrip.csv');
-        $out = fopen('php://output', 'wb'); fwrite($out, "\xEF\xBB\xBF");
         $overview = self::overview();
+        $rows = array();
 
         // 1) Văn nghệ
-        fputcsv($out, array('VĂN NGHỆ · KẾT QUẢ BẦU CHỌN'));
-        fputcsv($out, array('Hạng','Team','Số phiếu','Điểm trung bình','Phong cách','Dàn dựng','Đồng đội'));
+        $rows[] = array('VĂN NGHỆ · KẾT QUẢ BẦU CHỌN');
+        $rows[] = array('Hạng','Team','Số phiếu','Điểm trung bình','Phong cách','Dàn dựng','Đồng đội');
         $previous_score = null; $current_rank = 0;
         foreach ($overview['results'] as $index => $row) {
             if ($row['average_score'] === null) {
@@ -1762,67 +1866,51 @@ final class MAC_Voting_Admin {
                 if ($previous_score === null || (float) $previous_score !== (float) $row['average_score']) $current_rank = $index + 1;
                 $display_rank = $current_rank; $previous_score = $row['average_score'];
             }
-            fputcsv($out, array($display_rank, '#' . $row['team_no'] . ' ' . $row['team_name'], $row['voter_count'], $row['average_score'] ?? 'Chưa có lượt vote', $row['style_average'] ?? '', $row['staging_average'] ?? '', $row['teamwork_average'] ?? ''));
+            $rows[] = array($display_rank, '#' . $row['team_no'] . ' ' . $row['team_name'], $row['voter_count'], $row['average_score'] ?? 'Chưa có lượt vote', $row['style_average'] ?? '', $row['staging_average'] ?? '', $row['teamwork_average'] ?? '');
         }
-        fputcsv($out, array()); fputcsv($out, array('CHI TIẾT PHIẾU'));
-        fputcsv($out, array('Người chấm','Team người chấm','Tiết mục','Tổng điểm','Trạng thái','Thời gian'));
-        foreach ($overview['ballots'] as $row) fputcsv($out, array($row['full_name'],$row['voter_team'],$row['performance_team'],$row['total_score'],$row['status'],$row['created_at']));
+        $rows[] = array(); $rows[] = array('CHI TIẾT PHIẾU');
+        $rows[] = array('Người chấm','Team người chấm','Tiết mục','Tổng điểm','Trạng thái','Thời gian');
+        foreach ($overview['ballots'] as $row) $rows[] = array($row['full_name'],$row['voter_team'],$row['performance_team'],$row['total_score'],$row['status'],$row['created_at']);
 
         // 2) Tổng điểm 4 mặt trận
-        fputcsv($out, array()); fputcsv($out, array('TỔNG ĐIỂM · 4 MẶT TRẬN'));
-        fputcsv($out, array('Hạng','Team','Check-in','Trò chơi','Văn nghệ','Thi đua','Tổng'));
+        $rows[] = array(); $rows[] = array('TỔNG ĐIỂM · 4 MẶT TRẬN');
+        $rows[] = array('Hạng','Team','Check-in','Trò chơi','Văn nghệ','Thi đua','Tổng');
         foreach (($overview['totalBoard']['teams'] ?? array()) as $row) {
-            fputcsv($out, array($row['rank'] ?? '—', $row['teamName'], $row['checkin'], $row['games'], $row['vote'], $row['thidua'], $row['total']));
+            $rows[] = array($row['rank'] ?? '—', $row['teamName'], $row['checkin'], $row['games'], $row['vote'], $row['thidua'], $row['total']);
         }
 
         // 3) Check-in từng trạm
-        fputcsv($out, array()); fputcsv($out, array('CHECK-IN TỪNG TRẠM'));
-        fputcsv($out, array('Trạm','Team','Họ tên','Email','Trạng thái','Scanned at','Người quét'));
+        $rows[] = array(); $rows[] = array('CHECK-IN TỪNG TRẠM');
+        $rows[] = array('Trạm','Team','Họ tên','Email','Trạng thái','Scanned at','Người quét');
         $checkpoints = MAC_Voting_DB::table('checkpoints');
         $checkins = MAC_Voting_DB::table('checkins');
         $voters = MAC_Voting_DB::table('voters');
         $teams = MAC_Voting_DB::table('teams');
-        $rows = $wpdb->get_results("SELECT c.name AS checkpoint_name,t.team_no,t.name AS team_name,v.full_name,v.email,
-                CASE WHEN i.id IS NULL THEN 'Chưa check-in' ELSE 'Đã check-in' END AS checkin_status,
-                i.scanned_at,i.scanned_by
-            FROM $voters v
-            JOIN $teams t ON t.id=v.team_id
-            CROSS JOIN $checkpoints c
-            LEFT JOIN $checkins i ON i.voter_id=v.id AND i.checkpoint_id=c.id
-            WHERE v.status='ACTIVE'
-            ORDER BY c.id,t.team_no,v.full_name", ARRAY_A) ?: array();
-        foreach ($rows as $row) {
-            $scanned_by = '';
-            if (!empty($row['scanned_by'])) {
-                $user = get_userdata((int) $row['scanned_by']);
-                $scanned_by = $user ? $user->display_name : (string) $row['scanned_by'];
-            }
-            fputcsv($out, array($row['checkpoint_name'], '#' . $row['team_no'] . ' ' . $row['team_name'], $row['full_name'], $row['email'], $row['checkin_status'], $row['scanned_at'] ?? '', $scanned_by));
-        }
+        $rows = array_merge($rows, self::checkin_matrix_rows($wpdb, $checkpoints, $checkins, $voters, $teams, false));
 
         // 4) Miễn check-in
-        fputcsv($out, array()); fputcsv($out, array('MIỄN CHECK-IN'));
-        fputcsv($out, array('Trạm','Họ tên','Lý do'));
+        $rows[] = array(); $rows[] = array('MIỄN CHECK-IN');
+        $rows[] = array('Trạm','Họ tên','Lý do');
         foreach (MAC_Checkin::checkpoints() as $cp) {
             foreach (MAC_Checkin::exemptions((int) $cp['id']) as $ex) {
-                fputcsv($out, array('Trạm ' . $cp['id'] . ' ' . $cp['name'], $ex['fullName'], $ex['reason']));
+                $rows[] = array('Trạm ' . $cp['id'] . ' ' . $cp['name'], $ex['fullName'], $ex['reason']);
             }
         }
 
         // 5) Trò chơi lớn
-        fputcsv($out, array()); fputcsv($out, array('TRÒ CHƠI LỚN'));
-        fputcsv($out, array('Game','Team','Hạng','Điểm'));
+        $rows[] = array(); $rows[] = array('TRÒ CHƠI LỚN');
+        $rows[] = array('Game','Team','Hạng','Điểm');
         $game_names = array();
         foreach (MAC_Games::games() as $g) $game_names[(int) $g['id']] = $g['name'];
         foreach ((MAC_Games::board() ?? array()) as $row) {
             foreach (($row['cells'] ?? array()) as $cell) {
-                fputcsv($out, array($game_names[(int) $cell['gameId']] ?? ('Game ' . $cell['gameId']), $row['teamName'], $cell['rank'] ?: 'Chưa xếp', $cell['points']));
+                $rows[] = array($game_names[(int) $cell['gameId']] ?? ('Game ' . $cell['gameId']), $row['teamName'], $cell['rank'] ?: 'Chưa xếp', $cell['points']);
             }
         }
 
         // 6) Thi đua
-        fputcsv($out, array()); fputcsv($out, array('THI ĐUA'));
-        fputcsv($out, array('Hạng mục','Team','Hạng','Điểm','Được tính'));
+        $rows[] = array(); $rows[] = array('THI ĐUA');
+        $rows[] = array('Hạng mục','Team','Hạng','Điểm','Được tính');
         foreach (($overview['totalBoard']['categories'] ?? array()) as $cat) {
             foreach (($overview['totalBoard']['teams'] ?? array()) as $team) {
                 $cell = null;
@@ -1830,29 +1918,29 @@ final class MAC_Voting_Admin {
                 $ladder = array(50, 40, 30, 20, 10, 0);
                 $cell_rank = 0;
                 if ($cell && $cell['hasScore']) { $pos = array_search((int) $cell['points'], $ladder, true); $cell_rank = $pos === false ? 0 : $pos + 1; }
-                fputcsv($out, array($cat['name'], $team['teamName'], $cell_rank ? ('Hạng ' . $cell_rank) : 'Không tham gia', $cell['points'] ?? 0, ($cat['isComplete'] ?? false) ? 'Có' : 'Không'));
+                $rows[] = array($cat['name'], $team['teamName'], $cell_rank ? ('Hạng ' . $cell_rank) : 'Không tham gia', $cell['points'] ?? 0, ($cat['isComplete'] ?? false) ? 'Có' : 'Không');
             }
         }
 
         // 7) Phân xe
         $bus_state = MAC_Bus::admin_state();
-        fputcsv($out, array()); fputcsv($out, array('PHÂN XE'));
-        fputcsv($out, array('Xe','Trạng thái','NV QR','BTC/Hoa tiêu + thủ công','Tổng'));
-        foreach ($bus_state['buses'] as $bus) fputcsv($out, array($bus['name'], $bus['status'], $bus['employees'], $bus['staff'], $bus['total']));
-        fputcsv($out, array()); fputcsv($out, array('MANIFEST TỪNG XE'));
-        fputcsv($out, array('Xe','Họ tên','Team','Loại','Nguồn'));
+        $rows[] = array(); $rows[] = array('PHÂN XE');
+        $rows[] = array('Xe','Trạng thái','NV QR','Người đi kèm','BTC/Hoa tiêu + thủ công','Tổng');
+        foreach ($bus_state['buses'] as $bus) $rows[] = array($bus['name'], $bus['status'], $bus['employees'], $bus['companions'], $bus['staff'], $bus['total']);
+        $rows[] = array(); $rows[] = array('MANIFEST TỪNG XE');
+        $rows[] = array('Xe','Họ tên','Năm sinh','Giới tính','CCCD','SĐT','Loại phòng','Phòng','Email','Team','Loại','Nguồn');
         foreach ($bus_state['buses'] as $bus) {
             foreach (($bus['manifest'] ?? array()) as $m) {
-                fputcsv($out, array($bus['name'], $m['name'], $m['teamNo'] ? ('#' . $m['teamNo'] . ' ' . $m['teamName']) : '—', $m['memberType'], $m['source']));
+                $rows[] = array($bus['name'], $m['name'], $m['birthYear'], $m['gender'], $m['citizenId'], $m['phone'], $m['roomType'], $m['roomNo'], $m['email'], $m['teamNo'] ? ('#' . $m['teamNo'] . ' ' . $m['teamName']) : '—', $m['memberType'], $m['source']);
             }
         }
-        fputcsv($out, array()); fputcsv($out, array('CHƯA PHÂN XE'));
-        fputcsv($out, array('Họ tên','Team'));
-        foreach (($bus_state['unassigned'] ?? array()) as $u) fputcsv($out, array($u['name'], '#' . $u['teamNo'] . ' ' . $u['teamName']));
+        $rows[] = array(); $rows[] = array('CHƯA PHÂN XE');
+        $rows[] = array('Họ tên','Team');
+        foreach (($bus_state['unassigned'] ?? array()) as $u) $rows[] = array($u['name'], '#' . $u['teamNo'] . ' ' . $u['teamName']);
 
         // 8) Điểm danh trên xe
-        fputcsv($out, array()); fputcsv($out, array('ĐIỂM DANH TRÊN XE'));
-        fputcsv($out, array('Xe','Lượt','Thời gian','Họ tên','Có mặt'));
+        $rows[] = array(); $rows[] = array('ĐIỂM DANH TRÊN XE');
+        $rows[] = array('Xe','Lượt','Thời gian','Họ tên','Có mặt');
         $rollcalls = $wpdb->get_results("SELECT r.id,r.bus_id,r.sequence_no,r.created_at,b.name AS bus_name,
                 m2.manual_name,v.full_name,m.present
             FROM " . MAC_Voting_DB::table('bus_rollcalls') . " r
@@ -1863,28 +1951,20 @@ final class MAC_Voting_Admin {
             ORDER BY r.bus_id,r.sequence_no,v.full_name,m2.manual_name", ARRAY_A) ?: array();
         foreach ($rollcalls as $row) {
             if ($row['full_name'] === null && $row['manual_name'] === null) continue;
-            fputcsv($out, array($row['bus_name'], 'Lượt ' . $row['sequence_no'], $row['created_at'], MAC_Voting_DB::title_case((string) ($row['full_name'] ?? $row['manual_name'])), $row['present'] ? '✓' : '○'));
+            $rows[] = array($row['bus_name'], 'Lượt ' . $row['sequence_no'], $row['created_at'], MAC_Voting_DB::title_case((string) ($row['full_name'] ?? $row['manual_name'])), $row['present'] ? '✓' : '○');
         }
 
         // 9) Nhân sự
-        fputcsv($out, array()); fputcsv($out, array('NHÂN SỰ'));
-        fputcsv($out, array('Họ tên','Team','Email','Mã NV','Trạng thái'));
-        $people = $wpdb->get_results("SELECT v.full_name,t.team_no,t.name AS team_name,v.email,v.employee_code,v.status
+        $rows[] = array(); $rows[] = array('NHÂN SỰ');
+        $rows[] = array('Họ tên','Năm sinh','Giới tính','CCCD','SĐT','Loại phòng','Phòng','Team','Email','Note','Mã NV','Trạng thái');
+        $people = $wpdb->get_results("SELECT v.full_name,v.birth_year,v.gender,v.citizen_id,v.phone,v.room_type,v.room_no,t.team_no,t.name AS team_name,v.email,v.note,v.employee_code,v.status
             FROM $voters v JOIN $teams t ON t.id=v.team_id ORDER BY t.team_no,v.full_name", ARRAY_A) ?: array();
-        foreach ($people as $row) fputcsv($out, array($row['full_name'], '#' . $row['team_no'] . ' ' . $row['team_name'], $row['email'], $row['employee_code'], $row['status']));
-        fclose($out); exit;
+        foreach ($people as $row) $rows[] = array($row['full_name'], $row['birth_year'], $row['gender'], $row['citizen_id'], $row['phone'], $row['room_type'], $row['room_no'], '#' . $row['team_no'] . ' ' . $row['team_name'], $row['email'], $row['note'], $row['employee_code'], $row['status']);
+        MAC_XLSX::output('Kết quả Company Trip.xlsx', array(array('name' => 'Tổng hợp', 'rows' => $rows, 'widths' => array(24, 24, 24, 18, 18, 18, 18, 18, 24, 24, 18, 18))));
     }
 
-    public static function export_checkin_csv(): void {
-        if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export_checkin')) wp_die('Không có quyền.');
-        global $wpdb;
-        self::csv_headers('checkin-companytrip.csv');
-        $out = fopen('php://output', 'wb'); fwrite($out, "\xEF\xBB\xBF");
-        fputcsv($out, array('Checkpoint','Team','Họ tên','Email','Trạng thái check-in','Scanned at','Scanned by'));
-        $checkpoints = MAC_Voting_DB::table('checkpoints');
-        $checkins = MAC_Voting_DB::table('checkins');
-        $voters = MAC_Voting_DB::table('voters');
-        $teams = MAC_Voting_DB::table('teams');
+    /** Ma trận check-in (mỗi người × mỗi trạm) dùng chung cho export tổng và export check-in. */
+    private static function checkin_matrix_rows($wpdb, string $checkpoints, string $checkins, string $voters, string $teams, bool $hanoi_time): array {
         $rows = $wpdb->get_results("SELECT c.name AS checkpoint_name,t.team_no,t.name AS team_name,v.full_name,v.email,
                 CASE WHEN i.id IS NULL THEN 'Chưa check-in' ELSE 'Đã check-in' END AS checkin_status,
                 i.scanned_at,i.scanned_by
@@ -1894,26 +1974,126 @@ final class MAC_Voting_Admin {
             LEFT JOIN $checkins i ON i.voter_id=v.id AND i.checkpoint_id=c.id
             WHERE v.status='ACTIVE'
             ORDER BY c.id,t.team_no,v.full_name", ARRAY_A) ?: array();
+        $out = array();
         foreach ($rows as $row) {
             $scanned_by = '';
             if (!empty($row['scanned_by'])) {
                 $user = get_userdata((int) $row['scanned_by']);
                 $scanned_by = $user ? $user->display_name : (string) $row['scanned_by'];
             }
-            fputcsv($out, array($row['checkpoint_name'], '#' . $row['team_no'] . ' ' . $row['team_name'], $row['full_name'], $row['email'], $row['checkin_status'], MAC_Voting_DB::hanoi_time($row['scanned_at'], 'd/m/Y H:i'), $scanned_by));
+            $scanned_at = (string) ($row['scanned_at'] ?? '');
+            if ($hanoi_time && $scanned_at !== '') $scanned_at = MAC_Voting_DB::hanoi_time($scanned_at, 'd/m/Y H:i');
+            $out[] = array($row['checkpoint_name'], '#' . $row['team_no'] . ' ' . $row['team_name'], $row['full_name'], $row['email'], $row['checkin_status'], $scanned_at, $scanned_by);
         }
-        fputcsv($out, array());
-        fputcsv($out, array('XẾP HẠNG'));
-        fputcsv($out, array('Checkpoint','Team','Eligible','Checked in','Completed at','Rank','Points'));
-        foreach (MAC_Checkin::checkpoints() as $checkpoint) {
-            foreach (MAC_Checkin::checkpoint_board((int) $checkpoint['id']) as $team) {
-                fputcsv($out, array($checkpoint['name'], '#' . $team['teamNumber'] . ' ' . $team['teamName'], $team['eligible'], $team['checkedIn'], $team['completedAt'], $team['temporaryRank'], $team['temporaryPoints']));
-            }
-        }
-        fclose($out); exit;
+        return $out;
     }
 
-    private static function csv_headers(string $filename): void {
-        nocache_headers(); header('Content-Type: text/csv; charset=utf-8'); header('Content-Disposition: attachment; filename="' . $filename . '"');
+    public static function export_checkin_xlsx(): void {
+        if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export_checkin')) wp_die('Không có quyền.');
+        global $wpdb;
+        $rows = array(array('Checkpoint','Team','Họ tên','Email','Trạng thái check-in','Scanned at','Scanned by'));
+        $rows = array_merge($rows, self::checkin_matrix_rows(
+            $wpdb,
+            MAC_Voting_DB::table('checkpoints'),
+            MAC_Voting_DB::table('checkins'),
+            MAC_Voting_DB::table('voters'),
+            MAC_Voting_DB::table('teams'),
+            true
+        ));
+        $rows[] = array();
+        $rows[] = array('XẾP HẠNG');
+        $rows[] = array('Checkpoint','Team','Eligible','Checked in','Completed at','Rank','Points');
+        foreach (MAC_Checkin::checkpoints() as $checkpoint) {
+            foreach (MAC_Checkin::checkpoint_board((int) $checkpoint['id']) as $team) {
+                $rows[] = array($checkpoint['name'], '#' . $team['teamNumber'] . ' ' . $team['teamName'], $team['eligible'], $team['checkedIn'], $team['completedAt'], $team['temporaryRank'], $team['temporaryPoints']);
+            }
+        }
+        MAC_XLSX::output('Check-in Company Trip.xlsx', array(array('name' => 'Check-in', 'rows' => $rows, 'widths' => array(24, 22, 32, 32, 20, 20, 24))));
     }
+
+    public static function export_bus_xlsx(): void {
+        $bus_id = absint($_GET['bus_id'] ?? 0);
+        if (!self::can_export_bus($bus_id) || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export_bus')) wp_die('Không có quyền.');
+        $bus = null;
+        foreach (MAC_Bus::admin_state()['buses'] as $candidate) if ((int) $candidate['id'] === $bus_id) $bus = $candidate;
+        if (!$bus) wp_die('Xe không tồn tại.');
+        $rows = array(array('HỌ & TÊN','NĂM SINH','GIỚI TÍNH','CCCD','SĐT','LOẠI PHÒNG','EMAIL','XE'));
+        foreach ($bus['manifest'] as $member) {
+            $rows[] = array($member['name'], $member['birthYear'], $member['gender'], $member['citizenId'], $member['phone'], $member['roomType'], $member['email'], $bus['name']);
+        }
+        MAC_XLSX::output('Danh sách ' . $bus['name'] . '.xlsx', array(array(
+            'name' => $bus['name'], 'rows' => $rows, 'widths' => array(34, 12, 12, 20, 18, 18, 34, 12), 'autoFilter' => true,
+        )));
+    }
+
+    public static function export_all_buses_xlsx(): void {
+        if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export_all_buses')) wp_die('Không có quyền.');
+        $state = MAC_Bus::admin_state();
+        if (count($state['buses']) !== MAC_Bus::BUS_COUNT || count(array_filter($state['buses'], static function(array $bus): bool { return $bus['status'] === 'CLOSED'; })) !== MAC_Bus::BUS_COUNT) {
+            wp_die('Chỉ xuất danh sách tổng sau khi đã đóng đủ 5 xe.');
+        }
+        $members = array();
+        foreach ($state['buses'] as $bus) {
+            foreach ($bus['manifest'] as $member) {
+                $member['_busOrder'] = (int) $bus['sortOrder'];
+                $members[] = $member;
+            }
+        }
+        $group_counts = array();
+        $group_first_order = array();
+        foreach ($members as $index => $member) {
+            $group = (string) ($member['roomGroup'] ?? '');
+            if ($group === '') continue;
+            $group_counts[$group] = (int) ($group_counts[$group] ?? 0) + 1;
+            $order = $member['importOrder'] !== null ? (int) $member['importOrder'] : (100000 + $index);
+            $group_first_order[$group] = isset($group_first_order[$group]) ? min($group_first_order[$group], $order) : $order;
+        }
+        usort($members, static function(array $a, array $b) use ($group_first_order): int {
+            $group_a = (string) ($a['roomGroup'] ?? '');
+            $group_b = (string) ($b['roomGroup'] ?? '');
+            $order_a = $group_a !== '' ? ($group_first_order[$group_a] ?? 100000) : ($a['importOrder'] ?? (100000 + $a['_busOrder']));
+            $order_b = $group_b !== '' ? ($group_first_order[$group_b] ?? 100000) : ($b['importOrder'] ?? (100000 + $b['_busOrder']));
+            if ((int) $order_a !== (int) $order_b) return (int) $order_a <=> (int) $order_b;
+            if ($group_a !== $group_b) return strcmp($group_a, $group_b);
+            return ((int) ($a['importOrder'] ?? 100000)) <=> ((int) ($b['importOrder'] ?? 100000));
+        });
+        $rows = array(array('HỌ & TÊN','NĂM SINH','GIỚI TÍNH','CCCD','SĐT','EMAIL','CHUNG PHÒNG'));
+        $row_styles = array();
+        $merges = array();
+        $palette = array();
+        $palette_index = 0;
+        $excel_row = 2;
+        for ($index = 0; $index < count($members); $index++) {
+            $member = $members[$index];
+            $group = (string) ($member['roomGroup'] ?? '');
+            $is_shared = $group !== '' && (int) ($group_counts[$group] ?? 0) > 1;
+            $label = '';
+            if ($is_shared) {
+                if (!isset($palette[$group])) {
+                    $palette[$group] = 2 + ($palette_index % 7);
+                    $palette_index++;
+                }
+                $row_styles[$excel_row] = $palette[$group];
+                $previous_group = $index > 0 ? (string) ($members[$index - 1]['roomGroup'] ?? '') : '';
+                if ($previous_group !== $group) {
+                    $label = 'Chung phòng';
+                    $merge_down = (int) $group_counts[$group] - 1;
+                    if ($merge_down > 0) $merges[] = array($excel_row, 7, $excel_row + $merge_down, 7);
+                }
+            }
+            $rows[] = array($member['name'], $member['birthYear'], $member['gender'], $member['citizenId'], $member['phone'], $member['email'], $label);
+            $excel_row++;
+        }
+        MAC_XLSX::output('Tổng danh sách 5 xe.xlsx', array(array(
+            'name' => 'Tổng 5 xe', 'rows' => $rows, 'rowStyles' => $row_styles, 'merges' => $merges,
+            'widths' => array(36, 12, 12, 20, 18, 34, 20), 'autoFilter' => true,
+        )));
+    }
+
+    private static function can_export_bus(int $bus_id): bool {
+        if (MAC_Checkin::is_super()) return true;
+        if (MAC_Bus::is_guide()) return MAC_Bus::guide_bus_id(get_current_user_id()) === $bus_id;
+        return current_user_can(MAC_Checkin::CAP);
+    }
+
 }
