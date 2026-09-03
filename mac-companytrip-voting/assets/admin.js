@@ -74,7 +74,12 @@
     const responseText = await response.text();
     let result;
     try { result = JSON.parse(responseText); }
-    catch { throw new Error("Máy chủ trả về dữ liệu không hợp lệ. Hãy kiểm tra PHP log hoặc tắt hiển thị warning trên trang."); }
+    catch {
+      const trimmed = responseText.trim();
+      throw new Error(trimmed === "" || trimmed === "0" || trimmed === "-1"
+        ? "Máy chủ không trả về JSON: thường do file vượt giới hạn upload (upload_max_filesize/post_max_size) của PHP hoặc phiên đăng nhập hết hạn. Hãy thử file nhẹ hơn hoặc đăng nhập lại."
+        : "Máy chủ trả về dữ liệu không hợp lệ. Hãy kiểm tra PHP log hoặc tắt hiển thị warning trên trang.");
+    }
     if (!response.ok || !result.success) {
       const error = new Error(result.data?.message || "Thao tác thất bại.");
       error.details = result.data || {};

@@ -185,7 +185,8 @@ final class MAC_XLSX {
                     $raw = isset($cell->v) ? (string) $cell->v : '';
                     $value = $type === 's' ? (string) ($shared[(int) $raw] ?? '') : $raw;
                 }
-                $cells[$row][$col] = $value;
+                // Chuốt sạch byte lệch UTF-8: chỉ cần một ô bẩn là wp_json_encode trả rỗng khiến dashboard báo lỗi khó hiểu.
+                $cells[$row][$col] = self::clean_text($value);
                 $max_row = max($max_row, $row);
                 $max_col = max($max_col, $col);
             }
@@ -203,6 +204,9 @@ final class MAC_XLSX {
                 'endRow' => (int) $match[4],
                 'ref' => strtoupper($reference),
             );
+            // Merge khổng lồ (vd gộp cả cột) là bẫy bộ nhớ: bỏ qua lan tỏa và không nhận làm merge nghiệp vụ.
+            $span = ($range['endRow'] - $range['startRow'] + 1) * ($range['endCol'] - $range['startCol'] + 1);
+            if ($span <= 0 || $span > 20000) continue;
             $merges[] = $range;
             $value = (string) ($cells[$range['startRow']][$range['startCol']] ?? '');
             for ($row = $range['startRow']; $row <= $range['endRow']; $row++) {
@@ -215,6 +219,9 @@ final class MAC_XLSX {
             $max_row = max($max_row, $range['endRow']);
             $max_col = max($max_col, $range['endCol']);
         }
+        // Chặn file dị làm nổ bộ nhớ: nhân sự công ty không vượt vài chục nghìn dòng / trăm cột.
+        $max_row = min($max_row, 20000);
+        $max_col = min($max_col, 100);
         $rows = array();
         for ($row = 1; $row <= $max_row; $row++) {
             $values = array();
@@ -233,6 +240,13 @@ final class MAC_XLSX {
             }
         }
         return false;
+    }
+
+    /** Giữ lại ký tự hợp lệ UTF-8 thôi — bảo vệ wp_json_encode khỏi trả false vì ô bẩn. */
+    private static function clean_text(string $value): string {
+        if ($value === '') return '';
+        $clean = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+        return (string) preg_replace('/[^\x{0009}\x{000A}\x{000D}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]/u', '', $clean);
     }
 
     private static function column_number(string $letters): int {

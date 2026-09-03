@@ -1008,6 +1008,15 @@ final class MAC_Voting_Admin {
 
     public static function ajax_import(): void {
         self::guard();
+        // Mọi lỗi bất ngờ phải về JSON để dashboard hiển thị được thay vì màn trắng/không phản hồi.
+        try {
+            self::import_run();
+        } catch (Throwable $e) {
+            wp_send_json_error(array('message' => 'Lỗi server khi đọc XLSX: ' . $e->getMessage() . '. Hãy thử mở file bằng Excel rồi lưu lại và upload lại.'), 500);
+        }
+    }
+
+    private static function import_run(): void {
         $dry_run = !empty($_POST['dryRun']);
         if ((int) ($_FILES['file']['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) wp_send_json_error(array('message' => 'WordPress không nhận được file upload. Mã lỗi: ' . (int) $_FILES['file']['error']), 400);
         if (empty($_FILES['file']['tmp_name'])) wp_send_json_error(array('message' => 'Vui lòng chọn file XLSX.'), 400);
