@@ -19,13 +19,13 @@
     RANK12: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6, 1: 6 },
     TWIST: { 6: 5, 5: 5, 4: 5 },
     REVEAL3: { 6: 3, 5: 3, 4: 3, 3: 5 },
-    SECOND: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6.5 },
+    SECOND: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6.5, 1: 8.5 },
     FINAL: { 6: 3, 5: 3, 4: 3, 3: 5, 2: 6.5, 1: 8.5 },
   };
   // Badge gắn ngay khi lộ: hạng 5-6 nhận HẠNG KHUYẾN KHÍCH ở bước 1, hạng 4 ở bước 2;
-  // Hạng 3 chờ bước REVEAL3; hạng nhì và quán quân lộ ở hai nhịp tách biệt.
+  // Hạng 3 chờ bước REVEAL3; hạng nhì và quán quân lộ cùng nhịp SECOND (bước chốt).
   const STAGE_ORDER = { RANK65: 1, TEASE43: 1, RANK43: 2, RANK12: 3, TWIST: 3, REVEAL3: 4, SECOND: 5, FINAL: 6 };
-  const BADGE_FROM = { 6: 1, 5: 1, 4: 2, 3: 4, 2: 5, 1: 6 };
+  const BADGE_FROM = { 6: 1, 5: 1, 4: 2, 3: 4, 2: 5, 1: 5 };
   const badgeFor = (stage, rank) => (STAGE_ORDER[stage] ?? 0) >= (BADGE_FROM[rank] ?? 9);
 
   let state = null;
@@ -35,7 +35,6 @@
   // Nhóm đang được phóng to chữ số điểm (điểm tăng trưởng): nhóm mới lộ to nhất, nhóm cũ nhỏ lại.
   let heroIds = new Set();
   let animationTimer = 0;
-  let jumpTimer = 0;
   let frameId = 0;
   let pollTimer = 0;
   let failedPolls = 0;
@@ -85,8 +84,6 @@
   function stopStageAnimation() {
     window.clearInterval(animationTimer);
     animationTimer = 0;
-    window.clearTimeout(jumpTimer);
-    jumpTimer = 0;
     window.clearTimeout(pyroTimer);
     pyroTimer = 0;
     if (frameId) cancelAnimationFrame(frameId);
@@ -256,8 +253,8 @@
     if (stage === "FINAL") {
       heroIds = new Set(state.teams.filter((team) => Number(team.rank) === 1).map((team) => team.id));
     } else if (newlyRevealed.length) {
-      // SECOND giữ cột quán quân lại cho nhịp tự nhảy: chỉ á quân nhận chữ số to.
-      const heroSource = stage === "SECOND" ? newlyRevealed.filter((team) => Number(team.rank) === 2) : newlyRevealed;
+      // SECOND là nhịp chốt á quân + quán quân: chỉ quán quân giữ chữ số to như FINAL.
+      const heroSource = stage === "SECOND" ? newlyRevealed.filter((team) => Number(team.rank) === 1) : newlyRevealed;
       if (heroSource.length) heroIds = new Set(heroSource.map((team) => team.id));
     }
     state.teams.forEach((team) => {
@@ -266,7 +263,7 @@
       let level;
       let scoreText;
       let badgeText = "";
-      if (team.rank !== null && !(stage === "SECOND" && Number(team.rank) === 1)) {
+      if (team.rank !== null) {
         const cells = LADDER_LEVELS[stage][team.rank] ?? 4;
         classes.push("is-revealed");
         const podium = podiumClass(team.rank);
@@ -333,38 +330,10 @@
       return;
     }
     if (stage === "SECOND") {
-      // Gom bước 5-6: bấm "Công bố hạng nhì" lộ á quân, hết nhịp MC xướng tên (~4,5s)
-      // màn hình tự nhảy quán quân — không còn bước bấm quán quân riêng.
-      const runnersUp = newlyRevealed.filter((team) => Number(team.rank) === 2);
-      const finishWithChampion = () => {
-        stopStageAnimation();
-        const champions = state.teams.filter((team) => Number(team.rank) === 1);
-        heroIds = new Set(champions.map((team) => team.id));
-        champions.forEach((team) => {
-          const element = teamElement(team.id);
-          if (!element) return;
-          element.dataset.snapshot = "";
-          clearTeamState(element);
-          ["is-revealed", "is-finalist", "is-champion", "is-score-hero"].forEach((name) => element.classList.add(name));
-          setBar(element, 85, formatTotal(team.score));
-          const rank = element.querySelector(".mr-rank");
-          rank.hidden = false;
-          rank.textContent = "Quán quân";
-          revealedIds.add(team.id);
-        });
-        root.querySelector(".mr-shell").dataset.stage = "final";
-        renderFinal();
-      };
-      if (!runnersUp.length) {
-        // Không có hạng nhì (trùng quán quân): khép lại ngay bằng nhịp quán quân.
-        finishWithChampion();
-        return;
-      }
-      const runnerTitle = teamNames(runnersUp);
-      const runnerScore = runnersUp.length === 1 && !state.scoresHidden ? `${formatTotal(runnersUp[0].score)} điểm · ` : "";
-      setHeading("Á quân Company Trip", runnerTitle, `${runnerScore}Chỉ cách đích đến một bước`, "Tín hiệu 5 · Đã chốt");
-      jumpTimer = window.setTimeout(finishWithChampion, 4500);
-      animationTimer = window.setTimeout(startTwist, 350);
+      // Gom bước 5-6: hạng nhì và quán quân lộ cùng một nhịp, không delay —
+      // cột á quân đeo badge, cột quán quân vươn đỉnh rồi chốt tone final + pháo hoa.
+      root.querySelector(".mr-shell").dataset.stage = "final";
+      renderFinal();
       return;
     }
     renderFinal();

@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.13";
+const tag = "v1.10.14";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,9 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- ket-qua-tong: trùng điểm không còn làm lộ hạng khuyết sai tiêu đề; cột khuyến khích giữ nguyên khi bước lộ hạng không có đội mới.",
-  "- Gom bước 5-6: công bố hạng nhì tự nhảy quán quân + pháo hoa + câu chốt; bỏ nút công bố quán quân riêng.",
-  "- Câu chốt nằm ngay dưới desc; chữ mr-heading (kicker/desc/tiêu đề) to hơn.",
+  "- ket-qua-tong: bước 05 công bố hạng nhì giờ lộ á quân + quán quân cùng một nhịp, không còn delay ~5s.",
+  "- Badge quán quân, pháo hoa và câu chốt ONE DIRECTION ĐỒNG HƯỚNG VƯƠN XA chốt luôn trong bước 05.",
 ].join("\n");
 
 let release;
