@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.37";
+const tag = "v1.10.38";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Nút Bật cổng chấm điểm: gradient đỏ–cam khi nghỉ, hover sáng + đổ bóng đúng chuẩn hành động chính.",
+  "- Mail QR: ảnh CID nhúng làm đường ảnh duy nhất — hết cảnh Outlook chặn ảnh tải ngoài.",
+  "- Bỏ emoji nút đỏ trong mail (glyph lỗi trên new Outlook).",
 ].join("\n");
 
 let release;
