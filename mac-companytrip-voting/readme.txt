@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.22
+Stable tag: 1.10.23
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -19,17 +19,17 @@ Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh ho
 
 == Import nhân sự ==
 
-Tải XLSX mẫu trong trang Nhân sự & dữ liệu. Các cột bắt buộc:
+Import bằng file CSV (mọi export vẫn là XLSX). Tải CSV mẫu trong trang Nhân sự & dữ liệu. Các cột bắt buộc:
 
-- Họ & Tên, Năm sinh, Giới tính, CCCD, SĐT
+- Họ & Tên, Năm sinh, Giới tính
 - Loại phòng, Phòng
 - Team
 - Email
 - Note
 
-Gộp ô Note ghi "Người thân" theo chiều dọc để ghép người có QR với các dòng người đi kèm. Gộp ô Phòng/Loại phòng để nhận diện nhóm chung phòng. Người đi kèm để trống Team và Email, không được cấp QR.
+Không gộp ô: người cùng phòng thì lặp lại cùng số phòng và loại phòng trên từng dòng; nhóm người thân đánh số ở cột Note và lặp lại đúng số dòng ("người thân 1" cho cả nhóm 2 người, "người thân 2" cho cả nhóm 3 người…). Mỗi nhóm phải có đúng 1 người chính có Team + Email; người đi kèm để trống Team và Email, không được cấp QR.
 
-Cột tùy chọn ĐI XE: để trống = đi xe bus như mọi người; ghi "Không" = chỉ đi chơi chung (vẫn có QR check-in + vote văn nghệ nhưng không phân xe, không xuất hiện trong file export gửi resort).
+Cột tùy chọn: CCCD, SĐT, Đi xe, Resort. Đi xe = "Không" → không phân xe (vẫn có QR check-in + vote văn nghệ). Resort = "Không" → loại khỏi file Tổng danh sách gửi resort. Gia đình đi xe nhà: điền Đi xe = "Không" cho mọi thành viên và để trống Resort — cả nhà vẫn có tên trong file gửi resort, xếp chung phòng theo cột Phòng.
 
 Email có thể ghi đầy đủ hoặc chỉ username. Hệ thống chấp nhận @macusaone.com, @yesoffice.vn và @macmarketing.vn; khi chỉ ghi username, mặc định là @macusaone.com.
 
@@ -71,6 +71,11 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.23 =
+- Import quay lại CSV (export vẫn XLSX): đọc BOM/ANSI, dò dấu phân cách, dò hàng tiêu đề; bỏ hẳn ô gộp.
+- Quy ước mới: phòng lặp lại cùng số trên từng dòng = nhóm chung phòng; note người thân đánh số lặp lại (người thân 1, 2…) = nhóm gia đình; mỗi nhóm đúng 1 người chính.
+- Thêm cột RESORT: file Tổng danh sách gửi resort gồm người đã lên xe + người không đi xe nhưng ở resort (kể cả gia đình đi xe nhà); loại người đánh dấu Resort = Không và người vắng mặt dù đăng ký đi xe.
 
 = 1.10.22 =
 - Chống lỗi "Máy chủ trả về dữ liệu không hợp lệ" khi import: reader chuốt sạch byte lệch UTF-8 (bảo vệ wp_json_encode), chặn merge khổng lồ / file quá lớn gây nổ bộ nhớ, mọi lỗi server đều trả JSON có thông báo.

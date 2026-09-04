@@ -43,7 +43,7 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_exemption', array(__CLASS__, 'ajax_exemption'));
         add_action('wp_ajax_mac_vote_seed_demo', array(__CLASS__, 'ajax_seed_demo'));
         add_action('admin_post_mac_vote_export', array(__CLASS__, 'export_results_xlsx'));
-        add_action('admin_post_mac_vote_template', array(__CLASS__, 'template_xlsx'));
+        add_action('admin_post_mac_vote_template', array(__CLASS__, 'template_csv'));
         add_action('admin_post_mac_vote_export_checkin', array(__CLASS__, 'export_checkin_xlsx'));
         add_action('admin_post_mac_vote_export_bus', array(__CLASS__, 'export_bus_xlsx'));
         add_action('admin_post_mac_vote_export_all_buses', array(__CLASS__, 'export_all_buses_xlsx'));
@@ -1019,13 +1019,13 @@ final class MAC_Voting_Admin {
     private static function import_run(): void {
         $dry_run = !empty($_POST['dryRun']);
         if ((int) ($_FILES['file']['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) wp_send_json_error(array('message' => 'WordPress không nhận được file upload. Mã lỗi: ' . (int) $_FILES['file']['error']), 400);
-        if (empty($_FILES['file']['tmp_name'])) wp_send_json_error(array('message' => 'Vui lòng chọn file XLSX.'), 400);
+        if (empty($_FILES['file']['tmp_name'])) wp_send_json_error(array('message' => 'Vui lòng chọn file CSV.'), 400);
         if ((int) $_FILES['file']['size'] > 5 * MB_IN_BYTES) wp_send_json_error(array('message' => 'File không được lớn hơn 5 MB.'), 400);
         $filename = sanitize_file_name((string) ($_FILES['file']['name'] ?? ''));
-        if (strtolower(pathinfo($filename, PATHINFO_EXTENSION)) !== 'xlsx') wp_send_json_error(array('message' => 'Chỉ chấp nhận file XLSX.'), 400);
-        $workbook = MAC_XLSX::read_first_sheet((string) $_FILES['file']['tmp_name']);
-        if (is_wp_error($workbook)) wp_send_json_error(array('message' => $workbook->get_error_message()), 400);
-        $source_rows = $workbook['rows'] ?? array();
+        if (!in_array(strtolower(pathinfo($filename, PATHINFO_EXTENSION)), array('csv', 'txt'), true)) wp_send_json_error(array('message' => 'Chỉ chấp nhận file CSV.'), 400);
+        $raw = (string) file_get_contents((string) $_FILES['file']['tmp_name']);
+        $source_rows = self::parse_csv_rows($raw);
+        if (!$source_rows) wp_send_json_error(array('message' => 'File CSV rỗng.'), 400);
         $aliases = array(
             'name' => array('ho & ten','ho ten','ten','full name'), 'employee' => array('ma nv','ma nhan vien','employee code'),
             'team' => array('team','doi'), 'email' => array('email','mail','email cong ty'), 'status' => array('trang thai','status'),
@@ -1035,6 +1035,7 @@ final class MAC_Voting_Admin {
             'room_type' => array('loai phong','room type'), 'room' => array('phong','so phong','room'),
             'note' => array('note','ghi chu'),
             'bus_rider' => array('di xe','xe','bus','phuong tien'),
+            'resort' => array('resort','o resort','luu tru','khach san'),
         );
         // File thực tế có thể có dòng trống / dòng tiêu đề phụ trước hàng tiêu đề thật:
         // quét 10 dòng đầu, chọn dòng khớp nhiều alias nhất (ưu tiên dòng có HỌ & TÊN).
@@ -1066,10 +1067,10 @@ final class MAC_Voting_Admin {
                 if ($index !== false) { $columns[$key] = $index; break; }
             }
         }
-        $required = array('name' => 'HỌ & TÊN', 'birth_year' => 'NĂM SINH', 'gender' => 'GIỚI TÍNH', 'citizen_id' => 'CCCD', 'phone' => 'SĐT', 'room_type' => 'LOẠI PHÒNG', 'room' => 'PHÒNG', 'team' => 'TEAM', 'email' => 'EMAIL', 'note' => 'NOTE');
+        $required = array('name' => 'HỌ & TÊN', 'birth_year' => 'NĂM SINH', 'gender' => 'GIỚI TÍNH', 'room_type' => 'LOẠI PHÒNG', 'room' => 'PHÒNG', 'team' => 'TEAM', 'email' => 'EMAIL', 'note' => 'NOTE');
         $missing = array();
         foreach ($required as $key => $label) if (!isset($columns[$key])) $missing[] = $label;
-        if ($missing) wp_send_json_error(array('message' => 'XLSX thiếu cột: ' . implode(', ', $missing) . '.'), 400);
+        if ($missing) wp_send_json_error(array('message' => 'CSV thiếu cột: ' . implode(', ', $missing) . '.'), 400);
 
         global $wpdb;
         $teams_table = MAC_Voting_DB::table('teams');
@@ -1077,20 +1078,31 @@ final class MAC_Voting_Admin {
         $teams = $wpdb->get_results("SELECT * FROM $teams_table ORDER BY team_no", ARRAY_A);
         $inserted = 0; $updated = 0; $companions = 0; $non_bus = 0; $line = 1; $errors = array(); $identity_rows = array(); $pending_staff = array();
         $preview_rows = array(); $room_groups = array();
-        // Pass 1: dựng nhóm người thân theo ô NOTE gộp — người chính có thể nằm giữa nhóm.
+        // Pass 1: nhóm người thân theo giá trị lặp ở cột NOTE ("người thân 1", "người thân 2"…);
+        // note không đánh số thì gom theo các dòng liên tiếp cùng giá trị. Không còn ô gộp.
         $family_groups = array();
         $invalid_groups = array();
+        $family_tag_of_line = array();
+        $last_run_tag = '';
+        $last_run_line = 0;
         foreach ($source_rows as $pre_index => $pre_cells) {
             if ((int) $pre_index <= $header_row) continue;
             $pre_note = sanitize_text_field($pre_cells[$columns['note']] ?? '');
             if (!self::is_family_note($pre_note)) continue;
-            $pre_ref = self::xlsx_merge_ref($workbook['merges'] ?? array(), (int) $pre_index, $columns['note'] + 1);
-            if ($pre_ref === '') continue;
-            if (!isset($family_groups[$pre_ref])) $family_groups[$pre_ref] = array('lines' => array(), 'primaries' => array());
-            $family_groups[$pre_ref]['lines'][] = (int) $pre_index;
+            $pre_norm = MAC_Voting_DB::normalize_name($pre_note);
+            if (preg_match('/^(?:nguoi than|nguoi di kem|di kem|di cung)[\s-]*(\d+)$/', $pre_norm, $m)) {
+                $tag = 'num:' . (int) $m[1];
+            } else {
+                $tag = ((int) $pre_index === $last_run_line + 1 && $last_run_tag !== '') ? $last_run_tag : ('run:' . (int) $pre_index);
+                $last_run_tag = $tag;
+                $last_run_line = (int) $pre_index;
+            }
+            $family_tag_of_line[(int) $pre_index] = $tag;
+            if (!isset($family_groups[$tag])) $family_groups[$tag] = array('lines' => array(), 'primaries' => array());
+            $family_groups[$tag]['lines'][] = (int) $pre_index;
             $pre_team = trim((string) ($pre_cells[$columns['team']] ?? ''));
             $pre_email = trim((string) ($pre_cells[$columns['email']] ?? ''));
-            if ($pre_team !== '' && $pre_email !== '') $family_groups[$pre_ref]['primaries'][] = (int) $pre_index;
+            if ($pre_team !== '' && $pre_email !== '') $family_groups[$tag]['primaries'][] = (int) $pre_index;
         }
         foreach ($family_groups as $pre_ref => $group_info) {
             $primary_count = count($group_info['primaries']);
@@ -1114,15 +1126,12 @@ final class MAC_Voting_Admin {
             $email_value = sanitize_text_field($row[$columns['email']] ?? '');
             $note = sanitize_text_field($row[$columns['note']] ?? '');
             if ($name === '' && $email_value === '') continue; // dòng placeholder sót lại từ ô gộp phòng
-            $note_merge = self::xlsx_merge_ref($workbook['merges'] ?? array(), $line, $columns['note'] + 1);
-            $in_family_group = $note_merge !== '' && isset($family_groups[$note_merge]);
+            $group_tag = $family_tag_of_line[$line] ?? '';
+            $in_family_group = $group_tag !== '';
             $is_companion = $team_value === '' && $email_value === '';
             if ($is_companion && !$in_family_group) {
-                $errors[] = "Dòng $line: thiếu Team/Email nhưng không nằm trong ô NOTE gộp \"Người thân\"";
+                $errors[] = "Dòng $line: thiếu Team/Email nhưng Note không đánh dấu nhóm người thân (vd \"người thân 1\")";
                 continue;
-            }
-            if (!$is_companion && self::is_family_note($note) && $note_merge === '') {
-                $errors[] = "Dòng $line: NOTE Người thân phải được gộp theo chiều dọc với người đi kèm";
             }
             if (count($preview_rows) < 100) $preview_rows[] = array_values(array_map('strval', $row));
             if ($is_companion) {
@@ -1197,9 +1206,15 @@ final class MAC_Voting_Admin {
             }
             $room_type = sanitize_text_field($row[$columns['room_type']] ?? '');
             $room_no = sanitize_text_field($row[$columns['room']] ?? '');
-            $room_merge = self::xlsx_merge_ref($workbook['merges'] ?? array(), $line, $columns['room'] + 1);
-            $room_group = $room_merge !== '' ? ('merge:' . $room_merge) : ($room_no !== '' ? ('room:' . MAC_Voting_DB::normalize_name($room_type) . ':' . MAC_Voting_DB::normalize_name($room_no)) : '');
+            // Không còn ô gộp: các dòng cùng phòng lặp lại cùng số phòng / loại phòng → cùng nhóm chung phòng.
+            $room_group = $room_no !== '' ? ('room:' . MAC_Voting_DB::normalize_name($room_type) . ':' . MAC_Voting_DB::normalize_name($room_no)) : '';
             if ($room_group !== '') $room_groups[$room_group] = (int) ($room_groups[$room_group] ?? 0) + 1;
+            // Cột RESORT tùy chọn: để trống = có ở resort; ghi "Không" = không lưu trú (loại khỏi file gửi resort).
+            $resort_stay = 1;
+            if (isset($columns['resort'])) {
+                $resort_value = MAC_Voting_DB::normalize_name((string) ($row[$columns['resort']] ?? ''));
+                if (in_array($resort_value, array('khong', 'ko', 'k', 'no', '0', 'false', 'khong o', 'khong luu tru'), true)) $resort_stay = 0;
+            }
             // Cột ĐI XE tùy chọn: để trống = đi xe; ghi "Không" = chỉ đi chơi chung, không phân xe.
             $bus_rider = 1;
             if (isset($columns['bus_rider'])) {
@@ -1218,6 +1233,7 @@ final class MAC_Voting_Admin {
                 'note' => $note,
                 'primary_voter_id' => null,
                 'bus_rider' => $bus_rider,
+                'resort_stay' => $resort_stay,
                 'import_order' => max(0, $line - $header_row - 1),
                 'phone_last4_hash' => '', 'status' => $status, 'updated_at' => MAC_Voting_DB::utc_now(),
             );
@@ -1239,7 +1255,7 @@ final class MAC_Voting_Admin {
                 $wpdb->query($wpdb->prepare("UPDATE $voters SET status='INACTIVE',updated_at=%s WHERE primary_voter_id=%d AND status='COMPANION'", MAC_Voting_DB::utc_now(), $existing_id));
             }
             if ($in_family_group) {
-                $group_primary[$note_merge] = array('id' => (int) $existing_id, 'team_id' => (int) $team['id'], 'name' => $name);
+                $group_primary[$group_tag] = array('id' => (int) $existing_id, 'team_id' => (int) $team['id'], 'name' => $name);
             }
         }
         // Pass 2: nối người đi kèm vào người chính cùng nhóm NOTE (đứng trước hay giữa nhóm đều được).
@@ -1267,9 +1283,13 @@ final class MAC_Voting_Admin {
             $identity_rows[$c_identity] = $pc_line;
             $c_room_type = sanitize_text_field($pc_row[$columns['room_type']] ?? '');
             $c_room_no = sanitize_text_field($pc_row[$columns['room']] ?? '');
-            $c_room_merge = self::xlsx_merge_ref($workbook['merges'] ?? array(), $pc_line, $columns['room'] + 1);
-            $c_room_group = $c_room_merge !== '' ? ('merge:' . $c_room_merge) : ($c_room_no !== '' ? ('room:' . MAC_Voting_DB::normalize_name($c_room_type) . ':' . MAC_Voting_DB::normalize_name($c_room_no)) : '');
+            $c_room_group = $c_room_no !== '' ? ('room:' . MAC_Voting_DB::normalize_name($c_room_type) . ':' . MAC_Voting_DB::normalize_name($c_room_no)) : '';
             if ($c_room_group !== '') $room_groups[$c_room_group] = (int) ($room_groups[$c_room_group] ?? 0) + 1;
+            $c_resort = 1;
+            if (isset($columns['resort'])) {
+                $c_resort_value = MAC_Voting_DB::normalize_name((string) ($pc_row[$columns['resort']] ?? ''));
+                if (in_array($c_resort_value, array('khong', 'ko', 'k', 'no', '0', 'false', 'khong o', 'khong luu tru'), true)) $c_resort = 0;
+            }
             $c_data = array(
                 'full_name' => self::format_import_name($cname, ''), 'search_name' => $c_search,
                 'employee_code' => null, 'email' => null, 'team_id' => (int) $primary['team_id'],
@@ -1281,6 +1301,7 @@ final class MAC_Voting_Admin {
                 'note' => 'Đi kèm ' . $primary['name'],
                 'primary_voter_id' => (int) $primary['id'] ?: null,
                 'bus_rider' => 1,
+                'resort_stay' => $c_resort,
                 'import_order' => max(0, $pc_line - $header_row - 1),
                 'phone_last4_hash' => '', 'status' => 'COMPANION', 'updated_at' => MAC_Voting_DB::utc_now(),
             );
@@ -1364,13 +1385,41 @@ final class MAC_Voting_Admin {
         ));
     }
 
-    private static function xlsx_merge_ref(array $merges, int $row, int $col): string {
-        foreach ($merges as $merge) {
-            if ($row >= (int) $merge['startRow'] && $row <= (int) $merge['endRow'] && $col >= (int) $merge['startCol'] && $col <= (int) $merge['endCol']) {
-                return (string) $merge['ref'];
+    /** Đọc CSV chịu BOM UTF-8, fallback Windows-1258 cho file Excel lưu ANSI; dò dấu phân cách ; hoặc ,. */
+    private static function parse_csv_rows(string $raw): array {
+        $raw = (string) preg_replace('/^\xEF\xBB\xBF/', '', $raw);
+        $raw = str_replace(array("\r\n", "\r"), "\n", $raw);
+        if (!mb_check_encoding($raw, 'UTF-8')) {
+            $raw = (string) mb_convert_encoding($raw, 'UTF-8', 'Windows-1258');
+        }
+        $first_line = strtok($raw, "\n");
+        $first_line = $first_line === false ? '' : $first_line;
+        $delimiter = substr_count($first_line, ';') > substr_count($first_line, ',') ? ';' : ',';
+        $rows = array();
+        $row = array();
+        $cell = '';
+        $quoted = false;
+        $length = strlen($raw);
+        for ($i = 0; $i < $length; $i++) {
+            $char = $raw[$i];
+            if ($char === '"') {
+                if ($quoted && isset($raw[$i + 1]) && $raw[$i + 1] === '"') { $cell .= '"'; $i++; }
+                else $quoted = !$quoted;
+            } elseif ($char === $delimiter && !$quoted) {
+                $row[] = $cell; $cell = '';
+            } elseif ($char === "\n" && !$quoted) {
+                $row[] = $cell;
+                if (array_filter($row, static function($v): bool { return trim((string) $v) !== ''; })) $rows[] = $row;
+                $row = array(); $cell = '';
+            } else {
+                $cell .= $char;
             }
         }
-        return '';
+        $row[] = $cell;
+        if (array_filter($row, static function($v): bool { return trim((string) $v) !== ''; })) $rows[] = $row;
+        $out = array();
+        foreach ($rows as $index => $r) $out[$index + 1] = $r;
+        return $out;
     }
 
     private static function is_family_note(string $note): bool {
@@ -1945,23 +1994,31 @@ final class MAC_Voting_Admin {
         return true;
     }
 
-    public static function template_xlsx(): void {
+    public static function template_csv(): void {
         if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_template')) wp_die('Không có quyền.');
-        MAC_XLSX::output('Mẫu import nhân sự.xlsx', array(array(
-            'name' => 'Nhân sự',
-            'rows' => array(
-                array('HỌ & TÊN','NĂM SINH','GIỚI TÍNH','CCCD','SĐT','LOẠI PHÒNG','PHÒNG','TEAM','EMAIL','NOTE','ĐI XE'),
-                array('NV-177 - Lý Tư Đình','1997','Nữ','','','Triple','34','HẢI ĐỒ','bambinette.ly@macusaone.com','Người thân',''),
-                array('Lý Cẩm Uy','2016','Nam','','','','','','','',''),
-                array('NV-059 - Nguyễn Ngô Minh Huy','1995','Nam','','','Twin','33','SAO BẮC CỰC','huy.nguyen@macusaone.com','',''),
-                array('NV-083 - Tạ Thanh Tú','1995','Nam','','','','','ĐÈN HIỆU','tu.ta@macusaone.com','',''),
-                array('NV-099 - Trần Đi Chơi','1990','Nam','','','','','HẢI ĐỒ','choi.tran@macusaone.com','','Không'),
-            ),
-            'merges' => array(array(2, 6, 3, 6), array(2, 7, 3, 7), array(2, 10, 3, 10), array(4, 6, 5, 6), array(4, 7, 5, 7)),
-            'rowStyles' => array(2 => 2, 3 => 2, 4 => 3, 5 => 3),
-            'widths' => array(34, 12, 12, 18, 16, 16, 12, 20, 32, 20, 10),
-            'autoFilter' => true,
-        )));
+        // Quy ước mới: KHÔNG gộp ô — phòng lặp lại cùng số trên từng dòng, note người thân đánh số lặp lại theo nhóm.
+        $rows = array(
+            array('HỌ & TÊN','NĂM SINH','GIỚI TÍNH','CCCD','SĐT','LOẠI PHÒNG','PHÒNG','TEAM','EMAIL','NOTE','ĐI XE','RESORT'),
+            array('NV-177 - Lý Tư Đình','1997','Nữ','','','Triple','34','HẢI ĐỒ','bambinette.ly@macusaone.com','người thân 1','',''),
+            array('Lý Cẩm Uy','2016','Nam','','','Triple','34','','','người thân 1','',''),
+            array('NV-059 - Nguyễn Ngô Minh Huy','1995','Nam','','','Twin','33','SAO BẮC CỰC','huy.nguyen@macusaone.com','','',''),
+            array('NV-100 - Lê Gia Đình','1985','Nam','','','Double','20','LA BÀN','dinh.le@macusaone.com','người thân 2','Không',''),
+            array('Vợ Lê Gia Đình','1988','Nữ','','','Double','20','','','người thân 2','Không',''),
+            array('Con Lê Gia Đình','2015','Nam','','','Double','20','','','người thân 2','Không',''),
+            array('NV-099 - Trần Đi Chơi','1990','Nam','','','Twin','19','HẢI ĐỒ','choi.tran@macusaone.com','','Không','Không'),
+        );
+        $csv = "\xEF\xBB\xBF";
+        foreach ($rows as $r) {
+            $csv .= implode(',', array_map(static function($v): string {
+                $v = (string) $v;
+                return preg_match('/[",\r\n;]/', $v) ? '"' . str_replace('"', '""', $v) . '"' : $v;
+            }, $r)) . "\r\n";
+        }
+        nocache_headers();
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="mau-import-nhan-su.csv"');
+        echo $csv;
+        exit;
     }
 
     public static function export_results_xlsx(): void {
@@ -2147,12 +2204,44 @@ final class MAC_Voting_Admin {
         if (count($state['buses']) !== MAC_Bus::BUS_COUNT || count(array_filter($state['buses'], static function(array $bus): bool { return $bus['status'] === 'CLOSED'; })) !== MAC_Bus::BUS_COUNT) {
             wp_die('Chỉ xuất danh sách tổng sau khi đã đóng đủ 5 xe.');
         }
-        $members = array();
+        global $wpdb;
+        $voters_table = MAC_Voting_DB::table('voters');
+        $assigned = array();
         foreach ($state['buses'] as $bus) {
-            foreach ($bus['manifest'] as $member) {
-                $member['_busOrder'] = (int) $bus['sortOrder'];
-                $members[] = $member;
+            foreach (($bus['manifest'] ?? array()) as $member) {
+                if ($member['voterId'] !== null) $assigned[(int) $member['voterId']] = (int) $bus['sortOrder'];
             }
+        }
+        $people = $wpdb->get_results("SELECT id,full_name,birth_year,gender,citizen_id,phone,email,room_group,status,bus_rider,resort_stay,primary_voter_id,import_order FROM $voters_table ORDER BY import_order,id", ARRAY_A) ?: array();
+        // File gửi resort = người ở resort: đã lên xe, hoặc chủ động không đi xe (đi xe nhà),
+        // hoặc người đi kèm theo gia đình đủ điều kiện. Loại: resort "Không" và người vắng mặt dù đăng ký đi xe.
+        $included = array();
+        foreach ($people as $row) {
+            if ((int) $row['resort_stay'] === 0) continue;
+            if ((string) $row['status'] === 'COMPANION') continue;
+            $id = (int) $row['id'];
+            if (isset($assigned[$id]) || (int) $row['bus_rider'] === 0) $included[$id] = $row;
+        }
+        foreach ($people as $row) {
+            if ((string) $row['status'] !== 'COMPANION') continue;
+            if ((int) $row['resort_stay'] === 0) continue;
+            $id = (int) $row['id'];
+            $primary_id = (int) ($row['primary_voter_id'] ?? 0);
+            if (isset($assigned[$id]) || isset($included[$primary_id])) $included[$id] = $row;
+        }
+        $members = array();
+        foreach ($included as $id => $row) {
+            $members[] = array(
+                'name' => MAC_Voting_DB::title_case((string) $row['full_name']),
+                'birthYear' => (string) $row['birth_year'],
+                'gender' => (string) $row['gender'],
+                'citizenId' => (string) $row['citizen_id'],
+                'phone' => (string) $row['phone'],
+                'email' => (string) $row['email'],
+                'roomGroup' => (string) ($row['room_group'] ?? ''),
+                'importOrder' => (int) $row['import_order'],
+                '_busOrder' => $assigned[$id] ?? 999,
+            );
         }
         $group_counts = array();
         $group_first_order = array();

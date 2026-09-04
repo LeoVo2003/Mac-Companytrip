@@ -163,7 +163,7 @@ const gamesFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-game
 for (const invariant of ["one_valid_ballot", "email varchar(190) NULL", "UNIQUE KEY email", "qr_version", "revote_grants", "audit", "table('checkpoints')", "one_checkin", "table('thidua_rounds')", "table('checkpoint_windows')", "table('exemptions')", "table('games')"]) {
   if (!databaseFile.includes(invariant)) throw new Error(`Missing database invariant: ${invariant}`);
 }
-for (const invariant of ["birth_year varchar(10) NULL", "citizen_id varchar(30) NULL", "room_group varchar(100) NULL", "primary_voter_id bigint(20) unsigned NULL", "import_order int(11) unsigned NOT NULL DEFAULT 0", "bus_rider tinyint(1) NOT NULL DEFAULT 1"]) {
+for (const invariant of ["birth_year varchar(10) NULL", "citizen_id varchar(30) NULL", "room_group varchar(100) NULL", "primary_voter_id bigint(20) unsigned NULL", "import_order int(11) unsigned NOT NULL DEFAULT 0", "bus_rider tinyint(1) NOT NULL DEFAULT 1", "resort_stay tinyint(1) NOT NULL DEFAULT 1"]) {
   if (!databaseFile.includes(invariant)) throw new Error(`Missing XLSX personnel field: ${invariant}`);
 }
 for (const invariant of ["CHECKIN_MAX_PER_CHECKPOINT = 150", "CHECKIN_WINDOW_MINUTES = 15", "RANK_LADDER = array(50, 40, 30, 20, 10, 0)"]) {
@@ -206,10 +206,10 @@ const publicCss = fs.readFileSync(path.join(pluginRoot, "assets/public.css"), "u
 for (const invariant of [".mv-team-tabs", ".mv-star", ".mv-star.is-active i"]) {
   if (!publicCss.includes(invariant)) throw new Error(`Missing team selection or star score styles: ${invariant}`);
 }
-for (const invariant of ["MAC_XLSX::read_first_sheet", "'citizen_id' => array('cccd'", "'note' => array('note','ghi chu')", "is_family_note", "primary_voter_id", "export_all_buses_xlsx", "'ho & ten'", "'di xe'", "'loai phong'", "Không tìm thấy hàng tiêu đề", "pending_companions", "group_primary"]) {
+for (const invariant of ["MAC_XLSX::output", "function parse_csv_rows", "'citizen_id' => array('cccd'", "'note' => array('note','ghi chu')", "is_family_note", "primary_voter_id", "export_all_buses_xlsx", "'ho & ten'", "'di xe'", "'resort' => array('resort'", "'loai phong'", "Không tìm thấy hàng tiêu đề", "pending_companions", "group_primary"]) {
   if (!adminFile.includes(invariant)) throw new Error(`Missing XLSX personnel flow: ${invariant}`);
 }
-for (const invariant of ["Chỉ chấp nhận file XLSX", "nhóm người thân", "allBusesExportUrl", "Xuất tổng 5 xe"]) {
+for (const invariant of ["Chỉ chấp nhận file CSV", "nhóm người thân", "allBusesExportUrl", "Xuất tổng 5 xe"]) {
   if (!adminJs.includes(invariant)) throw new Error(`Missing XLSX admin UI: ${invariant}`);
 }
 for (const invariant of ["Bạn không thể chấm tiết mục của team mình", "status='VALID'", "active_key", "round_status"]) {
