@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.33";
+const tag = "v1.10.34";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Nút Xóa toàn bộ nhân sự (Super Admin, gõ XOA xác nhận) — xóa sạch nhân sự + dữ liệu gắn theo người.",
-  "- Sửa lệch hàng bảng nhân sự (ghi chú đi kèm cùng trục giữa).",
+  "- Bảng nhân sự: ghi chú đi kèm line-height 3.4, hết cắt dòng trong ô thao tác.",
 ].join("\n");
 
 let release;
