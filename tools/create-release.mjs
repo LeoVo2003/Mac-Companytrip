@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.35";
+const tag = "v1.10.36";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Nút Tự túc / Bỏ tự túc từng người (đánh dấu phát sinh đi xe riêng không cần import lại).",
-  "- Bảng TỰ TÚC hiện +N đi kèm kèm xổ tên; sửa lệch cột Thao tác, tag tablet, form HDV 2 hàng.",
+  "- Select bảng HDV / TỰ TÚC theo chuẩn select hệ thống (44px, bo 12px, mũi tên riêng).",
+  "- Ô Đi kèm TỰ TÚC làm lại: chip +N đi kèm, xổ dropdown tên người đẹp.",
 ].join("\n");
 
 let release;

@@ -4491,6 +4491,117 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
 /* Cột thao tác bảng xe: nút cùng trục trái với tiêu đề cột, không lệch phải. */
 .ma-bus-control td.ma-bus-actions { justify-content: flex-start; }
 
+/* Select trong bảng trơn (đổi xe HDV, gán xe tự túc / chưa phân xe): đúng chuẩn select hệ thống. */
+td select[data-guide-bus],
+td select[data-self-assign],
+td select[data-unassigned-assign] {
+  width: 100%;
+  min-width: 132px;
+  max-width: 220px;
+  min-height: 44px;
+  padding: 0 34px 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+td select[data-guide-bus]:focus,
+td select[data-self-assign]:focus,
+td select[data-unassigned-assign]:focus {
+  border-color: var(--border-strong, #98a2b3);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(227, 30, 36, 0.12);
+}
+
+/* Ô Đi kèm bảng TỰ TÚC: chip đếm + dropdown danh sách tên gọn đẹp. */
+.ma-companions {
+  position: relative;
+  display: inline-block;
+}
+
+.ma-companions summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.ma-companions summary::-webkit-details-marker { display: none; }
+
+.ma-companions summary::after {
+  content: "▾";
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.ma-companions[open] summary {
+  border-color: var(--brand-border, #f3b4b6);
+  background: var(--brand-softer, #fdf1f1);
+  color: var(--r);
+}
+
+.ma-companions-count { font-variant-numeric: tabular-nums; }
+
+.ma-companions-pop {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.14);
+}
+
+.ma-companions-pop ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.ma-companions-pop li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.ma-companions-pop li::before {
+  content: "•";
+  color: var(--r);
+  font-weight: 800;
+}
+
+.ma-companions-none { color: var(--muted); }
+
 .ma-guide-form label {
   display: grid;
   gap: 6px;

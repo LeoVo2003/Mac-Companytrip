@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.35
+Stable tag: 1.10.36
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -71,6 +71,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.36 =
+- Select trong bảng trơn (đổi xe HDV, gán xe bảng TỰ TÚC / chưa phân xe) theo đúng chuẩn select hệ thống: cao 44px, bo 12px, mũi tên riêng, focus ring đỏ.
+- Ô Đi kèm bảng TỰ TÚC làm lại: chip "+N đi kèm" bo tròn, bấm xổ dropdown nền trắng đổ bóng liệt kê tên từng người; không còn chữ trần dính details cũ.
 
 = 1.10.35 =
 - Nút "Tự túc / Bỏ tự túc" từng người trong bảng Nhân sự: đánh dấu phát sinh đi xe riêng không cần import lại; người được đánh dấu nằm bảng TỰ TÚC chờ gán tay.
