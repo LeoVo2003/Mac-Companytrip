@@ -996,6 +996,7 @@
   background: var(--soft);
   font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .ma-reveal-status i,
@@ -4477,9 +4478,18 @@ tr.is-selected td { background: rgba(227, 30, 36, 0.05); }
   border-top: 1px solid var(--border);
 }
 
-@media (min-width: 720px) {
+@media (min-width: 720px) and (max-width: 1024px) {
+  /* Tablet: form HDV xếp 2 hàng cho khỏi nát ô nhập. */
+  .ma-guide-form { grid-template-columns: 1fr 1fr; }
+  .ma-guide-form .ma-primary { grid-column: 1 / -1; }
+}
+
+@media (min-width: 1025px) {
   .ma-guide-form { grid-template-columns: repeat(4, 1fr) auto; align-items: end; }
 }
+
+/* Cột thao tác bảng xe: nút cùng trục trái với tiêu đề cột, không lệch phải. */
+.ma-bus-control td.ma-bus-actions { justify-content: flex-start; }
 
 .ma-guide-form label {
   display: grid;

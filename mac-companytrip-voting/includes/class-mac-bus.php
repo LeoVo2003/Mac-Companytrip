@@ -721,8 +721,11 @@ final class MAC_Bus {
         $in_list = array();
         foreach ($rows as $r) $in_list[(int) $r['id']] = true;
         $comp_counts = array();
-        foreach ($wpdb->get_results("SELECT primary_voter_id AS pid, COUNT(*) AS c FROM $voters WHERE status='COMPANION' AND bus_rider=0 AND primary_voter_id IS NOT NULL GROUP BY primary_voter_id", ARRAY_A) ?: array() as $c) {
-            $comp_counts[(int) $c['pid']] = (int) $c['c'];
+        $comp_names = array();
+        foreach ($wpdb->get_results("SELECT primary_voter_id AS pid, full_name FROM $voters WHERE status='COMPANION' AND primary_voter_id IS NOT NULL ORDER BY import_order,id", ARRAY_A) ?: array() as $c) {
+            $pid = (int) $c['pid'];
+            $comp_counts[$pid] = (int) ($comp_counts[$pid] ?? 0) + 1;
+            $comp_names[$pid][] = MAC_Voting_DB::title_case((string) $c['full_name']);
         }
         $items = array();
         foreach ($rows as $r) {
@@ -739,6 +742,7 @@ final class MAC_Bus {
                 'teamNo' => (int) $r['team_no'],
                 'teamName' => (string) $r['team_name'],
                 'companions' => (string) $r['status'] === 'COMPANION' ? 0 : (int) ($comp_counts[$id] ?? 0),
+                'companionNames' => (string) $r['status'] === 'COMPANION' ? array() : ($comp_names[$id] ?? array()),
             );
         }
         return $items;

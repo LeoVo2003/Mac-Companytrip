@@ -209,7 +209,7 @@ for (const invariant of [".mv-team-tabs", ".mv-star", ".mv-star.is-active i"]) {
 for (const invariant of ["MAC_XLSX::output", "function parse_csv_rows", "'citizen_id' => array('cccd'", "'note' => array('note','ghi chu')", "is_family_note", "primary_voter_id", "export_all_buses_xlsx", "'ho & ten'", "'di xe'", "'resort' => array('resort'", "'loai phong'", "Không tìm thấy hàng tiêu đề", "pending_companions", "group_primary", "'group' => $group_tag", "addStringEmbeddedImage", "<!--[if mso]>", "WHERE resort_stay=1"]) {
   if (!adminFile.includes(invariant)) throw new Error(`Missing XLSX personnel flow: ${invariant}`);
 }
-for (const invariant of ["Chỉ chấp nhận file CSV", "nhóm người thân", "allBusesExportUrl", "Xuất tổng 5 xe", "data-self-assign", "data-guide-delete", "data-guide-bus", "ma-people-wipe"]) {
+for (const invariant of ["Chỉ chấp nhận file CSV", "nhóm người thân", "allBusesExportUrl", "Xuất tổng 5 xe", "data-self-assign", "data-guide-delete", "data-guide-bus", "ma-people-wipe", "data-busrider-toggle"]) {
   if (!adminJs.includes(invariant)) throw new Error(`Missing XLSX admin UI: ${invariant}`);
 }
 for (const invariant of ["Bạn không thể chấm tiết mục của team mình", "status='VALID'", "active_key", "round_status"]) {
@@ -577,8 +577,11 @@ const busFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-bus.ph
 for (const invariant of ["bus_rider", "function self_arrange_list", "function change_guide_bus", "function delete_guide"]) {
   if (!busFile.includes(invariant)) throw new Error(`Missing non-bus-rider handling in MAC_Bus: ${invariant}`);
 }
-if (!adminFile.includes("mac_vote_people_wipe") || !adminFile.includes("PEOPLE_WIPED")) {
-  throw new Error("Missing people wipe endpoint (super-admin only, typed confirmation).");
+if (!adminFile.includes("mac_vote_people_wipe") || !adminFile.includes("PEOPLE_WIPED") || !adminFile.includes("mac_vote_person_bus_rider")) {
+  throw new Error("Missing people wipe / per-person bus rider endpoints (super-admin only).");
+}
+if (!busFile.includes("companionNames")) {
+  throw new Error("Self-arrange list must expose companion names for the detail dropdown.");
 }
 if (!adminFile.includes("'nonBusRiders'") || !checkinJs.includes("KHÔNG ĐỦ CHỖ CHO NHÓM")) {
   throw new Error("Non-bus-rider flag must surface in import preview and scanner feedback.");

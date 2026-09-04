@@ -31,6 +31,7 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_guide_bus', array(__CLASS__, 'ajax_guide_bus'));
         add_action('wp_ajax_mac_vote_guide_delete', array(__CLASS__, 'ajax_guide_delete'));
         add_action('wp_ajax_mac_vote_people_wipe', array(__CLASS__, 'ajax_people_wipe'));
+        add_action('wp_ajax_mac_vote_person_bus_rider', array(__CLASS__, 'ajax_person_bus_rider'));
         add_action('wp_ajax_mac_vote_rollcall', array(__CLASS__, 'ajax_rollcall'));
         add_action('wp_ajax_mac_vote_team', array(__CLASS__, 'ajax_team'));
         add_action('wp_ajax_mac_vote_swap', array(__CLASS__, 'ajax_swap'));
@@ -759,6 +760,30 @@ final class MAC_Voting_Admin {
         wp_send_json_success(array('message' => 'Đã xóa toàn bộ nhân sự kèm phiếu, check-in, thành viên xe, miễn trừ và quyền vote lại.', 'overview' => self::overview()));
     }
 
+    /** Đánh dấu / bỏ đánh dấu tự túc (không đi xe Trạm 1) cho từng người — dùng khi có phát sinh. */
+    public static function ajax_person_bus_rider(): void {
+        self::guard();
+        global $wpdb;
+        $voter_id = absint($_POST['voterId'] ?? 0);
+        $rider = (int) ($_POST['busRider'] ?? 1) === 0 ? 0 : 1;
+        $voters = MAC_Voting_DB::table('voters');
+        $updated = $wpdb->update(
+            $voters,
+            array('bus_rider' => $rider, 'updated_at' => MAC_Voting_DB::utc_now()),
+            array('id' => $voter_id),
+            array('%d', '%s'),
+            array('%d')
+        );
+        if ($updated === false) {
+            wp_send_json_error(array('message' => 'Không cập nhật được cờ đi xe.'), 500);
+        }
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'PERSON_BUS_RIDER_SET', 'voter', (string) $voter_id, array('busRider' => $rider));
+        wp_send_json_success(array(
+            'message' => $rider === 0 ? 'Đã đánh dấu tự túc: không tự động xếp xe khi quét QR Trạm 1.' : 'Đã bỏ đánh dấu tự túc: quét QR sẽ xếp xe như bình thường.',
+            'overview' => self::overview(),
+        ));
+    }
+
     public static function ajax_guide_save(): void {
         self::guard();
         $result = MAC_Bus::save_guide(
@@ -1296,7 +1321,7 @@ final class MAC_Voting_Admin {
                 $wpdb->query($wpdb->prepare("UPDATE $voters SET status='INACTIVE',updated_at=%s WHERE primary_voter_id=%d AND status='COMPANION'", MAC_Voting_DB::utc_now(), $existing_id));
             }
             if ($in_family_group) {
-                $group_primary[$group_tag] = array('id' => (int) $existing_id, 'team_id' => (int) $team['id'], 'name' => $name);
+                $group_primary[$group_tag] = array('id' => (int) $existing_id, 'team_id' => (int) $team['id'], 'name' => $name, 'bus_rider' => $bus_rider);
             }
         }
         // Pass 2: nối người đi kèm vào người chính cùng nhóm NOTE (đứng trước hay giữa nhóm đều được).
@@ -1341,7 +1366,7 @@ final class MAC_Voting_Admin {
                 'room_type' => $c_room_type, 'room_no' => $c_room_no, 'room_group' => $c_room_group ?: null,
                 'note' => 'Đi kèm ' . $primary['name'],
                 'primary_voter_id' => (int) $primary['id'] ?: null,
-                'bus_rider' => 1,
+                'bus_rider' => (int) ($primary['bus_rider'] ?? 1),
                 'resort_stay' => $c_resort,
                 'import_order' => max(0, $pc_line - $header_row - 1),
                 'phone_last4_hash' => '', 'status' => 'COMPANION', 'updated_at' => MAC_Voting_DB::utc_now(),
@@ -1561,11 +1586,12 @@ final class MAC_Voting_Admin {
         global $wpdb;
         $voters = MAC_Voting_DB::table('voters');
         $teams = MAC_Voting_DB::table('teams');
-        $rows = $wpdb->get_results("SELECT v.id,v.full_name,v.email,v.employee_code,v.status,v.qr_version,v.birth_year,v.gender,v.citizen_id,v.phone,v.room_type,v.room_no,v.room_group,v.note,v.primary_voter_id,t.id AS team_id,t.name AS team_name,t.team_no
+        $rows = $wpdb->get_results("SELECT v.id,v.full_name,v.email,v.employee_code,v.status,v.qr_version,v.birth_year,v.gender,v.citizen_id,v.phone,v.room_type,v.room_no,v.room_group,v.note,v.primary_voter_id,v.bus_rider,t.id AS team_id,t.name AS team_name,t.team_no
             FROM $voters v JOIN $teams t ON t.id=v.team_id ORDER BY t.team_no,v.full_name", ARRAY_A) ?: array();
         foreach ($rows as &$row) {
             $row['id'] = (int) $row['id'];
             $row['primary_voter_id'] = $row['primary_voter_id'] !== null ? (int) $row['primary_voter_id'] : null;
+            $row['bus_rider'] = (int) ($row['bus_rider'] ?? 1);
             $row['full_name'] = MAC_Voting_DB::title_case((string) $row['full_name']);
             $row['qrUrl'] = MAC_Voting_QR::url_for_voter((int) $row['id'], (int) $row['qr_version']);
         }

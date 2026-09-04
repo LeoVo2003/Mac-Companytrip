@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.34";
+const tag = "v1.10.35";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Bảng nhân sự: ghi chú đi kèm line-height 3.4, hết cắt dòng trong ô thao tác.",
+  "- Nút Tự túc / Bỏ tự túc từng người (đánh dấu phát sinh đi xe riêng không cần import lại).",
+  "- Bảng TỰ TÚC hiện +N đi kèm kèm xổ tên; sửa lệch cột Thao tác, tag tablet, form HDV 2 hàng.",
 ].join("\n");
 
 let release;
