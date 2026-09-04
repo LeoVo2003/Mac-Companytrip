@@ -788,23 +788,6 @@
         notify(err.message, true);
       }
     }));
-    root.querySelectorAll("[data-game-rank]").forEach((select) => select.addEventListener("change", async () => {
-      const rank = Number(select.value);
-      const boardRow = (data.games?.board || []).find((row) => String(row.teamId) === String(select.dataset.team));
-      const cell = (boardRow?.cells || []).find((entry) => String(entry.gameId) === String(select.dataset.game));
-      if (boardRow && cell) {
-        cell.rank = rank;
-        cell.points = rank >= 1 ? ladder[rank - 1] : 0;
-        boardRow.total = (boardRow.cells || []).reduce((sum, item) => sum + (Number(item.points) || 0), 0);
-        render();
-      }
-      try {
-        const result = await ajax("mac_vote_games", { operation: "rank", gameId: select.dataset.game, teamId: select.dataset.team, rank: select.value });
-        data = result.overview;
-        render();
-        notify(result.message);
-      } catch (err) { notify(err.message, true); load(); }
-    }));
     root.querySelector("#ma-exempt-form")?.addEventListener("submit", async (event) => {
       event.preventDefault();
       const openCheckpoint = (data.checkpoints || []).find((item) => item.status === "OPEN");
@@ -858,6 +841,24 @@
       } catch (err) { notify(err.message, true); }
     });
     }
+    // Xếp hạng trò chơi lớn: BTC/Hoa tiêu (mức operator) cũng chấm được — đặt ngoài khối canWrite.
+    root.querySelectorAll("[data-game-rank]").forEach((select) => select.addEventListener("change", async () => {
+      const rank = Number(select.value);
+      const boardRow = (data.games?.board || []).find((row) => String(row.teamId) === String(select.dataset.team));
+      const cell = (boardRow?.cells || []).find((entry) => String(entry.gameId) === String(select.dataset.game));
+      if (boardRow && cell) {
+        cell.rank = rank;
+        cell.points = rank >= 1 ? ladder[rank - 1] : 0;
+        boardRow.total = (boardRow.cells || []).reduce((sum, item) => sum + (Number(item.points) || 0), 0);
+        render();
+      }
+      try {
+        const result = await ajax("mac_vote_games", { operation: "rank", gameId: select.dataset.game, teamId: select.dataset.team, rank: select.value });
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) { notify(err.message, true); load(); }
+    }));
     root.querySelectorAll("[data-bus-capacity]").forEach((input) => input.addEventListener("change", async () => {
       const capacity = Math.max(1, Math.min(500, Number(input.value) || 0));
       input.disabled = true;
@@ -1024,6 +1025,7 @@
     root.querySelector("#ma-people-team")?.addEventListener("change", (event) => { peopleTeam = event.currentTarget.value; render(); });
     root.querySelector("#ma-people-query")?.addEventListener("input", (event) => { peopleQuery = event.currentTarget.value; });
     root.querySelector("#ma-people-query")?.addEventListener("keydown", (event) => { if (event.key === "Enter") { peopleQuery = event.currentTarget.value; render(); } });
+    bindThiduaOperators();
     if (!canWrite()) return;
     const qrPng = async (url) => window.MACQRCode.toDataURL(url, { width: 512, margin: 2, color: { dark: "#111827", light: "#ffffff" } });
     const sendQr = async (voter) => {
@@ -1161,6 +1163,9 @@
       button.textContent = "Gửi QR cho danh sách đang lọc";
       notify(`Đã gửi ${sent}/${voters.length} email QR.`);
     });
+    // BTC/Hoa tiêu chấm thi đua ngang super (server chặn mức operator) — nên nhóm handler này
+    // phải bind trước chốt chặn super-only bên dưới.
+    function bindThiduaOperators() {
     root.querySelector("#ma-award-category")?.addEventListener("change", (event) => {
       awardCategoryId = event.currentTarget.value;
       render();
@@ -1283,6 +1288,7 @@
         notify(result.message);
       } catch (err) { notify(err.message, true); }
     });
+    }
   }
   // Dashboard chỉ tải lại khi bấm nút hoặc sau thao tác — không tự reload định kỳ để khỏi giật bảng/mất dữ liệu đang gõ.
   load();

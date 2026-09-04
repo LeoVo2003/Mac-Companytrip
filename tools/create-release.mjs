@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.41";
+const tag = "v1.10.42";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Super Admin xuất tổng 5 xe mọi lúc (bỏ chốt đóng đủ 5 xe); xuất từng xe giữ nguyên.",
+  "- BTC/Hoa tiêu chấm thi đua + xếp hạng trò chơi lớn được trở lại (handler trước đó bind riêng cho super).",
 ].join("\n");
 
 let release;

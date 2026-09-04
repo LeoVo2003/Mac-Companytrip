@@ -209,7 +209,7 @@ for (const invariant of [".mv-team-tabs", ".mv-star", ".mv-star.is-active i"]) {
 for (const invariant of ["MAC_XLSX::output", "function parse_csv_rows", "'citizen_id' => array('cccd'", "'note' => array('note','ghi chu')", "is_family_note", "primary_voter_id", "export_all_buses_xlsx", "'ho & ten'", "'di xe'", "'resort' => array('resort'", "'loai phong'", "Không tìm thấy hàng tiêu đề", "pending_companions", "group_primary", "'group' => $group_tag", "addStringEmbeddedImage", "<!--[if mso]>", "WHERE resort_stay=1"]) {
   if (!adminFile.includes(invariant)) throw new Error(`Missing XLSX personnel flow: ${invariant}`);
 }
-for (const invariant of ["Chỉ chấp nhận file CSV", "nhóm người thân", "allBusesExportUrl", "Xuất tổng 5 xe", "data-self-assign", "data-guide-delete", "data-guide-bus", "ma-people-wipe", "data-busrider-toggle"]) {
+for (const invariant of ["Chỉ chấp nhận file CSV", "nhóm người thân", "allBusesExportUrl", "Xuất tổng 5 xe", "data-self-assign", "data-guide-delete", "data-guide-bus", "ma-people-wipe", "data-busrider-toggle", "bindThiduaOperators"]) {
   if (!adminJs.includes(invariant)) throw new Error(`Missing XLSX admin UI: ${invariant}`);
 }
 for (const invariant of ["Bạn không thể chấm tiết mục của team mình", "status='VALID'", "active_key", "round_status"]) {
