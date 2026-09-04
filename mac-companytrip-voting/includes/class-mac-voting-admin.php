@@ -1974,7 +1974,7 @@ final class MAC_Voting_Admin {
                 $team = '#' . (int) $team_row['team_no'] . ' ' . $team_row['name'];
             }
         }
-        $subject = '🚨 MỞ MAIL NGAY: “BOARDING PASS” COMPANY TRIP 2026 CỦA BẠN ĐANG Ở ĐÂY!';
+        $subject = '🚨 [BẮT BUỘC CHECK MAIL] QR CÁ NHÂN COMPANY TRIP 2026';
         // Link bấm là vào thẳng trang chấm văn nghệ (token QR tự đăng nhập), không cần tự quét QR trên máy mình.
         $vote_link = MAC_Voting_QR::url_for_voter((int) $voter['id'], (int) ($voter['qr_version'] ?? 1));
         $img_style = 'width:220px;height:220px;border:1px solid #e4e7ec;border-radius:12px;padding:8px';

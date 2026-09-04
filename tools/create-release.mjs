@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.27";
+const tag = "v1.10.28";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Người tự túc quét QR Trạm 1 vẫn được đưa lên xe (chỉ đúng người quét), không kéo nhóm tự túc ở nhà.",
+  "- Subject mail QR mới: 🚨 [BẮT BUỘC CHECK MAIL] QR CÁ NHÂN COMPANY TRIP 2026.",
 ].join("\n");
 
 let release;
