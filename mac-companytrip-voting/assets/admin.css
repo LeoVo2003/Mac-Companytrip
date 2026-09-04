@@ -373,6 +373,7 @@
 .ma-modal-actions .ma-primary,
 .ma-staff-form .ma-primary,
 .ma-check-card button.ma-primary,
+.ma-gate button.ma-primary,
 #ma-team-add .ma-primary {
   margin-top: auto;
   border: 0;
@@ -2412,6 +2413,9 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+/* Nút Bật cổng là hành động chính: gradient liền khối, không viền tóc. */
+.ma-gate #ma-gate.ma-primary { border: 0; }
 
 .ma-gate button.danger {
   color: var(--danger);
