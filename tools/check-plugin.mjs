@@ -599,7 +599,6 @@ const busModel = (teamOf, partyMap = {}) => {
   // sync_boarding (PHP): xe chạm sức chứa tự chốt; không còn xe nhận thì mở xe WAITING đầu tiên.
   const sync = (checkpoint1Open) => {
     if (!enabled(checkpoint1Open)) return;
-    buses.forEach((b) => { if (b.status !== "CLOSED" && count(b.id) >= b.capacity) b.status = "CLOSED"; });
     if (!boarding()) {
       const first = buses.find((b) => b.status === "WAITING");
       if (first) first.status = "BOARDING";
@@ -662,6 +661,12 @@ const busModel = (teamOf, partyMap = {}) => {
       const found = findPartyTarget(party.length);
       if (!found || !found.target) return { assigned: false, reason: found ? "NO_ROOM_FOR_PARTY" : "NO_BUS_BOARDING", partySize: party.length };
       party.forEach((id, index) => members.push({ id: ++memberSeq, busId: found.target.id, voterId: id, memberType: index === 0 ? "EMPLOYEE" : "COMPANION" }));
+      // Chốt theo sức chứa chỉ thuộc luồng quét; ghi đè tay không kích hoạt chốt.
+      if (count(found.target.id) >= found.target.capacity) {
+        found.target.status = "CLOSED";
+        const nextBus = buses.find((b) => b.status === "WAITING");
+        if (nextBus) nextBus.status = "BOARDING";
+      }
       sync(checkpoint1Open);
       return { assigned: true, busId: found.target.id, partySize: party.length };
     },
@@ -718,7 +723,7 @@ const BUS_CASES = [
   { name: "BUS-13 HDV chỉ điểm danh đúng xe mình", run: (m) => m.canRollcall(2, { role: "guide", busId: 2 }) === true && m.canRollcall(3, { role: "guide", busId: 2 }) === false },
   { name: "BUS-14 BTC/Super điểm danh mọi xe", run: (m) => m.canRollcall(4, { role: "btc" }) === true && m.canRollcall(5, { role: "super" }) === true },
   { name: "BUS-15 đóng/mở xe thủ công: chốt sớm tự mở xe kế, mở xe khác trả xe đang nhận về hàng chờ", run: (m) => { m.autoAssign(101, 1, true); m.closeBus(1, true); const closed = m.buses[0].status === "CLOSED" && m.boarding()?.id === 2; m.openBus(3, true); return closed && m.boarding()?.id === 3 && m.buses[1].status === "WAITING"; } },
-  { name: "BUS-16 hạ sức chứa giữa chừng → xe đầy tự chốt", run: (m) => { m.setCapacity(1, 5, true); m.autoAssign(101, 1, true); m.autoAssign(102, 1, true); const still = m.buses[0].status === "BOARDING"; m.setCapacity(1, 2, true); return still && m.buses[0].status === "CLOSED" && m.boarding()?.id === 2; } },
+  { name: "BUS-16 hạ sức chứa giữa chừng: xe đầy chỉ chốt ở lượt quét kế, ghi tay không bị đẩy xe", run: (m) => { m.setCapacity(1, 5, true); m.autoAssign(101, 1, true); m.autoAssign(102, 1, true); const still = m.buses[0].status === "BOARDING"; m.setCapacity(1, 2, true); const notClosedYet = m.buses[0].status === "BOARDING"; const r = m.autoAssign(103, 1, true); return still && notClosedYet && m.buses[0].status === "CLOSED" && r.busId === 2; } },
   { name: "BUS-17 nhóm 2 người: quét 1 QR thêm đủ 2 vào cùng xe", run: (m) => { const r = m.autoAssign(102, 1, true); return r.assigned === true && r.partySize === 2 && m.members.filter((x) => x.busId === r.busId).length === 2; }, parties: { 102: [102, 903] } },
   { name: "BUS-18 nhóm 3 người: quét 1 QR thêm đủ 3", run: (m) => { m.buses.forEach((b) => { b.capacity = 3; }); const r = m.autoAssign(101, 1, true); return r.partySize === 3 && m.members.filter((x) => x.busId === r.busId).length === 3; }, parties: { 101: [101, 901, 902] } },
   { name: "BUS-19 sức chứa đúng bằng nhóm → vào thành công", run: (m) => { const r = m.autoAssign(102, 1, true); return r.assigned === true && m.members.filter((x) => x.busId === r.busId).length === 2 && m.buses[0].status === "CLOSED"; }, parties: { 102: [102, 903] } },
@@ -726,6 +731,7 @@ const BUS_CASES = [
   { name: "BUS-21 không xe nào đủ chỗ cho nhóm → báo lỗi, không chốt xe oan", run: (m) => { buses_all_one(m); const r = m.autoAssign(102, 1, true); return r !== null && r.assigned === false && r.reason === "NO_ROOM_FOR_PARTY" && m.buses[0].status === "BOARDING" && m.members.length === 0; }, parties: { 102: [102, 903] } },
   { name: "BUS-22 move người chính kéo cả nhóm đi theo", run: (m) => { m.setCapacity(1, 3, true); m.setCapacity(3, 3, true); m.autoAssign(102, 1, true); const r = m.moveVoter(102, 3); return r.ok === true && r.moved === 2 && m.members.filter((x) => [102, 903].includes(x.voterId)).every((x) => x.busId === 3); }, parties: { 102: [102, 903] } },
   { name: "BUS-23 người Đi xe = Không quét QR vẫn lên xe kèm đủ nhóm như bình thường", run: (m) => { const r = m.autoAssign(105, 1, true); return r.assigned === true && r.partySize === 2 && m.members.filter((x) => x.busId === r.busId).length === 2; }, parties: { 105: [105, 905] } },
+  { name: "BUS-24 Super Admin ghi tay quá sức chứa: bắt buộc vào, không chốt/đẩy xe", run: (m) => { m.setCapacity(1, 1, true); m.autoAssign(101, 1, true); m.openBus(1, true); const r = m.assign(102, 1, { role: "super" }, true); return r.ok === true && m.members.filter((x) => x.busId === 1).length === 2 && m.buses[0].status === "WAITING" && m.boarding()?.id === 2; } },
 ];
 const buses_all_one = (m) => m.buses.forEach((b) => { b.capacity = 1; });
 for (const tc of BUS_CASES) {

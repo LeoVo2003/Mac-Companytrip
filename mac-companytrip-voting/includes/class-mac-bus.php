@@ -130,24 +130,9 @@ final class MAC_Bus {
         if (!self::assignment_enabled()) {
             return;
         }
-        global $wpdb;
-        $now = MAC_Voting_DB::utc_now();
-        foreach (self::buses() as $bus) {
-            if ($bus['status'] === 'CLOSED') {
-                continue;
-            }
-            $capacity = max(1, $bus['capacity']);
-            if (self::bus_counts($bus['id'])['total'] >= $capacity) {
-                $wpdb->update(
-                    MAC_Voting_DB::table('buses'),
-                    array('status' => 'CLOSED', 'closed_at' => $now, 'updated_at' => $now),
-                    array('id' => $bus['id']),
-                    array('%s', '%s', '%s'),
-                    array('%d')
-                );
-                MAC_Voting_DB::audit('SYSTEM', (string) get_current_user_id(), 'BUS_AUTO_CLOSED', 'bus', (string) $bus['id'], array('busName' => $bus['name'], 'capacity' => $capacity));
-            }
-        }
+        // Chỉ mở xe WAITING đầu tiên khi chưa có xe nhận. KHÔNG tự chốt xe đầy ở đây:
+        // chốt theo sức chứa thuộc luồng quét (auto_assign), còn ghi đè tay của Super Admin
+        // (bảng TỰ TÚC / thêm thủ công / chuyển xe) là bắt buộc vào, không bị hệ thống đẩy xe.
         if (!self::boarding_bus()) {
             self::open_first_waiting();
         }
@@ -409,7 +394,32 @@ final class MAC_Bus {
         $wpdb->query('COMMIT');
         $companion_names = array_values(array_map(static function(array $member): string { return MAC_Voting_DB::title_case((string) $member['full_name']); }, array_slice($party, 1)));
         MAC_Voting_DB::audit('SYSTEM', (string) get_current_user_id(), 'BUS_PARTY_ASSIGNED', 'voter', (string) $voter_id, array('busId' => (int) $bus['id'], 'busName' => $bus['name'], 'partySize' => $party_size, 'companions' => $companion_names));
-        // Đủ sức chứa thì chốt xe này và mở xe kế cho người tiếp theo.
+        // Đủ sức chứa thì chốt xe này và mở xe kế ngay trong luồng quét; ghi đè tay của admin không kích hoạt chốt.
+        if (self::bus_counts((int) $bus['id'])['total'] >= max(1, (int) $bus['capacity'])) {
+            $next = null;
+            foreach (self::buses() as $candidate_bus) {
+                if ($candidate_bus['status'] === 'WAITING') { $next = $candidate_bus; break; }
+            }
+            $wpdb->query('START TRANSACTION');
+            $wpdb->update(
+                MAC_Voting_DB::table('buses'),
+                array('status' => 'CLOSED', 'closed_at' => $now, 'updated_at' => $now),
+                array('id' => (int) $bus['id']),
+                array('%s', '%s', '%s'),
+                array('%d')
+            );
+            if ($next) {
+                $wpdb->update(
+                    MAC_Voting_DB::table('buses'),
+                    array('status' => 'BOARDING', 'opened_at' => $now, 'updated_at' => $now),
+                    array('id' => (int) $next['id']),
+                    array('%s', '%s', '%s'),
+                    array('%d')
+                );
+            }
+            $wpdb->query('COMMIT');
+            MAC_Voting_DB::audit('SYSTEM', (string) get_current_user_id(), 'BUS_AUTO_ADVANCED', 'bus', (string) $bus['id'], array('closedBus' => $bus['name'], 'openedBus' => $next ? $next['name'] : null));
+        }
         self::sync_boarding();
         return array(
             'assigned' => true,

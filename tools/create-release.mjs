@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.29";
+const tag = "v1.10.30";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Luật 2 cột Đi xe/Resort: Resort Không → khỏi export tổng; Resort trống → luôn có tên.",
-  "- Đi xe Không mà quét QR Trạm 1: lên xe kèm đủ nhóm người thân như bình thường.",
+  "- Ghi tay của Super Admin bắt buộc vào xe: không báo đầy, không tự chốt/đẩy xe khi vượt sức chứa.",
+  "- Chốt theo sức chứa chỉ chạy trong luồng quét QR Trạm 1.",
 ].join("\n");
 
 let release;
