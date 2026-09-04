@@ -577,8 +577,8 @@ const busFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-bus.ph
 for (const invariant of ["bus_rider", "function self_arrange_list", "function change_guide_bus", "function delete_guide"]) {
   if (!busFile.includes(invariant)) throw new Error(`Missing non-bus-rider handling in MAC_Bus: ${invariant}`);
 }
-if (!adminFile.includes("mac_vote_people_wipe") || !adminFile.includes("PEOPLE_WIPED") || !adminFile.includes("mac_vote_person_bus_rider")) {
-  throw new Error("Missing people wipe / per-person bus rider endpoints (super-admin only).");
+if (!adminFile.includes("mac_vote_people_wipe") || !adminFile.includes("PEOPLE_WIPED") || !adminFile.includes("mac_vote_person_bus_rider") || !adminFile.includes("admin_post_nonce_ok")) {
+  throw new Error("Missing people wipe / per-person bus rider / tolerant admin-post nonce endpoints.");
 }
 if (!busFile.includes("companionNames")) {
   throw new Error("Self-arrange list must expose companion names for the detail dropdown.");

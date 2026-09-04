@@ -117,11 +117,14 @@ final class MAC_Voting_Admin {
             'adminUrl' => MAC_Voting_DB::admin_page_url(),
             'logoutUrl'=> wp_logout_url(MAC_Voting_DB::admin_page_url()),
             'logo'     => MAC_VOTING_URL . 'assets/mac-marketing-logo.png',
-            'exportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export'), 'mac_vote_export'),
-            'checkinExportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export_checkin'), 'mac_vote_export_checkin'),
-            'templateUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_template'), 'mac_vote_template'),
-            'busExportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export_bus'), 'mac_vote_export_bus'),
-            'allBusesExportUrl'=> wp_nonce_url(admin_url('admin-post.php?action=mac_vote_export_all_buses'), 'mac_vote_export_all_buses'),
+            // URL thô (không esc_url): wp_nonce_url trả bản đã escape, sang JS bị esc() lần nữa
+            // thành &amp; trong href — bấm vào mất _wpnonce và báo "Không có quyền" oan.
+            // JS esc() đúng một lần khi render href là đủ.
+            'exportUrl'=> add_query_arg(array('action' => 'mac_vote_export', '_wpnonce' => wp_create_nonce('mac_vote_export')), admin_url('admin-post.php')),
+            'checkinExportUrl'=> add_query_arg(array('action' => 'mac_vote_export_checkin', '_wpnonce' => wp_create_nonce('mac_vote_export_checkin')), admin_url('admin-post.php')),
+            'templateUrl'=> add_query_arg(array('action' => 'mac_vote_template', '_wpnonce' => wp_create_nonce('mac_vote_template')), admin_url('admin-post.php')),
+            'busExportUrl'=> add_query_arg(array('action' => 'mac_vote_export_bus', '_wpnonce' => wp_create_nonce('mac_vote_export_bus')), admin_url('admin-post.php')),
+            'allBusesExportUrl'=> add_query_arg(array('action' => 'mac_vote_export_all_buses', '_wpnonce' => wp_create_nonce('mac_vote_export_all_buses')), admin_url('admin-post.php')),
             'permalinkWarning' => get_option('permalink_structure') === '',
             'permalinkSettingsUrl' => admin_url('options-permalink.php'),
         );
@@ -2071,8 +2074,17 @@ final class MAC_Voting_Admin {
         return true;
     }
 
+    /**
+     * Nonce cho link admin-post: nhận cả khóa _wpnonce lẫn biến thể "amp;_wpnonce"
+     * khi URL bị sót lớp escape &amp; giữa đường — tránh báo "Không có quyền" oan cho super admin.
+     */
+    private static function admin_post_nonce_ok(string $action): bool {
+        $nonce = (string) ($_GET['_wpnonce'] ?? $_GET['amp;_wpnonce'] ?? '');
+        return $nonce !== '' && wp_verify_nonce($nonce, $action);
+    }
+
     public static function template_csv(): void {
-        if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_template')) wp_die('Không có quyền.');
+        if (!MAC_Checkin::is_super() || !self::admin_post_nonce_ok('mac_vote_template')) wp_die('Không có quyền.');
         // Quy ước mới: KHÔNG gộp ô — phòng lặp lại cùng số trên từng dòng, note người thân đánh số lặp lại theo nhóm.
         $rows = array(
             array('HỌ & TÊN','NĂM SINH','GIỚI TÍNH','CCCD','SĐT','LOẠI PHÒNG','PHÒNG','TEAM','EMAIL','NOTE','ĐI XE','RESORT'),
@@ -2099,7 +2111,7 @@ final class MAC_Voting_Admin {
     }
 
     public static function export_results_xlsx(): void {
-        if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export')) wp_die('Không có quyền.');
+        if (!MAC_Checkin::is_super() || !self::admin_post_nonce_ok('mac_vote_export')) wp_die('Không có quyền.');
         global $wpdb;
         $overview = self::overview();
         $rows = array();
@@ -2238,7 +2250,7 @@ final class MAC_Voting_Admin {
     }
 
     public static function export_checkin_xlsx(): void {
-        if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export_checkin')) wp_die('Không có quyền.');
+        if (!MAC_Checkin::is_super() || !self::admin_post_nonce_ok('mac_vote_export_checkin')) wp_die('Không có quyền.');
         global $wpdb;
         $rows = array(array('Checkpoint','Team','Họ tên','Email','Trạng thái check-in','Scanned at','Scanned by'));
         $rows = array_merge($rows, self::checkin_matrix_rows(
@@ -2262,7 +2274,7 @@ final class MAC_Voting_Admin {
 
     public static function export_bus_xlsx(): void {
         $bus_id = absint($_GET['bus_id'] ?? 0);
-        if (!self::can_export_bus($bus_id) || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export_bus')) wp_die('Không có quyền.');
+        if (!self::can_export_bus($bus_id) || !self::admin_post_nonce_ok('mac_vote_export_bus')) wp_die('Không có quyền.');
         $bus = null;
         foreach (MAC_Bus::admin_state()['buses'] as $candidate) if ((int) $candidate['id'] === $bus_id) $bus = $candidate;
         if (!$bus) wp_die('Xe không tồn tại.');
@@ -2276,7 +2288,7 @@ final class MAC_Voting_Admin {
     }
 
     public static function export_all_buses_xlsx(): void {
-        if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export_all_buses')) wp_die('Không có quyền.');
+        if (!MAC_Checkin::is_super() || !self::admin_post_nonce_ok('mac_vote_export_all_buses')) wp_die('Không có quyền.');
         // Super Admin xuất được mọi thời điểm (kể cả chưa đóng đủ 5 xe): nút chỉ hiện với super
         // nên không còn chốt chặn đóng-xe nữa; người chưa lên xe vẫn nằm file ở cột xe trống.
         $state = MAC_Bus::admin_state();
