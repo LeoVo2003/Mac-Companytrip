@@ -2066,10 +2066,17 @@ final class MAC_Voting_Admin {
         $html .= '</div></div>';
         $headers = array('Content-Type: text/html; charset=UTF-8');
         // Không đính kèm file rời nữa: ảnh đã nhúng cid + URL, tránh mail client hiển thị trùng/lẫn part.
+        // Bắt lỗi chi tiết từ wp_mail_failed để thông báo rõ nguyên nhân transport (SMTP2GO v.v.).
+        $mail_error = '';
+        $fail_hook = static function($error) use (&$mail_error): void {
+            if ($error instanceof WP_Error) $mail_error = (string) $error->get_error_message();
+        };
+        add_action('wp_mail_failed', $fail_hook);
         $sent = wp_mail($voter['email'], $subject, $html, $headers);
+        remove_action('wp_mail_failed', $fail_hook);
         remove_action('phpmailer_init', $cid_hook);
         if (!$sent) {
-            return new WP_Error('mail', 'WordPress không gửi được email. Kiểm tra cấu hình mail của site.');
+            return new WP_Error('mail', 'WordPress không gửi được email.' . ($mail_error !== '' ? ' Chi tiết: ' . $mail_error : ' Kiểm tra cấu hình mail của site.'));
         }
         return true;
     }
@@ -2289,8 +2296,8 @@ final class MAC_Voting_Admin {
 
     public static function export_all_buses_xlsx(): void {
         if (!MAC_Checkin::is_super() || !self::admin_post_nonce_ok('mac_vote_export_all_buses')) wp_die('Không có quyền.');
-        // Super Admin xuất được mọi thời điểm (kể cả chưa đóng đủ 5 xe): nút chỉ hiện với super
-        // nên không còn chốt chặn đóng-xe nữa; người chưa lên xe vẫn nằm file ở cột xe trống.
+        // Super Admin xuất mọi thời điểm nhưng CHỈ người đã nằm trong 5 xe (kèm điều kiện resort_stay=1);
+        // người tự túc / chưa gán xe không còn vào file tổng nữa.
         $state = MAC_Bus::admin_state();
         global $wpdb;
         $voters_table = MAC_Voting_DB::table('voters');
@@ -2300,8 +2307,12 @@ final class MAC_Voting_Admin {
                 if ($member['voterId'] !== null) $assigned[(int) $member['voterId']] = (int) $bus['sortOrder'];
             }
         }
-        $people = $wpdb->get_results("SELECT id,full_name,birth_year,gender,citizen_id,phone,email,room_group,import_order FROM $voters_table WHERE resort_stay=1 ORDER BY import_order,id", ARRAY_A) ?: array();
-        // File gửi resort = TẤT CẢ người không đánh dấu "Không ở resort" (kể cả tự túc / chưa lên xe), không hỏi lại.
+        if (!$assigned) {
+            wp_die('Chưa có ai được xếp vào 5 xe nên chưa có danh sách tổng để xuất.');
+        }
+        $id_list = implode(',', array_map('intval', array_keys($assigned)));
+        $people = $wpdb->get_results("SELECT id,full_name,birth_year,gender,citizen_id,phone,email,room_group,import_order FROM $voters_table WHERE resort_stay=1 AND id IN ($id_list) ORDER BY import_order,id", ARRAY_A) ?: array();
+        // File gửi resort = người đã lên xe và không đánh dấu "Không ở resort".
         $members = array();
         foreach ($people as $row) {
             $id = (int) $row['id'];

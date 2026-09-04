@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.43
+Stable tag: 1.10.44
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -71,6 +71,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.44 =
+- Xuất tổng 5 xe chỉ gồm người ĐÃ nằm trong 5 xe (kèm điều kiện không đánh dấu Không ở resort); người tự túc / chưa gán xe không vào file nữa; chưa ai lên xe thì báo rõ chưa xuất được.
+- Mail QR: bắt lỗi wp_mail_failed để thông báo đúng nguyên nhân transport khi gửi thất bại, thay vì câu chung chung.
 
 = 1.10.43 =
 - Hết lỗi "Không có quyền" oan khi bấm xuất XLSX / tải CSV mẫu: link admin-post giờ phát URL thô (không esc_url hai lần) và handler nhận nonce cả khi URL bị sót lớp escape &amp; (khóa amp;_wpnonce).

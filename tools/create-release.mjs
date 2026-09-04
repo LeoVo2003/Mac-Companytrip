@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.43";
+const tag = "v1.10.44";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Sửa lỗi bấm xuất XLSX báo Không có quyền oan: URL admin-post thô + handler nhận nonce cả khi sót escape &amp;.",
+  "- Xuất tổng 5 xe chỉ gồm người đã nằm trong 5 xe (không còn xuất tất cả nhân sự).",
+  "- Mail QR báo lỗi chi tiết từ transport khi gửi thất bại.",
 ].join("\n");
 
 let release;
