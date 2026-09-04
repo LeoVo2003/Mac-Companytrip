@@ -574,10 +574,10 @@ if (artRaceJs.includes("SPOTLIGHT ĐANG TÌM KIẾM")) {
 
 // --- Module Phân xe: port state machine từ MAC_Bus (PHP) để chạy test case thật ---
 const busFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-bus.php"), "utf8");
-for (const invariant of ["self_rider_override", "bus_rider", "function self_arrange_list"]) {
+for (const invariant of ["bus_rider", "function self_arrange_list"]) {
   if (!busFile.includes(invariant)) throw new Error(`Missing non-bus-rider handling in MAC_Bus: ${invariant}`);
 }
-if (!adminFile.includes("'nonBusRiders'") || !checkinJs.includes("NOT_BUS_RIDER")) {
+if (!adminFile.includes("'nonBusRiders'") || !checkinJs.includes("KHÔNG ĐỦ CHỖ CHO NHÓM")) {
   throw new Error("Non-bus-rider flag must surface in import preview and scanner feedback.");
 }
 for (const invariant of ["function sync_boarding", "function save_capacity", "function close_bus", "function open_bus", "'capacity' => (int) $bus['capacity']"]) {
@@ -588,7 +588,7 @@ for (const invariant of ["mac_vote_bus_capacity", "data-bus-capacity", "data-bus
 }
 if (adminJs.includes("mac_vote_bus_advance")) throw new Error("Legacy manual advance action must stay removed from the admin UI.");
 if (!databaseFile.includes("capacity smallint(5) unsigned NOT NULL DEFAULT 40")) throw new Error("Buses table must carry a per-bus capacity column.");
-const busModel = (teamOf, partyMap = {}, nonRiders = new Set()) => {
+const busModel = (teamOf, partyMap = {}) => {
   const buses = [1, 2, 3, 4, 5].map((id) => ({ id, status: "WAITING", capacity: 2 }));
   const members = [];
   let memberSeq = 0;
@@ -658,9 +658,7 @@ const busModel = (teamOf, partyMap = {}, nonRiders = new Set()) => {
       const existing = members.find((m) => m.voterId === voterId);
       if (existing) return { assigned: true, busId: existing.busId };
       sync(checkpoint1Open);
-      const fullParty = partyOf(voterId);
-      // Người tự túc quét QR = đổi ý đi xe: chỉ nhận đúng người quét, không kéo nhóm.
-      const party = nonRiders.has(voterId) ? [voterId] : fullParty;
+      const party = partyOf(voterId);
       const found = findPartyTarget(party.length);
       if (!found || !found.target) return { assigned: false, reason: found ? "NO_ROOM_FOR_PARTY" : "NO_BUS_BOARDING", partySize: party.length };
       party.forEach((id, index) => members.push({ id: ++memberSeq, busId: found.target.id, voterId: id, memberType: index === 0 ? "EMPLOYEE" : "COMPANION" }));
@@ -727,11 +725,11 @@ const BUS_CASES = [
   { name: "BUS-20 xe còn 1 chỗ, nhóm 2 → không tách nhóm, cả nhóm sang xe kế", run: (m) => { m.autoAssign(101, 1, true); const r = m.autoAssign(102, 1, true); return r.busId === 2 && m.members.filter((x) => [102, 903].includes(x.voterId)).every((x) => x.busId === 2) && m.buses[0].status === "CLOSED"; }, parties: { 102: [102, 903] } },
   { name: "BUS-21 không xe nào đủ chỗ cho nhóm → báo lỗi, không chốt xe oan", run: (m) => { buses_all_one(m); const r = m.autoAssign(102, 1, true); return r !== null && r.assigned === false && r.reason === "NO_ROOM_FOR_PARTY" && m.buses[0].status === "BOARDING" && m.members.length === 0; }, parties: { 102: [102, 903] } },
   { name: "BUS-22 move người chính kéo cả nhóm đi theo", run: (m) => { m.setCapacity(1, 3, true); m.setCapacity(3, 3, true); m.autoAssign(102, 1, true); const r = m.moveVoter(102, 3); return r.ok === true && r.moved === 2 && m.members.filter((x) => [102, 903].includes(x.voterId)).every((x) => x.busId === 3); }, parties: { 102: [102, 903] } },
-  { name: "BUS-23 người tự túc quét QR vẫn vào xe nhưng chỉ riêng mình", run: (m) => { const r = m.autoAssign(105, 1, true); return r.assigned === true && r.partySize === 1 && m.members.filter((x) => x.busId === r.busId).length === 1 && !m.members.some((x) => x.voterId === 905); }, parties: { 105: [105, 905] }, nonRiders: [105] },
+  { name: "BUS-23 người Đi xe = Không quét QR vẫn lên xe kèm đủ nhóm như bình thường", run: (m) => { const r = m.autoAssign(105, 1, true); return r.assigned === true && r.partySize === 2 && m.members.filter((x) => x.busId === r.busId).length === 2; }, parties: { 105: [105, 905] } },
 ];
 const buses_all_one = (m) => m.buses.forEach((b) => { b.capacity = 1; });
 for (const tc of BUS_CASES) {
-  if (!tc.run(busModel(busTeamOf, tc.parties || {}, new Set(tc.nonRiders || [])))) throw new Error(`${tc.name}: failed.`);
+  if (!tc.run(busModel(busTeamOf, tc.parties || {}))) throw new Error(`${tc.name}: failed.`);
 }
 
 const totalBytes = files.reduce((total, file) => total + fs.statSync(file).size, 0);

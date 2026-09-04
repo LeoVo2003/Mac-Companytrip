@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.28
+Stable tag: 1.10.29
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -71,6 +71,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.29 =
+- Chốt luật 2 cột Đi xe / Resort: Resort = Không → loại khỏi export tổng (kể cả Đi xe trống); Resort trống → luôn có tên trong export tổng.
+- Người Đi xe = Không mà vẫn quét QR Trạm 1 (đổi ý đi xe): lên xe như người bình thường, kèm đủ nhóm người thân đi cùng (bỏ luật chỉ nhận riêng người quét); bảng TỰ TÚC vẫn dành cho người chưa quét để gán tay.
 
 = 1.10.28 =
 - Đổi subject mail QR: "🚨 [BẮT BUỘC CHECK MAIL] QR CÁ NHÂN COMPANY TRIP 2026".
