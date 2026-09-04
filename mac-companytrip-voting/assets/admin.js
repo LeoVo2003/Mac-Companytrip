@@ -410,7 +410,9 @@
     const unassigned = `<section class="ma-panel"><header><div><small>CHƯA PHÂN XE · ${(state.unassigned || []).length}</small><h2>Check-in lúc chưa có xe mở / đến trễ</h2></div></header><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Họ tên</th><th>Team</th><th></th></tr></thead><tbody>${unassignedRows}</tbody></table></div></section>`;
     const guideRows = (state.guides || []).map((g) => `<tr><td><strong>${esc(g.name)}</strong></td><td>${esc(g.login)}</td><td>Xe ${g.busId}</td></tr>`).join("") || `<tr><td colspan="3">Chưa có tài khoản HDV.</td></tr>`;
     const guides = `<section class="ma-panel"><header><div><small>HDV VIETRAVEL</small><h2>5 tài khoản điểm danh trên xe</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">HDV chỉ thấy Check-in + Xe của tôi; quét QR được mọi team nhưng chỉ điểm danh xe mình.</p></div></header><form class="ma-guide-form" id="ma-guide-form"><label>Tên hiển thị<input name="name" type="text" placeholder="VD: Anh Tuấn Vietravel" required></label><label>Username<input name="login" type="text" placeholder="hdv.xe1" required autocapitalize="none"></label><label>Mật khẩu<input name="password" type="text" placeholder="Để trống = Mac-123"></label><label>Xe phụ trách<select name="busId">${[1, 2, 3, 4, 5].map((n) => `<option value="${n}">Xe ${n}</option>`).join("")}</select></label><button type="submit" class="ma-primary">Lưu tài khoản HDV</button></form><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>HDV</th><th>Đăng nhập</th><th>Xe</th></tr></thead><tbody>${guideRows}</tbody></table></div></section>`;
-    return `<header class="ma-top"><div><small>PHÂN XE</small><h1>Điều phối Xe 1 – 5 · Trạm 1</h1></div>${topActions("bus")}</header>${control}${manifest}${canWrite() ? unassigned + guides : ""}`;
+    const selfArrange = state.selfArrange || [];
+    const selfPanel = `<section class="ma-panel"><header><div><small>TỰ TÚC · KHÔNG ĐI XE TRẠM 1</small><h2>${selfArrange.length} người chờ gán tay</h2><p style="margin:6px 0 0;color:#667085;font-size:13px">Người đánh dấu Đi xe = Không khi import. Sau khi chốt phân xe Trạm 1, Super Admin gán họ vào xe phù hợp; gán người chính sẽ kéo theo cả nhóm đi kèm.</p></div></header><div class="ma-board-table ma-no-sticky"><table><thead><tr><th>Họ tên</th><th>Team</th><th>Đi kèm</th><th>Gán vào xe</th></tr></thead><tbody>${selfArrange.map((u) => `<tr><td><strong>${esc(u.name)}</strong></td><td>#${u.teamNo} ${esc(u.teamName)}</td><td>${u.companions ? `+${u.companions}` : "—"}</td><td><select data-self-assign="${u.voterId}" aria-label="Gán ${esc(u.name)} vào xe"><option value="">Chọn xe…</option>${buses.map((b) => `<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select></td></tr>`).join("") || `<tr><td colspan="4">Hết người tự túc chờ gán.</td></tr>`}</tbody></table></div></section>`;
+    return `<header class="ma-top"><div><small>PHÂN XE</small><h1>Điều phối Xe 1 – 5 · Trạm 1</h1></div>${topActions("bus")}</header>${control}${manifest}${canWrite() ? unassigned + selfPanel + guides : ""}`;
   }
   function myBusView() {
     const bus = data.myBus;
@@ -914,6 +916,16 @@
         render();
         notify(result.message);
       } catch (err) { notify(err.message, true); }
+    }));
+    root.querySelectorAll("[data-self-assign]").forEach((select) => select.addEventListener("change", async () => {
+      if (!select.value) return;
+      select.disabled = true;
+      try {
+        const result = await ajax("mac_vote_bus_assign", { voterId: select.dataset.selfAssign, toBus: select.value });
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) { select.disabled = false; notify(err.message, true); }
     }));
     root.querySelector("#ma-bus-add-form")?.addEventListener("submit", async (event) => {
       event.preventDefault();

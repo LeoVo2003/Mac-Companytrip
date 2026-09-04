@@ -2222,25 +2222,11 @@ final class MAC_Voting_Admin {
                 if ($member['voterId'] !== null) $assigned[(int) $member['voterId']] = (int) $bus['sortOrder'];
             }
         }
-        $people = $wpdb->get_results("SELECT id,full_name,birth_year,gender,citizen_id,phone,email,room_group,status,bus_rider,resort_stay,primary_voter_id,import_order FROM $voters_table ORDER BY import_order,id", ARRAY_A) ?: array();
-        // File gửi resort = người ở resort: đã lên xe, hoặc chủ động không đi xe (đi xe nhà),
-        // hoặc người đi kèm theo gia đình đủ điều kiện. Loại: resort "Không" và người vắng mặt dù đăng ký đi xe.
-        $included = array();
-        foreach ($people as $row) {
-            if ((int) $row['resort_stay'] === 0) continue;
-            if ((string) $row['status'] === 'COMPANION') continue;
-            $id = (int) $row['id'];
-            if (isset($assigned[$id]) || (int) $row['bus_rider'] === 0) $included[$id] = $row;
-        }
-        foreach ($people as $row) {
-            if ((string) $row['status'] !== 'COMPANION') continue;
-            if ((int) $row['resort_stay'] === 0) continue;
-            $id = (int) $row['id'];
-            $primary_id = (int) ($row['primary_voter_id'] ?? 0);
-            if (isset($assigned[$id]) || isset($included[$primary_id])) $included[$id] = $row;
-        }
+        $people = $wpdb->get_results("SELECT id,full_name,birth_year,gender,citizen_id,phone,email,room_group,import_order FROM $voters_table WHERE resort_stay=1 ORDER BY import_order,id", ARRAY_A) ?: array();
+        // File gửi resort = TẤT CẢ người không đánh dấu "Không ở resort" (kể cả tự túc / chưa lên xe), không hỏi lại.
         $members = array();
-        foreach ($included as $id => $row) {
+        foreach ($people as $row) {
+            $id = (int) $row['id'];
             $members[] = array(
                 'name' => MAC_Voting_DB::title_case((string) $row['full_name']),
                 'birthYear' => (string) $row['birth_year'],

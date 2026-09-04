@@ -701,6 +701,42 @@ final class MAC_Bus {
         }, $rows);
     }
 
+    /** Người tự túc (Đi xe = Không) chưa nằm xe nào — Super Admin gán tay sau khi chốt phân xe Trạm 1. */
+    public static function self_arrange_list(): array {
+        global $wpdb;
+        $voters = MAC_Voting_DB::table('voters');
+        $teams = MAC_Voting_DB::table('teams');
+        $assigned = array_flip(self::assigned_voter_ids());
+        $rows = $wpdb->get_results("SELECT v.id,v.full_name,v.status,v.primary_voter_id,t.team_no,t.name AS team_name
+            FROM $voters v JOIN $teams t ON t.id=v.team_id
+            WHERE v.bus_rider=0 AND v.status IN ('ACTIVE','COMPANION')
+            ORDER BY v.import_order,v.id", ARRAY_A) ?: array();
+        $in_list = array();
+        foreach ($rows as $r) $in_list[(int) $r['id']] = true;
+        $comp_counts = array();
+        foreach ($wpdb->get_results("SELECT primary_voter_id AS pid, COUNT(*) AS c FROM $voters WHERE status='COMPANION' AND bus_rider=0 AND primary_voter_id IS NOT NULL GROUP BY primary_voter_id", ARRAY_A) ?: array() as $c) {
+            $comp_counts[(int) $c['pid']] = (int) $c['c'];
+        }
+        $items = array();
+        foreach ($rows as $r) {
+            $id = (int) $r['id'];
+            if (isset($assigned[$id])) continue;
+            $primary_id = (int) ($r['primary_voter_id'] ?? 0);
+            // Người đi kèm mà người chính cũng đang chờ gán: ẩn vì gán người chính là kéo cả nhóm.
+            if ((string) $r['status'] === 'COMPANION' && $primary_id && isset($in_list[$primary_id]) && !isset($assigned[$primary_id])) {
+                continue;
+            }
+            $items[] = array(
+                'voterId' => $id,
+                'name' => MAC_Voting_DB::title_case((string) $r['full_name']),
+                'teamNo' => (int) $r['team_no'],
+                'teamName' => (string) $r['team_name'],
+                'companions' => (string) $r['status'] === 'COMPANION' ? 0 : (int) ($comp_counts[$id] ?? 0),
+            );
+        }
+        return $items;
+    }
+
     public static function guides(): array {
         $users = get_users(array('role' => self::ROLE, 'orderby' => 'display_name'));
         $items = array();
@@ -939,6 +975,7 @@ final class MAC_Bus {
             'buses' => $buses,
             'boardingBusId' => $boarding ? (int) $boarding['id'] : null,
             'unassigned' => self::unassigned(),
+            'selfArrange' => self::self_arrange_list(),
             'guides' => self::guides(),
         );
     }

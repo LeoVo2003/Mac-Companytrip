@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.25
+Stable tag: 1.10.26
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -71,6 +71,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.26 =
+- Tab Phân xe thêm bảng "TỰ TÚC · KHÔNG ĐI XE TRẠM 1": liệt kê người đánh dấu Đi xe = Không chưa nằm xe nào để Super Admin gán tay vào từng xe (gán người chính kéo theo cả nhóm đi kèm); danh sách "Chưa phân xe" giờ chỉ còn người sót thật sự.
+- Export Tổng danh sách 5 xe gửi resort: gồm TẤT CẢ người không đánh dấu Resort = Không (kể cả tự túc / chưa lên xe), không hỏi lại.
 
 = 1.10.25 =
 - Mail QR: thêm nút "Vào trang chấm điểm văn nghệ" (link token tự đăng nhập, không cần tự quét QR); subject mới "🚨 MỞ MAIL NGAY: “BOARDING PASS” COMPANY TRIP 2026 CỦA BẠN ĐANG Ở ĐÂY!".
