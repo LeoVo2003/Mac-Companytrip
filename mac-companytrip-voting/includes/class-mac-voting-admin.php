@@ -2023,23 +2023,13 @@ final class MAC_Voting_Admin {
     }
 
     private static function send_qr_email(array $voter, string $png) {
-        // QR nhúng CID làm đường ảnh duy nhất: ảnh nằm trong thân mail nên Outlook (cũ + mới),
-        // Gmail, Apple Mail, mobile đều render ngay không cần tải ngoài — không bị chặn kiểu
-        // "người gửi chưa tin cậy". URL ảnh công khai chỉ còn là link dự phòng bên dưới.
+        // Ảnh QR đi hai đường: embed cid cho Outlook desktop (nhánh mso) và URL ảnh công khai
+        // cho OWA/new Outlook/Gmail/mobile (nhánh !mso) — hết lỗi mất hình kiểu Outlook web không nhận cid.
         $key = MAC_Voting_Public::store_qr_image($png);
         $remote = $key !== '' ? MAC_Voting_Public::qr_image_url($key) : '';
-        // Embed theo FILE đã lưu (không dùng chuỗi nhị phân): transport API như SMTP2GO đọc
-        // attachment từ đường dẫn file nên part inline không bị rớt giữa đường (lỗi AttNotFound).
-        $path = $key !== '' ? WP_CONTENT_DIR . '/uploads/mac-qr/' . $key . '.png' : '';
         $cid = 'macqr' . substr(md5($key !== '' ? $key : (string) $voter['id']), 0, 12);
-        $cid_hook = static function($phpmailer) use ($path, $cid): void {
-            if ($path === '' || !file_exists($path)) {
-                return;
-            }
-            $phpmailer->addEmbeddedImage($path, $cid, 'qr-ca-nhan.png', 'base64', 'image/png');
-            // Đai an toàn: thêm bản đính kèm rời để người nhận luôn có file QR mở được,
-            // kể cả client/transport lột bỏ part inline.
-            $phpmailer->addAttachment($path, 'QR-ca-nhan.png', 'base64', 'image/png');
+        $cid_hook = static function($phpmailer) use ($png, $cid): void {
+            $phpmailer->addStringEmbeddedImage($png, $cid, 'qr-ca-nhan.png', 'base64', 'image/png');
         };
         add_action('phpmailer_init', $cid_hook);
         $team = '';
@@ -2060,18 +2050,19 @@ final class MAC_Voting_Admin {
         $html .= '<p style="margin:0 0 8px;color:#667085;letter-spacing:.12em;font-size:12px;font-weight:700">MAC COMPANY TRIP</p>';
         $html .= '<h1 style="margin:0 0 12px;font-size:24px">QR cá nhân của bạn</h1>';
         $html .= '<p style="margin:0 0 16px;color:#667085">Xin chào <strong>' . esc_html($voter['full_name']) . '</strong>' . ($team ? ' · ' . esc_html($team) : '') . '</p>';
-        // Ảnh cid nhúng trong mail: mọi client render trực tiếp không chặn nội dung ngoài.
-        if ($path !== '' && file_exists($path)) {
-            $html .= '<img src="cid:' . $cid . '" alt="QR cá nhân" width="220" height="220" style="' . $img_style . '">';
+        // Outlook desktop (máy Word/MSO) render ảnh cid nhúng; các client web dùng URL ảnh trực tiếp.
+        $html .= '<!--[if mso]><img src="cid:' . $cid . '" alt="QR cá nhân" width="220" height="220" style="' . $img_style . '"><![endif]-->';
+        if ($remote !== '') {
+            $html .= '<![if !mso]><img src="' . esc_url($remote) . '" alt="QR cá nhân" width="220" height="220" style="' . $img_style . '"><![endif]>';
         }
         $html .= '<p style="margin:16px 0 0;color:#667085;font-size:14px;line-height:1.5">Đưa QR này cho BTC khi check-in. Tối văn nghệ, bấm nút bên dưới để vào trang chấm điểm khi ban tổ chức bật cổng (hoặc đưa QR cho máy khác quét).</p>';
-        $html .= '<p style="margin:16px 0 0"><a href="' . esc_url($vote_link) . '" style="display:inline-block;background:#e31e24;color:#ffffff;font-weight:700;font-size:14px;line-height:1;padding:14px 22px;border-radius:12px;text-decoration:none">Vào trang chấm điểm văn nghệ</a></p>';
+        $html .= '<p style="margin:16px 0 0"><a href="' . esc_url($vote_link) . '" style="display:inline-block;background:#e31e24;color:#ffffff;font-weight:700;font-size:14px;line-height:1;padding:14px 22px;border-radius:12px;text-decoration:none">🎤 Vào trang chấm điểm văn nghệ</a></p>';
         if ($remote !== '') {
             $html .= '<p style="margin:8px 0 0;font-size:13px"><a href="' . esc_url($remote) . '" style="color:#e31e24;font-weight:700">Nếu ảnh QR không hiển thị, bấm vào đây để mở ảnh</a></p>';
         }
         $html .= '</div></div>';
         $headers = array('Content-Type: text/html; charset=UTF-8');
-        // Ảnh đi ba đường: cid nhúng (hiện trong thân mail) + file đính kèm rời + link dự phòng.
+        // Không đính kèm file rời nữa: ảnh đã nhúng cid + URL, tránh mail client hiển thị trùng/lẫn part.
         $sent = wp_mail($voter['email'], $subject, $html, $headers);
         remove_action('phpmailer_init', $cid_hook);
         if (!$sent) {

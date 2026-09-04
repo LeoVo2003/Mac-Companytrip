@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.39
+Stable tag: 1.10.40
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -71,6 +71,9 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.40 =
+- Hoàn tác mail QR về đúng bản gốc ổn định (trước chuỗi sửa 1.10.38/1.10.39): nhánh mso dùng ảnh cid, nhánh client web dùng URL ảnh, nút 🎤 giữ nguyên, không đính kèm file rời. Người nhận Outlook bấm "Hiển thị nội dung" một lần là thấy QR.
 
 = 1.10.39 =
 - Mail QR hết lỗi AttNotFound: embed CID theo file đã lưu trên server (transport API như SMTP2GO đọc attachment theo đường dẫn, bản chuỗi nhị phân bị rớt part inline); thêm bản đính kèm rời QR-ca-nhan.png làm đai an toàn nên người nhận luôn có QR dù client có lột inline.
