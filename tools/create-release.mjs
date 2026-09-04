@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.26";
+const tag = "v1.10.27";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Bảng TỰ TÚC trong tab Phân xe: gán tay người không đi xe Trạm 1 vào từng xe (kéo theo nhóm đi kèm).",
-  "- Export tổng 5 xe: đủ mọi người trừ Resort = Không, không hỏi lại.",
+  "- Người tự túc quét QR Trạm 1 vẫn được đưa lên xe (chỉ đúng người quét), không kéo nhóm tự túc ở nhà.",
 ].join("\n");
 
 let release;

@@ -574,7 +574,7 @@ if (artRaceJs.includes("SPOTLIGHT ĐANG TÌM KIẾM")) {
 
 // --- Module Phân xe: port state machine từ MAC_Bus (PHP) để chạy test case thật ---
 const busFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-bus.php"), "utf8");
-for (const invariant of ["NOT_BUS_RIDER", "bus_rider", "function self_arrange_list"]) {
+for (const invariant of ["self_rider_override", "bus_rider", "function self_arrange_list"]) {
   if (!busFile.includes(invariant)) throw new Error(`Missing non-bus-rider handling in MAC_Bus: ${invariant}`);
 }
 if (!adminFile.includes("'nonBusRiders'") || !checkinJs.includes("NOT_BUS_RIDER")) {
@@ -657,9 +657,10 @@ const busModel = (teamOf, partyMap = {}, nonRiders = new Set()) => {
       if (checkpointId !== 1 || !enabled(checkpoint1Open)) return null;
       const existing = members.find((m) => m.voterId === voterId);
       if (existing) return { assigned: true, busId: existing.busId };
-      if (nonRiders.has(voterId)) return { assigned: false, reason: "NOT_BUS_RIDER", partySize: partyOf(voterId).length };
       sync(checkpoint1Open);
-      const party = partyOf(voterId);
+      const fullParty = partyOf(voterId);
+      // Người tự túc quét QR = đổi ý đi xe: chỉ nhận đúng người quét, không kéo nhóm.
+      const party = nonRiders.has(voterId) ? [voterId] : fullParty;
       const found = findPartyTarget(party.length);
       if (!found || !found.target) return { assigned: false, reason: found ? "NO_ROOM_FOR_PARTY" : "NO_BUS_BOARDING", partySize: party.length };
       party.forEach((id, index) => members.push({ id: ++memberSeq, busId: found.target.id, voterId: id, memberType: index === 0 ? "EMPLOYEE" : "COMPANION" }));
@@ -726,7 +727,7 @@ const BUS_CASES = [
   { name: "BUS-20 xe còn 1 chỗ, nhóm 2 → không tách nhóm, cả nhóm sang xe kế", run: (m) => { m.autoAssign(101, 1, true); const r = m.autoAssign(102, 1, true); return r.busId === 2 && m.members.filter((x) => [102, 903].includes(x.voterId)).every((x) => x.busId === 2) && m.buses[0].status === "CLOSED"; }, parties: { 102: [102, 903] } },
   { name: "BUS-21 không xe nào đủ chỗ cho nhóm → báo lỗi, không chốt xe oan", run: (m) => { buses_all_one(m); const r = m.autoAssign(102, 1, true); return r !== null && r.assigned === false && r.reason === "NO_ROOM_FOR_PARTY" && m.buses[0].status === "BOARDING" && m.members.length === 0; }, parties: { 102: [102, 903] } },
   { name: "BUS-22 move người chính kéo cả nhóm đi theo", run: (m) => { m.setCapacity(1, 3, true); m.setCapacity(3, 3, true); m.autoAssign(102, 1, true); const r = m.moveVoter(102, 3); return r.ok === true && r.moved === 2 && m.members.filter((x) => [102, 903].includes(x.voterId)).every((x) => x.busId === 3); }, parties: { 102: [102, 903] } },
-  { name: "BUS-23 người KHÔNG đi xe: quét QR vẫn ok nhưng không rơi vào xe nào", run: (m) => { const r = m.autoAssign(105, 1, true); return r.assigned === false && r.reason === "NOT_BUS_RIDER" && m.members.length === 0 && m.buses.every((b) => b.status === "WAITING"); }, nonRiders: [105] },
+  { name: "BUS-23 người tự túc quét QR vẫn vào xe nhưng chỉ riêng mình", run: (m) => { const r = m.autoAssign(105, 1, true); return r.assigned === true && r.partySize === 1 && m.members.filter((x) => x.busId === r.busId).length === 1 && !m.members.some((x) => x.voterId === 905); }, parties: { 105: [105, 905] }, nonRiders: [105] },
 ];
 const buses_all_one = (m) => m.buses.forEach((b) => { b.capacity = 1; });
 for (const tc of BUS_CASES) {

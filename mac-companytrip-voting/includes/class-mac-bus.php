@@ -332,12 +332,16 @@ final class MAC_Bus {
         }
         $party = self::party_voters($voter_id);
         if (!$party) return array('assigned' => false, 'reason' => 'VOTER_NOT_FOUND');
-        $party_size = count($party);
-        // Người đánh dấu KHÔNG đi xe (cột ĐI XE = "Không" khi import): chỉ dùng QR check-in/vote,
-        // không rơi vào xe nào nên cũng không xuất hiện trong export gửi resort.
-        if ((int) ($party[0]['bus_rider'] ?? 1) === 0) {
-            return array('assigned' => false, 'reason' => 'NOT_BUS_RIDER', 'partySize' => $party_size);
+        // self_rider_override: người đánh dấu tự túc (Đi xe = Không) mà vẫn quét QR Trạm 1 = đổi ý đi xe:
+        // nhận đúng người quét lên xe (1 chỗ), không kéo theo người nhà tự túc không quét.
+        $scanned = null;
+        foreach ($party as $member) {
+            if ((int) $member['id'] === $voter_id) { $scanned = $member; break; }
         }
+        if ($scanned && (int) ($scanned['bus_rider'] ?? 1) === 0) {
+            $party = array($scanned);
+        }
+        $party_size = count($party);
         // Đồng bộ trước khi chọn xe: xe đầy đã chốt tự chuyển sang xe kế đang chờ.
         self::sync_boarding();
         $bus = self::boarding_bus();
