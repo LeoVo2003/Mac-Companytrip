@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.40";
+const tag = "v1.10.41";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Hoàn tác mail QR về bản gốc ổn định (mso cid + URL web, không đính kèm rời) theo yêu cầu vận hành.",
+  "- Super Admin xuất tổng 5 xe mọi lúc (bỏ chốt đóng đủ 5 xe); xuất từng xe giữ nguyên.",
 ].join("\n");
 
 let release;

@@ -2277,10 +2277,9 @@ final class MAC_Voting_Admin {
 
     public static function export_all_buses_xlsx(): void {
         if (!MAC_Checkin::is_super() || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mac_vote_export_all_buses')) wp_die('Không có quyền.');
+        // Super Admin xuất được mọi thời điểm (kể cả chưa đóng đủ 5 xe): nút chỉ hiện với super
+        // nên không còn chốt chặn đóng-xe nữa; người chưa lên xe vẫn nằm file ở cột xe trống.
         $state = MAC_Bus::admin_state();
-        if (count($state['buses']) !== MAC_Bus::BUS_COUNT || count(array_filter($state['buses'], static function(array $bus): bool { return $bus['status'] === 'CLOSED'; })) !== MAC_Bus::BUS_COUNT) {
-            wp_die('Chỉ xuất danh sách tổng sau khi đã đóng đủ 5 xe.');
-        }
         global $wpdb;
         $voters_table = MAC_Voting_DB::table('voters');
         $assigned = array();
