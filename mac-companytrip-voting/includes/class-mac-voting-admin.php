@@ -28,6 +28,8 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_bus_remove', array(__CLASS__, 'ajax_bus_remove'));
         add_action('wp_ajax_mac_vote_bus_reset', array(__CLASS__, 'ajax_bus_reset'));
         add_action('wp_ajax_mac_vote_guide_save', array(__CLASS__, 'ajax_guide_save'));
+        add_action('wp_ajax_mac_vote_guide_bus', array(__CLASS__, 'ajax_guide_bus'));
+        add_action('wp_ajax_mac_vote_guide_delete', array(__CLASS__, 'ajax_guide_delete'));
         add_action('wp_ajax_mac_vote_rollcall', array(__CLASS__, 'ajax_rollcall'));
         add_action('wp_ajax_mac_vote_team', array(__CLASS__, 'ajax_team'));
         add_action('wp_ajax_mac_vote_swap', array(__CLASS__, 'ajax_swap'));
@@ -718,6 +720,24 @@ final class MAC_Voting_Admin {
         wp_send_json_success(array('message' => 'Đã xóa khỏi xe.', 'overview' => self::overview_payload()));
     }
 
+    public static function ajax_guide_bus(): void {
+        self::guard();
+        $result = MAC_Bus::change_guide_bus(absint($_POST['userId'] ?? 0), absint($_POST['busId'] ?? 0));
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 400);
+        }
+        wp_send_json_success(array('message' => 'Đã đổi xe phụ trách của HDV.', 'overview' => self::overview_payload()));
+    }
+
+    public static function ajax_guide_delete(): void {
+        self::guard();
+        $result = MAC_Bus::delete_guide(absint($_POST['userId'] ?? 0));
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()), 400);
+        }
+        wp_send_json_success(array('message' => 'Đã xóa tài khoản HDV khỏi hệ thống.', 'overview' => self::overview_payload()));
+    }
+
     public static function ajax_guide_save(): void {
         self::guard();
         $result = MAC_Bus::save_guide(
@@ -1136,7 +1156,7 @@ final class MAC_Voting_Admin {
             if (count($preview_rows) < 100) $preview_rows[] = array_values(array_map('strval', $row));
             if ($is_companion) {
                 if ($name === '') { $errors[] = "Dòng $line: người đi kèm thiếu họ tên"; continue; }
-                $pending_companions[] = array('line' => $line, 'row' => $row, 'group' => $note_merge);
+                $pending_companions[] = array('line' => $line, 'row' => $row, 'group' => $group_tag);
                 continue;
             }
             $email = MAC_Voting_DB::normalize_company_email($email_value);

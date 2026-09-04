@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.31";
+const tag = "v1.10.32";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Ghi tay của Super Admin bắt buộc vào xe: không báo đầy, không tự chốt/đẩy xe khi vượt sức chứa (bản thay cho v1.10.30).",
-  "- Chốt theo sức chứa chỉ chạy trong luồng quét QR Trạm 1; 24 test phân xe pass.",
+  "- Sửa lỗi import báo oan \"nhóm người thân không có người chính\" trên mọi dòng đi kèm.",
+  "- Bảng HDV: đổi xe phụ trách không đổi mật khẩu + nút xóa tài khoản (confirm + audit).",
 ].join("\n");
 
 let release;

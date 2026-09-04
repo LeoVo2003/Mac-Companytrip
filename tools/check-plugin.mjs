@@ -206,10 +206,10 @@ const publicCss = fs.readFileSync(path.join(pluginRoot, "assets/public.css"), "u
 for (const invariant of [".mv-team-tabs", ".mv-star", ".mv-star.is-active i"]) {
   if (!publicCss.includes(invariant)) throw new Error(`Missing team selection or star score styles: ${invariant}`);
 }
-for (const invariant of ["MAC_XLSX::output", "function parse_csv_rows", "'citizen_id' => array('cccd'", "'note' => array('note','ghi chu')", "is_family_note", "primary_voter_id", "export_all_buses_xlsx", "'ho & ten'", "'di xe'", "'resort' => array('resort'", "'loai phong'", "Không tìm thấy hàng tiêu đề", "pending_companions", "group_primary", "addStringEmbeddedImage", "<!--[if mso]>", "WHERE resort_stay=1"]) {
+for (const invariant of ["MAC_XLSX::output", "function parse_csv_rows", "'citizen_id' => array('cccd'", "'note' => array('note','ghi chu')", "is_family_note", "primary_voter_id", "export_all_buses_xlsx", "'ho & ten'", "'di xe'", "'resort' => array('resort'", "'loai phong'", "Không tìm thấy hàng tiêu đề", "pending_companions", "group_primary", "'group' => $group_tag", "addStringEmbeddedImage", "<!--[if mso]>", "WHERE resort_stay=1"]) {
   if (!adminFile.includes(invariant)) throw new Error(`Missing XLSX personnel flow: ${invariant}`);
 }
-for (const invariant of ["Chỉ chấp nhận file CSV", "nhóm người thân", "allBusesExportUrl", "Xuất tổng 5 xe", "data-self-assign"]) {
+for (const invariant of ["Chỉ chấp nhận file CSV", "nhóm người thân", "allBusesExportUrl", "Xuất tổng 5 xe", "data-self-assign", "data-guide-delete", "data-guide-bus"]) {
   if (!adminJs.includes(invariant)) throw new Error(`Missing XLSX admin UI: ${invariant}`);
 }
 for (const invariant of ["Bạn không thể chấm tiết mục của team mình", "status='VALID'", "active_key", "round_status"]) {
@@ -574,7 +574,7 @@ if (artRaceJs.includes("SPOTLIGHT ĐANG TÌM KIẾM")) {
 
 // --- Module Phân xe: port state machine từ MAC_Bus (PHP) để chạy test case thật ---
 const busFile = fs.readFileSync(path.join(pluginRoot, "includes/class-mac-bus.php"), "utf8");
-for (const invariant of ["bus_rider", "function self_arrange_list"]) {
+for (const invariant of ["bus_rider", "function self_arrange_list", "function change_guide_bus", "function delete_guide"]) {
   if (!busFile.includes(invariant)) throw new Error(`Missing non-bus-rider handling in MAC_Bus: ${invariant}`);
 }
 if (!adminFile.includes("'nonBusRiders'") || !checkinJs.includes("KHÔNG ĐỦ CHỖ CHO NHÓM")) {

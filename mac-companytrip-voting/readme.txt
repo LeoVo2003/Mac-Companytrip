@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.31
+Stable tag: 1.10.32
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -71,6 +71,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.32 =
+- Sửa lỗi import báo oan "nhóm người thân không có người chính hợp lệ" trên mọi dòng đi kèm (biến nhóm còn sót từ bản đổi group tag); file CSV có nhóm người thân import lại bình thường.
+- Bảng HDV VIETRAVEL: thêm ô chọn đổi xe phụ trách (không đổi mật khẩu) và nút Xóa tài khoản (xóa vĩnh viễn, có xác nhận + audit).
 
 = 1.10.31 =
 - Bản thay cho 1.10.30 (check-plugin chưa kịp xanh): cập nhật test BUS-09 đúng luật mới — thêm thủ công đếm vào sức chứa nhưng không tự chốt xe; 24 case phân xe pass.

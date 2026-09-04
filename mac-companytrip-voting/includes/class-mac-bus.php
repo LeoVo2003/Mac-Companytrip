@@ -804,6 +804,42 @@ final class MAC_Bus {
         return array('created' => true, 'login' => $login, 'password' => $pass, 'busId' => $bus_id, 'name' => $display);
     }
 
+    /** Đổi xe phụ trách của HDV mà không đụng mật khẩu hiện tại. */
+    public static function change_guide_bus(int $user_id, int $bus_id) {
+        $user = get_userdata($user_id);
+        if (!$user || !in_array(self::ROLE, (array) $user->roles, true)) {
+            return new WP_Error('not_guide', 'Không phải tài khoản HDV.', array('status' => 404));
+        }
+        if ($bus_id < 1 || $bus_id > self::BUS_COUNT) {
+            return new WP_Error('invalid_bus', 'Xe phụ trách không hợp lệ.', array('status' => 400));
+        }
+        $old = self::guide_bus_id($user_id);
+        update_user_meta($user_id, self::BUS_META, $bus_id);
+        if ($old !== $bus_id) {
+            MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'BUS_GUIDE_BUS_CHANGED', 'user', (string) $user_id, array('fromBus' => $old, 'toBus' => $bus_id));
+        }
+        return self::admin_state();
+    }
+
+    /** Xóa vĩnh viễn tài khoản HDV; audit lại thông tin trước khi xóa. */
+    public static function delete_guide(int $user_id) {
+        $user = get_userdata($user_id);
+        if (!$user || !in_array(self::ROLE, (array) $user->roles, true)) {
+            return new WP_Error('not_guide', 'Không phải tài khoản HDV.', array('status' => 404));
+        }
+        $login = (string) $user->user_login;
+        $bus = self::guide_bus_id($user_id);
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'BUS_GUIDE_DELETED', 'user', (string) $user_id, array('login' => $login, 'busId' => $bus));
+        delete_user_meta($user_id, self::BUS_META);
+        if (!function_exists('wp_delete_user')) {
+            require_once ABSPATH . 'wp-admin/includes/user.php';
+        }
+        if (!wp_delete_user($user_id)) {
+            return new WP_Error('delete_failed', 'Không xóa được tài khoản HDV.', array('status' => 500));
+        }
+        return self::admin_state();
+    }
+
     /* ------------------------------ Roll-call ------------------------------ */
 
     public static function current_rollcall(int $bus_id): ?array {
