@@ -1974,7 +1974,9 @@ final class MAC_Voting_Admin {
                 $team = '#' . (int) $team_row['team_no'] . ' ' . $team_row['name'];
             }
         }
-        $subject = 'QR cá nhân MAC Company Trip — ' . $voter['full_name'];
+        $subject = '🚨 MỞ MAIL NGAY: “BOARDING PASS” COMPANY TRIP 2026 CỦA BẠN ĐANG Ở ĐÂY!';
+        // Link bấm là vào thẳng trang chấm văn nghệ (token QR tự đăng nhập), không cần tự quét QR trên máy mình.
+        $vote_link = MAC_Voting_QR::url_for_voter((int) $voter['id'], (int) ($voter['qr_version'] ?? 1));
         $img_style = 'width:220px;height:220px;border:1px solid #e4e7ec;border-radius:12px;padding:8px';
         $html = '<div style="font-family:Inter,Arial,sans-serif;color:#111827;background:#f5f5f7;padding:24px">';
         $html .= '<div style="max-width:480px;margin:0 auto;background:#fff;border:1px solid #e4e7ec;border-radius:18px;padding:24px;text-align:center">';
@@ -1986,7 +1988,8 @@ final class MAC_Voting_Admin {
         if ($remote !== '') {
             $html .= '<![if !mso]><img src="' . esc_url($remote) . '" alt="QR cá nhân" width="220" height="220" style="' . $img_style . '"><![endif]>';
         }
-        $html .= '<p style="margin:16px 0 0;color:#667085;font-size:14px;line-height:1.5">Đưa QR này cho BTC khi check-in. Tối văn nghệ, tự quét QR để vào chấm điểm khi ban tổ chức bật cổng.</p>';
+        $html .= '<p style="margin:16px 0 0;color:#667085;font-size:14px;line-height:1.5">Đưa QR này cho BTC khi check-in. Tối văn nghệ, bấm nút bên dưới để vào trang chấm điểm khi ban tổ chức bật cổng (hoặc đưa QR cho máy khác quét).</p>';
+        $html .= '<p style="margin:16px 0 0"><a href="' . esc_url($vote_link) . '" style="display:inline-block;background:#e31e24;color:#ffffff;font-weight:700;font-size:14px;line-height:1;padding:14px 22px;border-radius:12px;text-decoration:none">🎤 Vào trang chấm điểm văn nghệ</a></p>';
         if ($remote !== '') {
             $html .= '<p style="margin:8px 0 0;font-size:13px"><a href="' . esc_url($remote) . '" style="color:#e31e24;font-weight:700">Nếu ảnh QR không hiển thị, bấm vào đây để mở ảnh</a></p>';
         }

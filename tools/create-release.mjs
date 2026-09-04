@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.24";
+const tag = "v1.10.25";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,7 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Sửa lỗi mất hình QR trong Outlook/OWA: ảnh cid cho Outlook desktop + URL ảnh công khai cho client web, kèm link dự phòng.",
+  "- Mail QR: nút bấm vào thẳng trang chấm văn nghệ (token tự đăng nhập); subject mới kiểu BOARDING PASS.",
 ].join("\n");
 
 let release;
