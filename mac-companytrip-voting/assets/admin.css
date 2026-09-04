@@ -2587,7 +2587,15 @@
 .ma-people-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
+}
+
+/* Chữ ghi chú trong ô thao tác phải cùng trục giữa với nút, không lệch lên đầu ô. */
+.ma-people-actions .ma-cell-sub {
+  display: inline-block;
+  margin-top: 0;
+  line-height: 1.4;
 }
 
 .ma-people-actions button {

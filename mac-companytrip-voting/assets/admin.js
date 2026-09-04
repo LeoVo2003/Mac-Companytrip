@@ -536,7 +536,7 @@
       if (peopleQuery && haystack.indexOf(peopleQuery.toLowerCase()) === -1) return false;
       return true;
     });
-    const actions = canWrite() ? `<div class="ma-panel-actions"><button type="button" class="ma-primary" id="ma-person-add">+ Thêm người</button><button type="button" class="ma-primary" id="ma-send-filtered">Gửi QR cho danh sách đang lọc</button></div>` : "";
+    const actions = canWrite() ? `<div class="ma-panel-actions"><button type="button" class="ma-primary" id="ma-person-add">+ Thêm người</button><button type="button" class="ma-primary" id="ma-send-filtered">Gửi QR cho danh sách đang lọc</button><button type="button" class="ma-bus-ghost-danger" id="ma-people-wipe">Xóa toàn bộ nhân sự</button></div>` : "";
     const rows = voters.map((row) => `<tr><td class="ma-person-name"><strong>${esc(row.full_name)}</strong></td><td class="ma-person-email">${esc(row.email || "—")}</td><td class="ma-person-team">#${row.team_no} ${esc(row.team_name)}</td><td class="ma-person-status"><span>${row.status === "ACTIVE" ? "Hoạt động" : row.status === "COMPANION" ? "Đi kèm · không QR" : "Ngưng"}</span></td>${canWrite() ? `<td class="ma-people-actions">${row.status === "COMPANION" ? `<small class="ma-cell-sub">Đi kèm theo QR người chính</small>` : `<button type="button" data-qr-view="${row.id}">Xem & gửi</button><button type="button" data-qr-regen="${row.id}">Tạo lại QR</button>${row.email ? `<button type="button" data-role-grant="${row.id}">Cấp quyền</button>` : ""}`}</td>` : ""}</tr>`).join("");
     return `<section class="ma-panel ma-people-panel"><header><div class="ma-people-header-copy"><small>QR CÁ NHÂN</small><h2>${canWrite() ? "Gửi QR qua email" : "Danh sách nhân sự"}</h2><p>${canWrite() ? "Mỗi người một QR. Dùng cho check-in và login văn nghệ." : "Chỉ xem danh sách. Super admin mới gửi hoặc tạo lại QR."}</p>${actions}</div></header><div class="ma-people-body"><div class="ma-people-filter"><select id="ma-people-team"><option value="all">Tất cả team</option>${(data.teams || []).map((team) => `<option value="${team.id}" ${String(peopleTeam) === String(team.id) ? "selected" : ""}>#${team.team_no} ${esc(team.name)}</option>`).join("")}</select><input id="ma-people-query" type="search" placeholder="Tìm tên hoặc email" value="${esc(peopleQuery)}"></div><div class="ma-people-table"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Team</th><th>Trạng thái</th>${canWrite() ? "<th></th>" : ""}</tr></thead><tbody>${rows || `<tr class="ma-people-empty"><td colspan="${canWrite() ? 5 : 4}">Không có nhân sự khớp bộ lọc.</td></tr>`}</tbody></table></div></div></section>`;
   }
@@ -986,6 +986,17 @@
         notify(result.message);
       } catch (err) { notify(err.message, true); }
     }));
+    root.querySelector("#ma-people-wipe")?.addEventListener("click", async () => {
+      const answer = await promptDialog({ title: "Xóa toàn bộ nhân sự?", label: "Nhập XOA để xác nhận. Hành động xóa sạch nhân sự kèm phiếu, check-in, thành viên xe, miễn trừ và quyền vote lại — không thể hoàn tác.", confirmLabel: "Xóa sạch nhân sự", placeholder: "XOA" });
+      if (answer === null) return;
+      if (answer.trim().toUpperCase() !== "XOA") { notify("Chưa nhập đúng XOA — chưa xóa gì cả.", true); return; }
+      try {
+        const result = await ajax("mac_vote_people_wipe", { confirmation: "XOA" });
+        data = result.overview;
+        render();
+        notify(result.message);
+      } catch (err) { notify(err.message, true); }
+    });
     const rollcall = async (values) => {
       try {
         const result = await ajax("mac_vote_rollcall", values);

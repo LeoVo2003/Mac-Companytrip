@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.32";
+const tag = "v1.10.33";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,8 @@ const headers = {
 };
 
 const notes = [
-  "- Sửa lỗi import báo oan \"nhóm người thân không có người chính\" trên mọi dòng đi kèm.",
-  "- Bảng HDV: đổi xe phụ trách không đổi mật khẩu + nút xóa tài khoản (confirm + audit).",
+  "- Nút Xóa toàn bộ nhân sự (Super Admin, gõ XOA xác nhận) — xóa sạch nhân sự + dữ liệu gắn theo người.",
+  "- Sửa lệch hàng bảng nhân sự (ghi chú đi kèm cùng trục giữa).",
 ].join("\n");
 
 let release;

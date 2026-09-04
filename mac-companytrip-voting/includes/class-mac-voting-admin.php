@@ -30,6 +30,7 @@ final class MAC_Voting_Admin {
         add_action('wp_ajax_mac_vote_guide_save', array(__CLASS__, 'ajax_guide_save'));
         add_action('wp_ajax_mac_vote_guide_bus', array(__CLASS__, 'ajax_guide_bus'));
         add_action('wp_ajax_mac_vote_guide_delete', array(__CLASS__, 'ajax_guide_delete'));
+        add_action('wp_ajax_mac_vote_people_wipe', array(__CLASS__, 'ajax_people_wipe'));
         add_action('wp_ajax_mac_vote_rollcall', array(__CLASS__, 'ajax_rollcall'));
         add_action('wp_ajax_mac_vote_team', array(__CLASS__, 'ajax_team'));
         add_action('wp_ajax_mac_vote_swap', array(__CLASS__, 'ajax_swap'));
@@ -736,6 +737,26 @@ final class MAC_Voting_Admin {
             wp_send_json_error(array('message' => $result->get_error_message()), 400);
         }
         wp_send_json_success(array('message' => 'Đã xóa tài khoản HDV khỏi hệ thống.', 'overview' => self::overview_payload()));
+    }
+
+    /** Xóa sạch nhân sự + mọi dữ liệu gắn theo người (phiếu, check-in, thành viên xe, miễn trừ, quyền vote lại). */
+    public static function ajax_people_wipe(): void {
+        self::guard();
+        global $wpdb;
+        $confirmation = strtoupper(trim(sanitize_text_field(wp_unslash($_POST['confirmation'] ?? ''))));
+        if ($confirmation !== 'XOA') {
+            wp_send_json_error(array('message' => 'Vui lòng nhập đúng XOA để xác nhận.'), 400);
+        }
+        $voters = MAC_Voting_DB::table('voters');
+        $wpdb->query('START TRANSACTION');
+        foreach (array('bus_members', 'checkins', 'ballots', 'revote_grants', 'exemptions') as $key) {
+            $table = MAC_Voting_DB::table($key);
+            $wpdb->query("DELETE FROM $table WHERE voter_id IS NOT NULL");
+        }
+        $wpdb->query("DELETE FROM $voters");
+        $wpdb->query('COMMIT');
+        MAC_Voting_DB::audit('ADMIN', (string) get_current_user_id(), 'PEOPLE_WIPED', 'voter', null, array());
+        wp_send_json_success(array('message' => 'Đã xóa toàn bộ nhân sự kèm phiếu, check-in, thành viên xe, miễn trừ và quyền vote lại.', 'overview' => self::overview()));
     }
 
     public static function ajax_guide_save(): void {
