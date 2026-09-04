@@ -1956,14 +1956,13 @@ final class MAC_Voting_Admin {
     }
 
     private static function send_qr_email(array $voter, string $png) {
-        $tmp = wp_tempnam('mac-qr');
-        if (!$tmp || !file_put_contents($tmp, $png)) {
-            return new WP_Error('io', 'Không tạo được file QR để gửi mail.');
-        }
-        $png_path = $tmp . '.png';
-        rename($tmp, $png_path);
-        $cid_hook = static function($phpmailer) use ($png_path): void {
-            $phpmailer->addEmbeddedImage($png_path, 'mac-qr', 'qr-ca-nhan.png', 'base64', 'image/png');
+        // Ảnh QR đi hai đường: embed cid cho Outlook desktop (nhánh mso) và URL ảnh công khai
+        // cho OWA/new Outlook/Gmail/mobile (nhánh !mso) — hết lỗi mất hình kiểu Outlook web không nhận cid.
+        $key = MAC_Voting_Public::store_qr_image($png);
+        $remote = $key !== '' ? MAC_Voting_Public::qr_image_url($key) : '';
+        $cid = 'macqr' . substr(md5($key !== '' ? $key : (string) $voter['id']), 0, 12);
+        $cid_hook = static function($phpmailer) use ($png, $cid): void {
+            $phpmailer->addStringEmbeddedImage($png, $cid, 'qr-ca-nhan.png', 'base64', 'image/png');
         };
         add_action('phpmailer_init', $cid_hook);
         $team = '';
@@ -1976,18 +1975,26 @@ final class MAC_Voting_Admin {
             }
         }
         $subject = 'QR cá nhân MAC Company Trip — ' . $voter['full_name'];
+        $img_style = 'width:220px;height:220px;border:1px solid #e4e7ec;border-radius:12px;padding:8px';
         $html = '<div style="font-family:Inter,Arial,sans-serif;color:#111827;background:#f5f5f7;padding:24px">';
         $html .= '<div style="max-width:480px;margin:0 auto;background:#fff;border:1px solid #e4e7ec;border-radius:18px;padding:24px;text-align:center">';
         $html .= '<p style="margin:0 0 8px;color:#667085;letter-spacing:.12em;font-size:12px;font-weight:700">MAC COMPANY TRIP</p>';
         $html .= '<h1 style="margin:0 0 12px;font-size:24px">QR cá nhân của bạn</h1>';
         $html .= '<p style="margin:0 0 16px;color:#667085">Xin chào <strong>' . esc_html($voter['full_name']) . '</strong>' . ($team ? ' · ' . esc_html($team) : '') . '</p>';
-        $html .= '<img src="cid:mac-qr" alt="QR cá nhân" width="220" height="220" style="width:220px;height:220px;border:1px solid #e4e7ec;border-radius:12px;padding:8px">';
+        // Outlook desktop (máy Word/MSO) render ảnh cid nhúng; các client web dùng URL ảnh trực tiếp.
+        $html .= '<!--[if mso]><img src="cid:' . $cid . '" alt="QR cá nhân" width="220" height="220" style="' . $img_style . '"><![endif]-->';
+        if ($remote !== '') {
+            $html .= '<![if !mso]><img src="' . esc_url($remote) . '" alt="QR cá nhân" width="220" height="220" style="' . $img_style . '"><![endif]>';
+        }
         $html .= '<p style="margin:16px 0 0;color:#667085;font-size:14px;line-height:1.5">Đưa QR này cho BTC khi check-in. Tối văn nghệ, tự quét QR để vào chấm điểm khi ban tổ chức bật cổng.</p>';
+        if ($remote !== '') {
+            $html .= '<p style="margin:8px 0 0;font-size:13px"><a href="' . esc_url($remote) . '" style="color:#e31e24;font-weight:700">Nếu ảnh QR không hiển thị, bấm vào đây để mở ảnh</a></p>';
+        }
         $html .= '</div></div>';
         $headers = array('Content-Type: text/html; charset=UTF-8');
-        $sent = wp_mail($voter['email'], $subject, $html, $headers, array($png_path));
+        // Không đính kèm file rời nữa: ảnh đã nhúng cid + URL, tránh mail client hiển thị trùng/lẫn part.
+        $sent = wp_mail($voter['email'], $subject, $html, $headers);
         remove_action('phpmailer_init', $cid_hook);
-        @unlink($png_path);
         if (!$sent) {
             return new WP_Error('mail', 'WordPress không gửi được email. Kiểm tra cấu hình mail của site.');
         }

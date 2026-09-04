@@ -15,6 +15,7 @@ final class MAC_Voting_Public {
         add_action('init', array(__CLASS__, 'register_rewrite'));
         add_filter('query_vars', array(__CLASS__, 'query_vars'));
         add_action('template_redirect', array('MAC_Voting_QR', 'handle_public_request'));
+        add_action('template_redirect', array(__CLASS__, 'serve_qr_image'), 1);
         add_action('wp_enqueue_scripts', array(__CLASS__, 'register_assets'));
         add_filter('body_class', array(__CLASS__, 'body_class'));
     }
@@ -35,7 +36,42 @@ final class MAC_Voting_Public {
 
     public static function query_vars(array $vars): array {
         $vars[] = 'mac_qr_token';
+        $vars[] = 'mac_qr_img';
         return $vars;
+    }
+
+    /** Lưu ảnh QR vào uploads với tên ngẫu nhiên không đoán được — dùng làm URL ảnh trong email. */
+    public static function store_qr_image(string $png): string {
+        $key = bin2hex(random_bytes(16));
+        $dir = WP_CONTENT_DIR . '/uploads/mac-qr';
+        if (!file_exists($dir)) wp_mkdir_p($dir);
+        $ok = file_put_contents($dir . '/' . $key . '.png', $png);
+        return $ok ? $key : '';
+    }
+
+    public static function qr_image_url(string $key): string {
+        return add_query_arg('mac_qr_img', $key, home_url('/'));
+    }
+
+    /** Phục vụ ảnh QR công khai (tên file là khóa ngẫu nhiên 128-bit) cho client mail không render được ảnh cid. */
+    public static function serve_qr_image(): void {
+        $key = (string) get_query_var('mac_qr_img');
+        if ($key === '') return;
+        if (!preg_match('/^[a-f0-9]{32}$/', $key)) {
+            status_header(404);
+            exit;
+        }
+        $path = WP_CONTENT_DIR . '/uploads/mac-qr/' . $key . '.png';
+        if (!file_exists($path)) {
+            status_header(404);
+            exit;
+        }
+        nocache_headers();
+        header('Content-Type: image/png');
+        header('Cache-Control: public, max-age=604800');
+        header('Content-Length: ' . (string) filesize($path));
+        readfile($path);
+        exit;
     }
 
     public static function register_assets(): void {

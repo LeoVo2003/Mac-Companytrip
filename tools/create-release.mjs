@@ -8,7 +8,7 @@ if (!token) {
 }
 
 const repo = "LeoVo2003/Mac-Companytrip";
-const tag = "v1.10.23";
+const tag = "v1.10.24";
 const assetPath = path.resolve("dist", `mac-companytrip-voting-${tag}.zip`);
 if (!fs.existsSync(assetPath)) {
   console.error(`Missing ${assetPath} — run "npm run build" first.`);
@@ -22,8 +22,7 @@ const headers = {
 };
 
 const notes = [
-  "- Import quay lại CSV, bỏ ô gộp: phòng lặp cùng số, note người thân đánh số lặp lại.",
-  "- Cột RESORT: file tổng gửi resort gồm cả người không đi xe nhưng ở resort (gia đình đi xe nhà).",
+  "- Sửa lỗi mất hình QR trong Outlook/OWA: ảnh cid cho Outlook desktop + URL ảnh công khai cho client web, kèm link dự phòng.",
 ].join("\n");
 
 let release;

@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.23
+Stable tag: 1.10.24
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -71,6 +71,9 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.24 =
+- Sửa lỗi mất hình QR khi mở mail bằng Outlook/OWA: ảnh nhúng cid cho Outlook desktop (nhánh mso), URL ảnh công khai cho Outlook web/Gmail/mobile (nhánh !mso), kèm link mở ảnh dự phòng; bỏ đính kèm file rời gây trùng part.
 
 = 1.10.23 =
 - Import quay lại CSV (export vẫn XLSX): đọc BOM/ANSI, dò dấu phân cách, dò hàng tiêu đề; bỏ hẳn ô gộp.
