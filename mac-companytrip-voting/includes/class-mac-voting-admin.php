@@ -2028,9 +2028,18 @@ final class MAC_Voting_Admin {
         // "người gửi chưa tin cậy". URL ảnh công khai chỉ còn là link dự phòng bên dưới.
         $key = MAC_Voting_Public::store_qr_image($png);
         $remote = $key !== '' ? MAC_Voting_Public::qr_image_url($key) : '';
+        // Embed theo FILE đã lưu (không dùng chuỗi nhị phân): transport API như SMTP2GO đọc
+        // attachment từ đường dẫn file nên part inline không bị rớt giữa đường (lỗi AttNotFound).
+        $path = $key !== '' ? WP_CONTENT_DIR . '/uploads/mac-qr/' . $key . '.png' : '';
         $cid = 'macqr' . substr(md5($key !== '' ? $key : (string) $voter['id']), 0, 12);
-        $cid_hook = static function($phpmailer) use ($png, $cid): void {
-            $phpmailer->addStringEmbeddedImage($png, $cid, 'qr-ca-nhan.png', 'base64', 'image/png');
+        $cid_hook = static function($phpmailer) use ($path, $cid): void {
+            if ($path === '' || !file_exists($path)) {
+                return;
+            }
+            $phpmailer->addEmbeddedImage($path, $cid, 'qr-ca-nhan.png', 'base64', 'image/png');
+            // Đai an toàn: thêm bản đính kèm rời để người nhận luôn có file QR mở được,
+            // kể cả client/transport lột bỏ part inline.
+            $phpmailer->addAttachment($path, 'QR-ca-nhan.png', 'base64', 'image/png');
         };
         add_action('phpmailer_init', $cid_hook);
         $team = '';
@@ -2052,7 +2061,9 @@ final class MAC_Voting_Admin {
         $html .= '<h1 style="margin:0 0 12px;font-size:24px">QR cá nhân của bạn</h1>';
         $html .= '<p style="margin:0 0 16px;color:#667085">Xin chào <strong>' . esc_html($voter['full_name']) . '</strong>' . ($team ? ' · ' . esc_html($team) : '') . '</p>';
         // Ảnh cid nhúng trong mail: mọi client render trực tiếp không chặn nội dung ngoài.
-        $html .= '<img src="cid:' . $cid . '" alt="QR cá nhân" width="220" height="220" style="' . $img_style . '">';
+        if ($path !== '' && file_exists($path)) {
+            $html .= '<img src="cid:' . $cid . '" alt="QR cá nhân" width="220" height="220" style="' . $img_style . '">';
+        }
         $html .= '<p style="margin:16px 0 0;color:#667085;font-size:14px;line-height:1.5">Đưa QR này cho BTC khi check-in. Tối văn nghệ, bấm nút bên dưới để vào trang chấm điểm khi ban tổ chức bật cổng (hoặc đưa QR cho máy khác quét).</p>';
         $html .= '<p style="margin:16px 0 0"><a href="' . esc_url($vote_link) . '" style="display:inline-block;background:#e31e24;color:#ffffff;font-weight:700;font-size:14px;line-height:1;padding:14px 22px;border-radius:12px;text-decoration:none">Vào trang chấm điểm văn nghệ</a></p>';
         if ($remote !== '') {
@@ -2060,7 +2071,7 @@ final class MAC_Voting_Admin {
         }
         $html .= '</div></div>';
         $headers = array('Content-Type: text/html; charset=UTF-8');
-        // Không đính kèm file rời nữa: ảnh đã nhúng cid + URL, tránh mail client hiển thị trùng/lẫn part.
+        // Ảnh đi ba đường: cid nhúng (hiện trong thân mail) + file đính kèm rời + link dự phòng.
         $sent = wp_mail($voter['email'], $subject, $html, $headers);
         remove_action('phpmailer_init', $cid_hook);
         if (!$sent) {
