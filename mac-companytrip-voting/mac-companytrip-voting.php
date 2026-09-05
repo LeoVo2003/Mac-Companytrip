@@ -3,7 +3,7 @@
  * Plugin Name: MAC Company Trip Voting
  * Plugin URI: https://macmarketing.vn/
  * Description: Hệ thống chấm điểm văn nghệ Company Trip, có quản lý team linh hoạt, khóa vote team mình, chống phiếu trùng và audit log.
- * Version: 1.10.46
+ * Version: 1.10.47
  * Author: MAC Marketing
  * Text Domain: mac-companytrip-voting
  * Requires at least: 6.0
