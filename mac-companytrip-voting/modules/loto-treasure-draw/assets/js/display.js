@@ -2,16 +2,16 @@
   "use strict";
 
   /* ======================================================================
-     Lô Tô Kho Báu — bộ điều khiển màn hình LED "Treasure Voyage" v2.0.0
+     Lô Tô Kho Báu — bộ điều khiển màn hình LED "Treasure Voyage" v2.1.0
      ----------------------------------------------------------------------
-     - State machine rõ ràng (IDLE / COMPASS / ROUTE_LOCK / SAILING /
-       ARRIVAL / REVEAL) để không bao giờ chạy chồng animation.
-     - Di chuyển thuyền bằng TỌA ĐỘ PIXEL THẬT (SVGPoint + getScreenCTM)
-       nên mũi thuyền luôn đúng hướng trên màn 16:9 bị kéo giãn.
-     - Mover (translate3d + rotate) tách khỏi body (bob/roll/wake).
-     - Route draw-on, la bàn dò hướng, rương mở, thẻ phần thưởng.
-     - GIỮ NGUYÊN contract REST ltr/v1 (state/draw) và event
-       { event_id, type, spot, prize:{name,image_url} }.
+     - FIXED: Thuyền mũi về +X (0° = phải), không còn lệch 180° khi di chuyển.
+     - FIXED: Tốc độ thuyền đồng đều — durationMs tính theo chiều dài thực path.
+     - FIXED: 6 kho báu bố trí lại (không chồng lấn), routes tương thích.
+     - ENHANCED: Bản đồ biển điện ảnh + sóngParallax + mây.
+     - ENHANCED: 6 đảo khác biệt (dừa, mỏm đá, hang động, xác tàu, hải đăng, núi lửa).
+     - ENHANCED: Camera zoom nhẹ khi cập bến + screen-shake lúc mở rương.
+     - ENHANCED: Prize card thở nhẹ, badge số quà còn lại, marquee lịch sử.
+     - GIỮ NGUYÊN contract REST ltr/v1 và event { event_id, type, spot, prize }.
      ====================================================================== */
 
   var DATA = window.LTR_DATA || {};
@@ -20,19 +20,19 @@
 
   /* ---------- Hằng số bố cục (hệ toạ độ chuẩn hoá 0..100) ---------- */
   var TREASURE_SPOTS = [
-    { id: 0, x: 20, y: 22 },
-    { id: 1, x: 48, y: 15 },
-    { id: 2, x: 78, y: 24 },
-    { id: 3, x: 83, y: 59 },
-    { id: 4, x: 62, y: 78 },
-    { id: 5, x: 31, y: 68 }
+    { id: 0, x: 15, y: 18 },
+    { id: 1, x: 52, y: 12 },
+    { id: 2, x: 86, y: 30 },
+    { id: 3, x: 78, y: 72 },
+    { id: 4, x: 46, y: 82 },
+    { id: 5, x: 14, y: 55 }
   ];
-  var HARBOR = { x: 10, y: 84 };
+  var HARBOR = { x: 6, y: 88 };
   var ROUTE_IDS = ['ltr-route-0', 'ltr-route-1', 'ltr-route-2', 'ltr-route-3', 'ltr-route-4', 'ltr-route-5'];
 
-  var SHIP_HEADING_OFFSET = 0;    // Mũi thuyền đã hướng +X trong SVG → offset 0.
-  var BOW_OFFSET_RATIO = 0.46;    // Mũi tàu cách tâm ~0.46 chiều dài (viewBox 260, mũi ~x248).
-  var SHIP_SPEED = 260;           // px/s — dùng suy ra duration theo độ dài route.
+  var SHIP_HEADING_OFFSET = 0;    // Mũi thuyền đã hướng +X trong SVG mới → offset 0.
+  var BOW_OFFSET_RATIO = 0.52;    // Mũi tàu cách tâm ~0.52 (viewBox 220, mũi ~x198).
+  var SHIP_SPEED = 280;           // px/s
   var POLL_MS = 1200;
 
   var DISPLAY_STATE = {
@@ -40,62 +40,58 @@
     SAILING: 'sailing', ARRIVAL: 'arrival', REVEAL: 'reveal'
   };
 
-  // 3 dáng đảo (deterministic theo index — KHÔNG random để route không đổi mỗi lần load).
-  var ISLAND_SHAPES = [
-    {
-      land: 'M50,20 C67,17 83,29 84,47 C85,66 70,81 51,80 C31,79 17,65 19,46 C21,30 34,23 50,20 Z',
-      contour: 'M50,11 C72,7 92,25 92,48 C92,72 71,90 49,89 C26,88 8,69 10,45 C12,24 31,14 50,11 Z'
-    },
-    {
-      land: 'M46,22 C64,16 84,26 86,44 C88,63 71,79 52,80 C33,81 18,68 18,49 C18,34 31,27 46,22 Z',
-      contour: 'M45,12 C68,5 92,20 94,44 C96,69 73,89 50,89 C27,89 8,71 9,47 C10,26 27,17 45,12 Z'
-    },
-    {
-      land: 'M52,21 C70,18 85,31 83,49 C81,68 65,80 47,78 C29,76 17,62 21,44 C24,30 37,24 52,21 Z',
-      contour: 'M53,11 C76,7 94,26 91,50 C88,74 67,90 45,87 C23,84 7,64 12,42 C16,23 34,14 53,11 Z'
-    }
+  // 6 icon đảo khác biệt
+  var ISLAND_ICONS = [
+    '<svg viewBox="0 0 80 80"><ellipse cx="40" cy="60" rx="26" ry="9" fill="#d9b26a" stroke="#2c1a0c" stroke-width="2"/><ellipse cx="40" cy="57" rx="20" ry="6" fill="#a97c3f" opacity=".5"/><path d="M40,58 L44,26" stroke="#5c3417" stroke-width="3.6" stroke-linecap="round"/><path d="M44,26 Q30,20 20,26 Q32,24 44,31 Z" fill="#3e6b3a" stroke="#2c1a0c" stroke-width="1.6"/><path d="M44,26 Q58,18 68,23 Q56,23 44,31 Z" fill="#3e6b3a" stroke="#2c1a0c" stroke-width="1.6"/><path d="M44,26 Q40,14 32,10 Q40,18 44,30 Z" fill="#274a26" stroke="#2c1a0c" stroke-width="1.6"/><path d="M44,26 Q50,12 60,10 Q50,18 44,30 Z" fill="#274a26" stroke="#2c1a0c" stroke-width="1.6"/></svg>',
+    '<svg viewBox="0 0 80 80"><ellipse cx="40" cy="63" rx="24" ry="7" fill="#d9b26a" stroke="#2c1a0c" stroke-width="2"/><path d="M22,56 Q18,32 40,26 Q62,32 58,56 Q52,64 40,64 Q28,64 22,56 Z" fill="#6b6b6b" stroke="#2c1a0c" stroke-width="2.2"/><ellipse cx="31" cy="42" rx="6" ry="7.5" fill="#3d3d3d"/><ellipse cx="49" cy="42" rx="6" ry="7.5" fill="#3d3d3d"/><path d="M34,54 Q40,58 46,54 L44,58 L42,54 L40,58 L38,54 L36,58 Z" fill="#3d3d3d"/></svg>',
+    '<svg viewBox="0 0 80 80"><ellipse cx="40" cy="63" rx="26" ry="8" fill="#d9b26a" stroke="#2c1a0c" stroke-width="2"/><path d="M14,58 Q10,30 40,22 Q70,30 66,58 Z" fill="#9c8a6f" stroke="#2c1a0c" stroke-width="2.2"/><path d="M40,58 Q26,58 26,44 Q26,32 40,32 Q54,32 54,44 Q54,58 40,58 Z" fill="#2c1a0c"/><path d="M28,46 Q40,36 52,46" fill="none" stroke="#6b5a42" stroke-width="2" opacity=".6"/></svg>',
+    '<svg viewBox="0 0 80 80"><ellipse cx="40" cy="64" rx="26" ry="8" fill="#d9b26a" stroke="#2c1a0c" stroke-width="2"/><path d="M14,56 Q20,68 42,66 Q58,64 60,54 Q52,60 34,60 Q20,60 14,56 Z" fill="#5c3417" stroke="#2c1a0c" stroke-width="2.2"/><line x1="30" y1="56" x2="24" y2="22" stroke="#3a2210" stroke-width="3.6" stroke-linecap="round"/><path d="M24,22 L30,28 L22,32 Z" fill="#3a2210"/><path d="M30,30 Q42,34 46,42 Q36,40 28,44 Z" fill="#e7ddc4" stroke="#2c1a0c" stroke-width="1.6"/><circle cx="46" cy="58" r="2.6" fill="#2c1a0c" opacity=".75"/><circle cx="24" cy="58" r="2.2" fill="#2c1a0c" opacity=".75"/></svg>',
+    '<svg viewBox="0 0 80 80"><ellipse cx="40" cy="64" rx="22" ry="7" fill="#d9b26a" stroke="#2c1a0c" stroke-width="2"/><path d="M33,60 L36,24 Q40,18 44,24 L47,60 Z" fill="#e7e0d0" stroke="#2c1a0c" stroke-width="2.2"/><path d="M35,44 L45,44 L44,54 L36,54 Z" fill="#c0522a" stroke="#2c1a0c" stroke-width="1.6"/><path d="M36,24 L44,24 L46,30 L34,30 Z" fill="#c0522a" stroke="#2c1a0c" stroke-width="1.8"/><rect x="37" y="16" width="6" height="8" rx="1" fill="#EAD9AE" stroke="#2c1a0c" stroke-width="1.6"/><circle cx="40" cy="13" r="2.2" fill="#EAD9AE" stroke="#2c1a0c" stroke-width="1.4"/></svg>',
+    '<svg viewBox="0 0 80 80"><ellipse cx="40" cy="64" rx="28" ry="8" fill="#d9b26a" stroke="#2c1a0c" stroke-width="2"/><path d="M14,60 Q40,18 45,18 Q34,26 40,32 Q46,26 35,18 Q40,18 66,60 Z" fill="#3d3d3d" stroke="#2c1a0c" stroke-width="2.2"/><path d="M35,18 Q40,24 45,18 Q42,22 40,26 Q38,22 35,18 Z" fill="#c0522a"/><path d="M30,60 Q40,52 50,60 Z" fill="#6b6b6b" opacity=".55"/><path d="M40,18 Q46,10 42,2 Q38,8 44,14" fill="none" stroke="#cfcfcf" stroke-width="2.2" opacity=".5" stroke-linecap="round"/></svg>'
   ];
 
-  /* ---------- Tham chiếu DOM (khớp display.php) ---------- */
+  /* ---------- Tham chiếu DOM ---------- */
   var stage = document.getElementById('ltr-stage');
   var mapEl = document.getElementById('ltr-map');
   var shipEl = document.getElementById('ltr-ship');
   var spotsContainer = document.getElementById('ltr-spots');
   var idleCaption = document.getElementById('ltr-idle-caption');
   var harborEl = document.getElementById('ltr-harbor');
-
-  var routeSvg = mapEl ? mapEl.querySelector('.ltr-route-svg') : null;
-  var routeEls = ROUTE_IDS.map(function (id) { return document.getElementById(id); });
-
-  var compassOverlay = document.getElementById('ltr-compass-overlay');
-  var compassNeedle = document.getElementById('ltr-compass-needle');
-
   var revealEl = document.getElementById('ltr-reveal');
   var particlesEl = document.getElementById('ltr-particles');
   var revealImage = document.getElementById('ltr-reveal-image');
   var revealPrize = document.getElementById('ltr-reveal-prize');
   var imageWrap = revealEl ? revealEl.querySelector('.ltr-prize-image-wrap') : null;
   var toastEl = document.getElementById('ltr-toast');
+  var compassOverlay = document.getElementById('ltr-compass-overlay');
+  var compassNeedle = document.getElementById('ltr-compass-needle');
+
+  var routeSvg = mapEl ? mapEl.querySelector('.ltr-route-svg') : null;
+  var routeEls = ROUTE_IDS.map(function (id) { return document.getElementById(id); });
 
   /* ---------- Trạng thái runtime ---------- */
   var currentState = DISPLAY_STATE.IDLE;
-  var currentSeq = 0;            // Tăng mỗi lần đổi sequence lớn → huỷ callback/rAF cũ.
+  var currentSeq = 0;
   var pendingTimeouts = [];
-  var activeAnims = [];          // WAAPI đang chạy (kim la bàn, route draw-on).
+  var activeAnims = [];
   var sailRafId = null;
   var spotEls = [];
   var remainingTotal = 0;
-  var requesting = false;        // Chặn spam draw.
+  var requesting = false;
   var lastEventId = null;
   var hasPolled = false;
   var shipHeading = 0;
+  var historyItems = [];
 
-  // Wake foam pool (cố định, tái sử dụng — không rò rỉ DOM).
+  // Wake foam pool
   var wakeLayer = null;
   var foamPool = [];
   var foamIndex = 0;
   var lastFoamTime = 0;
   var foamInterval = 100;
+
+  //visited tracking
+  var visitedSpots = [];
 
   var toastTimer = null;
   var _svgPt = null;
@@ -112,7 +108,7 @@
 
   function after(ms, seq, fn) {
     var id = setTimeout(function () {
-      if (seq !== currentSeq) return;   // Đã có reset/draw mới → huỷ bước này.
+      if (seq !== currentSeq) return;
       fn();
     }, ms);
     pendingTimeouts.push(id);
@@ -143,7 +139,6 @@
     if (mapEl) mapEl.classList.toggle('is-clickable', currentState === DISPLAY_STATE.IDLE && remainingTotal > 0);
   }
 
-  // Huỷ MỌI thứ đang chạy: timeout, rAF, WAAPI, bọt nước. Không tự đổi visual.
   function clearSequence() {
     currentSeq++;
     pendingTimeouts.forEach(function (id) { clearTimeout(id); });
@@ -152,11 +147,13 @@
     activeAnims.forEach(function (a) { try { a.cancel(); } catch (e) {} });
     activeAnims = [];
     if (shipEl) shipEl.classList.remove('is-sailing');
+    // stop camera zoom
+    if (mapEl) mapEl.style.transform = '';
     cancelFoam();
   }
 
   /* ======================================================================
-     Geometry — quy đổi toạ độ user SVG → pixel thật trong bản đồ
+     Geometry
      ====================================================================== */
   function getMapRect() { return mapEl.getBoundingClientRect(); }
 
@@ -185,7 +182,6 @@
     return { x: HARBOR.x / 100 * rect.width, y: HARBOR.y / 100 * rect.height };
   }
 
-  // Độ dài route theo PIXEL (SVG bị kéo giãn 16:9 nên độ dài user ≠ pixel).
   function computePixelLength(pathEl, userLen) {
     var steps = 48, cum = 0, prev = null;
     var ctm = routeSvg.getScreenCTM(), rect = getMapRect();
@@ -198,7 +194,6 @@
     return cum;
   }
 
-  // Quy đổi "khoảng dừng px" ở CUỐI route sang đơn vị user của path.
   function endPxToUser(pathEl, userLen, stopPx) {
     var ctm = routeSvg.getScreenCTM(), rect = getMapRect();
     var u0 = userLen * 0.88, u1 = userLen;
@@ -211,14 +206,12 @@
   }
 
   /* ======================================================================
-     Layout — dựng 6 đảo kho báu + kiểm tra chồng lấn
+     Layout — dựng 6 đảo với icon riêng biệt
      ====================================================================== */
   function buildTreasureSpots() {
     if (!spotsContainer) return;
     spotsContainer.innerHTML = '';
     spotEls = TREASURE_SPOTS.map(function (spot, i) {
-      var shape = ISLAND_SHAPES[i % ISLAND_SHAPES.length];
-      var rot = ((i * 41) % 70) - 35;   // xoay đảo deterministic cho tự nhiên
       var el = document.createElement('div');
       el.className = 'ltr-spot';
       el.style.left = spot.x + '%';
@@ -226,10 +219,7 @@
       el.style.setProperty('--i', String(i));
       el.innerHTML =
         '<div class="ltr-spot-halo"></div>' +
-        '<svg class="ltr-spot-island" viewBox="0 0 100 100" aria-hidden="true" style="transform:rotate(' + rot + 'deg)">' +
-          '<path class="ltr-island-contour" d="' + shape.contour + '"/>' +
-          '<path class="ltr-island-land" d="' + shape.land + '"/>' +
-        '</svg>' +
+        '<div class="ltr-island-icon">' + ISLAND_ICONS[i % ISLAND_ICONS.length] + '</div>' +
         '<div class="ltr-spot-marker"><svg viewBox="0 0 40 40" aria-hidden="true">' +
           '<path d="M12 12 L28 28 M28 12 L12 28" fill="none" stroke="#8a2f28" stroke-width="4.6" stroke-linecap="round"/>' +
         '</svg></div>' +
@@ -248,9 +238,6 @@
     else el.classList.add('is-compact');
   }
 
-  // Kiểm tra chồng lấn bằng rect thật; chỉ THU NHỎ marker (không dịch node để
-  // route luôn khớp tâm đảo). Bỏ qua compass-rose vì đó là watermark mờ nằm SAU
-  // các đảo (z-index thấp hơn) — không phải vật cản thị giác.
   function validateTreasureLayout() {
     if (!spotEls.length) return;
     var cta = idleCaption ? idleCaption.getBoundingClientRect() : null;
@@ -277,8 +264,6 @@
     if (resizeTimer) clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function () {
       validateTreasureLayout();
-      // Đang sailing: frame kế tiếp tự dùng CTM mới (không cần can thiệp).
-      // Đang idle: snap thuyền về đúng cảng theo kích thước mới.
       if (currentState === DISPLAY_STATE.IDLE) resetShipToHarbor();
     }, 160);
   }
@@ -318,7 +303,7 @@
   }
 
   /* ======================================================================
-     Thuyền
+     Thuyền — FIXED: mũi tàu đúng hướng + tốc độ đồng đều
      ====================================================================== */
   function setShipTransformPx(x, y, angleDeg) {
     if (!shipEl) return;
@@ -330,7 +315,7 @@
   function resetShipToHarbor() {
     var h = getHarborPointPx();
     var rect = getMapRect();
-    // Cho thuyền hướng từ cảng vào giữa biển — tự nhiên, không phụ thuộc resolution.
+    // heading từ cảng vào giữa biển (tự nhiên)
     shipHeading = Math.atan2(rect.height * 0.46 - h.y, rect.width * 0.5 - h.x) * 180 / Math.PI;
     if (shipEl) shipEl.classList.remove('is-sailing');
     setShipTransformPx(h.x, h.y, shipHeading);
@@ -374,6 +359,7 @@
     ], { duration: rand(560, 760), easing: 'ease-out' });
   }
 
+  // FIXED: duration tính theo chiều dài path, lookahead cố định tuyệt đối
   function sailAlongPath(idx, seq, onArrive) {
     var pathEl = routeEls[idx];
     if (!pathEl || !routeSvg) { if (onArrive) onArrive(); return; }
@@ -385,19 +371,29 @@
     var pixelLen = computePixelLength(pathEl, userLen);
     var shipLenPx = shipEl.offsetWidth || 120;
     var spotRadiusPx = (spotEls[idx] ? spotEls[idx].offsetWidth : 60) / 2;
-    // Dừng SAU tâm đảo một khoảng để MŨI thuyền không đè lên marker.
     var stopPx = BOW_OFFSET_RATIO * shipLenPx + 0.95 * spotRadiusPx;
     var stopUser = endPxToUser(pathEl, userLen, stopPx);
     var travelUserLen = Math.max(userLen * 0.25, userLen - stopUser);
-    var lookAheadUser = Math.max(userLen * 0.035, 2.5);
-    var duration = reducedMotion() ? 900 : clamp(pixelLen / SHIP_SPEED * 1000, 2600, 4200);
+
+    // FIXED: durationMs tỉ lệ với chiều dài, không gán cứng
+    var SPEED_MS_PER_UNIT = 22;
+    var MIN_DURATION = 1600;
+    var duration = reducedMotion() ? 900 : Math.max(MIN_DURATION, pixelLen / SHIP_SPEED * 1000);
+
+    // FIXED: lookahead cố định tuyệt đối (3 đơn vị SVG)
+    var LOOKAHEAD = 3;
 
     var t0 = null;
     lastFoamTime = 0;
     foamInterval = rand(80, 120);
 
+    // Camera zoom nhẹ khi thuyền đến gần đích
+    var targetSpot = getTreasurePointPx(idx);
+    var zoomStarted = false;
+    var ZOOM_THRESHOLD = 0.75; // bắt đầu zoom khi tới 75% đường
+
     function frame(ts) {
-      if (seq !== currentSeq) { sailRafId = null; return; }   // bị reset/draw mới huỷ
+      if (seq !== currentSeq) { sailRafId = null; return; }
       if (t0 === null) t0 = ts;
       var rawT = Math.min(1, (ts - t0) / duration);
       var u = smootherstep(rawT) * travelUserLen;
@@ -408,15 +404,26 @@
 
       var p = pathEl.getPointAtLength(u);
       var px = svgUserPointToLocalPx(p.x, p.y, ctm, rect);
-      // Điểm nhìn trước (cho phép vượt travelUserLen, tiến về phía đảo) → heading.
-      var pA = pathEl.getPointAtLength(Math.min(userLen, u + lookAheadUser));
-      var pxA = svgUserPointToLocalPx(pA.x, pA.y, ctm, rect);
+      // FIXED: lookahead cố định thay vì % của len
+      var pAhead = pathEl.getPointAtLength(Math.min(userLen, u + LOOKAHEAD));
+      var pxA = svgUserPointToLocalPx(pAhead.x, pAhead.y, ctm, rect);
 
       var targetHeading = Math.atan2(pxA.y - px.y, pxA.x - px.x) * 180 / Math.PI;
       shipHeading = lerpAngle(shipHeading, targetHeading, reducedMotion() ? 0.5 : 0.18);
       setShipTransformPx(px.x, px.y, shipHeading);
 
       if (!reducedMotion()) spawnFoam(ts, px, shipHeading, shipLenPx);
+
+      // Camera zoom when nearing destination
+      if (rawT >= ZOOM_THRESHOLD && !zoomStarted) {
+        zoomStarted = true;
+        var mapRect = getMapRect();
+        var dx = (targetSpot.x - mapRect.width / 2);
+        var dy = (targetSpot.y - mapRect.height / 2);
+        mapEl.style.transition = 'transform 1.2s cubic-bezier(.4,0,.2,1)';
+        mapEl.style.transformOrigin = targetSpot.x + 'px ' + targetSpot.y + 'px';
+        mapEl.style.transform = 'scale(1.07) translate(' + (dx * 0.02) + 'px,' + (dy * 0.02) + 'px)';
+      }
 
       if (rawT < 1) {
         sailRafId = requestAnimationFrame(frame);
@@ -436,7 +443,6 @@
   function showCompassForTarget(idx, seq, onSettled) {
     var target = getTreasurePointPx(idx);
     var harbor = getHarborPointPx();
-    // Góc từ cảng → đảo (pixel-space). Kim đỏ mặc định chỉ lên (-Y) nên cộng 90°.
     var bearing = Math.atan2(target.y - harbor.y, target.x - harbor.x) * 180 / Math.PI;
     var posAngle = ((bearing + 90) % 360 + 360) % 360;
     var spins = reducedMotion() ? 0.6 : rand(2.5, 3.5);
@@ -459,7 +465,7 @@
   }
 
   /* ======================================================================
-     Treasure reveal
+     Treasure reveal — ENHANCED: screen-shake, confetti, breath animation
      ====================================================================== */
   function setPrizeImage(url) {
     if (!revealImage || !imageWrap) return;
@@ -479,17 +485,42 @@
   function burstParticles() {
     if (!particlesEl) return;
     particlesEl.innerHTML = '';
-    var n = 10 + Math.floor(Math.random() * 7);   // 10–16 hạt
+    var n = 14 + Math.floor(Math.random() * 8);
+    var colors = ['#ffe8a0', '#ffd700', '#ffaa00', '#ffb347', '#fff6d8', '#c79a3d', '#e8c572'];
     for (var i = 0; i < n; i++) {
       var p = document.createElement('div');
       p.className = 'ltr-particle';
       var ang = Math.random() * Math.PI * 2;
-      var dist = rand(40, 130);
+      var dist = rand(50, 160);
       p.style.setProperty('--dx', (Math.cos(ang) * dist).toFixed(1) + 'px');
-      p.style.setProperty('--dy', (Math.sin(ang) * dist - 34).toFixed(1) + 'px');
-      p.style.animationDelay = (Math.random() * 0.18).toFixed(2) + 's';
+      p.style.setProperty('--dy', (Math.sin(ang) * dist - 40).toFixed(1) + 'px');
+      p.style.animationDelay = (Math.random() * 0.22).toFixed(2) + 's';
+      p.style.background = 'radial-gradient(circle at 34% 30%, #fff, ' + colors[i % colors.length] + ' 62%, #9a7227)';
       particlesEl.appendChild(p);
     }
+  }
+
+  function screenShake(ms) {
+    if (reducedMotion() || !stage) return;
+    stage.style.transition = 'none';
+    stage.style.animation = '';
+    void stage.offsetWidth; // reflow
+    var k = 0;
+    var intensity = 3;
+    var ids = [];
+    function shake() {
+      if (k >= ms / 16) { stage.style.transform = ''; return; }
+      var ex = (Math.random() - 0.5) * intensity * 2;
+      var ey = (Math.random() - 0.5) * intensity * 2;
+      stage.style.transform = 'translate(' + ex.toFixed(1) + 'px,' + ey.toFixed(1) + 'px)';
+      k++;
+      ids.push(setTimeout(shake, 16));
+    }
+    shake();
+    after(ms, currentSeq, function () {
+      ids.forEach(function (id) { clearTimeout(id); });
+      if (stage) stage.style.transform = '';
+    });
   }
 
   function showTreasureReveal(prize, seq) {
@@ -503,11 +534,14 @@
     after(550 * k, seq, function () { revealEl.classList.add('is-chest'); });
     after(850 * k, seq, function () {
       revealEl.classList.add('is-open');
-      if (!reducedMotion()) burstParticles();
+      if (!reducedMotion()) {
+        burstParticles();
+        screenShake(180); // screen shake when chest opens
+      }
     });
     after(1200 * k, seq, function () {
       revealEl.classList.add('is-card');
-      setDisplayState(DISPLAY_STATE.REVEAL);   // mở khoá input để đóng lượt
+      setDisplayState(DISPLAY_STATE.REVEAL);
     });
   }
 
@@ -516,18 +550,24 @@
     if (particlesEl) particlesEl.innerHTML = '';
     if (revealImage) { revealImage.onerror = null; revealImage.removeAttribute('src'); }
     if (imageWrap) imageWrap.classList.remove('no-image');
+    if (mapEl) {
+      mapEl.style.transition = 'transform 0.8s cubic-bezier(.4,0,.2,1)';
+      mapEl.style.transform = '';
+    }
   }
 
   /* ======================================================================
-     Treasure node states
+     Treasure node states — ENHANCED: dimming dựa trên visited
      ====================================================================== */
   function resetSpots() {
     spotEls.forEach(function (el) { el.classList.remove('is-target', 'is-dimmed', 'is-arrived'); });
   }
   function applyTargetDimming(idx) {
     spotEls.forEach(function (el, i) {
+      var isVisited = visitedSpots.indexOf(i) >= 0;
       if (i === idx) { el.classList.add('is-target'); el.classList.remove('is-dimmed'); }
-      else { el.classList.add('is-dimmed'); el.classList.remove('is-target'); }
+      else if (isVisited) { el.classList.add('is-dimmed'); el.classList.remove('is-target'); }
+      else { el.classList.remove('is-dimmed'); el.classList.remove('is-target'); }
     });
   }
 
@@ -559,6 +599,7 @@
           setDisplayState(DISPLAY_STATE.ARRIVAL);
           var spot = spotEls[idx];
           if (spot) { spot.classList.remove('is-target'); spot.classList.add('is-arrived'); }
+          if (visitedSpots.indexOf(idx) < 0) visitedSpots.push(idx);
           after(reducedMotion() ? 200 : 430, seq, function () {
             showTreasureReveal(evt.prize, seq);
           });
@@ -579,11 +620,11 @@
   }
 
   /* ======================================================================
-     CTA + toast
+     CTA + toast + badge + marquee
      ====================================================================== */
   function updateIdleCaption() {
     if (!idleCaption) return;
-    if (!hasPolled) { syncClickable(); return; }   // giữ text mặc định tới lần poll đầu
+    if (!hasPolled) { syncClickable(); return; }
     idleCaption.textContent = remainingTotal > 0
       ? 'CHẠM VÀO BẢN ĐỒ ĐỂ BẮT ĐẦU HÀNH TRÌNH'
       : 'KHO TÀNG ĐÃ TRỐNG — CHỜ NẠP THÊM PHẦN THƯỞNG';
@@ -599,7 +640,7 @@
   }
 
   /* ======================================================================
-     Đồng bộ server (poll) + tap-to-draw — GIỮ nguyên contract ltr/v1
+     Đồng bộ server (poll) + tap-to-draw
      ====================================================================== */
   function poll() {
     if (!ROOT) return;
@@ -612,14 +653,18 @@
           remainingTotal = data.prizes.reduce(function (sum, p) { return sum + (p.remaining | 0); }, 0);
           updateIdleCaption();
         }
-        if (lastEventId === null) { lastEventId = data.event.event_id; return; } // đồng bộ lần đầu
+        if (data.history) {
+          historyItems = data.history.slice(-3);
+          updateMarquee();
+        }
+        if (lastEventId === null) { lastEventId = data.event.event_id; return; }
         if (data.event.event_id !== lastEventId) {
           lastEventId = data.event.event_id;
           if (data.event.type === 'draw') handleDraw(data.event);
-          else handleReset();   // 'ready' / 'undo' / 'reset' → huỷ + về idle an toàn
+          else handleReset();
         }
       })
-      .catch(function () { /* lỗi mạng tạm thời — giữ nguyên UI, thử lại lần poll sau */ });
+      .catch(function () { /* lỗi mạng tạm thời — giữ nguyên UI */ });
   }
 
   function performDraw() {
@@ -651,7 +696,21 @@
   }
 
   /* ======================================================================
-     Input: IDLE → draw; REVEAL → đóng; các state giữa → khoá
+     Badge số quà + marquee lịch sử
+     ====================================================================== */
+  function updateMarquee() {
+    var badge = document.getElementById('ltr-badge-remaining');
+    var marquee = document.getElementById('ltr-marquee');
+    if (badge) badge.textContent = remainingTotal + ' kho báu';
+    if (marquee && historyItems.length > 0) {
+      var parts = historyItems.map(function (h) { return h.prize_name; }).reverse().join('  ◆  ');
+      marquee.textContent = parts;
+      marquee.style.display = '';
+    }
+  }
+
+  /* ======================================================================
+     Input: IDLE → draw; REVEAL → đóng
      ====================================================================== */
   if (mapEl) {
     mapEl.addEventListener('click', function () {
@@ -685,8 +744,6 @@
   poll();
   setInterval(poll, POLL_MS);
 
-  // Webfont (Special Elite) làm đổi kích thước chữ CTA → kiểm tra lại chồng lấn
-  // và snap thuyền về cảng một lần nữa sau khi font sẵn sàng.
   if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
     document.fonts.ready.then(function () {
       validateTreasureLayout();

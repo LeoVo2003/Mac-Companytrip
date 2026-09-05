@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('MAC_VOTING_VERSION', '1.10.46');
+define('MAC_VOTING_VERSION', '1.10.47');
 define('MAC_VOTING_FILE', __FILE__);
 define('MAC_VOTING_DIR', plugin_dir_path(__FILE__));
 define('MAC_VOTING_URL', plugin_dir_url(__FILE__));

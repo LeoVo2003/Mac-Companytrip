@@ -74,7 +74,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 
 = 1.10.46 =
 - Lô Tô Kho Báu: bỏ menu điều khiển trong wp-admin, chuyển toàn bộ thành tab "🏴‍☠️ Lô Tô" trong dashboard /company-trip-admin/ (quay thưởng + quản lý phần thưởng qua admin-ajax mac_vote_loto_*). Phân quyền: Super + BTC được quay/sẵn sàng/hoàn tác, chỉ Super được thêm/xóa/reset phần thưởng, HDV không thấy tab. Thêm phần thưởng hỗ trợ cả tải ảnh từ máy và dán URL ảnh.
-- Màn hình LED (/?ltr_display=1) thiết kế lại theo phong cách "hải trình kho báu" điện ảnh: thuyền buồm nhìn từ trên cao di chuyển theo tọa độ pixel thật, 6 đảo kho báu không chồng lấn, vẽ tuyến đường, la bàn dẫn hướng, hiệu ứng mở rương + pháo sáng, máy trạng thái đầy đủ, hỗ trợ reduced-motion và nhiều độ phân giải LED.
+- Màn hình LED (/?ltr_display=1): phiên bản Treasure Voyage ban đầu — thuyền buồm nhìn từ trên cao di chuyển theo tọa độ pixel thật, 6 đảo kho báu không chồng lấn, vẽ tuyến đường, la bàn dẫn hướng, hiệu ứng mở rương + pháo sáng, máy trạng thái đầy đủ, hỗ trợ reduced-motion và nhiều độ phân giải LED.
+
+= 1.10.47 =
+- Nâng cấp đồ họa màn hình LED "Hải trình săn kho báu" lên bản v2.1.0: thuyền mũi quay đúng hướng (sửa lệch 180°), tốc độ thuyền đồng đều qua 6 tuyến (tính thời gian theo chiều dài path thực), 6 đảo kho báu rải đều toàn bản đồ + 6 icon đảo khác biệt (dừa, mỏm đá, hang động, xác tàu, hải đăng, núi lửa), nền biển sóng parallax & mây, camera zoom khi cập bến, rung màn hình khi mở rương, thẻ phần thưởng "thở", badge số quà còn lại & marquee lịch sử, font Pirata One.
 
 = 1.10.45 =
 - Tích hợp module "Lô Tô Kho Báu" (loto-treasure-draw) dạng bundled trong modules/: giữ nguyên layout + logic bản gốc, nạp từ bootstrap plugin chính và kích hoạt qua LTR_Prizes::activate. Điều khiển tạm thời nằm trong wp-admin; bản kế tiếp sẽ chuyển ra tab riêng trong /company-trip-admin/.

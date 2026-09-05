@@ -32,6 +32,18 @@
         <span class="ltr-brand-text">HẢI TRÌNH SĂN KHO BÁU</span>
       </header>
 
+      <!-- Badge số phần thưởng còn lại (JS cập nhật từ /state) -->
+      <div class="ltr-badge" aria-hidden="true">
+        <svg class="ltr-badge-icon" viewBox="0 0 32 32">
+          <path d="M4,14 L4,26 Q4,28 6,28 L26,28 Q28,28 28,26 L28,14 Z" fill="currentColor" opacity=".85"/>
+          <path d="M4,14 Q4,5 16,5 Q28,5 28,14 Z" fill="currentColor"/>
+          <rect x="13" y="11" width="6" height="9" rx="1.5" fill="#f8ecd0"/>
+          <rect x="10" y="5" width="3" height="23" fill="#f8ecd0" opacity=".7"/>
+          <rect x="19" y="5" width="3" height="23" fill="#f8ecd0" opacity=".7"/>
+        </svg>
+        <span class="ltr-badge-text" id="ltr-badge-remaining">—</span>
+      </div>
+
       <!-- La bàn hoa thị mờ ở trung tâm (watermark) -->
       <svg class="ltr-compass-rose" viewBox="0 0 200 200" aria-hidden="true">
         <circle cx="100" cy="100" r="86" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/>
@@ -51,12 +63,12 @@
 
       <!-- 6 tuyến hải trình (nét mực mờ khi chờ, chỉ tuyến được chọn mới nổi bật) -->
       <svg class="ltr-route-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <path id="ltr-route-0" class="ltr-route-line" d="M10,84 C4,58 8,36 20,22" />
-        <path id="ltr-route-1" class="ltr-route-line" d="M10,84 C18,52 30,26 48,15" />
-        <path id="ltr-route-2" class="ltr-route-line" d="M10,84 C30,50 54,24 78,24" />
-        <path id="ltr-route-3" class="ltr-route-line" d="M10,84 C44,90 76,82 83,59" />
-        <path id="ltr-route-4" class="ltr-route-line" d="M10,84 C26,85 46,83 62,78" />
-        <path id="ltr-route-5" class="ltr-route-line" d="M10,84 C16,80 24,74 31,68" />
+        <path id="ltr-route-0" class="ltr-route-line" d="M6,88 Q10,50 15,18" />
+        <path id="ltr-route-1" class="ltr-route-line" d="M6,88 Q25,45 52,12" />
+        <path id="ltr-route-2" class="ltr-route-line" d="M6,88 Q55,65 86,30" />
+        <path id="ltr-route-3" class="ltr-route-line" d="M6,88 Q45,85 78,72" />
+        <path id="ltr-route-4" class="ltr-route-line" d="M6,88 Q20,90 46,82" />
+        <path id="ltr-route-5" class="ltr-route-line" d="M6,88 Q5,70 14,55" />
       </svg>
 
       <!-- Vài nét trang trí: vệt sóng khắc, vầng mây mờ -->
@@ -90,79 +102,74 @@
       <!-- ===== THUYỀN: mover (translate+rotate) tách khỏi body (bob/roll/wake) ===== -->
       <div class="ltr-ship-mover" id="ltr-ship">
         <div class="ltr-ship-body">
-          <svg viewBox="0 0 260 150" class="ltr-ship-svg" aria-hidden="true">
+          <svg viewBox="0 0 220 170" class="ltr-ship-svg" aria-hidden="true">
             <defs>
-              <linearGradient id="ltrHull" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#6b3f22"/>
-                <stop offset=".5" stop-color="#4a2714"/>
-                <stop offset="1" stop-color="#2c160a"/>
+              <linearGradient id="ltrHullGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#8a5a2e"/>
+                <stop offset="0.55" stop-color="#5c3417"/>
+                <stop offset="1" stop-color="#2c1a0c"/>
               </linearGradient>
-              <linearGradient id="ltrDeck" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#b07c44"/>
-                <stop offset="1" stop-color="#7c4f27"/>
+              <linearGradient id="ltrSailGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#FBF2DC"/>
+                <stop offset="1" stop-color="#E4CFA0"/>
               </linearGradient>
-              <linearGradient id="ltrSail" x1="1" y1="0" x2="0" y2="0">
-                <stop offset="0" stop-color="#fbf3df"/>
-                <stop offset="1" stop-color="#d8c6a2"/>
+              <linearGradient id="ltrDeckGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#c99a5c"/>
+                <stop offset="1" stop-color="#8a6238"/>
               </linearGradient>
-              <radialGradient id="ltrShipShadow" cx=".5" cy=".5" r=".5">
-                <stop offset="0" stop-color="rgba(4,16,22,.42)"/>
-                <stop offset="1" stop-color="rgba(4,16,22,0)"/>
-              </radialGradient>
             </defs>
 
-            <!-- 1. bóng nước -->
-            <ellipse cx="132" cy="82" rx="116" ry="50" fill="url(#ltrShipShadow)"/>
+            <path d="M4 152 Q36 158 66 152 Q92 147 114 152" fill="none" stroke="#dfe9ec" stroke-width="2" opacity=".3" stroke-linecap="round"/>
+            <path d="M14 160 Q40 165 64 160" fill="none" stroke="#dfe9ec" stroke-width="1.6" opacity=".22" stroke-linecap="round"/>
 
-            <!-- 2. bọt sóng phía lái (-X) -->
-            <g class="ltr-ship-wake">
-              <path d="M46,75 C28,66 14,68 2,60" fill="none" stroke="#dff0f4" stroke-width="4" stroke-linecap="round" opacity=".55"/>
-              <path d="M46,75 C28,84 14,82 2,90" fill="none" stroke="#dff0f4" stroke-width="4" stroke-linecap="round" opacity=".55"/>
-              <path d="M50,75 C36,70 24,72 12,75 C24,78 36,80 50,75 Z" fill="#eaf6f8" opacity=".4"/>
-            </g>
+            <path d="M22,120 C20,120 18,124 20,132 C22,144 30,152 46,157 C68,163 118,163 148,156
+                     C168,151 184,143 197,131 C202,127 205,124 204,120 C203,116 196,115 188,116
+                     C160,120 60,120 34,117 C29,116 24,116 22,120 Z"
+                  fill="url(#ltrHullGrad)" stroke="#1c1006" stroke-width="2.4"/>
 
-            <!-- 3. thân tàu -->
-            <path d="M44,75 C44,50 80,38 132,37 C186,36 228,54 248,75 C228,96 186,114 132,113 C80,112 44,100 44,75 Z"
-                  fill="url(#ltrHull)" stroke="#c9a24a" stroke-width="2.5"/>
-            <!-- 4. viền mạn -->
-            <path d="M57,75 C57,56 88,47 132,46 C180,45 216,60 233,75 C216,90 180,105 132,104 C88,103 57,94 57,75 Z"
-                  fill="none" stroke="#c9a24a" stroke-width="1.2" opacity=".5"/>
-            <!-- 5. boong -->
-            <path d="M67,75 C67,60 94,52 132,51 C174,50 206,62 221,75 C206,88 174,100 132,99 C94,98 67,90 67,75 Z"
-                  fill="url(#ltrDeck)" stroke="#33200f" stroke-width="1.4"/>
-            <g stroke="#33200f" stroke-width=".8" opacity=".22" fill="none">
-              <path d="M80,64 C106,59 160,59 205,67"/>
-              <path d="M76,75 C106,71 166,71 213,75"/>
-              <path d="M80,86 C106,91 160,91 205,83"/>
-            </g>
+            <path d="M26,128 Q110,140 190,127" fill="none" stroke="#C79A3D" stroke-width="2" opacity=".8"/>
+            <path d="M30,118 Q110,124 186,117" fill="none" stroke="#C79A3D" stroke-width="1.6" opacity=".6"/>
+            <path d="M24,117 Q110,109 188,112" fill="none" stroke="#3a2210" stroke-width="2" opacity=".5"/>
 
-            <!-- 6+7. cột buồm & buồm (buồm phồng về phía lái) -->
-            <path d="M84,50 C66,62 66,88 84,100 L84,50 Z" fill="url(#ltrSail)" stroke="#8a6a3c" stroke-width="1.2"/>
-            <line x1="84" y1="47" x2="84" y2="103" stroke="#2c1a0c" stroke-width="2.4" stroke-linecap="round"/>
-            <path d="M132,39 C107,56 107,94 132,111 L132,39 Z" fill="url(#ltrSail)" stroke="#8a6a3c" stroke-width="1.4"/>
-            <line x1="132" y1="36" x2="132" y2="114" stroke="#2c1a0c" stroke-width="3" stroke-linecap="round"/>
-            <path d="M182,50 C164,62 164,88 182,100 L182,50 Z" fill="url(#ltrSail)" stroke="#8a6a3c" stroke-width="1.2"/>
-            <line x1="182" y1="47" x2="182" y2="103" stroke="#2c1a0c" stroke-width="2.4" stroke-linecap="round"/>
-            <g stroke="#b6a17c" stroke-width=".8" opacity=".45" fill="none">
-              <path d="M120,52 C114,66 114,84 120,98"/>
-              <path d="M171,58 C166,68 166,82 171,92"/>
-            </g>
+            <path d="M20,118 L20,100 Q20,93 28,93 L45,93 Q52,93 52,100 L52,116 Z" fill="url(#ltrDeckGrad)" stroke="#2c1a0c" stroke-width="2.2"/>
+            <rect x="27" y="99" width="7" height="9" rx="1.5" fill="#1c1006" opacity=".65"/>
+            <rect x="39" y="99" width="7" height="9" rx="1.5" fill="#1c1006" opacity=".65"/>
+            <path d="M20,93 Q36,86 52,93" fill="none" stroke="#2c1a0c" stroke-width="2"/>
 
-            <!-- 9. cờ đuôi tàu -->
-            <path d="M46,75 C36,69 28,71 20,66 C27,73 27,77 20,84 C28,79 36,81 46,75 Z" fill="#8a2f28" stroke="#591d18" stroke-width="1"/>
+            <line x1="60" y1="112" x2="60" y2="52" stroke="#2c1a0c" stroke-width="3.4" stroke-linecap="round"/>
+            <path d="M60,58 Q94,62 92,78 Q88,90 60,92 Z" fill="url(#ltrSailGrad)" stroke="#3a2210" stroke-width="2" stroke-linejoin="round" class="ltr-sail ltr-sail-jib"/>
+            <path d="M66,64 Q64,78 66,88 M74,61 Q73,78 75,86" fill="none" stroke="#3a2210" stroke-width="1" opacity=".3"/>
 
-            <!-- mũi tàu (+X) -->
-            <line x1="246" y1="75" x2="258" y2="75" stroke="#2c1a0c" stroke-width="2.6" stroke-linecap="round"/>
-            <circle cx="248" cy="75" r="2.6" fill="#e0b657"/>
+            <line x1="122" y1="112" x2="122" y2="52" stroke="#2c1a0c" stroke-width="4.2" stroke-linecap="round"/>
+            <line x1="122" y1="27" x2="150" y2="20" stroke="#2c1a0c" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M122,26 Q172,34 168,66 Q160,92 122,96 Z" fill="url(#ltrSailGrad)" stroke="#3a2210" stroke-width="2.2" stroke-linejoin="round" class="ltr-sail ltr-sail-main"/>
+            <path d="M132,34 Q127,64 132,90 M146,32 Q140,64 146,82" fill="none" stroke="#3a2210" stroke-width="1" opacity=".3"/>
 
-            <!-- 10. highlight -->
-            <path d="M98,52 C122,46 168,46 205,56" fill="none" stroke="#ffffff" stroke-width="1.6" opacity=".13" stroke-linecap="round"/>
+            <circle cx="122" cy="20" r="5" fill="none" stroke="#2c1a0c" stroke-width="2.4"/>
+
+            <path d="M122,10 L146,4 L122,16 Z" fill="#1c1006" stroke="#0a0603" stroke-width="1" class="ltr-flag ltr-flag-main"/>
+            <circle cx="130" cy="8.5" r="3.4" fill="#EAD9AE"/>
+            <path d="M126.5,8.5 L133.5,8.5 M127.3,5.5 L132.7,11.5 M132.7,5.5 L127.3,11.5" stroke="#1c1006" stroke-width="1.1" stroke-linecap="round"/>
+
+            <line x1="196" y1="122" x2="216" y2="109" stroke="#2c1a0c" stroke-width="3" stroke-linecap="round"/>
+            <path d="M198,120 L214,110 L188,112 Z" fill="url(#ltrSailGrad)" stroke="#3a2210" stroke-width="1.8" stroke-linejoin="round"/>
+
+            <path d="M198,134 Q212,130 219,119" fill="none" stroke="#dfe9ec" stroke-width="2.4" opacity=".6" stroke-linecap="round"/>
           </svg>
         </div>
       </div>
 
       <div class="ltr-idle-cta" id="ltr-idle-caption">CHẠM VÀO BẢN ĐỒ ĐỂ BẮT ĐẦU HÀNH TRÌNH</div>
     </main>
+
+    <div class="ltr-marquee-strip" aria-hidden="true">
+      <span class="ltr-marquee-text" id="ltr-marquee"></span>
+    </div>
+
+    <!-- Marquee lịch sử trúng thưởng (ẩn khi không có data) -->
+    <div class="ltr-marquee-strip" aria-hidden="true">
+      <span class="ltr-marquee-text" id="ltr-marquee"></span>
+    </div>
 
     <!-- ===== LA BÀN DÒ HƯỚNG (overlay) ===== -->
     <div class="ltr-compass-overlay" id="ltr-compass-overlay" aria-hidden="true">

@@ -31,3 +31,14 @@ Toàn bộ phần thưởng (tên, hình ảnh, số lượng) được quản l
 
 = 1.0.0 =
 * Phát hành đầu tiên.
+
+= 2.1.0 =
+* Nâng cấp toàn bộ giao diện màn hình LED (/?ltr_display=1) theo phong cách "hải trình kho báu" điện ảnh.
+* Sửa 3 vấn đề cốt lõi:
+  - Thuyền luôn quay mũi đúng hướng di chuyển (vẽ lại SVG với mũi tàu chỉa +X, khớp quy ước góc 0° = phải).
+  - Tốc độ thuyền đồng đều giữa các tuyến (thời lượng tính theo chiều dài path thật, không gán cứng).
+  - 6 vị trí kho báu rải đều toàn bản đồ, không còn chồng lấn (toạ độ mới + path tương ứng).
+* 6 đảo kho báu khác biệt (cây dừa, mỏm đá đầu lâu, hang động, xác tàu đắm, hải đăng, núi lửa) thay vì 6 dấu X trùng nhau.
+* Nền biển có sóng parallax + mây trôi + vệt sáng; hiệu ứng camera zoom nhẹ và rung màn hình lúc mở rương.
+* Thẻ phần thưởng có animation "thở"; badge số quà còn lại + dải chữ chạy lịch sử 3 lượt gần nhất.
+* Dùng font Pirata One cho tiêu đề/tên phần thưởng; hỗ trợ reduced-motion; thuần vanilla JS/CSS, không thêm dependency.
