@@ -12,7 +12,7 @@
 
 :root {
   --ship-size: clamp(140px, 13vmin, 240px);
-  --spot-size: clamp(62px, 6.5vmin, 110px);
+  --spot-size: clamp(92px, 10vmin, 168px);
   --map-pad: clamp(16px, 2vmin, 32px);
   --compass-size: clamp(180px, 24vmin, 300px);
 
@@ -490,6 +490,7 @@ html, body {
   pointer-events: none;
   will-change: transform;
   filter: drop-shadow(0 8px 20px rgba(0, 0, 0, .5));
+  transition: opacity .35s ease;
 }
 
 .ltr-ship-body {
@@ -507,6 +508,8 @@ html, body {
 .ltr-ship-mover.is-sailing .ltr-ship-wake { opacity: 1; }
 /* Slight glow when sailing */
 .ltr-ship-mover.is-sailing { filter: drop-shadow(0 8px 24px rgba(0, 0, 0, .5)) drop-shadow(0 0 12px rgba(255, 220, 120, .2)); }
+/* Ẩn thuyền khi đang khui quà (tránh đè lên rương) */
+.ltr-stage[data-state="reveal"] .ltr-ship-mover { opacity: 0; }
 
 @keyframes ltr-ship-bob-idle {
   0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -952,7 +955,7 @@ html, body {
 @media (max-aspect-ratio: 4 / 3) {
   :root {
     --ship-size: clamp(110px, 14vmin, 200px);
-    --spot-size: clamp(52px, 7.5vmin, 98px);
+    --spot-size: clamp(78px, 11vmin, 138px);
   }
   .ltr-brand-text { letter-spacing: .08em; }
 }

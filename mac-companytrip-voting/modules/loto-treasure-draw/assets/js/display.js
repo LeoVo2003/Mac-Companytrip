@@ -81,6 +81,7 @@
   var lastEventId = null;
   var hasPolled = false;
   var shipHeading = 0;
+  var shipUserPos = { x: HARBOR.x, y: HARBOR.y };
   var historyItems = [];
 
   // Wake foam pool
@@ -157,11 +158,20 @@
      ====================================================================== */
   function getMapRect() { return mapEl.getBoundingClientRect(); }
 
-  function svgUserPointToLocalPx(ux, uy, ctm, rect) {
-    if (!_svgPt) _svgPt = routeSvg.createSVGPoint();
-    _svgPt.x = ux; _svgPt.y = uy;
-    var sp = _svgPt.matrixTransform(ctm);
-    return { x: sp.x - rect.left, y: sp.y - rect.top };
+  // FIXED: kích thước local KHÔNG bị ảnh hưởng bởi transform zoom của map.
+  function mapLocalSize() {
+    return {
+      w: (mapEl ? mapEl.clientWidth : 0) || 1,
+      h: (mapEl ? mapEl.clientHeight : 0) || 1
+    };
+  }
+
+  // FIXED: quy đổi user→px local bằng clientWidth/Height thay vì
+  // getScreenCTM/getBoundingClientRect (trả về giá trị ĐÃ zoom → thuyền lệch
+  // quỹ đạo ở khúc cuối khi camera zoom kích hoạt).
+  function svgUserPointToLocalPx(ux, uy) {
+    var s = mapLocalSize();
+    return { x: ux / 100 * s.w, y: uy / 100 * s.h };
   }
 
   function getPathPointPx(pathEl, u) {
@@ -172,14 +182,14 @@
   }
 
   function getTreasurePointPx(idx) {
-    var rect = getMapRect();
-    var s = TREASURE_SPOTS[idx];
-    return { x: s.x / 100 * rect.width, y: s.y / 100 * rect.height };
+    var s = mapLocalSize();
+    var t = TREASURE_SPOTS[idx];
+    return { x: t.x / 100 * s.w, y: t.y / 100 * s.h };
   }
 
   function getHarborPointPx() {
-    var rect = getMapRect();
-    return { x: HARBOR.x / 100 * rect.width, y: HARBOR.y / 100 * rect.height };
+    var s = mapLocalSize();
+    return { x: HARBOR.x / 100 * s.w, y: HARBOR.y / 100 * s.h };
   }
 
   function computePixelLength(pathEl, userLen) {
@@ -264,7 +274,7 @@
     if (resizeTimer) clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function () {
       validateTreasureLayout();
-      if (currentState === DISPLAY_STATE.IDLE) resetShipToHarbor();
+      if (currentState === DISPLAY_STATE.IDLE) placeShipAtUserPos();
     }, 160);
   }
 
@@ -296,7 +306,7 @@
 
   function prepareSelectedRoute(idx) {
     if (!routeDynEl) return;
-    var s = HARBOR;
+    var s = shipUserPos;
     var t = TREASURE_SPOTS[idx];
     routeDynEl.setAttribute('d', windingPathD(s.x, s.y, t.x, t.y, idx));
     if (routeSvg) routeSvg.classList.add('has-selection');
@@ -339,16 +349,23 @@
 
   function resetShipToHarbor() {
     var h = getHarborPointPx();
-    var rect = getMapRect();
+    var size = mapLocalSize();
     // kẹp thuyền nằm gọn trong bảng (tránh dính viền)
     var halfW = (shipEl ? shipEl.offsetWidth : 120) / 2;
     var halfH = (shipEl ? shipEl.offsetHeight : 90) / 2;
-    h.x = clamp(h.x, halfW * 0.9, rect.width - halfW * 0.9);
-    h.y = clamp(h.y, halfH * 0.9, rect.height - halfH * 0.9);
+    h.x = clamp(h.x, halfW * 0.9, size.w - halfW * 0.9);
+    h.y = clamp(h.y, halfH * 0.9, size.h - halfH * 0.9);
     // heading từ cảng vào giữa biển (tự nhiên)
-    shipHeading = Math.atan2(rect.height * 0.46 - h.y, rect.width * 0.5 - h.x) * 180 / Math.PI;
+    shipHeading = Math.atan2(size.h * 0.46 - h.y, size.w * 0.5 - h.x) * 180 / Math.PI;
     if (shipEl) shipEl.classList.remove('is-sailing');
+    shipUserPos = { x: HARBOR.x, y: HARBOR.y };
     setShipTransformPx(h.x, h.y, shipHeading);
+  }
+
+  // Đặt thuyền tại vị trí user đang lưu (không teleport về cảng).
+  function placeShipAtUserPos() {
+    var px = svgUserPointToLocalPx(shipUserPos.x, shipUserPos.y);
+    setShipTransformPx(px.x, px.y, shipHeading);
   }
 
   function buildWakePool() {
@@ -401,7 +418,10 @@
     var pixelLen = computePixelLength(pathEl, userLen);
     var shipLenPx = shipEl.offsetWidth || 120;
     var spotRadiusPx = (spotEls[idx] ? spotEls[idx].offsetWidth : 60) / 2;
-    var stopPx = BOW_OFFSET_RATIO * shipLenPx + 0.95 * spotRadiusPx;
+    // FIXED: mũi thuyền CHẠM đảo (bow lấn vào mép đảo) + kẹp stop theo chiều
+    // dài đường để bản đồ nhỏ vẫn đi gần hết tuyến.
+    var stopPx = BOW_OFFSET_RATIO * shipLenPx + 0.75 * spotRadiusPx;
+    stopPx = Math.min(stopPx, pixelLen * 0.6);
     var stopUser = endPxToUser(pathEl, userLen, stopPx);
     var travelUserLen = Math.max(userLen * 0.25, userLen - stopUser);
 
@@ -433,10 +453,11 @@
       if (!ctm) { sailRafId = requestAnimationFrame(frame); return; }
 
       var p = pathEl.getPointAtLength(u);
-      var px = svgUserPointToLocalPx(p.x, p.y, ctm, rect);
+      shipUserPos = { x: p.x, y: p.y };
+      var px = svgUserPointToLocalPx(p.x, p.y);
       // FIXED: lookahead cố định thay vì % của len
       var pAhead = pathEl.getPointAtLength(Math.min(userLen, u + LOOKAHEAD));
-      var pxA = svgUserPointToLocalPx(pAhead.x, pAhead.y, ctm, rect);
+      var pxA = svgUserPointToLocalPx(pAhead.x, pAhead.y);
 
       var targetHeading = Math.atan2(pxA.y - px.y, pxA.x - px.x) * 180 / Math.PI;
       shipHeading = lerpAngle(shipHeading, targetHeading, reducedMotion() ? 0.5 : 0.18);
@@ -447,9 +468,9 @@
       // Camera zoom when nearing destination
       if (rawT >= ZOOM_THRESHOLD && !zoomStarted) {
         zoomStarted = true;
-        var mapRect = getMapRect();
-        var dx = (targetSpot.x - mapRect.width / 2);
-        var dy = (targetSpot.y - mapRect.height / 2);
+        var size = mapLocalSize();
+        var dx = (targetSpot.x - size.w / 2);
+        var dy = (targetSpot.y - size.h / 2);
         mapEl.style.transition = 'transform 1.2s cubic-bezier(.4,0,.2,1)';
         mapEl.style.transformOrigin = targetSpot.x + 'px ' + targetSpot.y + 'px';
         mapEl.style.transform = 'scale(1.07) translate(' + (dx * 0.02) + 'px,' + (dy * 0.02) + 'px)';
@@ -613,7 +634,8 @@
     resetSpots();
     clearRouteSelection();
     hideCompass();
-    resetShipToHarbor();
+    // FIXED: không teleport thuyền về cảng — thuyền tiếp tục từ đảo vừa cập
+    // bến (tránh giật cục khi bấm tìm đảo mới).
 
     var idx = clamp(evt && evt.spot != null ? (evt.spot | 0) : 0, 0, TREASURE_SPOTS.length - 1);
 
@@ -778,7 +800,7 @@
   if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
     document.fonts.ready.then(function () {
       validateTreasureLayout();
-      if (currentState === DISPLAY_STATE.IDLE) resetShipToHarbor();
+      if (currentState === DISPLAY_STATE.IDLE) placeShipAtUserPos();
     });
   }
 })();

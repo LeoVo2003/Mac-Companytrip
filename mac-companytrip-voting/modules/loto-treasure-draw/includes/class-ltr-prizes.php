@@ -8,6 +8,7 @@ class LTR_Prizes {
     const OPT_EVENT     = 'ltr_current_event';
     const OPT_EVENT_SEQ = 'ltr_event_seq';
     const OPT_TOKEN     = 'ltr_display_token';
+    const OPT_VISITED   = 'ltr_visited_spots';
 
     public static function activate() {
         if (get_option(self::OPT_PRIZES, null) === null) {
@@ -107,6 +108,7 @@ class LTR_Prizes {
     public static function reset_all() {
         self::save_prizes([]);
         self::save_history([]);
+        self::save_visited_spots([]);
         self::set_current_event([
             'event_id' => self::next_event_id(),
             'type'     => 'reset',
@@ -114,6 +116,18 @@ class LTR_Prizes {
             'prize'    => null,
             'time'     => time(),
         ]);
+    }
+
+    public static function get_visited_spots() {
+        $v = get_option(self::OPT_VISITED, []);
+        if (!is_array($v)) return [];
+        return array_values(array_filter(array_map('intval', $v), function ($i) {
+            return $i >= 0 && $i <= 5;
+        }));
+    }
+
+    public static function save_visited_spots($spots) {
+        update_option(self::OPT_VISITED, array_values($spots));
     }
 
     public static function remaining_prizes() {
@@ -144,7 +158,18 @@ class LTR_Prizes {
         unset($p);
         self::save_prizes($prizes);
 
-        $spot = function_exists('wp_rand') ? wp_rand(0, 5) : mt_rand(0, 5);
+        // FIXED: không quay lại đảo cũ — đi đủ 6 đảo riêng biệt trước; chỉ khi
+        // đã hết 6 đảo mà vẫn còn quà mới bốc vòng mới (cho phép đảo cũ).
+        $visited   = self::get_visited_spots();
+        $all       = range(0, 5);
+        $unvisited = array_values(array_diff($all, $visited));
+        if (empty($unvisited)) {
+            $visited   = [];
+            $unvisited = $all;
+        }
+        $spot      = $unvisited[array_rand($unvisited)];
+        $visited[] = $spot;
+        self::save_visited_spots($visited);
 
         $entry = [
             'id'         => 'h' . uniqid(),

@@ -114,42 +114,40 @@
               </linearGradient>
             </defs>
 
-            <path d="M4 152 Q36 158 66 152 Q92 147 114 152" fill="none" stroke="#dfe9ec" stroke-width="2" opacity=".3" stroke-linecap="round"/>
-            <path d="M14 160 Q40 165 64 160" fill="none" stroke="#dfe9ec" stroke-width="1.6" opacity=".22" stroke-linecap="round"/>
+            <!-- Vệt sóng sau lái (nhìn từ trên xuống) -->
+            <path d="M26 66 Q10 74 4 85 Q10 96 26 104" fill="none" stroke="#dfe9ec" stroke-width="2" opacity=".3" stroke-linecap="round"/>
+            <path d="M30 74 Q18 80 14 85 Q18 90 30 96" fill="none" stroke="#dfe9ec" stroke-width="1.6" opacity=".22" stroke-linecap="round"/>
 
-            <path d="M22,120 C20,120 18,124 20,132 C22,144 30,152 46,157 C68,163 118,163 148,156
-                     C168,151 184,143 197,131 C202,127 205,124 204,120 C203,116 196,115 188,116
-                     C160,120 60,120 34,117 C29,116 24,116 22,120 Z"
-                  fill="url(#ltrHullGrad)" stroke="#1c1006" stroke-width="2.4"/>
+            <!-- Thân tàu nhìn từ trên xuống: mũi nhọn hướng +X -->
+            <path d="M204 85 C176 58 128 48 84 50 C56 51 34 62 30 85 C34 108 56 119 84 120 C128 122 176 112 204 85 Z"
+                  fill="url(#ltrHullGrad)" stroke="#1c1006" stroke-width="2.6"/>
+            <!-- Boong tàu -->
+            <path d="M190 85 C166 64 124 56 88 58 C64 59 46 68 42 85 C46 102 64 111 88 112 C124 114 166 106 190 85 Z"
+                  fill="url(#ltrDeckGrad)" stroke="#3a2210" stroke-width="1.6"/>
+            <!-- Vân ván boong -->
+            <path d="M50 85 L186 85" fill="none" stroke="#3a2210" stroke-width="1.4" opacity=".5"/>
+            <path d="M56 71 Q120 65 176 75" fill="none" stroke="#3a2210" stroke-width="1.2" opacity=".35"/>
+            <path d="M56 99 Q120 105 176 95" fill="none" stroke="#3a2210" stroke-width="1.2" opacity=".35"/>
 
-            <path d="M26,128 Q110,140 190,127" fill="none" stroke="#C79A3D" stroke-width="2" opacity=".8"/>
-            <path d="M30,118 Q110,124 186,117" fill="none" stroke="#C79A3D" stroke-width="1.6" opacity=".6"/>
-            <path d="M24,117 Q110,109 188,112" fill="none" stroke="#3a2210" stroke-width="2" opacity=".5"/>
+            <!-- Buồng lái ở đuôi -->
+            <rect x="46" y="70" width="26" height="30" rx="5" fill="url(#ltrDeckGrad)" stroke="#2c1a0c" stroke-width="2.2"/>
+            <rect x="52" y="76" width="6" height="7" rx="1.5" fill="#1c1006" opacity=".65"/>
+            <rect x="61" y="76" width="6" height="7" rx="1.5" fill="#1c1006" opacity=".65"/>
 
-            <path d="M20,118 L20,100 Q20,93 28,93 L45,93 Q52,93 52,100 L52,116 Z" fill="url(#ltrDeckGrad)" stroke="#2c1a0c" stroke-width="2.2"/>
-            <rect x="27" y="99" width="7" height="9" rx="1.5" fill="#1c1006" opacity=".65"/>
-            <rect x="39" y="99" width="7" height="9" rx="1.5" fill="#1c1006" opacity=".65"/>
-            <path d="M20,93 Q36,86 52,93" fill="none" stroke="#2c1a0c" stroke-width="2"/>
+            <!-- Cột buồm trước + cánh buồm nhìn từ trên -->
+            <ellipse cx="98" cy="85" rx="12" ry="40" fill="url(#ltrSailGrad)" stroke="#3a2210" stroke-width="2" class="ltr-sail ltr-sail-jib"/>
+            <path d="M98 49 Q104 85 98 121" fill="none" stroke="#3a2210" stroke-width="1" opacity=".3"/>
+            <circle cx="98" cy="85" r="4.4" fill="#2c1a0c"/>
 
-            <line x1="60" y1="112" x2="60" y2="52" stroke="#2c1a0c" stroke-width="3.4" stroke-linecap="round"/>
-            <path d="M60,58 Q94,62 92,78 Q88,90 60,92 Z" fill="url(#ltrSailGrad)" stroke="#3a2210" stroke-width="2" stroke-linejoin="round" class="ltr-sail ltr-sail-jib"/>
-            <path d="M66,64 Q64,78 66,88 M74,61 Q73,78 75,86" fill="none" stroke="#3a2210" stroke-width="1" opacity=".3"/>
+            <!-- Cột buồm chính + cánh buồm lớn -->
+            <ellipse cx="140" cy="85" rx="14" ry="52" fill="url(#ltrSailGrad)" stroke="#3a2210" stroke-width="2.2" class="ltr-sail ltr-sail-main"/>
+            <path d="M140 37 Q148 85 140 133" fill="none" stroke="#3a2210" stroke-width="1" opacity=".3"/>
+            <circle cx="140" cy="85" r="5" fill="#2c1a0c"/>
 
-            <line x1="122" y1="112" x2="122" y2="52" stroke="#2c1a0c" stroke-width="4.2" stroke-linecap="round"/>
-            <line x1="122" y1="27" x2="150" y2="20" stroke="#2c1a0c" stroke-width="2.6" stroke-linecap="round"/>
-            <path d="M122,26 Q172,34 168,66 Q160,92 122,96 Z" fill="url(#ltrSailGrad)" stroke="#3a2210" stroke-width="2.2" stroke-linejoin="round" class="ltr-sail ltr-sail-main"/>
-            <path d="M132,34 Q127,64 132,90 M146,32 Q140,64 146,82" fill="none" stroke="#3a2210" stroke-width="1" opacity=".3"/>
-
-            <circle cx="122" cy="20" r="5" fill="none" stroke="#2c1a0c" stroke-width="2.4"/>
-
-            <path d="M122,10 L146,4 L122,16 Z" fill="#1c1006" stroke="#0a0603" stroke-width="1" class="ltr-flag ltr-flag-main"/>
-            <circle cx="130" cy="8.5" r="3.4" fill="#EAD9AE"/>
-            <path d="M126.5,8.5 L133.5,8.5 M127.3,5.5 L132.7,11.5 M132.7,5.5 L127.3,11.5" stroke="#1c1006" stroke-width="1.1" stroke-linecap="round"/>
-
-            <line x1="196" y1="122" x2="216" y2="109" stroke="#2c1a0c" stroke-width="3" stroke-linecap="round"/>
-            <path d="M198,120 L214,110 L188,112 Z" fill="url(#ltrSailGrad)" stroke="#3a2210" stroke-width="1.8" stroke-linejoin="round"/>
-
-            <path d="M198,134 Q212,130 219,119" fill="none" stroke="#dfe9ec" stroke-width="2.4" opacity=".6" stroke-linecap="round"/>
+            <!-- Cờ mũi -->
+            <path d="M204 85 L219 78 L206 92 Z" fill="#1c1006" stroke="#0a0603" stroke-width="1" class="ltr-flag ltr-flag-main"/>
+            <!-- Bọt sóng mũi -->
+            <path d="M206 70 Q216 78 219 85 Q216 92 206 100" fill="none" stroke="#dfe9ec" stroke-width="2.4" opacity=".6" stroke-linecap="round"/>
           </svg>
         </div>
       </div>
