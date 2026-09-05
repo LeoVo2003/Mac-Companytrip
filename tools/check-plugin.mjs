@@ -688,8 +688,8 @@ const busModel = (teamOf, partyMap = {}) => {
       if (actor.role === "btc" && teamOf(voterId) !== 7) return { error: "forbidden_staff_only" };
       if (members.some((m) => m.voterId === voterId)) return { error: "already_assigned" };
       const isStaff = teamOf(voterId) === 7;
-      const party = isStaff ? [voterId] : partyOf(voterId);
-      party.forEach((id, index) => members.push({ id: ++memberSeq, busId, voterId: id, memberType: isStaff ? "STAFF" : (index === 0 ? "EMPLOYEE" : "COMPANION") }));
+      const party = partyOf(voterId);
+      party.forEach((id) => members.push({ id: ++memberSeq, busId, voterId: id, memberType: id === voterId ? (isStaff ? "STAFF" : "EMPLOYEE") : "COMPANION" }));
       sync(checkpoint1Open);
       return { ok: true };
     },
@@ -738,6 +738,7 @@ const BUS_CASES = [
   { name: "BUS-22 move người chính kéo cả nhóm đi theo", run: (m) => { m.setCapacity(1, 3, true); m.setCapacity(3, 3, true); m.autoAssign(102, 1, true); const r = m.moveVoter(102, 3); return r.ok === true && r.moved === 2 && m.members.filter((x) => [102, 903].includes(x.voterId)).every((x) => x.busId === 3); }, parties: { 102: [102, 903] } },
   { name: "BUS-23 người Đi xe = Không quét QR vẫn lên xe kèm đủ nhóm như bình thường", run: (m) => { const r = m.autoAssign(105, 1, true); return r.assigned === true && r.partySize === 2 && m.members.filter((x) => x.busId === r.busId).length === 2; }, parties: { 105: [105, 905] } },
   { name: "BUS-24 Super Admin ghi tay quá sức chứa: bắt buộc vào, không chốt/đẩy xe", run: (m) => { m.setCapacity(1, 1, true); m.autoAssign(101, 1, true); m.openBus(1, true); const r = m.assign(102, 1, { role: "super" }, true); return r.ok === true && m.members.filter((x) => x.busId === 1).length === 2 && m.buses[0].status === "WAITING" && m.boarding()?.id === 2; } },
+  { name: "BUS-25 BTC gán staff kèm trọn nhóm người thân", parties: { 701: [701, 51] }, run: (m) => { const r = m.assign(701, 1, { role: "btc" }); const onBus = m.members.filter((x) => x.busId === 1); return r.ok === true && onBus.length === 2 && onBus.some((x) => x.voterId === 701 && x.memberType === "STAFF") && onBus.some((x) => x.voterId === 51 && x.memberType === "COMPANION"); } },
 ];
 const buses_all_one = (m) => m.buses.forEach((b) => { b.capacity = 1; });
 for (const tc of BUS_CASES) {

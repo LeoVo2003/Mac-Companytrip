@@ -460,10 +460,12 @@ final class MAC_Bus {
             }
             return self::move_voter($voter_id, $bus_id);
         }
-        $party = $type === 'STAFF' ? array($voter) : self::party_voters($voter_id);
+        // FIXED: BTC/Hoa tiêu cũng phải kèm trọn nhóm người thân đi cùng (không tách nhóm).
+        $party = self::party_voters($voter_id);
+        if (!$party) $party = array($voter);
         $wpdb->query('START TRANSACTION');
         foreach ($party as $member) {
-            $member_type = $type === 'STAFF' ? 'STAFF' : ((int) $member['id'] === $voter_id ? 'EMPLOYEE' : 'COMPANION');
+            $member_type = (int) $member['id'] === $voter_id ? $type : 'COMPANION';
             $saved = $wpdb->insert(
                 MAC_Voting_DB::table('bus_members'),
                 array(
