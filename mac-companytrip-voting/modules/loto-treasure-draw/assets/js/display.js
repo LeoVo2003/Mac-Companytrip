@@ -20,15 +20,15 @@
 
   /* ---------- Hằng số bố cục (hệ toạ độ chuẩn hoá 0..100) ---------- */
   var TREASURE_SPOTS = [
-    { id: 0, x: 15, y: 18 },
-    { id: 1, x: 52, y: 12 },
-    { id: 2, x: 86, y: 30 },
-    { id: 3, x: 78, y: 72 },
-    { id: 4, x: 46, y: 82 },
-    { id: 5, x: 14, y: 55 }
+    { id: 0, x: 22, y: 18 },
+    { id: 1, x: 50, y: 12 },
+    { id: 2, x: 80, y: 22 },
+    { id: 3, x: 86, y: 55 },
+    { id: 4, x: 62, y: 80 },
+    { id: 5, x: 28, y: 60 }
   ];
-  var HARBOR = { x: 6, y: 88 };
-  var ROUTE_IDS = ['ltr-route-0', 'ltr-route-1', 'ltr-route-2', 'ltr-route-3', 'ltr-route-4', 'ltr-route-5'];
+  var HARBOR = { x: 12, y: 80 };
+  var DYN_ROUTE_ID = 'ltr-route-dyn';
 
   var SHIP_HEADING_OFFSET = 0;    // Mũi thuyền đã hướng +X trong SVG mới → offset 0.
   var BOW_OFFSET_RATIO = 0.52;    // Mũi tàu cách tâm ~0.52 (viewBox 220, mũi ~x198).
@@ -67,7 +67,7 @@
   var compassNeedle = document.getElementById('ltr-compass-needle');
 
   var routeSvg = mapEl ? mapEl.querySelector('.ltr-route-svg') : null;
-  var routeEls = ROUTE_IDS.map(function (id) { return document.getElementById(id); });
+  var routeDynEl = document.getElementById(DYN_ROUTE_ID);
 
   /* ---------- Trạng thái runtime ---------- */
   var currentState = DISPLAY_STATE.IDLE;
@@ -148,7 +148,7 @@
     activeAnims = [];
     if (shipEl) shipEl.classList.remove('is-sailing');
     // stop camera zoom
-    if (mapEl) mapEl.style.transform = '';
+    if (mapEl) { mapEl.style.transform = ''; mapEl.style.transformOrigin = ''; }
     cancelFoam();
   }
 
@@ -271,17 +271,43 @@
   /* ======================================================================
      Route
      ====================================================================== */
-  function prepareSelectedRoute(idx) {
-    if (routeSvg) routeSvg.classList.add('has-selection');
-    routeEls.forEach(function (el, i) {
-      if (el) el.classList.toggle('is-selected', i === idx);
-    });
+  // Dựng đường hải trình ngoằn ngèo (dynamic) từ cảng tới đảo trúng thưởng.
+  function windingPathD(sx, sy, ex, ey, seed) {
+    var dx = ex - sx, dy = ey - sy;
+    var dist = Math.hypot(dx, dy) || 1;
+    var px = -dy / dist, py = dx / dist;
+    var sign = (seed % 2 === 0) ? 1 : -1;
+    var amp = clamp(dist * 0.22, 5, 20);
+    var w = [
+      { x: sx, y: sy },
+      { x: sx + dx * 0.34 + px * amp * sign, y: sy + dy * 0.34 + py * amp * sign },
+      { x: sx + dx * 0.68 - px * amp * 0.85 * sign, y: sy + dy * 0.68 - py * amp * 0.85 * sign },
+      { x: ex, y: ey }
+    ];
+    function f(v) { return v.toFixed(2); }
+    var d = 'M ' + f(w[0].x) + ' ' + f(w[0].y);
+    for (var i = 1; i < w.length - 1; i++) {
+      var xc = (w[i].x + w[i + 1].x) / 2, yc = (w[i].y + w[i + 1].y) / 2;
+      d += ' Q ' + f(w[i].x) + ' ' + f(w[i].y) + ' ' + f(xc) + ' ' + f(yc);
+    }
+    d += ' L ' + f(w[w.length - 1].x) + ' ' + f(w[w.length - 1].y);
+    return d;
   }
 
-  function animateRouteDraw(idx) {
-    var pathEl = routeEls[idx];
+  function prepareSelectedRoute(idx) {
+    if (!routeDynEl) return;
+    var s = HARBOR;
+    var t = TREASURE_SPOTS[idx];
+    routeDynEl.setAttribute('d', windingPathD(s.x, s.y, t.x, t.y, idx));
+    if (routeSvg) routeSvg.classList.add('has-selection');
+    routeDynEl.classList.add('is-selected');
+  }
+
+  function animateRouteDraw() {
+    var pathEl = routeDynEl;
     if (!pathEl) return;
     var len = pathEl.getTotalLength();
+    if (!len) return;
     pathEl.style.strokeDasharray = String(len);
     pathEl.style.strokeDashoffset = String(len);
     var anim = pathEl.animate(
@@ -293,13 +319,12 @@
 
   function clearRouteSelection() {
     if (routeSvg) routeSvg.classList.remove('has-selection');
-    routeEls.forEach(function (el) {
-      if (!el) return;
-      el.classList.remove('is-selected');
-      if (el.getAnimations) el.getAnimations().forEach(function (a) { a.cancel(); });
-      el.style.strokeDasharray = '';
-      el.style.strokeDashoffset = '';
-    });
+    if (!routeDynEl) return;
+    routeDynEl.classList.remove('is-selected');
+    if (routeDynEl.getAnimations) routeDynEl.getAnimations().forEach(function (a) { a.cancel(); });
+    routeDynEl.style.strokeDasharray = '';
+    routeDynEl.style.strokeDashoffset = '';
+    routeDynEl.setAttribute('d', '');
   }
 
   /* ======================================================================
@@ -315,6 +340,11 @@
   function resetShipToHarbor() {
     var h = getHarborPointPx();
     var rect = getMapRect();
+    // kẹp thuyền nằm gọn trong bảng (tránh dính viền)
+    var halfW = (shipEl ? shipEl.offsetWidth : 120) / 2;
+    var halfH = (shipEl ? shipEl.offsetHeight : 90) / 2;
+    h.x = clamp(h.x, halfW * 0.9, rect.width - halfW * 0.9);
+    h.y = clamp(h.y, halfH * 0.9, rect.height - halfH * 0.9);
     // heading từ cảng vào giữa biển (tự nhiên)
     shipHeading = Math.atan2(rect.height * 0.46 - h.y, rect.width * 0.5 - h.x) * 180 / Math.PI;
     if (shipEl) shipEl.classList.remove('is-sailing');
@@ -361,7 +391,7 @@
 
   // FIXED: duration tính theo chiều dài path, lookahead cố định tuyệt đối
   function sailAlongPath(idx, seq, onArrive) {
-    var pathEl = routeEls[idx];
+    var pathEl = routeDynEl;
     if (!pathEl || !routeSvg) { if (onArrive) onArrive(); return; }
 
     setDisplayState(DISPLAY_STATE.SAILING);
@@ -553,6 +583,7 @@
     if (mapEl) {
       mapEl.style.transition = 'transform 0.8s cubic-bezier(.4,0,.2,1)';
       mapEl.style.transform = '';
+      mapEl.style.transformOrigin = '';
     }
   }
 
@@ -592,7 +623,7 @@
       setDisplayState(DISPLAY_STATE.ROUTE_LOCK);
       applyTargetDimming(idx);
       prepareSelectedRoute(idx);
-      animateRouteDraw(idx);
+      animateRouteDraw();
 
       after(reducedMotion() ? 120 : rand(250, 350), seq, function () {
         sailAlongPath(idx, seq, function () {

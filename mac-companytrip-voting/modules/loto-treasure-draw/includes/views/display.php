@@ -6,7 +6,7 @@
 <title>Màn hình Lô Tô Kho Báu — Hải trình săn kho báu</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Special+Elite&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800;900&family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?php echo esc_url($css_url); ?>?v=<?php echo esc_attr(LTR_VERSION); ?>">
 </head>
 <body>
@@ -63,12 +63,7 @@
 
       <!-- 6 tuyến hải trình (nét mực mờ khi chờ, chỉ tuyến được chọn mới nổi bật) -->
       <svg class="ltr-route-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <path id="ltr-route-0" class="ltr-route-line" d="M6,88 Q10,50 15,18" />
-        <path id="ltr-route-1" class="ltr-route-line" d="M6,88 Q25,45 52,12" />
-        <path id="ltr-route-2" class="ltr-route-line" d="M6,88 Q55,65 86,30" />
-        <path id="ltr-route-3" class="ltr-route-line" d="M6,88 Q45,85 78,72" />
-        <path id="ltr-route-4" class="ltr-route-line" d="M6,88 Q20,90 46,82" />
-        <path id="ltr-route-5" class="ltr-route-line" d="M6,88 Q5,70 14,55" />
+        <path id="ltr-route-dyn" class="ltr-route-line" d="" />
       </svg>
 
       <!-- Vài nét trang trí: vệt sóng khắc, vầng mây mờ -->
@@ -182,10 +177,10 @@
             <line x1="100" y1="24" x2="100" y2="40"/><line x1="100" y1="160" x2="100" y2="176"/>
             <line x1="24" y1="100" x2="40" y2="100"/><line x1="160" y1="100" x2="176" y2="100"/>
           </g>
-          <text x="100" y="38" text-anchor="middle" font-size="16" fill="#6e4626" font-family="'Special Elite',monospace">B</text>
+          <text x="100" y="38" text-anchor="middle" font-size="16" fill="#6e4626" font-family="'Playfair Display',serif">B</text>
           <g id="ltr-compass-needle" class="ltr-needle">
-            <polygon points="100,30 91,100 100,104 109,100" fill="#8a2f28"/>
-            <polygon points="100,170 109,100 100,96 91,100" fill="#f3e6c8"/>
+            <polygon points="100,30 91,100 100,104 109,100" fill="#c0392b" stroke="#5a1f18" stroke-width="1.2"/>
+            <polygon points="100,170 109,100 100,96 91,100" fill="#ffffff" stroke="#6e6e6e" stroke-width="1.2"/>
           </g>
           <circle cx="100" cy="100" r="8" fill="#e3bf6a" stroke="#4a2c14" stroke-width="2"/>
         </svg>
