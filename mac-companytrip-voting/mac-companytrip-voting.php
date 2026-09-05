@@ -40,7 +40,11 @@ require_once MAC_VOTING_DIR . 'includes/class-mac-admin-public.php';
 require_once MAC_VOTING_DIR . 'includes/class-mac-admin-rest.php';
 require_once MAC_VOTING_DIR . 'includes/class-mac-voting-updater.php';
 
+// Bundled module: Lô Tô Kho Báu - Lucky Draw (self-contained under modules/).
+require_once MAC_VOTING_DIR . 'modules/loto-treasure-draw/loto-treasure-draw.php';
+
 register_activation_hook(__FILE__, array('MAC_Voting_DB', 'activate'));
+register_activation_hook(__FILE__, array('LTR_Prizes', 'activate'));
 
 function mac_voting_bootstrap(): void {
     add_action('init', 'mac_voting_maybe_upgrade', 5);
