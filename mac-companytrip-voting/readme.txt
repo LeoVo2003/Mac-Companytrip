@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.44
+Stable tag: 1.10.45
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -71,6 +71,9 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.45 =
+- Tích hợp module "Lô Tô Kho Báu" (loto-treasure-draw) dạng bundled trong modules/: giữ nguyên layout + logic bản gốc, nạp từ bootstrap plugin chính và kích hoạt qua LTR_Prizes::activate. Điều khiển tạm thời nằm trong wp-admin; bản kế tiếp sẽ chuyển ra tab riêng trong /company-trip-admin/.
 
 = 1.10.44 =
 - Xuất tổng 5 xe chỉ gồm người ĐÃ nằm trong 5 xe (kèm điều kiện không đánh dấu Không ở resort); người tự túc / chưa gán xe không vào file nữa; chưa ai lên xe thì báo rõ chưa xuất được.
