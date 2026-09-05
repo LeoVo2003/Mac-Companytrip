@@ -28,6 +28,7 @@ nocache_headers();
 <link rel="stylesheet" href="<?php echo esc_url($mac_url . 'assets/admin.css'); ?>?v=<?php echo esc_attr($mac_ver); ?>">
 <link rel="stylesheet" href="<?php echo esc_url($mac_url . 'assets/admin-qr.css'); ?>?v=<?php echo esc_attr($mac_ver); ?>">
 <link rel="stylesheet" href="<?php echo esc_url($mac_url . 'assets/ui-refinements.css'); ?>?v=<?php echo esc_attr($mac_ver); ?>">
+<link rel="stylesheet" href="<?php echo esc_url($mac_url . 'assets/loto-dashboard.css'); ?>?v=<?php echo esc_attr($mac_ver); ?>">
 </head>
 <body class="mac-admin-public-page mac-admin-standalone">
 <?php if ($mac_can_access) : ?>

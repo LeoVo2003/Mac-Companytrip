@@ -9,6 +9,9 @@
   let importFeedback = null;
   let personFeedback = null;
   let loadingOverview = false;
+  let lotoData = null;
+  let lotoLoading = false;
+  let lotoError = "";
   let peopleTeam = "all";
   let peopleQuery = "";
   let exemptQuery = "";
@@ -345,7 +348,7 @@
     const role = window.MACVotingAdmin.role;
     const nav = role === "guide"
       ? `<button data-tab="checkin" class="${tab === "checkin" ? "active" : ""}">▣ Check-in</button><button data-tab="mybus" class="${tab === "mybus" ? "active" : ""}">▧ Xe của tôi</button>`
-      : `<button data-tab="overview" class="${tab === "overview" ? "active" : ""}">◉ Tổng quan</button><button data-tab="checkin" class="${tab === "checkin" ? "active" : ""}">▣ Check-in</button>${role !== "guide" ? `<button data-tab="bus" class="${tab === "bus" ? "active" : ""}">▤ Phân xe</button>` : ""}<button data-tab="games" class="${tab === "games" ? "active" : ""}">◈ Trò chơi lớn</button><button data-tab="art" class="${tab === "art" ? "active" : ""}">♪ Văn nghệ</button><button data-tab="thidua" class="${tab === "thidua" ? "active" : ""}">★ Thi đua</button><button data-tab="data" class="${tab === "data" ? "active" : ""}">▦ Nhân sự & QR</button>`;
+      : `<button data-tab="overview" class="${tab === "overview" ? "active" : ""}">◉ Tổng quan</button><button data-tab="checkin" class="${tab === "checkin" ? "active" : ""}">▣ Check-in</button>${role !== "guide" ? `<button data-tab="bus" class="${tab === "bus" ? "active" : ""}">▤ Phân xe</button>` : ""}<button data-tab="games" class="${tab === "games" ? "active" : ""}">◈ Trò chơi lớn</button><button data-tab="art" class="${tab === "art" ? "active" : ""}">♪ Văn nghệ</button><button data-tab="thidua" class="${tab === "thidua" ? "active" : ""}">★ Thi đua</button><button data-tab="loto" class="${tab === "loto" ? "active" : ""}">🏴‍☠️ Lô Tô</button><button data-tab="data" class="${tab === "data" ? "active" : ""}">▦ Nhân sự & QR</button>`;
     const links = role === "guide"
       ? `<a href="${esc(window.MACVotingAdmin.checkinUrl)}">↗ Quét QR check-in</a>`
       : `<a href="${esc(window.MACVotingAdmin.checkinUrl)}">↗ Quét QR check-in</a>${canWrite() ? `<a href="${esc(window.MACVotingAdmin.resultsUrl)}" target="_blank" rel="noopener">↗ Màn hình kết quả</a><a href="${esc(window.MACVotingAdmin.voteUrl)}" target="_blank" rel="noopener">↗ Mở trang vote</a><button type="button" id="ma-seed-demo" class="ma-side-secret" title="Chỉ super admin · diễn tập màn hình công bố">⚓ Áp dữ liệu demo</button>` : ""}`;
@@ -540,10 +543,120 @@
     return `<section class="ma-panel ma-people-panel"><header><div class="ma-people-header-copy"><small>QR CÁ NHÂN</small><h2>${canWrite() ? "Gửi QR qua email" : "Danh sách nhân sự"}</h2><p>${canWrite() ? "Mỗi người một QR. Dùng cho check-in và login văn nghệ." : "Chỉ xem danh sách. Super admin mới gửi hoặc tạo lại QR."}</p>${actions}</div></header><div class="ma-people-body"><div class="ma-people-filter"><select id="ma-people-team"><option value="all">Tất cả team</option>${(data.teams || []).map((team) => `<option value="${team.id}" ${String(peopleTeam) === String(team.id) ? "selected" : ""}>#${team.team_no} ${esc(team.name)}</option>`).join("")}</select><input id="ma-people-query" type="search" placeholder="Tìm tên hoặc email" value="${esc(peopleQuery)}"></div><div class="ma-people-table"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Team</th><th>Trạng thái</th>${canWrite() ? "<th></th>" : ""}</tr></thead><tbody>${rows || `<tr class="ma-people-empty"><td colspan="${canWrite() ? 5 : 4}">Không có nhân sự khớp bộ lọc.</td></tr>`}</tbody></table></div></div></section>`;
   }
   function dataView() { return `<header class="ma-top"><div><small>NHÂN SỰ</small><h1>Nhân sự & QR</h1></div></header>${window.MACVotingAdmin.permalinkWarning ? `<div class="ma-permalink-warning"><strong>URL đẹp chưa được bật</strong><span>Website đang dùng link dạng <code>?page_id=...</code>. Chọn cấu trúc “Tên bài viết” rồi lưu để dùng đường dẫn /cham-diem-van-nghe/.</span><a href="${esc(window.MACVotingAdmin.permalinkSettingsUrl)}">Mở cài đặt Permalink →</a></div>` : ""}${Number(data.stats.missingEmailVoters) ? `<div class="ma-permalink-warning"><strong>${data.stats.missingEmailVoters} nhân sự chưa có email</strong><span>Những người này chưa thể đăng nhập bằng username. Hãy import lại CSV có cột Email để mapping vào dữ liệu cũ.</span><a href="${esc(window.MACVotingAdmin.templateUrl)}">Tải CSV mẫu →</a></div>` : ""}${importFeedback ? `<div class="ma-import-success"><span>✓</span><div><strong>${esc(importFeedback.message)}</strong><small>${esc(importFeedback.fileName)} · ${esc(importFeedback.at)} · Tổng hiện có ${data.stats.activeVoters} người được vote</small></div></div>${(importFeedback.staffAccounts || []).length ? `<div class="ma-import-success ma-staff-passwords"><span>!</span><div><strong>Mật khẩu tài khoản BTC — chỉ hiện một lần</strong><ul>${importFeedback.staffAccounts.map((item) => `<li><b>${esc(item.email)}</b> · ${esc(item.password)}</li>`).join("")}</ul></div></div>` : ""}` : ""}${personFeedback ? `<div class="ma-import-success ma-staff-passwords"><span>!</span><div><strong>Tài khoản ${personFeedback.kind === "super" ? "Super admin" : "BTC"} của ${esc(personFeedback.name)} — chỉ hiện một lần</strong><ul><li>Đăng nhập: <b>${esc(personFeedback.login)}</b> · Mật khẩu: <b>${esc(personFeedback.password)}</b></li></ul><small>Dùng tài khoản này đăng nhập trang Máy quét BTC. Muốn đổi team được quét thì vào tab Check-in → Tài khoản máy quét.</small></div></div>` : ""}${canWrite() ? `<div class="ma-data"><section class="ma-panel"><span class="ma-icon">⇧</span><small>IMPORT CSV</small><h2>Danh sách nhân sự</h2><p>File CSV gồm Họ & Tên, Năm sinh, Giới tính, CCCD, SĐT, Loại phòng, Phòng, Team, Email, Note, Đi xe, Resort. Không gộp ô: phòng lặp lại cùng số trên từng dòng; note người thân đánh số lặp lại (người thân 1, người thân 2…); cả nhà đi xe nhà thì điền Đi xe = Không cho mọi thành viên.</p><label class="ma-primary">Chọn & xem trước CSV<input id="ma-import" type="file" accept=".csv,text/csv"></label><a href="${esc(window.MACVotingAdmin.templateUrl)}">↓ Tải CSV mẫu</a></section><section class="ma-panel"><span class="ma-icon">▦</span><small>SAO LƯU & ĐỐI SOÁT</small><h2>Xuất dữ liệu</h2><p>File XLSX gồm bảng điểm, check-in, phân xe, nhân sự và chi tiết phiếu.</p><a class="ma-primary" href="${esc(window.MACVotingAdmin.exportUrl)}">↓ Xuất XLSX kết quả</a></section></div>` : ""}${personnelQr()}`; }
+  function lotoView() {
+    if (!lotoData) {
+      const status = lotoError
+        ? `<section class="ma-panel ma-loto-status is-error" role="alert"><strong>Không tải được dữ liệu Lô Tô</strong><p>${esc(lotoError)}</p><button type="button" id="ma-loto-retry" class="ma-primary">Thử lại</button></section>`
+        : `<section class="ma-panel ma-loto-status" role="status"><p>Đang tải dữ liệu kho báu…</p></section>`;
+      return `<header class="ma-top"><div><small>LÔ TÔ KHO BÁU</small><h1>Lô Tô Kho Báu</h1></div></header>${status}`;
+    }
+    const canOperate = !!(lotoData.can && lotoData.can.operate);
+    const canManage = !!(lotoData.can && lotoData.can.write);
+    const remaining = Number(lotoData.remainingTotal || 0);
+    const prizes = lotoData.prizes || [];
+    const history = lotoData.history || [];
+    const displayUrl = lotoData.displayUrl || "#";
+    const thumb = (url) => url ? `<img class="ma-loto-thumb" src="${esc(url)}" alt="">` : `<span class="ma-loto-noimg" aria-hidden="true">🎁</span>`;
+    const remainingRows = prizes.map((p) => `<tr><td><div class="ma-loto-prize-cell">${thumb(p.image_url)}<strong>${esc(p.name)}</strong></div></td><td><strong>${p.remaining}</strong> / ${p.total}${p.remaining <= 0 ? ` <span class="ma-loto-sold">hết</span>` : ""}</td></tr>`).join("");
+    const historyItems = history.slice().reverse().map((h, i) => `<li><span class="ma-loto-hist-index">${history.length - i}</span><div class="ma-loto-hist-cell">${thumb(h.image_url)}<div><strong>${esc(h.prize_name || "Phần thưởng")}</strong><small>${h.time ? new Date(Number(h.time) * 1000).toLocaleTimeString("vi-VN") : ""}</small></div></div></li>`).join("");
+    const managerRows = prizes.map((p) => `<tr><td>${thumb(p.image_url)}</td><td><strong>${esc(p.name)}</strong></td><td>${p.remaining} / ${p.total}</td><td><button type="button" class="danger" data-loto-delete="${esc(p.id)}" data-loto-name="${esc(p.name)}">Xóa</button></td></tr>`).join("");
+    return `<header class="ma-top"><div><small>LÔ TÔ KHO BÁU</small><h1>Vòng quay kho báu</h1></div><div class="ma-top-actions"><a class="ma-loto-led" href="${esc(displayUrl)}" target="_blank" rel="noopener">↗ Mở màn hình LED</a><button type="button" id="ma-loto-refresh">↻ Tải lại</button></div></header>`
+      + `<section class="ma-panel ma-loto-controls"><header><div><small>ĐIỀU KHIỂN TRỰC TIẾP</small><h2>Bàn điều khiển hành trình</h2><p>Bấm “Dò la bàn” để quay một phần thưởng ngẫu nhiên — tàu sẽ ra khơi trên màn hình LED. Kho tàng còn <strong>${remaining}</strong> phần thưởng.</p></div></header><div class="ma-loto-control-actions"><button type="button" id="ma-loto-draw" class="ma-primary ma-loto-draw" ${(!canOperate || remaining <= 0) ? "disabled" : ""}>🧭 DÒ LA BÀN</button><button type="button" id="ma-loto-ready" ${!canOperate ? "disabled" : ""}>✅ Sẵn sàng lượt tiếp theo</button><button type="button" id="ma-loto-undo" ${(!canOperate || history.length === 0) ? "disabled" : ""}>↩ Hoàn tác lượt cuối</button></div>${!canOperate ? `<p class="ma-loto-hint">Chỉ Super Admin và BTC/Hoa tiêu mới được quay thưởng trực tiếp.</p>` : ""}</section>`
+      + `<div class="ma-loto-columns"><section class="ma-panel"><header><div><small>💰 KHO TÀNG CÒN LẠI</small><h2>${prizes.length} loại phần thưởng</h2></div></header><div class="ma-board-table"><table><thead><tr><th>Phần thưởng</th><th>Còn / Tổng</th></tr></thead><tbody>${remainingRows || `<tr><td colspan="2">Chưa có phần thưởng nào trong kho tàng.</td></tr>`}</tbody></table></div></section><section class="ma-panel"><header><div><small>📜 LỊCH SỬ QUAY</small><h2>${history.length} lượt</h2></div></header><ol class="ma-loto-history">${historyItems || `<li class="ma-loto-empty">Chưa có lượt quay nào.</li>`}</ol></section></div>`
+      + (canManage ? `<section class="ma-panel ma-loto-manager"><header><div><small>QUẢN LÝ KHO TÀNG · CHỈ SUPER ADMIN</small><h2>Thêm & sắp xếp phần thưởng</h2><p>Ảnh minh họa có thể tải từ thiết bị hoặc dán URL. Mỗi phần thưởng có số lượng; quay trúng sẽ trừ dần.</p></div></header><form id="ma-loto-add" class="ma-loto-add-form"><div class="ma-loto-field"><label for="ma-loto-name">Tên phần thưởng</label><input id="ma-loto-name" name="name" type="text" maxlength="120" placeholder="Ví dụ: Gấu bông thuyền trưởng" required></div><div class="ma-loto-field"><label for="ma-loto-qty">Số lượng</label><input id="ma-loto-qty" name="qty" type="number" min="1" max="999" value="1" required></div><div class="ma-loto-field"><label for="ma-loto-file">Ảnh (tải từ thiết bị)</label><input id="ma-loto-file" name="file" type="file" accept="image/*"></div><div class="ma-loto-field"><label for="ma-loto-url">Hoặc dán URL ảnh</label><input id="ma-loto-url" name="imageUrl" type="url" maxlength="500" placeholder="https://…"></div><div class="ma-loto-preview"><img id="ma-loto-preview-img" alt="Xem trước ảnh phần thưởng" hidden><span id="ma-loto-preview-hint">Chưa có ảnh xem trước</span></div><button type="submit" class="ma-primary">+ Thêm vào kho tàng</button></form><div class="ma-board-table ma-loto-manager-list"><table><thead><tr><th>Ảnh</th><th>Phần thưởng</th><th>Còn / Tổng</th><th></th></tr></thead><tbody>${managerRows || `<tr><td colspan="4">Chưa có phần thưởng nào.</td></tr>`}</tbody></table></div><div class="ma-loto-danger"><button type="button" id="ma-loto-reset" class="danger">⚠ Đặt lại toàn bộ kho tàng</button><small>Xóa tất cả phần thưởng và lịch sử quay. Không thể hoàn tác.</small></div></section>` : "");
+  }
+  async function loadLoto(announce = false) {
+    if (lotoLoading) return;
+    lotoLoading = true;
+    lotoError = "";
+    const refreshButton = root.querySelector("#ma-loto-refresh");
+    if (refreshButton) { refreshButton.disabled = true; refreshButton.classList.add("is-loading"); refreshButton.textContent = "Đang tải…"; }
+    try {
+      lotoData = await ajax("mac_vote_loto_state");
+      render();
+      if (announce) notify("Dữ liệu Lô Tô đã được cập nhật.");
+    } catch (err) {
+      lotoError = err.message || "Không tải được dữ liệu Lô Tô.";
+      render();
+      notify(lotoError, true);
+    } finally { lotoLoading = false; }
+  }
+  function wireLoto() {
+    root.querySelector("#ma-loto-retry")?.addEventListener("click", () => loadLoto());
+    root.querySelector("#ma-loto-refresh")?.addEventListener("click", () => loadLoto(true));
+    if (!lotoData) return;
+    const runOp = async (action, button, fallback) => {
+      if (button) { button.disabled = true; button.classList.add("is-loading"); }
+      try {
+        const result = await ajax(action);
+        await loadLoto();
+        notify(result.message || fallback);
+      } catch (err) {
+        notify(err.message, true);
+        loadLoto();
+      }
+    };
+    root.querySelector("#ma-loto-draw")?.addEventListener("click", (event) => runOp("mac_vote_loto_draw", event.currentTarget, "Đã quay thưởng."));
+    root.querySelector("#ma-loto-ready")?.addEventListener("click", (event) => runOp("mac_vote_loto_ready", event.currentTarget, "Đã sẵn sàng lượt tiếp theo."));
+    root.querySelector("#ma-loto-undo")?.addEventListener("click", (event) => runOp("mac_vote_loto_undo", event.currentTarget, "Đã hoàn tác."));
+    const form = root.querySelector("#ma-loto-add");
+    const previewImg = root.querySelector("#ma-loto-preview-img");
+    const previewHint = root.querySelector("#ma-loto-preview-hint");
+    let previewUrl = "";
+    const showPreview = (src, isObject) => {
+      if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = ""; }
+      if (src) { if (previewImg) { previewImg.src = src; previewImg.hidden = false; } if (isObject) previewUrl = src; if (previewHint) previewHint.hidden = true; }
+      else { if (previewImg) { previewImg.removeAttribute("src"); previewImg.hidden = true; } if (previewHint) previewHint.hidden = false; }
+    };
+    const fileInput = form ? form.querySelector('input[name="file"]') : null;
+    const urlInput = form ? form.querySelector('input[name="imageUrl"]') : null;
+    fileInput?.addEventListener("change", () => { if (urlInput) urlInput.value = ""; const f = fileInput.files && fileInput.files[0]; showPreview(f ? URL.createObjectURL(f) : "", !!f); });
+    urlInput?.addEventListener("input", () => { if (fileInput) fileInput.value = ""; showPreview(urlInput.value.trim(), false); });
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submit = form.querySelector('button[type="submit"]');
+      const name = form.querySelector('input[name="name"]').value.trim();
+      const qty = form.querySelector('input[name="qty"]').value;
+      const imageUrl = form.querySelector('input[name="imageUrl"]').value.trim();
+      const file = form.querySelector('input[name="file"]').files[0] || null;
+      if (name.length < 2) { notify("Tên phần thưởng phải có ít nhất 2 ký tự.", true); return; }
+      if (!file && !imageUrl) { notify("Vui lòng tải ảnh lên hoặc dán URL ảnh.", true); return; }
+      submit.disabled = true; submit.classList.add("is-loading"); submit.textContent = "Đang thêm…";
+      try {
+        const result = await ajax("mac_vote_loto_add_prize", { name, qty, imageUrl }, file);
+        form.reset(); showPreview("", false);
+        await loadLoto();
+        notify(result.message);
+      } catch (err) {
+        submit.disabled = false; submit.classList.remove("is-loading"); submit.textContent = "+ Thêm vào kho tàng";
+        notify(err.message, true);
+      }
+    });
+    root.querySelectorAll("[data-loto-delete]").forEach((button) => button.addEventListener("click", async () => {
+      const name = button.dataset.lotoName || "phần thưởng";
+      if (!(await confirmDialog({ title: "Xóa phần thưởng", message: `Xóa “${name}” khỏi kho tàng? Các lượt đã quay của phần thưởng này vẫn nằm trong lịch sử.`, confirmLabel: "Xóa", danger: true }))) return;
+      button.disabled = true;
+      try {
+        const result = await ajax("mac_vote_loto_delete_prize", { prizeId: button.dataset.lotoDelete });
+        await loadLoto();
+        notify(result.message);
+      } catch (err) { button.disabled = false; notify(err.message, true); }
+    }));
+    root.querySelector("#ma-loto-reset")?.addEventListener("click", async (event) => {
+      const button = event.currentTarget;
+      if (!(await confirmDialog({ title: "Đặt lại kho tàng", message: "Xóa TẤT CẢ phần thưởng và lịch sử quay? Hành động này không thể hoàn tác.", confirmLabel: "Đặt lại tất cả", danger: true }))) return;
+      button.disabled = true;
+      try {
+        const result = await ajax("mac_vote_loto_reset");
+        await loadLoto();
+        notify(result.message);
+      } catch (err) { button.disabled = false; notify(err.message, true); }
+    });
+  }
   function render() {
     if (window.MACVotingAdmin.role === "guide" && tab !== "checkin" && tab !== "mybus") tab = "checkin";
     root.classList.toggle("is-readonly", !canWrite());
-    root.innerHTML = `<div class="ma-layout">${sidebar()}<main class="ma-content">${tab === "overview" ? pointsView() : tab === "checkin" ? checkinView() : tab === "games" ? gamesView() : tab === "thidua" ? thiduaView() : tab === "art" ? artView() : tab === "bus" ? busView() : tab === "mybus" ? myBusView() : dataView()}</main></div>`;
+    root.innerHTML = `<div class="ma-layout">${sidebar()}<main class="ma-content">${tab === "overview" ? pointsView() : tab === "checkin" ? checkinView() : tab === "games" ? gamesView() : tab === "thidua" ? thiduaView() : tab === "art" ? artView() : tab === "bus" ? busView() : tab === "mybus" ? myBusView() : tab === "loto" ? lotoView() : dataView()}</main></div>`;
     const sideNav = root.querySelector(".ma-side nav");
     const activeTabButton = sideNav?.querySelector("button.active");
     // Mobile: thanh tab cuộn ngang trong .ma-side (không phải nav) — sau mỗi lần
@@ -572,6 +685,10 @@
     root.querySelectorAll("[data-tab]").forEach((button) => button.addEventListener("click", () => { tab = button.dataset.tab; render(); }));
     root.querySelectorAll("[data-overview-tab]").forEach((button) => button.addEventListener("click", () => { overviewTab = button.dataset.overviewTab; render(); }));
     root.querySelector("#ma-refresh")?.addEventListener("click", () => load(true));
+    if (tab === "loto") {
+      if (!lotoData && !lotoLoading && !lotoError) loadLoto();
+      wireLoto();
+    }
     root.querySelectorAll("[data-module-reset]").forEach((button) => button.addEventListener("click", async () => {
       const scope = button.dataset.moduleReset;
       const module = resetModules[scope];

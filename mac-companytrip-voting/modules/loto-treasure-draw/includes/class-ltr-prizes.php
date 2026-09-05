@@ -78,14 +78,19 @@ class LTR_Prizes {
         update_option(self::OPT_EVENT, $event);
     }
 
-    public static function add_prize($name, $image_id, $qty) {
+    public static function add_prize($name, $image_id, $qty, $image_url = '') {
         $prizes   = self::get_prizes();
         $image_id = (int) $image_id;
+        // Ưu tiên ảnh trong thư viện Media (image_id). Nếu không có attachment
+        // thì dùng URL người dùng dán vào (image_url) — dashboard không có wp.media.
+        $resolved_url = $image_id
+            ? (string) wp_get_attachment_image_url($image_id, 'large')
+            : ($image_url ? esc_url_raw($image_url) : '');
         $prizes[] = [
             'id'        => 'p' . uniqid(),
             'name'      => sanitize_text_field($name),
             'image_id'  => $image_id,
-            'image_url' => $image_id ? (string) wp_get_attachment_image_url($image_id, 'large') : '',
+            'image_url' => $resolved_url,
             'total'     => max(1, (int) $qty),
             'remaining' => max(1, (int) $qty),
         ];

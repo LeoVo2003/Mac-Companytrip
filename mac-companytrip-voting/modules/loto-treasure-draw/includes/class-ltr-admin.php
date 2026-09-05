@@ -1,106 +1,163 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
+/**
+ * Cầu nối admin-ajax cho tab "Lô Tô" trong dashboard /company-trip-admin.
+ *
+ * Module này KHÔNG còn menu wp-admin riêng. Mọi thao tác (dò la bàn, sẵn sàng,
+ * hoàn tác, thêm/xóa phần thưởng, đặt lại) đi qua wp_ajax_mac_vote_loto_* — cùng
+ * mẫu nonce + phân quyền với phần còn lại của dashboard MAC. Màn hình LED vẫn
+ * dùng REST ltr/v1 (token) như cũ; cả hai đều gọi chung LTR_Prizes.
+ */
 class LTR_Admin {
 
     public static function init() {
-        add_action('admin_menu', [__CLASS__, 'menu']);
-        add_action('admin_post_ltr_add_prize', [__CLASS__, 'handle_add_prize']);
-        add_action('admin_post_ltr_delete_prize', [__CLASS__, 'handle_delete_prize']);
-        add_action('admin_post_ltr_reset_all', [__CLASS__, 'handle_reset_all']);
-        add_action('admin_enqueue_scripts', [__CLASS__, 'enqueue']);
+        add_action('wp_ajax_mac_vote_loto_state', [__CLASS__, 'ajax_state']);
+        add_action('wp_ajax_mac_vote_loto_draw', [__CLASS__, 'ajax_draw']);
+        add_action('wp_ajax_mac_vote_loto_ready', [__CLASS__, 'ajax_ready']);
+        add_action('wp_ajax_mac_vote_loto_undo', [__CLASS__, 'ajax_undo']);
+        add_action('wp_ajax_mac_vote_loto_add_prize', [__CLASS__, 'ajax_add_prize']);
+        add_action('wp_ajax_mac_vote_loto_delete_prize', [__CLASS__, 'ajax_delete_prize']);
+        add_action('wp_ajax_mac_vote_loto_reset', [__CLASS__, 'ajax_reset']);
     }
 
-    public static function menu() {
-        add_menu_page(
-            'Lô Tô Kho Báu',
-            '🏴‍☠️ Lô Tô Kho Báu',
-            'manage_options',
-            'ltr-control',
-            [__CLASS__, 'render_control'],
-            'dashicons-flag',
-            26
-        );
-        add_submenu_page('ltr-control', 'Điều khiển quay thưởng', '🧭 Điều khiển', 'manage_options', 'ltr-control', [__CLASS__, 'render_control']);
-        add_submenu_page('ltr-control', 'Kho tàng phần thưởng', '💰 Kho tàng', 'manage_options', 'ltr-prizes', [__CLASS__, 'render_prizes']);
-        add_submenu_page('ltr-control', 'Màn hình LED', '📺 Màn hình LED', 'manage_options', 'ltr-display-info', [__CLASS__, 'render_display_info']);
-    }
-
-    public static function enqueue($hook) {
-        if (strpos($hook, 'ltr-') === false) {
+    /**
+     * MAC_Voting_Admin::guard() là private nên module tự kiểm tra, dùng đúng
+     * nonce 'mac_voting_admin' và cùng bộ vai trò:
+     *   staff    = vào được dashboard (xem trạng thái)
+     *   operator = Super + BTC/Hoa tiêu (không gồm HDV) — quay/sẵn sàng/hoàn tác
+     *   super    = Super Admin — thêm/xóa/đặt lại phần thưởng
+     */
+    private static function guard($level = 'super') {
+        check_ajax_referer('mac_voting_admin', 'nonce');
+        if (!class_exists('MAC_Voting_Admin') || !class_exists('MAC_Checkin') || !class_exists('MAC_Bus')) {
+            wp_send_json_error(['message' => 'Module Lô Tô chưa được nạp đúng cách.'], 500);
+        }
+        $can_access = MAC_Voting_Admin::can_access_dashboard();
+        if ($level === 'staff' && $can_access) {
             return;
         }
-
-        wp_enqueue_style('ltr-admin', LTR_PLUGIN_URL . 'assets/css/admin.css', [], LTR_VERSION);
-
-        if ($hook === 'toplevel_page_ltr-control') {
-            wp_enqueue_script('ltr-admin-control', LTR_PLUGIN_URL . 'assets/js/admin-control.js', [], LTR_VERSION, true);
-            wp_localize_script('ltr-admin-control', 'LTR_DATA', [
-                'root'  => esc_url_raw(rest_url('ltr/v1/')),
-                'nonce' => wp_create_nonce('wp_rest'),
-            ]);
+        if ($level === 'operator' && $can_access && !MAC_Bus::is_guide()) {
+            return;
         }
-
-        if (strpos($hook, 'ltr-prizes') !== false) {
-            wp_enqueue_media();
-            wp_enqueue_script('ltr-admin-prizes', LTR_PLUGIN_URL . 'assets/js/admin-prizes.js', ['jquery'], LTR_VERSION, true);
+        if ($level === 'super' && MAC_Checkin::is_super()) {
+            return;
         }
+        wp_send_json_error(['message' => 'Không có quyền.'], 403);
     }
 
-    public static function handle_add_prize() {
-        if (!current_user_can('manage_options')) {
-            wp_die('Không đủ quyền.');
-        }
-        check_admin_referer('ltr_add_prize');
-
-        $name     = isset($_POST['prize_name']) ? sanitize_text_field(wp_unslash($_POST['prize_name'])) : '';
-        $qty      = isset($_POST['prize_qty']) ? (int) $_POST['prize_qty'] : 1;
-        $image_id = isset($_POST['prize_image_id']) ? (int) $_POST['prize_image_id'] : 0;
-
-        if ($name !== '') {
-            LTR_Prizes::add_prize($name, $image_id, $qty);
-        }
-
-        wp_safe_redirect(admin_url('admin.php?page=ltr-prizes&added=1'));
-        exit;
+    private static function can_operate() {
+        return MAC_Voting_Admin::can_access_dashboard() && !MAC_Bus::is_guide();
     }
 
-    public static function handle_delete_prize() {
-        if (!current_user_can('manage_options')) {
-            wp_die('Không đủ quyền.');
+    private static function state_payload() {
+        $prizes          = LTR_Prizes::get_prizes();
+        $summary         = [];
+        $remaining_total = 0;
+        foreach ($prizes as $p) {
+            $remaining        = isset($p['remaining']) ? (int) $p['remaining'] : 0;
+            $remaining_total += $remaining;
+            $summary[] = [
+                'id'        => isset($p['id']) ? (string) $p['id'] : '',
+                'name'      => isset($p['name']) ? (string) $p['name'] : '',
+                'image_url' => isset($p['image_url']) ? (string) $p['image_url'] : '',
+                'remaining' => $remaining,
+                'total'     => isset($p['total']) ? (int) $p['total'] : 0,
+            ];
         }
-        check_admin_referer('ltr_delete_prize');
-
-        $id = isset($_POST['prize_id']) ? sanitize_text_field(wp_unslash($_POST['prize_id'])) : '';
-        if ($id !== '') {
-            LTR_Prizes::delete_prize($id);
-        }
-
-        wp_safe_redirect(admin_url('admin.php?page=ltr-prizes&deleted=1'));
-        exit;
+        return [
+            'prizes'         => $summary,
+            'history'        => array_values(LTR_Prizes::get_history()),
+            'remainingTotal' => $remaining_total,
+            'displayUrl'     => add_query_arg('ltr_display', '1', home_url('/')),
+            'can'            => [
+                'operate' => self::can_operate(),
+                'write'   => MAC_Checkin::is_super(),
+            ],
+        ];
     }
 
-    public static function handle_reset_all() {
-        if (!current_user_can('manage_options')) {
-            wp_die('Không đủ quyền.');
-        }
-        check_admin_referer('ltr_reset_all');
+    public static function ajax_state() {
+        self::guard('staff');
+        wp_send_json_success(self::state_payload());
+    }
 
+    public static function ajax_draw() {
+        self::guard('operator');
+        $result = LTR_Prizes::draw();
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], 400);
+        }
+        wp_send_json_success(['message' => 'Đã dò la bàn — màn hình LED đang chạy hành trình tìm kho báu.']);
+    }
+
+    public static function ajax_ready() {
+        self::guard('operator');
+        LTR_Prizes::ready_next();
+        wp_send_json_success(['message' => 'Đã sẵn sàng cho lượt quay tiếp theo.']);
+    }
+
+    public static function ajax_undo() {
+        self::guard('operator');
+        $result = LTR_Prizes::undo_last();
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()], 400);
+        }
+        wp_send_json_success(['message' => 'Đã hoàn tác lượt quay cuối cùng.']);
+    }
+
+    public static function ajax_add_prize() {
+        self::guard();
+
+        $name = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
+        $qty  = isset($_POST['qty']) ? max(1, (int) $_POST['qty']) : 1;
+        if ($name === '') {
+            wp_send_json_error(['message' => 'Vui lòng nhập tên phần thưởng.'], 400);
+        }
+
+        $has_file  = isset($_FILES['file']) && isset($_FILES['file']['name']) && $_FILES['file']['name'] !== '';
+        $image_url = isset($_POST['imageUrl']) ? esc_url_raw(wp_unslash($_POST['imageUrl'])) : '';
+
+        // Hỗ trợ CẢ HAI: tải ảnh từ thiết bị HOẶC dán URL ảnh.
+        if ($has_file) {
+            if ((int) $_FILES['file']['size'] > 5 * 1024 * 1024) {
+                wp_send_json_error(['message' => 'Ảnh không được lớn hơn 5 MB.'], 400);
+            }
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+            require_once ABSPATH . 'wp-admin/includes/media.php';
+            $attachment_id = media_handle_upload('file', 0);
+            if (is_wp_error($attachment_id)) {
+                wp_send_json_error(['message' => $attachment_id->get_error_message()], 400);
+            }
+            $mime = get_post_mime_type($attachment_id);
+            if (!$mime || strpos($mime, 'image/') !== 0) {
+                wp_delete_attachment($attachment_id, true);
+                wp_send_json_error(['message' => 'Tệp tải lên không phải là ảnh hợp lệ.'], 400);
+            }
+            LTR_Prizes::add_prize($name, $attachment_id, $qty);
+        } elseif ($image_url !== '') {
+            LTR_Prizes::add_prize($name, 0, $qty, $image_url);
+        } else {
+            LTR_Prizes::add_prize($name, 0, $qty);
+        }
+
+        wp_send_json_success(['message' => 'Đã thêm phần thưởng vào kho tàng.']);
+    }
+
+    public static function ajax_delete_prize() {
+        self::guard();
+        $id = isset($_POST['prizeId']) ? sanitize_text_field(wp_unslash($_POST['prizeId'])) : '';
+        if ($id === '') {
+            wp_send_json_error(['message' => 'Thiếu phần thưởng cần xóa.'], 400);
+        }
+        LTR_Prizes::delete_prize($id);
+        wp_send_json_success(['message' => 'Đã xóa phần thưởng khỏi kho tàng.']);
+    }
+
+    public static function ajax_reset() {
+        self::guard();
         LTR_Prizes::reset_all();
-
-        wp_safe_redirect(admin_url('admin.php?page=ltr-prizes&reset=1'));
-        exit;
-    }
-
-    public static function render_control() {
-        include LTR_PLUGIN_DIR . 'includes/views/control.php';
-    }
-
-    public static function render_prizes() {
-        include LTR_PLUGIN_DIR . 'includes/views/prizes.php';
-    }
-
-    public static function render_display_info() {
-        include LTR_PLUGIN_DIR . 'includes/views/display-info.php';
+        wp_send_json_success(['message' => 'Đã đặt lại toàn bộ kho tàng và lịch sử quay.']);
     }
 }

@@ -3,7 +3,7 @@ Contributors: macmarketing
 Tags: voting, company trip, scoring, event
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.10.45
+Stable tag: 1.10.46
 
 Hệ thống chấm điểm văn nghệ nội bộ với danh sách team linh hoạt cho MAC Marketing.
 
@@ -71,6 +71,10 @@ Cột Vai trò ghi BTC hoặc Super admin sẽ tạo tài khoản dashboard riê
 - Hạng mục cũ chuyển thành "lần thi đua", giữ nguyên dữ liệu cũ.
 
 == Changelog ==
+
+= 1.10.46 =
+- Lô Tô Kho Báu: bỏ menu điều khiển trong wp-admin, chuyển toàn bộ thành tab "🏴‍☠️ Lô Tô" trong dashboard /company-trip-admin/ (quay thưởng + quản lý phần thưởng qua admin-ajax mac_vote_loto_*). Phân quyền: Super + BTC được quay/sẵn sàng/hoàn tác, chỉ Super được thêm/xóa/reset phần thưởng, HDV không thấy tab. Thêm phần thưởng hỗ trợ cả tải ảnh từ máy và dán URL ảnh.
+- Màn hình LED (/?ltr_display=1) thiết kế lại theo phong cách "hải trình kho báu" điện ảnh: thuyền buồm nhìn từ trên cao di chuyển theo tọa độ pixel thật, 6 đảo kho báu không chồng lấn, vẽ tuyến đường, la bàn dẫn hướng, hiệu ứng mở rương + pháo sáng, máy trạng thái đầy đủ, hỗ trợ reduced-motion và nhiều độ phân giải LED.
 
 = 1.10.45 =
 - Tích hợp module "Lô Tô Kho Báu" (loto-treasure-draw) dạng bundled trong modules/: giữ nguyên layout + logic bản gốc, nạp từ bootstrap plugin chính và kích hoạt qua LTR_Prizes::activate. Điều khiển tạm thời nằm trong wp-admin; bản kế tiếp sẽ chuyển ra tab riêng trong /company-trip-admin/.

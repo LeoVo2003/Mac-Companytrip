@@ -65,6 +65,7 @@ final class MAC_Voting_Admin {
         wp_enqueue_style('mac-voting-admin', MAC_VOTING_URL . 'assets/admin.css', array(), MAC_VOTING_VERSION);
         wp_enqueue_style('mac-voting-admin-qr', MAC_VOTING_URL . 'assets/admin-qr.css', array('mac-voting-admin'), MAC_VOTING_VERSION);
         wp_enqueue_style('mac-voting-ui-refinements', MAC_VOTING_URL . 'assets/ui-refinements.css', array('mac-voting-admin-qr'), MAC_VOTING_VERSION);
+        wp_enqueue_style('mac-voting-loto-dashboard', MAC_VOTING_URL . 'assets/loto-dashboard.css', array('mac-voting-ui-refinements'), MAC_VOTING_VERSION);
         wp_enqueue_script('mac-voting-qrcode', MAC_VOTING_URL . 'assets/qrcode.bundle.js', array(), MAC_VOTING_VERSION, true);
         wp_enqueue_script('mac-voting-admin', MAC_VOTING_URL . 'assets/admin.js', array('mac-voting-qrcode'), MAC_VOTING_VERSION, true);
         wp_localize_script('mac-voting-admin', 'MACVotingAdmin', self::script_config());

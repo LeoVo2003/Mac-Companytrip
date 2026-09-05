@@ -1,0 +1,471 @@
+/* ==========================================================================
+   MAC Company Trip — Lô Tô Kho Báu (loto-dashboard.css)
+   --------------------------------------------------------------------------
+   Styling cho tab "🏴‍☠️ Lô Tô" trong dashboard /company-trip-admin.
+   Tái dùng token thương hiệu của .mac-admin-app (đỏ #E31E24 → cam #FF6A2C,
+   radius panel 14, touch ≥ 44px). Chỉ định nghĩa các class .ma-loto-* mới;
+   .ma-panel / .ma-board-table / .ma-top đã có sẵn trong admin.css.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Header: link LED + nút tải lại
+   -------------------------------------------------------------------------- */
+.ma-loto-led {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid var(--brand-border);
+  border-radius: 10px;
+  background: var(--brand-soft);
+  color: var(--r);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
+}
+
+.ma-loto-led:hover {
+  border-color: var(--r);
+  background: var(--brand-tint);
+  filter: brightness(0.99);
+}
+
+#ma-loto-refresh {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow-btn);
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+#ma-loto-refresh:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--soft);
+}
+
+#ma-loto-refresh:disabled,
+#ma-loto-refresh.is-loading {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* --------------------------------------------------------------------------
+   2. Trạng thái đang tải / lỗi
+   -------------------------------------------------------------------------- */
+.ma-loto-status {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.ma-loto-status p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.ma-loto-status.is-error strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--danger);
+  font-size: 16px;
+}
+
+.ma-loto-status.is-error p {
+  margin-bottom: 18px;
+  color: var(--ink-mid);
+}
+
+.ma-loto-status #ma-loto-retry {
+  margin: 0 auto;
+  border: 0;
+  color: #fff;
+  background: var(--grad);
+  box-shadow: var(--shadow-grad);
+}
+
+/* --------------------------------------------------------------------------
+   3. Bàn điều khiển (Controls)
+   -------------------------------------------------------------------------- */
+.ma-loto-controls .ma-loto-control-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 20px;
+}
+
+.ma-loto-control-actions button {
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow-btn);
+  transition: background-color 0.15s ease, border-color 0.15s ease, filter 0.15s ease, transform 0.08s ease, opacity 0.15s ease;
+}
+
+.ma-loto-control-actions button:hover:not(:disabled) {
+  border-color: var(--faint);
+  background: var(--soft);
+}
+
+.ma-loto-control-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ma-loto-control-actions button.is-loading {
+  opacity: 0.68;
+  cursor: wait;
+}
+
+/* Nút "DÒ LA BÀN" — CTA gradient khổ lớn */
+.ma-loto-control-actions .ma-loto-draw {
+  flex: 1 1 280px;
+  min-height: 68px;
+  margin-top: 0;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--grad);
+  color: #fff;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  box-shadow: var(--shadow-grad);
+}
+
+.ma-loto-control-actions .ma-loto-draw:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--grad);
+  filter: brightness(1.06);
+}
+
+.ma-loto-control-actions .ma-loto-draw:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.ma-loto-hint {
+  margin: 0;
+  padding: 0 20px 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Hai cột: kho tàng còn lại + lịch sử quay
+   -------------------------------------------------------------------------- */
+.ma-loto-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.ma-loto-prize-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ma-loto-thumb {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  object-fit: cover;
+  background: var(--soft);
+}
+
+.ma-loto-noimg {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  border: 1px dashed var(--border-strong);
+  background: var(--soft);
+  font-size: 18px;
+}
+
+.ma-loto-sold {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ma-loto-history {
+  margin: 12px 16px 16px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.ma-loto-history li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--soft);
+}
+
+.ma-loto-hist-index {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--grad);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ma-loto-hist-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ma-loto-hist-cell strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ma-loto-hist-cell small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ma-loto-empty {
+  justify-content: center;
+  color: var(--muted);
+  font-size: 13px;
+  background: transparent;
+  border-style: dashed;
+}
+
+/* --------------------------------------------------------------------------
+   5. Quản lý kho tàng (chỉ Super Admin)
+   -------------------------------------------------------------------------- */
+.ma-loto-add-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+  padding: 20px;
+}
+
+.ma-loto-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ma-loto-field label {
+  color: var(--ink-mid);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.ma-loto-field input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.ma-loto-field input[type="file"] {
+  padding: 9px 12px;
+  line-height: 1.6;
+}
+
+.ma-loto-field input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.ma-loto-preview {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 12px;
+  background: var(--soft);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ma-loto-preview img {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  object-fit: contain;
+  background: #fff;
+}
+
+.ma-loto-add-form .ma-primary {
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-height: 48px;
+  margin-top: 0;
+  padding: 0 24px;
+  border: 0;
+  color: #fff;
+  background: var(--grad);
+  box-shadow: var(--shadow-grad);
+}
+
+.ma-loto-add-form .ma-primary:hover:not(:disabled) {
+  background: var(--grad);
+  filter: brightness(1.06);
+}
+
+.ma-loto-add-form .ma-primary:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ma-loto-manager-list .ma-loto-thumb {
+  width: 44px;
+  height: 44px;
+}
+
+.ma-loto-manager-list .danger {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--danger-border);
+  border-radius: 10px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.ma-loto-manager-list .danger:hover:not(:disabled) {
+  border-color: var(--danger-strong);
+  background: #fde7e4;
+}
+
+.ma-loto-manager-list .danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ma-loto-danger {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 16px 18px;
+  padding: 16px;
+  border: 1px solid var(--danger-border);
+  border-radius: 12px;
+  background: var(--danger-soft);
+}
+
+.ma-loto-danger small {
+  flex: 1 1 220px;
+  color: var(--warn);
+  font-size: 12px;
+}
+
+.ma-loto-danger .danger {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--danger-strong);
+  border-radius: 10px;
+  background: var(--danger);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+
+.ma-loto-danger .danger:hover:not(:disabled) {
+  background: var(--danger-strong);
+  filter: brightness(1.04);
+}
+
+.ma-loto-danger .danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   6. Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .ma-loto-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ma-loto-add-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ma-loto-control-actions .ma-loto-draw {
+    flex-basis: 100%;
+    font-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ma-loto-control-actions button,
+  .ma-loto-control-actions .ma-loto-draw,
+  .ma-loto-led,
+  #ma-loto-refresh,
+  .ma-loto-manager-list .danger,
+  .ma-loto-danger .danger {
+    transition: none;
+  }
+
+  .ma-loto-control-actions .ma-loto-draw:active:not(:disabled) {
+    transform: none;
+  }
+}
